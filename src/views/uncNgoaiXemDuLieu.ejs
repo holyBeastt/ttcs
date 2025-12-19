@@ -9,6 +9,69 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+  <style>
+    .nav-tabs .nav-link {
+      cursor: pointer;
+    }
+    /* Nền form nhập (phần xung quanh các ô input) */
+    .card {
+      background-color: #ffffff !important;
+    }
+    .card-body {
+      background-color: #ffffff !important; /* Nền trắng cho form */
+    }
+    .tab-content {
+      background-color: #ffffff !important;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    form {
+      background-color: #ffffff;
+    }
+    .form-label {
+      font-weight: 500;
+      color: #0d6efd; /* Màu xanh cho label */
+      margin-bottom: 5px; /* Cách label với input một chút */
+      font-size: 0.9rem; /* Nhỏ lại */
+    }
+    .form-control {
+      background-color: #ffffff; /* Nền trắng cho ô input */
+      color: #212529; /* Chữ đen để dễ đọc */
+      border: 1px solid #0d6efd; /* Viền xanh */
+      margin-bottom: 8px; /* Cách các ô với nhau */
+      padding: 0.4rem 0.6rem; /* Giảm padding để ô nhỏ lại */
+      font-size: 0.875rem; /* Font nhỏ lại */
+      height: calc(1.5em + 0.8rem + 2px); /* Giảm chiều cao */
+    }
+    .form-control:focus {
+      background-color: #ffffff;
+      color: #212529;
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .form-control[readonly] {
+      background-color: #f8f9fa;
+      color: #212529;
+      border-color: #0d6efd;
+    }
+    .form-control::placeholder {
+      color: #6c757d;
+      font-size: 0.875rem;
+    }
+    .row.g-3 {
+      margin-left: -8px;
+      margin-right: -8px;
+    }
+    .row.g-3 > [class*="col-"] {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+  </style>
 </head>
 
 <body>
@@ -22,16 +85,587 @@
         </h5>
       </div>
       <div class="card-body">
-        <p class="mb-0">
-          Đây là trang <strong>xem dữ liệu UNC ngoài</strong>. Sau khi có cấu trúc bảng/nguồn dữ liệu cụ thể, mình sẽ hiển thị danh sách chi tiết tại đây.
-        </p>
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" id="uncTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="dong-hoc-phi-tab" data-bs-toggle="tab" data-bs-target="#dong-hoc-phi" type="button" role="tab">
+              <i class="fas fa-graduation-cap me-1"></i>Đóng học phí
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="mat-ma-tab" data-bs-toggle="tab" data-bs-target="#mat-ma" type="button" role="tab">
+              <i class="fas fa-key me-1"></i>Mật mã
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="uncTabContent">
+          <!-- Tab Đóng học phí -->
+          <div class="tab-pane fade show active" id="dong-hoc-phi" role="tabpanel">
+            <form id="form-dong-hoc-phi" class="row g-3">
+              <div class="col-md-2">
+                <label for="stt-dhp" class="form-label"><strong>STT</strong><span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="stt-dhp" name="stt" placeholder="Nhập STT" required>
+              </div>
+              <div class="col-md-4">
+                <label for="dvnt-dhp" class="form-label"><strong>Đơn vị nhận tiền</strong></label>
+                <input type="text" class="form-control" id="dvnt-dhp" name="dvnt" readonly>
+              </div>
+              <div class="col-md-3">
+                <label for="stk-dhp" class="form-label"><strong>Số tài khoản</strong></label>
+                <input type="text" class="form-control" id="stk-dhp" name="stk" readonly>
+              </div>
+              <div class="col-md-3">
+                <label for="nganhang-dhp" class="form-label"><strong>Tại ngân hàng</strong></label>
+                <input type="text" class="form-control" id="nganhang-dhp" name="nganhang" readonly>
+              </div>
+              <div class="col-md-3">
+                <label for="sotien-dhp" class="form-label"><strong>Số tiền</strong><span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="sotien-dhp" name="sotien" placeholder="Nhập số tiền" required>
+              </div>
+              <div class="col-md-9">
+                <label for="sotien-chu-dhp" class="form-label"><strong>Số tiền bằng chữ</strong></label>
+                <input type="text" class="form-control" id="sotien-chu-dhp" name="sotienchu" readonly>
+              </div>
+              <div class="col-md-12">
+                <label for="noidung-dhp" class="form-label"><strong>Nội dung chi</strong><span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="noidung-dhp" name="noidung" placeholder="Nhập nội dung chi" required>
+              </div>
+              <div class="col-12 mt-3">
+                <button type="button" class="btn btn-primary" onclick="saveUNCNgoaiDetail('dong-hoc-phi')">
+                  <i class="fas fa-save me-1"></i>Lưu
+                </button>
+                <button type="button" class="btn btn-success ms-2" onclick="exportExcel('dong-hoc-phi')">
+                  <i class="fas fa-file-excel me-1"></i>Xuất file Excel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tab Mật mã -->
+          <div class="tab-pane fade" id="mat-ma" role="tabpanel">
+            <form id="form-mat-ma" class="row g-3">
+              <div class="col-md-2">
+                <label for="stt-mm" class="form-label"><strong>STT</strong><span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="stt-mm" name="stt" placeholder="Nhập STT" required>
+              </div>
+              <div class="col-md-4">
+                <label for="dvnt-mm" class="form-label"><strong>Đơn vị nhận tiền</strong></label>
+                <input type="text" class="form-control" id="dvnt-mm" name="dvnt" readonly>
+              </div>
+              <div class="col-md-3">
+                <label for="stk-mm" class="form-label"><strong>Số tài khoản</strong></label>
+                <input type="text" class="form-control" id="stk-mm" name="stk" readonly>
+              </div>
+              <div class="col-md-3">
+                <label for="nganhang-mm" class="form-label"><strong>Tại ngân hàng</strong></label>
+                <input type="text" class="form-control" id="nganhang-mm" name="nganhang" readonly>
+              </div>
+              <div class="col-md-3">
+                <label for="sotien-mm" class="form-label"><strong>Số tiền</strong><span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="sotien-mm" name="sotien" placeholder="Nhập số tiền" required>
+              </div>
+              <div class="col-md-9">
+                <label for="sotien-chu-mm" class="form-label"><strong>Số tiền bằng chữ</strong></label>
+                <input type="text" class="form-control" id="sotien-chu-mm" name="sotienchu" readonly>
+              </div>
+              <div class="col-md-12">
+                <label for="noidung-mm" class="form-label"><strong>Nội dung chi</strong><span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="noidung-mm" name="noidung" placeholder="Nhập nội dung chi" required>
+              </div>
+              <div class="col-md-3">
+                <label for="manguonns-mm" class="form-label"><strong>Mã nguồn NS</strong></label>
+                <input type="text" class="form-control" id="manguonns-mm" name="manguonns" placeholder="Nhập mã nguồn NS">
+              </div>
+              <div class="col-md-3">
+                <label for="niendons-mm" class="form-label"><strong>Niên độ NS</strong></label>
+                <input type="text" class="form-control" id="niendons-mm" name="niendons" placeholder="Nhập niên độ NS">
+              </div>
+              <div class="col-md-6">
+                <label for="diachi-mm" class="form-label"><strong>Địa chỉ</strong></label>
+                <input type="text" class="form-control" id="diachi-mm" name="diachi" placeholder="Nhập địa chỉ">
+              </div>
+              <div class="col-md-4">
+                <label for="nguoinhantien-mm" class="form-label"><strong>Người nhận tiền</strong></label>
+                <input type="text" class="form-control" id="nguoinhantien-mm" name="nguoinhantien" placeholder="Nhập tên người nhận tiền">
+              </div>
+              <div class="col-md-3">
+                <label for="cccd-mm" class="form-label"><strong>CCCD</strong></label>
+                <input type="text" class="form-control" id="cccd-mm" name="cccd" placeholder="Nhập số CCCD">
+              </div>
+              <div class="col-md-3">
+                <label for="ngaycap-mm" class="form-label"><strong>Ngày cấp</strong></label>
+                <input type="date" class="form-control" id="ngaycap-mm" name="ngaycap">
+              </div>
+              <div class="col-md-2">
+                <label for="noicap-mm" class="form-label"><strong>Nơi cấp</strong></label>
+                <input type="text" class="form-control" id="noicap-mm" name="noicap" placeholder="Nhập nơi cấp">
+              </div>
+              <div class="col-12 mt-3">
+                <button type="button" class="btn btn-primary" onclick="saveUNCNgoaiDetail('mat-ma')">
+                  <i class="fas fa-save me-1"></i>Lưu
+                </button>
+                <button type="button" class="btn btn-success ms-2" onclick="exportExcel('mat-ma')">
+                  <i class="fas fa-file-excel me-1"></i>Xuất file Excel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Khi nhập STT, tự động load thông tin từ bảng uncngoai
+    document.getElementById('stt-dhp').addEventListener('blur', function() {
+      loadUNCNgoaiInfo(this.value, 'dong-hoc-phi');
+    });
+    document.getElementById('stt-mm').addEventListener('blur', function() {
+      loadUNCNgoaiInfo(this.value, 'mat-ma');
+    });
+
+    // Khi nhập số tiền, tự động chuyển sang chữ
+    document.getElementById('sotien-dhp').addEventListener('input', function() {
+      convertNumberToWords(this.value, 'dong-hoc-phi');
+    });
+    document.getElementById('sotien-mm').addEventListener('input', function() {
+      convertNumberToWords(this.value, 'mat-ma');
+    });
+
+    // Load thông tin từ bảng uncngoai theo STT
+    function loadUNCNgoaiInfo(stt, tabType) {
+      if (!stt || stt <= 0) return;
+
+      fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-uncngoai-info?stt=${stt}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.data) {
+            const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+            document.getElementById(`dvnt-${prefix}`).value = data.data.dvnt || '';
+            document.getElementById(`stk-${prefix}`).value = data.data.stk || '';
+            document.getElementById(`nganhang-${prefix}`).value = data.data.nganhang || '';
+          } else {
+            Swal.fire({
+              title: 'Thông báo',
+              text: data.message || 'Không tìm thấy thông tin với STT này',
+              icon: 'warning'
+            });
+            const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+            document.getElementById(`dvnt-${prefix}`).value = '';
+            document.getElementById(`stk-${prefix}`).value = '';
+            document.getElementById(`nganhang-${prefix}`).value = '';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    // Chuyển số tiền sang chữ
+    function convertNumberToWords(amount, tabType) {
+      if (!amount || amount <= 0) {
+        const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+        document.getElementById(`sotien-chu-${prefix}`).value = '';
+        return;
+      }
+
+      fetch('/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/convert-to-words', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount: parseInt(amount) })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+            document.getElementById(`sotien-chu-${prefix}`).value = data.words || '';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    // Lưu dữ liệu vào bảng uncngoaidetail
+    function saveUNCNgoaiDetail(tabType) {
+      const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+      const hedaotao = tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã';
+      
+      const formData = {
+        hedaotao,
+        stt: document.getElementById(`stt-${prefix}`).value,
+        dvnt: document.getElementById(`dvnt-${prefix}`).value,
+        stk: document.getElementById(`stk-${prefix}`).value,
+        nganhang: document.getElementById(`nganhang-${prefix}`).value,
+        sotien: document.getElementById(`sotien-${prefix}`).value,
+        noidung: document.getElementById(`noidung-${prefix}`).value
+      };
+
+      // Validate
+      if (!formData.stt || !formData.sotien || !formData.noidung) {
+        Swal.fire({
+          title: 'Thông báo',
+          text: 'Vui lòng nhập đầy đủ STT, Số tiền và Nội dung chi',
+          icon: 'warning'
+        });
+        return;
+      }
+
+      // Nếu là tab Mật mã, thêm các trường khác
+      if (tabType === 'mat-ma') {
+        formData.manguonns = document.getElementById('manguonns-mm').value || null;
+        formData.niendons = document.getElementById('niendons-mm').value || null;
+        formData.diachi = document.getElementById('diachi-mm').value || null;
+        formData.nguoinhantien = document.getElementById('nguoinhantien-mm').value || null;
+        formData.cccd = document.getElementById('cccd-mm').value || null;
+        formData.ngaycap = document.getElementById('ngaycap-mm').value || null;
+        formData.noicap = document.getElementById('noicap-mm').value || null;
+      }
+
+      fetch('/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              title: 'Thành công',
+              text: data.message || 'Đã lưu dữ liệu thành công',
+              icon: 'success'
+            });
+            // Reset form
+            document.getElementById(`form-${tabType}`).reset();
+            const prefixReset = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+            document.getElementById(`dvnt-${prefixReset}`).value = '';
+            document.getElementById(`stk-${prefixReset}`).value = '';
+            document.getElementById(`nganhang-${prefixReset}`).value = '';
+          } else {
+            Swal.fire({
+              title: 'Lỗi',
+              text: data.message || 'Không thể lưu dữ liệu',
+              icon: 'error'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Lỗi',
+            text: 'Có lỗi xảy ra khi lưu dữ liệu',
+            icon: 'error'
+          });
+        });
+    }
+
+    // Xuất file Excel - hiển thị modal với danh sách
+    function exportExcel(tabType) {
+      const hedaotao = tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã';
+      
+      // Tạo HTML cho modal
+      const isMatMa = tabType === 'mat-ma';
+      const modalHtml = `
+        <div class="mb-3">
+          <label class="form-label"><strong>Niên độ NS</strong></label>
+          <input type="text" class="form-control" id="niendons-filter" placeholder="Nhập niên độ NS (để trống để xem tất cả)">
+        </div>
+        ${isMatMa ? `
+        <div class="mb-3">
+          <label class="form-label"><strong>Tài khoản thanh toán</strong><span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="tai-khoan-thanh-toan" placeholder="Nhập tài khoản thanh toán">
+        </div>
+        ` : ''}
+        <div class="mb-3">
+          <button type="button" class="btn btn-sm btn-primary" onclick="loadUNCNgoaiDetailList('${tabType}')">
+            <i class="fas fa-search me-1"></i>Tìm kiếm
+          </button>
+        </div>
+        <div id="unc-detail-list-container" style="max-height: 400px; overflow-y: auto;">
+          <p class="text-muted">Vui lòng nhập niên độ NS và nhấn Tìm kiếm</p>
+        </div>
+      `;
+
+      // Lưu tabType vào window để dùng trong các hàm khác
+      window.currentTabType = tabType;
+      window.currentHedaoTao = hedaotao;
+
+      Swal.fire({
+        title: `Xuất file Excel - ${hedaotao}`,
+        html: modalHtml,
+        width: '800px',
+        showCancelButton: true,
+        confirmButtonText: 'Xuất file',
+        cancelButtonText: 'Xóa bản ghi',
+        showDenyButton: true,
+        denyButtonText: 'Đóng',
+        didOpen: () => {
+          // Đảm bảo các hàm có thể truy cập được modal
+          window.swalModal = Swal.getContainer();
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Xuất file Excel - lấy danh sách được chọn từ modal
+          const selectedIds = getSelectedUNCDetailIds();
+          if (selectedIds.length === 0) {
+            Swal.fire({
+              title: 'Thông báo',
+              text: 'Vui lòng chọn ít nhất một bản ghi để xuất',
+              icon: 'warning'
+            });
+            return;
+          }
+          
+          // Lấy tài khoản thanh toán nếu là tab Mật mã
+          let taiKhoanThanhToan = '';
+          if (tabType === 'mat-ma') {
+            const taiKhoanInput = document.getElementById('tai-khoan-thanh-toan');
+            if (taiKhoanInput) {
+              taiKhoanThanhToan = taiKhoanInput.value.trim();
+              if (!taiKhoanThanhToan) {
+                Swal.fire({
+                  title: 'Thông báo',
+                  text: 'Vui lòng nhập Tài khoản thanh toán',
+                  icon: 'warning'
+                });
+                return;
+              }
+            }
+          }
+          
+          exportSelectedToExcel(tabType, selectedIds, taiKhoanThanhToan);
+        } else if (result.isDenied) {
+          // Xóa bản ghi - lấy danh sách được chọn từ modal
+          const selectedIds = getSelectedUNCDetailIds();
+          if (selectedIds.length === 0) {
+            Swal.fire({
+              title: 'Thông báo',
+              text: 'Vui lòng chọn ít nhất một bản ghi để xóa',
+              icon: 'warning'
+            });
+            return;
+          }
+          deleteSelectedUNCDetail(selectedIds);
+        }
+      });
+    }
+
+    // Load danh sách UNC ngoài detail
+    function loadUNCNgoaiDetailList(tabType) {
+      const hedaotao = tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã';
+      const niendons = document.getElementById('niendons-filter').value.trim();
+
+      fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-detail-list?hedaotao=${encodeURIComponent(hedaotao)}${niendons ? '&niendons=' + encodeURIComponent(niendons) : ''}`)
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            throw new Error(data.message || 'Không thể tải danh sách');
+          }
+
+          const container = document.getElementById('unc-detail-list-container');
+          if (!data.data || data.data.length === 0) {
+            container.innerHTML = '<p class="text-muted">Không có dữ liệu</p>';
+            return;
+          }
+
+          let html = `
+            <table class="table table-sm table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 50px;">Chọn</th>
+                  <th style="width: 80px;">Số UNC</th>
+                  <th>Đơn vị nhận tiền</th>
+                  <th>Nội dung chi</th>
+                  <th style="width: 120px;">Ngày nhập</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          data.data.forEach(row => {
+            // Format ngày nhập
+            let ngayNhap = '';
+            if (row.ngaynhap) {
+              const date = new Date(row.ngaynhap);
+              ngayNhap = date.toLocaleDateString('vi-VN');
+            }
+            
+            html += `
+              <tr>
+                <td class="text-center">
+                  <input type="checkbox" class="form-check-input unc-detail-checkbox" value="${row.sounc}" data-stt="${row.stt}" data-niendons="${row.niendons || ''}">
+                </td>
+                <td>${row.sounc || ''}</td>
+                <td>${row.dvnt || ''}</td>
+                <td>${row.noidung || ''}</td>
+                <td>${ngayNhap}</td>
+              </tr>
+            `;
+          });
+
+          html += `
+              </tbody>
+            </table>
+            <div class="mt-2">
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAllUNCDetail()">Chọn tất cả</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllUNCDetail()">Bỏ chọn tất cả</button>
+            </div>
+          `;
+
+          container.innerHTML = html;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Lỗi',
+            text: error.message || 'Có lỗi xảy ra khi tải danh sách',
+            icon: 'error'
+          });
+        });
+    }
+
+    // Lấy danh sách ID được chọn
+    function getSelectedUNCDetailIds() {
+      // Tìm trong modal SweetAlert hoặc trong document
+      const modal = document.querySelector('.swal2-container');
+      const scope = modal || document;
+      const checkboxes = scope.querySelectorAll('.unc-detail-checkbox:checked');
+      return Array.from(checkboxes).map(cb => ({
+        sounc: parseInt(cb.value),
+        stt: parseInt(cb.dataset.stt),
+        niendons: cb.dataset.niendons || null
+      }));
+    }
+
+    // Chọn tất cả
+    function selectAllUNCDetail() {
+      const modal = document.querySelector('.swal2-container');
+      const scope = modal || document;
+      scope.querySelectorAll('.unc-detail-checkbox').forEach(cb => cb.checked = true);
+    }
+
+    // Bỏ chọn tất cả
+    function deselectAllUNCDetail() {
+      const modal = document.querySelector('.swal2-container');
+      const scope = modal || document;
+      scope.querySelectorAll('.unc-detail-checkbox').forEach(cb => cb.checked = false);
+    }
+
+    // Xóa các bản ghi được chọn
+    function deleteSelectedUNCDetail(selectedIds) {
+      Swal.fire({
+        title: 'Xác nhận xóa',
+        text: `Bạn có chắc chắn muốn xóa ${selectedIds.length} bản ghi đã chọn?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        fetch('/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/delete-selected', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ids: selectedIds })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Thành công',
+                text: data.message || 'Đã xóa các bản ghi thành công',
+                icon: 'success'
+              });
+              // Reload danh sách
+              loadUNCNgoaiDetailList(window.currentTabType);
+            } else {
+              Swal.fire({
+                title: 'Lỗi',
+                text: data.message || 'Không thể xóa các bản ghi',
+                icon: 'error'
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+              title: 'Lỗi',
+              text: 'Có lỗi xảy ra khi xóa các bản ghi',
+              icon: 'error'
+            });
+          });
+      });
+    }
+
+    // Xuất file Excel cho các bản ghi được chọn
+    function exportSelectedToExcel(tabType, selectedIds, taiKhoanThanhToan = '') {
+      const hedaotao = tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã';
+
+      Swal.fire({
+        title: 'Đang xuất file...',
+        text: 'Vui lòng chờ trong giây lát',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch('/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/export-excel-selected', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          hedaotao,
+          ids: selectedIds,
+          taiKhoanThanhToan: taiKhoanThanhToan || null
+        })
+      })
+        .then(response => {
+          if (response.ok) {
+            return response.blob();
+          } else {
+            return response.json().then(data => {
+              throw new Error(data.message || 'Có lỗi xảy ra');
+            });
+          }
+        })
+        .then(blob => {
+          Swal.close();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `UNC_ngoai_${hedaotao}_${new Date().getTime()}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          Swal.fire({
+            title: 'Thành công',
+            text: 'Đã xuất file Excel thành công',
+            icon: 'success'
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Lỗi',
+            text: error.message || 'Có lỗi xảy ra khi xuất file Excel',
+            icon: 'error'
+          });
+        });
+    }
+  </script>
 </body>
 
 </html>
-
-
