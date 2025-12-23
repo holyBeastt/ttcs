@@ -1573,6 +1573,29 @@ const taiUyNhiemChiController = {
         });
       }
 
+      // Lấy STT lớn nhất hiện tại trong CSDL để tính STT sẽ được gán
+      let connection;
+      try {
+        connection = await createPoolConnection();
+        const [maxSttRows] = await connection.execute(`
+          SELECT IFNULL(MAX(stt), 0) AS maxStt
+          FROM uncngoai
+        `);
+        const maxStt = maxSttRows && maxSttRows.length > 0 && maxSttRows[0].maxStt ? maxSttRows[0].maxStt : 0;
+
+        // Gán STT thật sẽ được lưu vào CSDL cho từng dòng
+        importedData.forEach((row, index) => {
+          row.stt = maxStt + index + 1;
+        });
+      } catch (dbError) {
+        console.error('Error getting max STT:', dbError);
+        // Nếu lỗi, vẫn trả về dữ liệu nhưng không có STT thật
+      } finally {
+        if (connection) {
+          await connection.release();
+        }
+      }
+
       return res.json({
         success: true,
         message: `Đã import ${importedData.length} dòng dữ liệu`,
