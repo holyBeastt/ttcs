@@ -35,6 +35,15 @@ const upload = multer({
   }
 });
 
+// Multer cho import file (sử dụng memoryStorage để đọc từ buffer)
+const uploadMemory = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // Giới hạn 10MB
+  }
+});
+
 // Routes cho Tải ủy nhiệm chi (UNC hệ thống - UNC mời giảng)
 router.get('/tai-uy-nhiem-chi', taiUyNhiemChiController.getTaiUyNhiemChiPage);
 router.post('/api/download', taiUyNhiemChiController.downloadUyNhiemChi);
@@ -61,6 +70,33 @@ router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/create', taiUyNhiemChiControl
 router.get('/unc-ngoai/nhap-du-lieu/giao-dien/api/list', taiUyNhiemChiController.getUNCNgoaiList);
 router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/update', taiUyNhiemChiController.updateUNCNgoaiRecord);
 router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/delete', taiUyNhiemChiController.deleteUNCNgoaiRecord);
+
+// API cho UNC ngoài - Import file
+router.post('/unc-ngoai/nhap-du-lieu/import-file/api/import', (req, res, next) => {
+  uploadMemory.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'File quá lớn. Kích thước tối đa là 10MB.'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Lỗi upload file: ' + err.message
+      });
+    } else if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+    next();
+  });
+}, taiUyNhiemChiController.importUNCNgoaiExcel);
+router.post('/unc-ngoai/nhap-du-lieu/import-file/api/save-all', taiUyNhiemChiController.saveAllImportedUNCNgoai);
+router.post('/unc-ngoai/nhap-du-lieu/import-file/api/export', taiUyNhiemChiController.exportUNCNgoaiExcel);
+router.get('/unc-ngoai/nhap-du-lieu/import-file/api/export-from-db', taiUyNhiemChiController.exportUNCNgoaiExcelFromDB);
 
 // Routes cho Sửa mẫu ủy nhiệm (Mẫu đóng HP)
 router.get('/sua-mau-uy-nhiem', suaMauUyNhiemController.getSuaMauUyNhiemPage);
