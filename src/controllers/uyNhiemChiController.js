@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
+const XLSX = require('xlsx');
 const createPoolConnection = require('../config/databasePool');
 
 // Đường dẫn thư mục templates
@@ -648,7 +649,7 @@ const taiUyNhiemChiController = {
     }
   },
 
-  // UNC ngoài - Nhập dữ liệu - Import file
+  // UNC ngoài - Thêm người thụ hưởng - Import file
   getUNCNgoaiImportFilePage: (req, res) => {
     try {
       res.render('uncNgoaiImportFile', {
@@ -661,7 +662,7 @@ const taiUyNhiemChiController = {
     }
   },
 
-  // UNC ngoài - Nhập dữ liệu - Giao diện
+  // UNC ngoài - Thêm người thụ hưởng - Giao diện
   getUNCNgoaiGiaoDienPage: async (req, res) => {
     let connection;
     try {
@@ -1271,12 +1272,12 @@ const taiUyNhiemChiController = {
     }
   },
 
-  // API tạo bản ghi UNC ngoài (nhập dữ liệu thủ công)
+  // API tạo bản ghi UNC ngoài (thêm người thụ hưởng thủ công)
   createUNCNgoaiRecord: async (req, res) => {
     let connection;
     try {
       // Đặt tên biến và cột không dấu để đồng bộ với frontend và database
-      const { dvnt, stk, nganhang } = req.body || {};
+      let { dvnt, stk, nganhang } = req.body || {};
 
       if (!dvnt || !stk || !nganhang) {
         return res.status(400).json({
@@ -1285,7 +1286,35 @@ const taiUyNhiemChiController = {
         });
       }
 
+      // Trim 2 đầu của các trường
+      dvnt = String(dvnt).trim();
+      stk = String(stk).trim();
+      nganhang = String(nganhang).trim();
+
+      // Validate lại sau khi trim
+      if (!dvnt || !stk || !nganhang) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng nhập đầy đủ Đơn vị nhận tiền, Số tài khoản và Ngân hàng'
+        });
+      }
+
       connection = await createPoolConnection();
+
+      // Kiểm tra xem người thụ hưởng đã tồn tại chưa (cả 3 cột đều trùng)
+      const [existing] = await connection.execute(
+        `SELECT stt, dvnt, stk, nganhang 
+         FROM uncngoai 
+         WHERE TRIM(dvnt) = ? AND TRIM(stk) = ? AND TRIM(nganhang) = ?`,
+        [dvnt, stk, nganhang]
+      );
+
+      if (existing.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Người thụ hưởng đã tồn tại với id ${existing[0].stt}`
+        });
+      }
 
       // Lấy STT tiếp theo từ bảng
       const [sttRows] = await connection.execute(`
@@ -1427,6 +1456,344 @@ const taiUyNhiemChiController = {
       return res.status(500).json({
         success: false,
         message: 'Lỗi server khi xóa dữ liệu UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API import file Excel cho UNC ngoài
+  importUNCNgoaiExcel: async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng chọn file Excel'
+        });
+      }
+
+      // Đọc file Excel từ buffer
+      const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+
+      // Chuyển sheet thành mảng 2D
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+      if (rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'File Excel không có dữ liệu'
+        });
+      }
+
+      // Tìm dòng tiêu đề
+      let headerRowIndex = -1;
+      let sttColIndex = -1;
+      let tenKhachHangColIndex = -1;
+      let soTaiKhoanColIndex = -1;
+      let tenNganHangColIndex = -1;
+
+      // Tìm dòng có chứa các tiêu đề cần thiết
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i].map(cell => String(cell || '').trim());
+        
+        // Tìm các cột tiêu đề
+        const sttIdx = row.findIndex(cell => 
+          cell.toLowerCase().includes('stt') || 
+          cell.toLowerCase() === 'số thứ tự'
+        );
+        const tenKhIdx = row.findIndex(cell => 
+          cell.toLowerCase().includes('tên khách hàng') ||
+          cell.toLowerCase().includes('ten khach hang') ||
+          cell.toLowerCase().includes('đơn vị nhận tiền') ||
+          cell.toLowerCase().includes('don vi nhan tien')
+        );
+        const stkIdx = row.findIndex(cell => 
+          cell.toLowerCase().includes('số tài khoản') ||
+          cell.toLowerCase().includes('so tai khoan') ||
+          cell.toLowerCase().includes('stk')
+        );
+        const tenNhIdx = row.findIndex(cell => 
+          cell.toLowerCase().includes('tên ngân hàng') ||
+          cell.toLowerCase().includes('ten ngan hang') ||
+          cell.toLowerCase().includes('ngân hàng') ||
+          cell.toLowerCase().includes('ngan hang')
+        );
+
+        if (sttIdx !== -1 && tenKhIdx !== -1 && stkIdx !== -1 && tenNhIdx !== -1) {
+          headerRowIndex = i;
+          sttColIndex = sttIdx;
+          tenKhachHangColIndex = tenKhIdx;
+          soTaiKhoanColIndex = stkIdx;
+          tenNganHangColIndex = tenNhIdx;
+          break;
+        }
+      }
+
+      if (headerRowIndex === -1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không tìm thấy dòng tiêu đề chứa: STT, Tên khách hàng, Số tài khoản, Tên ngân hàng'
+        });
+      }
+
+      // Đọc dữ liệu từ dòng sau tiêu đề
+      const dataRows = rows.slice(headerRowIndex + 1);
+      const importedData = [];
+
+      dataRows.forEach((row, index) => {
+        // Chuyển row thành mảng và lấy giá trị
+        const rowArray = Array.isArray(row) ? row : [];
+        
+        const stt = rowArray[sttColIndex] ? String(rowArray[sttColIndex]).trim() : '';
+        const tenKhachHang = rowArray[tenKhachHangColIndex] ? String(rowArray[tenKhachHangColIndex]).trim() : '';
+        const soTaiKhoan = rowArray[soTaiKhoanColIndex] ? String(rowArray[soTaiKhoanColIndex]).trim() : '';
+        const tenNganHang = rowArray[tenNganHangColIndex] ? String(rowArray[tenNganHangColIndex]).trim() : '';
+
+        // Bỏ qua dòng trống
+        if (!stt && !tenKhachHang && !soTaiKhoan && !tenNganHang) {
+          return;
+        }
+
+        importedData.push({
+          stt: stt ? parseInt(stt) || stt : '',
+          tenkhachhang: tenKhachHang,
+          sotaikhoan: soTaiKhoan,
+          tennganhang: tenNganHang
+        });
+      });
+
+      if (importedData.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không có dữ liệu hợp lệ trong file Excel'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: `Đã import ${importedData.length} dòng dữ liệu`,
+        data: importedData
+      });
+    } catch (error) {
+      console.error('Error in importUNCNgoaiExcel:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi import file Excel: ' + error.message
+      });
+    }
+  },
+
+  // API lưu tất cả dữ liệu import vào CSDL
+  saveAllImportedUNCNgoai: async (req, res) => {
+    let connection;
+    try {
+      const { data } = req.body;
+
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không có dữ liệu để lưu'
+        });
+      }
+
+      connection = await createPoolConnection();
+      await connection.beginTransaction();
+
+      // Lấy STT lớn nhất hiện tại trong CSDL
+      const [maxSttRows] = await connection.execute(`
+        SELECT IFNULL(MAX(stt), 0) AS maxStt
+        FROM uncngoai
+      `);
+      let currentStt = maxSttRows && maxSttRows.length > 0 && maxSttRows[0].maxStt ? maxSttRows[0].maxStt : 0;
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors = [];
+
+      for (const row of data) {
+        try {
+          const { tenkhachhang, sotaikhoan, tennganhang } = row;
+
+          // Validate các trường bắt buộc (không validate STT vì sẽ tự động tăng)
+          if (!tenkhachhang || !sotaikhoan || !tennganhang) {
+            errorCount++;
+            errors.push(`Dòng ${successCount + errorCount + 1}: Thiếu thông tin bắt buộc (Tên khách hàng, Số tài khoản, Tên ngân hàng)`);
+            continue;
+          }
+
+          // Tự động tăng STT
+          currentStt += 1;
+
+          // Insert mới với STT tự động
+          await connection.execute(
+            `INSERT INTO uncngoai (stt, dvnt, stk, nganhang) VALUES (?, ?, ?, ?)`,
+            [currentStt, tenkhachhang, sotaikhoan, tennganhang]
+          );
+
+          successCount++;
+        } catch (rowError) {
+          errorCount++;
+          errors.push(`Dòng ${successCount + errorCount}: ${rowError.message}`);
+        }
+      }
+
+      await connection.commit();
+
+      return res.json({
+        success: true,
+        message: `Đã lưu ${successCount} dòng thành công${errorCount > 0 ? `, ${errorCount} dòng lỗi` : ''}`,
+        successCount,
+        errorCount,
+        errors: errorCount > 0 ? errors : undefined
+      });
+    } catch (error) {
+      if (connection) {
+        await connection.rollback();
+      }
+      console.error('Error in saveAllImportedUNCNgoai:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lưu dữ liệu: ' + error.message
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API xuất file Excel cho UNC ngoài
+  exportUNCNgoaiExcel: async (req, res) => {
+    try {
+      const { data } = req.body;
+
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không có dữ liệu để xuất'
+        });
+      }
+
+      // Tạo workbook mới
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('UNC ngoài');
+
+      // Định nghĩa cột
+      worksheet.columns = [
+        { header: 'STT', key: 'stt', width: 10 },
+        { header: 'Tên khách hàng', key: 'tenkhachhang', width: 40 },
+        { header: 'Số tài khoản', key: 'sotaikhoan', width: 20 },
+        { header: 'Tên ngân hàng', key: 'tennganhang', width: 30 }
+      ];
+
+      // Style cho header
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+
+      // Thêm dữ liệu
+      data.forEach(row => {
+        worksheet.addRow({
+          stt: row.stt || '',
+          tenkhachhang: row.tenkhachhang || '',
+          sotaikhoan: row.sotaikhoan || '',
+          tennganhang: row.tennganhang || ''
+        });
+      });
+
+      // Căn giữa cột STT
+      worksheet.getColumn('stt').alignment = { horizontal: 'center' };
+
+      // Set response headers
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=UNC_ngoai_${new Date().getTime()}.xlsx`);
+
+      // Ghi file vào response
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error('Error in exportUNCNgoaiExcel:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi xuất file Excel: ' + error.message
+      });
+    }
+  },
+
+  // API xuất file Excel từ CSDL bảng uncngoai
+  exportUNCNgoaiExcelFromDB: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+
+      // Lấy tất cả dữ liệu từ bảng uncngoai
+      const [rows] = await connection.execute(
+        `SELECT stt, dvnt AS tenkhachhang, stk AS sotaikhoan, nganhang AS tennganhang 
+         FROM uncngoai 
+         ORDER BY stt`
+      );
+
+      if (!rows || rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không có dữ liệu trong CSDL để xuất'
+        });
+      }
+
+      // Tạo workbook mới
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('UNC ngoài');
+
+      // Định nghĩa cột
+      worksheet.columns = [
+        { header: 'STT', key: 'stt', width: 10 },
+        { header: 'Tên khách hàng', key: 'tenkhachhang', width: 40 },
+        { header: 'Số tài khoản', key: 'sotaikhoan', width: 20 },
+        { header: 'Tên ngân hàng', key: 'tennganhang', width: 30 }
+      ];
+
+      // Style cho header
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+
+      // Thêm dữ liệu từ CSDL
+      rows.forEach(row => {
+        worksheet.addRow({
+          stt: row.stt || '',
+          tenkhachhang: row.tenkhachhang || '',
+          sotaikhoan: row.sotaikhoan || '',
+          tennganhang: row.tennganhang || ''
+        });
+      });
+
+      // Căn giữa cột STT
+      worksheet.getColumn('stt').alignment = { horizontal: 'center' };
+
+      // Set response headers
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=UNC_ngoai_${new Date().getTime()}.xlsx`);
+
+      // Ghi file vào response
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error('Error in exportUNCNgoaiExcelFromDB:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi xuất file Excel: ' + error.message
       });
     } finally {
       if (connection) {
