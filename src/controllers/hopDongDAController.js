@@ -540,7 +540,7 @@ GROUP BY
       }
       const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
+      const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
@@ -549,7 +549,7 @@ GROUP BY
 
       const tienText1 = soTiet * mucTien; // Tính tổng tiền theo học vị (để tham khảo)
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText1 = tienText1 <= 2000000 ? 0 : Math.round(tienText1 * 0.1);
+      const tienThueText1 = tienText1 < 2000000 ? 0 : Math.round(tienText1 * 0.1);
       const tienThucNhanText1 = tienText1 - tienThueText1;
 
       let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim(); // Ghi dữ liệu cho thống kê chuyển khoản
@@ -684,9 +684,9 @@ GROUP BY
     // Tạo file Excel báo cáo thuế
     const taxReportData = summaryData.map((item, index) => {
       // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
-      const tienTruocThue = item.TongTien || (item.ThucNhan <= 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
+      const tienTruocThue = item.TongTien || (item.ThucNhan < 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
       // Nếu số tiền <= 2 triệu thì không có thuế
-      const thuePhaiTra = tienTruocThue <= 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu <= 2 triệu)
+      const thuePhaiTra = tienTruocThue < 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu < 2 triệu)
 
       return {
         stt: index + 1,
@@ -1127,7 +1127,7 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
 
     const tienText = soTiet * 100000;
     // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-    const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
+    const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
     const tienThucNhanText = tienText - tienThueText;
     const thoiGianThucHien = formatDateRange(
       teacher.NgayBatDau,
@@ -1136,7 +1136,7 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
 
     const tienText1 = soTiet * mucTien; // Tính tổng tiền
     // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-    const tienThueText1 = tienText1 <= 2000000 ? 0 : Math.round(tienText1 * 0.1);
+    const tienThueText1 = tienText1 < 2000000 ? 0 : Math.round(tienText1 * 0.1);
     const tienThucNhanText1 = tienText1 - tienThueText1;
 
     let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();

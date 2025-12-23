@@ -20,214 +20,214 @@ async function loadPDFMerger() {
 }
 // Hàm định dạng ngày/tháng/năm
 const formatDate1 = (date) => {
-    try {
-      if (!date) return "";
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return "";
-  
-      const day = d.getDate().toString().padStart(2, "0");
-      const month = (d.getMonth() + 1).toString().padStart(2, "0");
-      const year = d.getFullYear();
-  
-      return `${day}/${month}/${year}`; // Định dạng ngày/tháng/năm
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "";
-    }
-  };
-  
-  // Hàm định dạng ngày tháng năm
-  const formatDate = (date) => {
-    try {
-      if (!date) return "";
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return "";
-  
-      const day = d.getDate().toString().padStart(2, "0");
-      const month = (d.getMonth() + 1).toString().padStart(2, "0");
-      const year = d.getFullYear();
-  
-      return `ngày ${day} tháng ${month} năm ${year}`; // Định dạng ngày tháng năm
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "";
-    }
-  };
-  // Tính toán khoảng thời gian thực hiện
-  const formatDateRange = (startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-  
-    // Định dạng ngày bắt đầu
-    const startDay = start.getDate().toString().padStart(2, "0");
-    const startMonth = (start.getMonth() + 1).toString().padStart(2, "0");
-    const startYear = start.getFullYear();
-  
-    // Định dạng ngày kết thúc
-    const endDay = end.getDate().toString().padStart(2, "0");
-    const endMonth = (end.getMonth() + 1).toString().padStart(2, "0");
-    const endYear = end.getFullYear();
-  
-    return `Từ ngày ${startDay}/${startMonth}/${startYear} đến ngày ${endDay}/${endMonth}/${endYear}`;
-  };
-  function sanitizeFileName(fileName) {
-    return fileName
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-      .replace(/[^a-zA-Z0-9_\-.]/g, '_') // Replace special chars with underscore
-      .replace(/_+/g, '_') // Collapse multiple underscores
-      .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
-  }
-
-function convertToRoman(num) {
-    const romanNumerals = [
-      { value: 10, numeral: "X" },
-      { value: 9, numeral: "IX" },
-      { value: 8, numeral: "VIII" },
-      { value: 7, numeral: "VII" },
-      { value: 6, numeral: "VI" },
-      { value: 5, numeral: "V" },
-      { value: 4, numeral: "IV" },
-      { value: 3, numeral: "III" },
-      { value: 2, numeral: "II" },
-      { value: 1, numeral: "I" },
-    ];
-  
-    return romanNumerals
-      .filter((r) => num >= r.value)
-      .map((r) => {
-        const times = Math.floor(num / r.value);
-        num -= times * r.value;
-        return r.numeral.repeat(times);
-      })
-      .join("");
-  }
-  // Hàm chuyển đổi số thành chữ
-  const numberToWords = (num) => {
-    if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
-  
-    const ones = [
-      "",
-      "một",
-      "hai",
-      "ba",
-      "bốn",
-      "năm",
-      "sáu",
-      "bảy",
-      "tám",
-      "chín",
-    ];
-    const teens = [
-      "mười",
-      "mười một",
-      "mười hai",
-      "mười ba",
-      "mười bốn",
-      "mười lăm",
-      "mười sáu",
-      "mười bảy",
-      "mười tám",
-      "mười chín",
-    ];
-    const tens = [
-      "",
-      "",
-      "hai mươi",
-      "ba mươi",
-      "bốn mươi",
-      "năm mươi",
-      "sáu mươi",
-      "bảy mươi",
-      "tám mươi",
-      "chín mươi",
-    ];
-    const thousands = ["", "nghìn", "triệu", "tỷ"];
-  
-    let words = "";
-    let unitIndex = 0;
-  
-    while (num > 0) {
-      const chunk = num % 1000;
-      if (chunk) {
-        let chunkWords = [];
-        const hundreds = Math.floor(chunk / 100);
-        const remainder = chunk % 100;
-  
-        // Xử lý hàng trăm
-        if (hundreds) {
-          chunkWords.push(ones[hundreds]);
-          chunkWords.push("trăm");
-        }
-  
-        // Xử lý phần dư (tens và ones)
-        if (remainder < 10) {
-          if (remainder > 0) {
-            if (hundreds) chunkWords.push("lẻ");
-            chunkWords.push(ones[remainder]);
-          }
-        } else if (remainder < 20) {
-          chunkWords.push(teens[remainder - 10]);
-        } else {
-          const tenPlace = Math.floor(remainder / 10);
-          const onePlace = remainder % 10;
-  
-          chunkWords.push(tens[tenPlace]);
-          if (onePlace === 1 && tenPlace > 1) {
-            chunkWords.push("mốt");
-          } else if (onePlace === 5 && tenPlace > 0) {
-            chunkWords.push("lăm");
-          } else if (onePlace) {
-            chunkWords.push(ones[onePlace]);
-          }
-        }
-  
-        // Thêm đơn vị nghìn, triệu, tỷ
-        if (unitIndex > 0) {
-          chunkWords.push(thousands[unitIndex]);
-        }
-  
-        words = chunkWords.join(" ") + " " + words;
-      }
-      num = Math.floor(num / 1000);
-      unitIndex++;
-    }
-  
-    // Hàm viết hoa chữ cái đầu tiên
-    const capitalizeFirstLetter = (str) =>
-      str.charAt(0).toUpperCase() + str.slice(1);
-  
-    return capitalizeFirstLetter(words.trim() + " đồng");
-  };
-  
-  function formatVietnameseDate(date) {
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `ngày ${day} tháng ${month} năm ${year}`;
-  }
-  function formatDateDMY(date) {
+  try {
+    if (!date) return "";
     const d = new Date(date);
+    if (isNaN(d.getTime())) return "";
+
     const day = d.getDate().toString().padStart(2, "0");
     const month = (d.getMonth() + 1).toString().padStart(2, "0");
     const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+
+    return `${day}/${month}/${year}`; // Định dạng ngày/tháng/năm
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
   }
-  const getTienLuongList = async (connection) => {
-    const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienluong`;
-    const [tienLuongList] = await connection.execute(query);
-    return tienLuongList;
-  };
-  function tinhSoTien(row, soTiet, tienLuongList) {
-    const tienLuong = tienLuongList.find(
-      (tl) => tl.he_dao_tao === row.he_dao_tao && tl.HocVi === row.HocVi
-    );
-    if (tienLuong) {
-      return soTiet * tienLuong.SoTien;
-    } else {
-      return 0;
+};
+
+// Hàm định dạng ngày tháng năm
+const formatDate = (date) => {
+  try {
+    if (!date) return "";
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "";
+
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+
+    return `ngày ${day} tháng ${month} năm ${year}`; // Định dạng ngày tháng năm
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
+  }
+};
+// Tính toán khoảng thời gian thực hiện
+const formatDateRange = (startDate, endDate) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Định dạng ngày bắt đầu
+  const startDay = start.getDate().toString().padStart(2, "0");
+  const startMonth = (start.getMonth() + 1).toString().padStart(2, "0");
+  const startYear = start.getFullYear();
+
+  // Định dạng ngày kết thúc
+  const endDay = end.getDate().toString().padStart(2, "0");
+  const endMonth = (end.getMonth() + 1).toString().padStart(2, "0");
+  const endYear = end.getFullYear();
+
+  return `Từ ngày ${startDay}/${startMonth}/${startYear} đến ngày ${endDay}/${endMonth}/${endYear}`;
+};
+function sanitizeFileName(fileName) {
+  return fileName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[^a-zA-Z0-9_\-.]/g, '_') // Replace special chars with underscore
+    .replace(/_+/g, '_') // Collapse multiple underscores
+    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+}
+
+function convertToRoman(num) {
+  const romanNumerals = [
+    { value: 10, numeral: "X" },
+    { value: 9, numeral: "IX" },
+    { value: 8, numeral: "VIII" },
+    { value: 7, numeral: "VII" },
+    { value: 6, numeral: "VI" },
+    { value: 5, numeral: "V" },
+    { value: 4, numeral: "IV" },
+    { value: 3, numeral: "III" },
+    { value: 2, numeral: "II" },
+    { value: 1, numeral: "I" },
+  ];
+
+  return romanNumerals
+    .filter((r) => num >= r.value)
+    .map((r) => {
+      const times = Math.floor(num / r.value);
+      num -= times * r.value;
+      return r.numeral.repeat(times);
+    })
+    .join("");
+}
+// Hàm chuyển đổi số thành chữ
+const numberToWords = (num) => {
+  if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
+
+  const ones = [
+    "",
+    "một",
+    "hai",
+    "ba",
+    "bốn",
+    "năm",
+    "sáu",
+    "bảy",
+    "tám",
+    "chín",
+  ];
+  const teens = [
+    "mười",
+    "mười một",
+    "mười hai",
+    "mười ba",
+    "mười bốn",
+    "mười lăm",
+    "mười sáu",
+    "mười bảy",
+    "mười tám",
+    "mười chín",
+  ];
+  const tens = [
+    "",
+    "",
+    "hai mươi",
+    "ba mươi",
+    "bốn mươi",
+    "năm mươi",
+    "sáu mươi",
+    "bảy mươi",
+    "tám mươi",
+    "chín mươi",
+  ];
+  const thousands = ["", "nghìn", "triệu", "tỷ"];
+
+  let words = "";
+  let unitIndex = 0;
+
+  while (num > 0) {
+    const chunk = num % 1000;
+    if (chunk) {
+      let chunkWords = [];
+      const hundreds = Math.floor(chunk / 100);
+      const remainder = chunk % 100;
+
+      // Xử lý hàng trăm
+      if (hundreds) {
+        chunkWords.push(ones[hundreds]);
+        chunkWords.push("trăm");
+      }
+
+      // Xử lý phần dư (tens và ones)
+      if (remainder < 10) {
+        if (remainder > 0) {
+          if (hundreds) chunkWords.push("lẻ");
+          chunkWords.push(ones[remainder]);
+        }
+      } else if (remainder < 20) {
+        chunkWords.push(teens[remainder - 10]);
+      } else {
+        const tenPlace = Math.floor(remainder / 10);
+        const onePlace = remainder % 10;
+
+        chunkWords.push(tens[tenPlace]);
+        if (onePlace === 1 && tenPlace > 1) {
+          chunkWords.push("mốt");
+        } else if (onePlace === 5 && tenPlace > 0) {
+          chunkWords.push("lăm");
+        } else if (onePlace) {
+          chunkWords.push(ones[onePlace]);
+        }
+      }
+
+      // Thêm đơn vị nghìn, triệu, tỷ
+      if (unitIndex > 0) {
+        chunkWords.push(thousands[unitIndex]);
+      }
+
+      words = chunkWords.join(" ") + " " + words;
     }
+    num = Math.floor(num / 1000);
+    unitIndex++;
   }
+
+  // Hàm viết hoa chữ cái đầu tiên
+  const capitalizeFirstLetter = (str) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
+
+  return capitalizeFirstLetter(words.trim() + " đồng");
+};
+
+function formatVietnameseDate(date) {
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `ngày ${day} tháng ${month} năm ${year}`;
+}
+function formatDateDMY(date) {
+  const d = new Date(date);
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+const getTienLuongList = async (connection) => {
+  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienluong`;
+  const [tienLuongList] = await connection.execute(query);
+  return tienLuongList;
+};
+function tinhSoTien(row, soTiet, tienLuongList) {
+  const tienLuong = tienLuongList.find(
+    (tl) => tl.he_dao_tao === row.he_dao_tao && tl.HocVi === row.HocVi
+  );
+  if (tienLuong) {
+    return soTiet * tienLuong.SoTien;
+  } else {
+    return 0;
+  }
+}
 async function convertWordToPdf(wordFilePath, pdfFilePath) {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(wordFilePath)) {
@@ -260,23 +260,23 @@ async function convertWordToPdf(wordFilePath, pdfFilePath) {
         reject(new Error('File PDF không được tạo ra'));
       }
     });
-  });   
+  });
 }
 const exportMultipleContracts = async (req, res) => {
-    let connection;
-    try {
-      const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
-  
-      if (!dot || !ki || !namHoc) {
-        return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
-      }
-  
-      connection = await createPoolConnection();
-      // Truy vấn bảng tienluong để lấy mức tiền
-      const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
-      const [tienLuongList] = await connection.execute(tienLuongQuery);
-  
-      let query = `SELECT
+  let connection;
+  try {
+    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+
+    if (!dot || !ki || !namHoc) {
+      return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
+    }
+
+    connection = await createPoolConnection();
+    // Truy vấn bảng tienluong để lấy mức tiền
+    const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
+    const [tienLuongList] = await connection.execute(tienLuongQuery);
+
+    let query = `SELECT
       hd.id_Gvm,
       hd.DienThoai,
       hd.Email,
@@ -316,12 +316,12 @@ const exportMultipleContracts = async (req, res) => {
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-  
-      let params = [dot, ki, namHoc, loaiHopDong];
-  
-      // Xử lý các trường hợp khác nhau
-      if (khoa && khoa !== "ALL") {
-        query = `SELECT
+
+    let params = [dot, ki, namHoc, loaiHopDong];
+
+    // Xử lý các trường hợp khác nhau
+    if (khoa && khoa !== "ALL") {
+      query = `SELECT
         hd.id_Gvm,
         hd.DienThoai,
         hd.Email,
@@ -361,10 +361,10 @@ const exportMultipleContracts = async (req, res) => {
         hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
         hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
         hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-        params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
-      }
-      if (teacherName) {
-        query = `SELECT
+      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
+    }
+    if (teacherName) {
+      query = `SELECT
         hd.id_Gvm,
         hd.DienThoai,
         hd.Email,
@@ -404,178 +404,178 @@ const exportMultipleContracts = async (req, res) => {
         hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
         hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
         hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-  
-        params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
-      }
-  
-      const [teachers] = await connection.execute(query, params);
-  
-      if (!teachers || teachers.length === 0) {
-        return res.send(
-          "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportHD';</script>"
-        );
-      }
-  
-      // Tạo thư mục tạm để lưu các file hợp đồng
-      const tempDir = path.join(
-        __dirname,
-        "..",
-        "public",
-        "temp",
-        Date.now().toString()
-      );
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
-  
-      // Tạo hợp đồng cho từng giảng viên
-      for (const teacher of teachers) {
-        const soTiet = teacher.SoTiet || 0;
-  
-        const tienLuong = tienLuongList.find(
-          (item) =>
-            item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
-        );
-  
-        if (!tienLuong) {
-          return res
-            .status(404)
-            .send(
-              "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
-            );
-        }
-  
-        // Tính toán số tiền
-        const tienText = tienLuong.SoTien * soTiet;
-        // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-        const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
-        const tienThucNhanText = tienText - tienThueText;
-        const thoiGianThucHien = formatDateRange(
-          teacher.NgayBatDau,
-          teacher.NgayKetThuc
-        );
-  
-        const data = {
-          Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
-          Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
-          Danh_xưng: teacher.DanhXung,
-          Họ_và_tên: teacher.HoTen,
-          CCCD: teacher.CCCD,
-          Ngày_cấp: formatDate1(teacher.NgayCap),
-          Nơi_cấp: teacher.NoiCapCCCD,
-          Chức_vụ: teacher.ChucVu,
-          Cấp_bậc: teacher.HocVi,
-          Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace(".", ","),
-          Địa_chỉ_theo_CCCD: teacher.DiaChi,
-          Điện_thoại: teacher.DienThoai,
-          Mã_số_thuế: teacher.MaSoThue,
-          Số_tài_khoản: teacher.STK,
-          Email: teacher.Email,
-          Tại_ngân_hàng: teacher.NganHang,
-          Số_tiết: teacher.SoTiet.toString().replace(".", ","),
-          Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
-          Tiền_text: tienText.toLocaleString("vi-VN"),
-          Bằng_chữ_số_tiền: numberToWords(tienText),
-          Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
-          Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
-          Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
-          Kỳ: convertToRoman(teacher.KiHoc), // Thêm trường KiHoc
-          Năm_học: teacher.NamHoc, // Thêm trường NamHocs
-          Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
-          Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
-          Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
-        };
-        // Chọn template dựa trên loại hợp đồng
-        let templateFileName;
-        switch (loaiHopDong) {
-          case "Đại học (Đóng học phí)":
-            templateFileName = "HopDongHP.docx";
-            break;
-          case "Đại học (Mật mã)":
-            templateFileName = "HopDongMM.docx";
-            break;
-          case "Đồ án":
-            templateFileName = "HopDongDA.docx";
-            break;
-          case "Nghiên cứu sinh (Đóng học phí)":
-            templateFileName = "HopDongNCS.docx";
-            break;
-          case "Cao học (Đóng học phí)":
-            templateFileName = "HopDongCH.docx";
-            break;
-          default:
-            return res.status(400).send("Loại hợp đồng không hợp lệ.");
-        }
-       // Tạo file Word từ template (giữ nguyên)
-       const templatePath = path.resolve(__dirname, "../templates", templateFileName);
-       const content = fs.readFileSync(templatePath, "binary");
-       const zip = new PizZip(content);
-  
-       const doc = new Docxtemplater(zip, {
-         paragraphLoop: true,
-         linebreaks: true,
-         delimiters: { start: "«", end: "»" },
-       });
-  
-       doc.render(data);
-       const buf = doc.getZip().generate({ type: "nodebuffer", compression: "DEFLATE" });
-  
-       const fileName = `HopDong_${teacher.HoTen}.docx`;
-       const wordFilePath = path.join(tempDir, fileName);
-       fs.writeFileSync(wordFilePath, buf);
-  
-       // Chuyển đổi sang PDF bằng LibreOffice
-       const pdfFilePath = wordFilePath.replace(".docx", ".pdf");
-       await convertWordToPdf(wordFilePath, pdfFilePath);
-     }
-  
-     // Tạo file ZIP chứa tất cả hợp đồng (giữ nguyên)
-     const archive = archiver("zip", { zlib: { level: 9 } });
-     const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"}.zip`;
-     const zipPath = path.join(tempDir, zipFileName);
-     const output = fs.createWriteStream(zipPath);
-  
-     archive.pipe(output);
-     fs.readdirSync(tempDir).forEach((file) => {
-       const filePath = path.join(tempDir, file);
-       if (file.endsWith(".docx") || file.endsWith(".pdf")) {
-         archive.file(filePath, { name: file });
-       }
-     });
-  
-     await new Promise((resolve, reject) => {
-       output.on("close", resolve);
-       archive.on("error", reject);
-       archive.finalize();
-     });
-  
-     // Trả về file ZIP cho client
-     res.download(zipPath, zipFileName, (err) => {
-       if (err) {
-         console.error("Error sending zip file:", err);
-         return;
-       }
-  
-       // Xóa thư mục tạm sau khi gửi file
-       setTimeout(() => {
-         try {
-           if (fs.existsSync(tempDir)) {
-             deleteFolderRecursive(tempDir);
-           }
-         } catch (error) {
-           console.error("Error cleaning up temporary directory:", error);
-         }
-       }, 1000);
-     });
-   } catch (error) {
-     console.error("Error in exportMultipleContracts:", error);
-     res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
-   } finally {
-     if (connection) connection.release();
-   }
-  };
 
-  // Utility function to delete folders recursively
+      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
+    }
+
+    const [teachers] = await connection.execute(query, params);
+
+    if (!teachers || teachers.length === 0) {
+      return res.send(
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportHD';</script>"
+      );
+    }
+
+    // Tạo thư mục tạm để lưu các file hợp đồng
+    const tempDir = path.join(
+      __dirname,
+      "..",
+      "public",
+      "temp",
+      Date.now().toString()
+    );
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    // Tạo hợp đồng cho từng giảng viên
+    for (const teacher of teachers) {
+      const soTiet = teacher.SoTiet || 0;
+
+      const tienLuong = tienLuongList.find(
+        (item) =>
+          item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
+      );
+
+      if (!tienLuong) {
+        return res
+          .status(404)
+          .send(
+            "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
+          );
+      }
+
+      // Tính toán số tiền
+      const tienText = tienLuong.SoTien * soTiet;
+      // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+      const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
+      const tienThucNhanText = tienText - tienThueText;
+      const thoiGianThucHien = formatDateRange(
+        teacher.NgayBatDau,
+        teacher.NgayKetThuc
+      );
+
+      const data = {
+        Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
+        Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
+        Danh_xưng: teacher.DanhXung,
+        Họ_và_tên: teacher.HoTen,
+        CCCD: teacher.CCCD,
+        Ngày_cấp: formatDate1(teacher.NgayCap),
+        Nơi_cấp: teacher.NoiCapCCCD,
+        Chức_vụ: teacher.ChucVu,
+        Cấp_bậc: teacher.HocVi,
+        Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace(".", ","),
+        Địa_chỉ_theo_CCCD: teacher.DiaChi,
+        Điện_thoại: teacher.DienThoai,
+        Mã_số_thuế: teacher.MaSoThue,
+        Số_tài_khoản: teacher.STK,
+        Email: teacher.Email,
+        Tại_ngân_hàng: teacher.NganHang,
+        Số_tiết: teacher.SoTiet.toString().replace(".", ","),
+        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
+        Tiền_text: tienText.toLocaleString("vi-VN"),
+        Bằng_chữ_số_tiền: numberToWords(tienText),
+        Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
+        Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
+        Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
+        Kỳ: convertToRoman(teacher.KiHoc), // Thêm trường KiHoc
+        Năm_học: teacher.NamHoc, // Thêm trường NamHocs
+        Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
+        Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
+        Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
+      };
+      // Chọn template dựa trên loại hợp đồng
+      let templateFileName;
+      switch (loaiHopDong) {
+        case "Đại học (Đóng học phí)":
+          templateFileName = "HopDongHP.docx";
+          break;
+        case "Đại học (Mật mã)":
+          templateFileName = "HopDongMM.docx";
+          break;
+        case "Đồ án":
+          templateFileName = "HopDongDA.docx";
+          break;
+        case "Nghiên cứu sinh (Đóng học phí)":
+          templateFileName = "HopDongNCS.docx";
+          break;
+        case "Cao học (Đóng học phí)":
+          templateFileName = "HopDongCH.docx";
+          break;
+        default:
+          return res.status(400).send("Loại hợp đồng không hợp lệ.");
+      }
+      // Tạo file Word từ template (giữ nguyên)
+      const templatePath = path.resolve(__dirname, "../templates", templateFileName);
+      const content = fs.readFileSync(templatePath, "binary");
+      const zip = new PizZip(content);
+
+      const doc = new Docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+        delimiters: { start: "«", end: "»" },
+      });
+
+      doc.render(data);
+      const buf = doc.getZip().generate({ type: "nodebuffer", compression: "DEFLATE" });
+
+      const fileName = `HopDong_${teacher.HoTen}.docx`;
+      const wordFilePath = path.join(tempDir, fileName);
+      fs.writeFileSync(wordFilePath, buf);
+
+      // Chuyển đổi sang PDF bằng LibreOffice
+      const pdfFilePath = wordFilePath.replace(".docx", ".pdf");
+      await convertWordToPdf(wordFilePath, pdfFilePath);
+    }
+
+    // Tạo file ZIP chứa tất cả hợp đồng (giữ nguyên)
+    const archive = archiver("zip", { zlib: { level: 9 } });
+    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"}.zip`;
+    const zipPath = path.join(tempDir, zipFileName);
+    const output = fs.createWriteStream(zipPath);
+
+    archive.pipe(output);
+    fs.readdirSync(tempDir).forEach((file) => {
+      const filePath = path.join(tempDir, file);
+      if (file.endsWith(".docx") || file.endsWith(".pdf")) {
+        archive.file(filePath, { name: file });
+      }
+    });
+
+    await new Promise((resolve, reject) => {
+      output.on("close", resolve);
+      archive.on("error", reject);
+      archive.finalize();
+    });
+
+    // Trả về file ZIP cho client
+    res.download(zipPath, zipFileName, (err) => {
+      if (err) {
+        console.error("Error sending zip file:", err);
+        return;
+      }
+
+      // Xóa thư mục tạm sau khi gửi file
+      setTimeout(() => {
+        try {
+          if (fs.existsSync(tempDir)) {
+            deleteFolderRecursive(tempDir);
+          }
+        } catch (error) {
+          console.error("Error cleaning up temporary directory:", error);
+        }
+      }, 1000);
+    });
+  } catch (error) {
+    console.error("Error in exportMultipleContracts:", error);
+    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Utility function to delete folders recursively
 function deleteFolderRecursive(folderPath) {
   if (fs.existsSync(folderPath)) {
     fs.readdirSync(folderPath).forEach((file) => {
@@ -677,21 +677,21 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     if (!data || data.length === 0) {
       return res.json({
         success: false,
-        message:           "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportHD';</script>"
+        message: "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportHD';</script>"
         ,
       });
     }
 
-   
+
 
     // Tạo workbook mới
     const workbook = new ExcelJS.Workbook();
-   // Nhóm dữ liệu theo giảng viên
-   const groupedData = data.reduce((acc, cur) => {
-    (acc[cur.GiangVien] = acc[cur.GiangVien] || []).push(cur);
-    return acc;
-  }, {});
-    
+    // Nhóm dữ liệu theo giảng viên
+    const groupedData = data.reduce((acc, cur) => {
+      (acc[cur.GiangVien] = acc[cur.GiangVien] || []).push(cur);
+      return acc;
+    }, {});
+
     // Tạo một sheet cho mỗi giảng viên
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       const worksheet = workbook.addWorksheet(giangVien);
@@ -847,7 +847,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         const soTiet = item.SoTiet;
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
         // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-        const truThue = soTien <= 2000000 ? 0 : soTien * 0.1; // Trừ Thuế = 10% của Số Tiền (hoặc 0 nếu <= 2 triệu)
+        const truThue = soTien < 2000000 ? 0 : soTien * 0.1; // Trừ Thuế = 10% của Số Tiền (hoặc 0 nếu < 2 triệu)
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
@@ -864,8 +864,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -1174,15 +1174,15 @@ async function generateAppendixPdf(lecturer, outputPath, query) {
 }
 
 const exportAllContractsAndAppendices = async (req, res) => {
-    let connection;
-    try {
-      const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
-  
-      if (!dot || !ki || !namHoc) {
-        return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
-      }
-  
-      connection = await createPoolConnection();
+  let connection;
+  try {
+    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+
+    if (!dot || !ki || !namHoc) {
+      return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
+    }
+
+    connection = await createPoolConnection();
 
     // Fetch data for lecturers
     let lecturerQuery = `
@@ -1205,8 +1205,8 @@ const exportAllContractsAndAppendices = async (req, res) => {
     const [lecturers] = await connection.execute(lecturerQuery, lecturerParams);
 
     if (!lecturers || lecturers.length === 0) {
-      return res.status(404).send(        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportHD';</script>"
-);
+      return res.status(404).send("<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportHD';</script>"
+      );
     }
 
     // Create a temporary directory for combined PDFs
@@ -1218,42 +1218,42 @@ const exportAllContractsAndAppendices = async (req, res) => {
     await loadPDFMerger(); // Ensure PDFMerger is loaded
 
     // In your main function where you merge PDFs:
-for (const lecturer of lecturers) {
-    try {
-      const pdfMerger = new PDFMerger();
-      let hasValidPdf = false;
-  
-      // Generate contract PDF
-      const contractPdfPath = path.join(tempDir, `HopDong_${sanitizeFileName(lecturer.HoTen)}.pdf`);
-      const contractGenerated = await generateContractPdfForLecturer(lecturer, contractPdfPath, req.query);
-      
-      if (contractGenerated && await isValidPdf(contractPdfPath)) {
-        await pdfMerger.add(contractPdfPath);
-        hasValidPdf = true;
-  
-        // Generate appendix PDF only if the contract PDF is valid
-        const appendixPdfPath = path.join(tempDir, `PhuLuc_${sanitizeFileName(lecturer.HoTen)}.pdf`);
-        const appendixGenerated = await generateAppendixPdfForLecturer(lecturer, appendixPdfPath, req.query);
-  
-        if (appendixGenerated && await isValidPdf(appendixPdfPath)) {
-          await pdfMerger.add(appendixPdfPath);
+    for (const lecturer of lecturers) {
+      try {
+        const pdfMerger = new PDFMerger();
+        let hasValidPdf = false;
+
+        // Generate contract PDF
+        const contractPdfPath = path.join(tempDir, `HopDong_${sanitizeFileName(lecturer.HoTen)}.pdf`);
+        const contractGenerated = await generateContractPdfForLecturer(lecturer, contractPdfPath, req.query);
+
+        if (contractGenerated && await isValidPdf(contractPdfPath)) {
+          await pdfMerger.add(contractPdfPath);
+          hasValidPdf = true;
+
+          // Generate appendix PDF only if the contract PDF is valid
+          const appendixPdfPath = path.join(tempDir, `PhuLuc_${sanitizeFileName(lecturer.HoTen)}.pdf`);
+          const appendixGenerated = await generateAppendixPdfForLecturer(lecturer, appendixPdfPath, req.query);
+
+          if (appendixGenerated && await isValidPdf(appendixPdfPath)) {
+            await pdfMerger.add(appendixPdfPath);
+          } else {
+            console.warn(`Appendix PDF not generated or invalid for: ${lecturer.HoTen}`);
+          }
         } else {
-          console.warn(`Appendix PDF not generated or invalid for: ${lecturer.HoTen}`);
+          console.warn(`Contract PDF not generated or invalid for: ${lecturer.HoTen}`);
         }
-      } else {
-        console.warn(`Contract PDF not generated or invalid for: ${lecturer.HoTen}`);
+
+        if (hasValidPdf) {
+          const combinedPdfPath = path.join(tempDir, `TongHop_${sanitizeFileName(lecturer.HoTen)}.pdf`);
+          await pdfMerger.save(combinedPdfPath);
+        } else {
+          console.warn(`No valid PDFs to merge for: ${lecturer.HoTen}`);
+        }
+      } catch (error) {
+        console.error(`Error processing lecturer ${lecturer.HoTen}:`, error);
       }
-  
-      if (hasValidPdf) {
-        const combinedPdfPath = path.join(tempDir, `TongHop_${sanitizeFileName(lecturer.HoTen)}.pdf`);
-        await pdfMerger.save(combinedPdfPath);
-      } else {
-        console.warn(`No valid PDFs to merge for: ${lecturer.HoTen}`);
-      }
-    } catch (error) {
-      console.error(`Error processing lecturer ${lecturer.HoTen}:`, error);
     }
-  }
     // Create a ZIP file containing all combined PDFs
     const zipFileName = `TongHop_Dot${dot}_Ki${ki}_${sanitizeFileName(namHoc)}_${sanitizeFileName(khoa || "all")}.zip`;
     const zipPath = path.join(tempDir, zipFileName);
@@ -1262,7 +1262,7 @@ for (const lecturer of lecturers) {
 
     output.on('close', () => {
       console.log(`Archive created: ${archive.pointer()} total bytes`);
-      
+
       // Send the ZIP file to the client
       res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(zipFileName)}"`);
@@ -1316,35 +1316,35 @@ for (const lecturer of lecturers) {
 }
 
 async function generateContractPdfForLecturer(lecturer, outputPath, query) {
-    console.log(`Generating contract PDF for: ${lecturer.HoTen}`);
-    
-    // Create a mock response that properly handles the file
-    const mockRes = {
-      download: (filePath) => {
-        return new Promise((resolve, reject) => {
-          if (fs.existsSync(filePath)) {
-            fs.copyFileSync(filePath, outputPath);
-            resolve();
-          } else {
-            reject(new Error('File not generated'));
-          }
-        });
-      },
-      status: () => mockRes,
-      send: () => {}
-    };
-  
-    await exportMultipleContracts(
-      { query: { ...query, teacherName: lecturer.HoTen } },
-      mockRes
-    );
-  
-    if (!fs.existsSync(outputPath)) {
-      console.warn(`Contract PDF not generated for: ${lecturer.HoTen}`);
-      return false;
-    }
-    return true;
+  console.log(`Generating contract PDF for: ${lecturer.HoTen}`);
+
+  // Create a mock response that properly handles the file
+  const mockRes = {
+    download: (filePath) => {
+      return new Promise((resolve, reject) => {
+        if (fs.existsSync(filePath)) {
+          fs.copyFileSync(filePath, outputPath);
+          resolve();
+        } else {
+          reject(new Error('File not generated'));
+        }
+      });
+    },
+    status: () => mockRes,
+    send: () => { }
+  };
+
+  await exportMultipleContracts(
+    { query: { ...query, teacherName: lecturer.HoTen } },
+    mockRes
+  );
+
+  if (!fs.existsSync(outputPath)) {
+    console.warn(`Contract PDF not generated for: ${lecturer.HoTen}`);
+    return false;
   }
+  return true;
+}
 
 async function generateAppendixPdfForLecturer(lecturer, outputPath, query) {
   console.log(`Generating appendix PDF for: ${lecturer.HoTen}`);

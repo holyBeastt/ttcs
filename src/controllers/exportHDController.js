@@ -548,20 +548,20 @@ const exportMultipleContracts = async (req, res) => {
       console.log("\n========== DEBUG TÍNH TOÁN SỐ TIỀN ==========");
       console.log("Giảng viên:", teacher.HoTen);
       console.log("Số tiết (raw):", soTiet, "Type:", typeof soTiet);
-      
+
       // Đảm bảo soTiet là số và làm tròn để tránh lỗi floating-point
       const soTietNumber = typeof soTiet === 'string' ? parseFloat(soTiet) : soTiet;
       console.log("Số tiết (parsed):", soTietNumber, "Type:", typeof soTietNumber);
       console.log("Mức tiền/tiết:", tienLuong.SoTien, "Type:", typeof tienLuong.SoTien);
-      
+
       // Làm tròn kết quả để tránh lỗi floating-point (27839999.999999996 -> 27840000)
       const tienText = Math.round(tienLuong.SoTien * soTietNumber);
       console.log("Tổng tiền (trước thuế):", tienText, "Type:", typeof tienText);
-      
+
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
+      const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
       console.log("Tiền thuế 10%:", tienThueText);
-      
+
       const tienThucNhanText = tienText - tienThueText;
       console.log("Tiền thực nhận:", tienThucNhanText);
       const thoiGianThucHien = formatDateRange(
@@ -644,10 +644,10 @@ const exportMultipleContracts = async (req, res) => {
         Nơi_công_tác: teacher.NoiCongTac,
         Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã"
       };
-      
+
       // Chọn template dựa trên ID hệ đào tạo
       let templateFileName;
-      
+
       // Map ID to template file
       const templateMap = {
         1: "HopDongHP.docx",      // Đại học (Đóng học phí)
@@ -656,9 +656,9 @@ const exportMultipleContracts = async (req, res) => {
         4: "HopDongNCS.docx",     // Nghiên cứu sinh (Đóng học phí)
         5: "HopDongDA.docx",      // Đồ án
       };
-      
+
       templateFileName = templateMap[loaiHopDongId];
-      
+
       // Fallback to name-based selection if ID mapping not found
       if (!templateFileName) {
         // Try to get he_dao_tao name from database if we only have ID
@@ -672,7 +672,7 @@ const exportMultipleContracts = async (req, res) => {
         } else {
           heHopDongName = loaiHopDong;
         }
-        
+
         // Fallback to name-based selection
         switch (heHopDongName) {
           case "Đại học (Đóng học phí)":
@@ -694,7 +694,7 @@ const exportMultipleContracts = async (req, res) => {
             return res.status(400).send("Loại hợp đồng không hợp lệ.");
         }
       }
-      
+
       const templatePath = path.resolve(
         __dirname,
         "../templates",
@@ -744,9 +744,9 @@ const exportMultipleContracts = async (req, res) => {
     // Tạo file Excel báo cáo thuế
     const taxReportData = summaryData.map((item, index) => {
       // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
-      const tienTruocThue = item.TongTien || (item.ThucNhan <= 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
+      const tienTruocThue = item.TongTien || (item.ThucNhan < 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
       // Nếu số tiền <= 2 triệu thì không có thuế
-      const thuePhaiTra = tienTruocThue <= 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu <= 2 triệu)
+      const thuePhaiTra = tienTruocThue < 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu < 2 triệu)
 
       return {
         stt: index + 1,
@@ -1338,7 +1338,7 @@ const generateContractForTeacher = async (
 
   const tienText = tienLuong.SoTien * soTiet;
   // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-  const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
+  const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
   const tienThucNhanText = tienText - tienThueText;
   const thoiGianThucHien = formatDateRange(
     teacher.NgayBatDau,
@@ -1677,7 +1677,7 @@ const generateAppendixContract = async (
         const soTiet = item.SoTiet;
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
         // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-        const truThue = soTien <= 2000000 ? 0 : soTien * 0.1; // Trừ Thuế = 10% của Số Tiền (hoặc 0 nếu <= 2 triệu)
+        const truThue = soTien < 2000000 ? 0 : soTien * 0.1; // Trừ Thuế = 10% của Số Tiền (hoặc 0 nếu < 2 triệu)
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
