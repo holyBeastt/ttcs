@@ -625,6 +625,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     gv.MaPhongBan,
                     gv.isNghiHuu,
                     pb.TenPhongBan,
+                    da.he_dao_tao,
                     
                     SUM(da.SoTiet) AS SoTiet,
                     ${DON_GIA_EXPR('da', 'MaPhongBan')} AS TienMoiGiang,
@@ -655,6 +656,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                         AND GiangVien1 != ''
                         AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')                        AND NamHoc = ?
                         AND Dot = ?
+                        AND he_dao_tao = ?
                     
                     UNION ALL
                     
@@ -670,17 +672,19 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                         AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
                         AND NamHoc = ?
                         AND Dot = ?
+                        AND he_dao_tao = ?
                 ) da
                 JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
                 LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan                LEFT JOIN doantotnghiep dt ON (
                     (TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen OR TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen)
                     AND dt.NamHoc = ? AND dt.Dot = ?
                     AND dt.MaPhongBan = da.MaPhongBan  -- Thêm điều kiện này để tránh duplicate
+                    AND dt.he_dao_tao = ?
                 )
                 WHERE 1=1
             `;
 
-            let teacherParams = [namHoc, dot, namHoc, dot, namHoc, dot];
+            let teacherParams = [namHoc, dot, heDaoTao.he_dao_tao, namHoc, dot, heDaoTao.he_dao_tao, namHoc, dot, heDaoTao.he_dao_tao];
             let teacherQueryWithFilter = teacherQuery;
 
             // Add department filter if specified
@@ -693,7 +697,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 GROUP BY
                     gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
                     gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
-                    gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu, pb.TenPhongBan
+                    gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu, pb.TenPhongBan, da.he_dao_tao
                 ORDER BY SoTiet DESC, gv.HoTen
             `; const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
 
