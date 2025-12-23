@@ -789,7 +789,7 @@ const getExportAdditionalDoAnGvmSite = async (req, res) => {
     const query = `select HoTen, MaPhongBan from gvmoi`;
     const [gvmoiList] = await connection.query(query);
 
-    res.render("exportAdditionalDoAnGvm", {
+    res.render("doan.taiTongHopHopDong.ejs", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
     });
   } catch (error) {
