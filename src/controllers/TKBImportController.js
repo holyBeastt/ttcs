@@ -147,7 +147,6 @@ const importExcelTKB = async (req, res) => {
       "HS lớp đông": "student_bonus",
       "Ngoài giờ HC": "bonus_time",
       "LL thực": "ll_code_actual",
-      "QC": "qc",
       "Lớp học phần": "course_name",
       "Hình thức học": "study_format",
       "ST/ tuần": "periods_per_week",
