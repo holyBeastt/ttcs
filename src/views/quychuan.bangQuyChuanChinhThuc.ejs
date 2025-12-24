@@ -278,13 +278,27 @@
       // Hàm xuất Excel với 19 cột (API mới)
       async function exportToExcelQC() {
         try {
-          // Gửi renderData trực tiếp, không cần format lại vì BE sẽ xử lý
+          // Map he_dao_tao từ ID sang tên trước khi gửi BE
+          const exportData = renderData.map(item => {
+            const newItem = { ...item };
+            if (newItem.he_dao_tao && heDaoTaoList.length > 0) {
+              const idValue = typeof newItem.he_dao_tao === 'string' 
+                ? parseInt(newItem.he_dao_tao, 10) 
+                : newItem.he_dao_tao;
+              const found = heDaoTaoList.find(h => h.id === idValue);
+              if (found) {
+                newItem.he_dao_tao = found.tenHe;
+              }
+            }
+            return newItem;
+          });
+
           const response = await fetch("/qcct-export-excel", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ renderData: renderData }),
+            body: JSON.stringify({ renderData: exportData }),
           });
 
           if (!response.ok) {
