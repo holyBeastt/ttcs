@@ -315,23 +315,41 @@
 
           // Chuyển text thành combobox cho HocVi
           row.find(".HocVi-cell").html(`
-                <select class="form-control">
-                    <option value="Thạc sĩ" ${
-                      originalValues[STT].HocVi === "Thạc sĩ" ? "selected" : ""
-                    }>Thạc sĩ</option>
-                    <option value="Tiến sĩ" ${
-                      originalValues[STT].HocVi === "Tiến sĩ" ? "selected" : ""
-                    }>Tiến sĩ</option>
-                    <option value="Phó giáo sư" ${
-                      originalValues[STT].HocVi === "Phó giáo sư"
-                        ? "selected"
-                        : ""
-                    }>Phó giáo sư</option>
-                    <option value="Giáo sư" ${
-                      originalValues[STT].HocVi === "Giáo sư" ? "selected" : ""
-                    }>Giáo sư</option>
-                </select>
-            `);
+            <select class="form-control">
+              <option value="Cử nhân" ${
+                originalValues[STT].HocVi === "Cử nhân" ? "selected" : ""
+              }>Cử nhân</option>
+
+              <option value="Kỹ sư" ${
+                originalValues[STT].HocVi === "Kỹ sư" ? "selected" : ""
+              }>Kỹ sư</option>
+
+              <option value="Thạc sĩ" ${
+                originalValues[STT].HocVi === "Thạc sĩ" ? "selected" : ""
+              }>Thạc sĩ</option>
+
+              <option value="Tiến sĩ" ${
+                originalValues[STT].HocVi === "Tiến sĩ" ? "selected" : ""
+              }>Tiến sĩ</option>
+
+              <option value="Phó giáo sư" ${
+                originalValues[STT].HocVi === "Phó giáo sư" ? "selected" : ""
+              }>Phó giáo sư</option>
+
+              <option value="Giáo sư" ${
+                originalValues[STT].HocVi === "Giáo sư" ? "selected" : ""
+              }>Giáo sư</option>
+
+              <option value="Tiếng khơ-me" ${
+                originalValues[STT].HocVi === "Tiếng khơ-me" ? "selected" : ""
+              }>Tiếng khơ-me</option>
+
+              <option value="Võ sư" ${
+                originalValues[STT].HocVi === "Võ sư" ? "selected" : ""
+              }>Võ sư</option>
+            </select>
+          `);
+
 
           // Giữ nguyên input cho SoTien
           row.find(".SoTien-cell").html(`
