@@ -88,4 +88,7 @@ router.get('/api/gvm/v1/he-do-an', gvmService.getHeDoAnLists);
 // Lấy hạng chức danh nghề nghiệp
 router.get('/api/gvm/v1/chuc-danh-nghe-nghiep', gvmService.getChucDanhNgheNghiep);
 
+router.get('/api/gvm/v1/chuc-danh-nghe-nghiep-admin', gvmService.getChucDanhNgheNghiepForAdmin);
+
+
 module.exports = router;

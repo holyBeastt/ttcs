@@ -85,6 +85,23 @@ const getHeDoAnLists = async (req, res) => {
 // Lấy hạng chức danh nghề nghiệp
 const getChucDanhNgheNghiep = async (req, res) => {
   try {
+    const query = "SELECT id, chuc_danh FROM chuc_danh_nghe_nghiep where is_hide = 0";
+    const [results] = await pool.query(query);
+    return res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error("Error fetching Chuc Danh Nghe Nghiep:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
+const getChucDanhNgheNghiepForAdmin = async (req, res) => {
+  try {
     const query = "SELECT id, chuc_danh FROM chuc_danh_nghe_nghiep";
     const [results] = await pool.query(query);
     return res.json({
@@ -214,5 +231,6 @@ module.exports = {
   getHeDoAnLists,
   getChucDanhNgheNghiep,
   buildDynamicQuery,
-  getHeMoiGiangData
+  getHeMoiGiangData,
+  getChucDanhNgheNghiepForAdmin
 };
