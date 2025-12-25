@@ -63,10 +63,71 @@
             required
           />
         </div>
-        <div class="col-md-12 mt-3">
+        <div style="margin-top: 15px;"></div>
+        <div class="col-md-4">
+          <label for="do_uu_tien">Độ ưu tiên</label>
+          <select
+            name="do_uu_tien"
+            id="do_uu_tien"
+            class="form-control"
+            required
+          >
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="chuc_danh">Chức danh</label>
+          <select
+            name="chuc_danh"
+            id="chuc_danh"
+            class="form-control"
+            required
+          >
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="hsl">Hệ số lương:</label>
+          <input
+            type="number"
+            name="hsl"
+            id="hsl"
+            class="form-control"
+            value="0"
+            required
+          />
+        </div>
+        <!-- <div class="col-md-12 mt-3">
           <button type="button" class="btn btn-primary" id="addButton">
             Thêm
           </button>
+        </div> -->
+
+        <div class="col-md-12 mt-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <!-- Nút thêm bên trái -->
+            <button type="button" class="btn btn-primary" id="addButton">
+              Thêm
+            </button>
+
+            <!-- Ghi chú bên phải -->
+            <span
+              class="text-muted small d-flex align-items-center"
+              style="cursor: pointer"
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              title="
+                <b>Nguyên tắc xác định Số tiền:</b><br>
+                1️⃣ Ưu tiên theo <b>độ ưu tiên</b> (cao trước)<br>
+                2️⃣ Xét <b>Hệ đào tạo</b> & <b>Học vị</b><br>
+                3️⃣ <b>HSL giảng viên ≥ HSL cấu hình</b><br>
+                4️⃣ <b>Chức danh</b> tương ứng hoặc áp dụng chung<br>
+                5️⃣ Nếu có nhiều bản ghi phù hợp -> Chọn bản ghi có <b>Số tiền cao nhất</b><br>
+                ❗ Không có bản ghi phù hợp → Số tiền = 0
+              "
+            >
+              <i class="bi bi-info-circle me-1"></i>
+              Quy tắc áp dụng số tiền
+            </span>
+          </div>
         </div>
       </form>
 
@@ -80,13 +141,16 @@
               </th>
               <th>Học Vị</th>
               <th>Số Tiền</th>
+              <th>Độ ưu tiên</th>
+              <th>Hệ số lương</th>
+              <th>Chức danh</th>
               <th>Thao Tác</th>
             </tr>
           </thead>
           <tbody id="data-table-body">
             <% if (tienluong && tienluong.length > 0) { %> <% for (var i = 0; i
             < tienluong.length; i++) { %>
-            <tr data-id="<%= tienluong[i].STT %>" data-he-dao-tao-id="<%= tienluong[i].he_dao_tao %>">
+            <tr data-id="<%= tienluong[i].STT %>" data-he-dao-tao-id="<%= tienluong[i].he_dao_tao %>" data-chuc-danh-id="<%= tienluong[i].chuc_danh_id %>">
               <td><%= i + 1 %></td>
               <td class="editable he_dao_tao-cell">
                 <%= tienluong[i].he_dao_tao_name || tienluong[i].he_dao_tao %>
@@ -96,6 +160,22 @@
                 <%= new Intl.NumberFormat('vi-VN', { style: 'currency',
                 currency: 'VND' }).format(tienluong[i].SoTien) %>
               </td>
+
+              <!-- Độ ưu tiên -->
+              <td class="editable do_uu_tien-cell">
+                <%= tienluong[i].do_uu_tien ?? 0 %>
+              </td>
+
+              <!-- HSL -->
+              <td class="editable HSL-cell">
+                <%= tienluong[i].HSL ?? 0 %>
+              </td>
+
+              <!-- Chức danh -->
+              <td class="editable chuc_danh-cell">
+                <%= tienluong[i].chuc_danh_text ?? '' %>
+              </td>
+
               <td class="d-flex justify-content-center" style="border: none">
                 <button class="bi bi-pencil action-button edit-btn"></button>
                 <button
@@ -111,6 +191,53 @@
     </div>
 
     <script>
+      const loadDoUuTienList = () => {
+        const select = $('#do_uu_tien');
+        select.empty();
+
+        for (let i = 0; i <= 5; i++) {
+          select.append(
+            `<option value="${i}">${i}</option>`
+          );
+        }
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .querySelectorAll('[data-bs-toggle="tooltip"]')
+          .forEach(el => new bootstrap.Tooltip(el));
+      });
+
+      // Hàm load danh sách chức danh
+      $(document).ready(function() {
+        loadDoUuTienList();
+
+        $.ajax({
+          url: '/api/gvm/v1/chuc-danh-nghe-nghiep-admin',
+          method: 'GET',
+          success: function(response) {
+            if (response.success && response.data) {
+              const select = $('#chuc_danh');
+              select.empty(); // Xóa option "Đang tải..."
+                            
+              // Thêm các hệ đào tạo từ API
+              response.data.forEach(function(item) {
+                select.append(
+                  `<option value="${item.id}">${item.chuc_danh}</option>`
+                );
+              });
+            } else {
+              console.error('Không thể lấy danh sách hệ đào tạo');
+              $('#chuc_danh').html('<option value="">Lỗi tải dữ liệu</option>');
+            }
+          },
+          error: function(error) {
+            console.error('Lỗi khi gọi API hệ đào tạo:', error);
+            $('#loaiHopDong').html('<option value="">Lỗi kết nối</option>');
+          }
+        });
+      });
+
       $(document).ready(function () {
         // Load danh sách hệ đào tạo mời giảng từ API
         $.ajax({
@@ -120,7 +247,7 @@
             if (response.success && response.data) {
               const select = $("#he_dao_tao");
               select.empty(); // Xóa các option cũ
-              select.append('<option value="">-- Chọn hệ đào tạo --</option>');
+              // select.append('<option value="">-- Chọn hệ đào tạo --</option>');
               
               response.data.forEach(function(item) {
                 select.append(`<option value="${item.id}">${item.he_dao_tao}</option>`);
@@ -153,9 +280,19 @@
           originalValues[STT] = {
             he_dao_tao: row.find(".he_dao_tao-cell").text().trim(),
             he_dao_tao_id: row.data('he-dao-tao-id'),
+
             HocVi: row.find(".HocVi-cell").text().trim(),
+
             SoTien: row.find(".SoTien-cell").text().trim(),
+
+            do_uu_tien: row.find(".do_uu_tien-cell").text().trim(),
+
+            HSL: row.find(".HSL-cell").text().trim(),
+
+            chuc_danh_id: row.data('chuc-danh-id'),
+            chuc_danh_text: row.find(".chuc_danh-cell").text().trim() // ⭐ QUAN TRỌNG
           };
+
 
           // Chuyển text thành combobox cho he_dao_tao
           $.ajax({
@@ -203,6 +340,59 @@
                 )}">
             `);
 
+          // Chuyển text thành combobox cho Độ ưu tiên
+          let uuTienOptions = '';
+          for (let i = 0; i <= 5; i++) {
+            const selected =
+              Number(originalValues[STT].do_uu_tien) === i ? 'selected' : '';
+            uuTienOptions += `<option value="${i}" ${selected}>${i}</option>`;
+          }
+          row
+            .find(".do_uu_tien-cell")
+            .html(`<select class="form-control">${uuTienOptions}</select>`);
+
+          // Chuyển text thành input cho HSL
+          row.find(".HSL-cell").html(`
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              class="form-control"
+              value="${parseFloat(originalValues[STT].HSL) || 0}"
+            />
+          `);
+
+
+          // Chuyển text thành combobox cho Chức danh
+          $.ajax({
+            url: "/api/gvm/v1/chuc-danh-nghe-nghiep-admin",
+            method: "GET",
+            success: function (response) {
+              if (response.success && response.data) {
+                let options = '';
+
+                response.data.forEach(function (item) {
+                  const selected =
+                    item.id == originalValues[STT].chuc_danh_id ? 'selected' : '';
+
+                  options += `
+                    <option value="${item.id}" ${selected}>
+                      ${item.chuc_danh}
+                    </option>
+                  `;
+                });
+
+                row
+                  .find(".chuc_danh-cell")
+                  .html(`<select class="form-control">${options}</select>`);
+              }
+            },
+            error: function (err) {
+              console.error("Lỗi khi tải danh sách chức danh:", err);
+            },
+          });
+
+
           // Thêm nút Save và Cancel vào cell cuối
           const actionCell = row.find("td:last-child");
           actionCell.html(`
@@ -218,13 +408,24 @@
         $(document).on("click", ".save-btn", function () {
           const row = $(this).closest("tr");
           const STT = row.data("id");
+
           const updatedData = {
             he_dao_tao: row.find(".he_dao_tao-cell select").val(),
             HocVi: row.find(".HocVi-cell select").val(),
             SoTien: row.find(".SoTien-cell input").val(),
+            do_uu_tien: row.find(".do_uu_tien-cell select").val(),
+            hsl: row.find(".HSL-cell input").val(),
+            chuc_danh_id: row.find(".chuc_danh-cell select").val(),
           };
 
-            const he_dao_tao_text = row.find(".he_dao_tao-cell select option:selected").text();
+          debugger
+          console.log(updatedData)
+
+          const he_dao_tao_text =
+            row.find(".he_dao_tao-cell select option:selected").text();
+
+          const chuc_danh_text =
+            row.find(".chuc_danh-cell select option:selected").text();
             
           $.ajax({
             url: `/tienluong/${STT}`,
@@ -241,6 +442,13 @@
                   currency: "VND",
                 }).format(updatedData.SoTien)
               );
+              row.find(".do_uu_tien-cell").text(updatedData.do_uu_tien);
+              row.find(".HSL-cell").text(updatedData.hsl);
+              row.find(".chuc_danh-cell").text(chuc_danh_text);
+
+                // 👉 ĐẶT Ở ĐÂY
+              row.data("he-dao-tao-id", updatedData.he_dao_tao);
+              row.data("chuc-danh-id", updatedData.chuc_danh_id);
 
               const actionCell = row.find("td:last-child");
               actionCell.html(`
@@ -283,6 +491,11 @@
           row.find(".he_dao_tao-cell").text(originalValues[STT].he_dao_tao);
           row.find(".HocVi-cell").text(originalValues[STT].HocVi);
           row.find(".SoTien-cell").text(originalValues[STT].SoTien);
+          row.find(".he_dao_tao-cell").text(originalValues[STT].he_dao_tao);
+          row.find(".do_uu_tien-cell").text(originalValues[STT].do_uu_tien);
+          row.find(".HSL-cell").text(originalValues[STT].HSL);
+          row.find(".chuc_danh-cell").text(originalValues[STT].chuc_danh_text);
+
 
           // Khôi phục nút Edit
           const actionCell = row.find("td:last-child");
@@ -300,16 +513,21 @@
           const he_dao_tao = $("#he_dao_tao").val();
           const hocVi = $("#HocVi").val();
           const soTien = $("#SoTien").val();
+          const hsl = $("#hsl").val();
+          // const khoa = $("#khoa").val();
+          const khoa = 'ALL';
+          const do_uu_tien = $("#do_uu_tien").val();
+          const chuc_danh_id = $("#chuc_danh").val();
 
           // Kiểm tra sự tồn tại
           $.ajax({
             url: "/checkExistence",
             method: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ he_dao_tao: he_dao_tao, HocVi: hocVi }),
+            data: JSON.stringify({ he_dao_tao: he_dao_tao, HocVi: hocVi, khoa, hsl, chuc_danh_id }),
             success: function (response) {
               // Nếu không tồn tại, tiếp tục thêm mới
-              addNewEntry(he_dao_tao, hocVi, soTien);
+              addNewEntry(he_dao_tao, hocVi, soTien, do_uu_tien, khoa, hsl, chuc_danh_id);
             },
             error: function (xhr) {
               if (xhr.status === 409) {
@@ -339,7 +557,7 @@
           });
         });
 
-        function addNewEntry(he_dao_tao, hocVi, soTien) {
+        function addNewEntry(he_dao_tao, hocVi, soTien, do_uu_tien, khoa, hsl, chuc_danh_id) {
           $.ajax({
             url: "/tienluong",
             method: "POST",
@@ -348,6 +566,10 @@
               he_dao_tao: he_dao_tao,
               HocVi: hocVi,
               SoTien: soTien,
+              do_uu_tien,
+              khoa,
+              hsl,
+              chuc_danh_id
             }),
             success: function (response) {
               Swal.fire({

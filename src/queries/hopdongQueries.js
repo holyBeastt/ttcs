@@ -6,16 +6,15 @@ COALESCE(
     WHERE 
       (cfg.he_dao_tao IS NULL OR cfg.he_dao_tao = ${tableAlias}.he_dao_tao)
       AND (cfg.HocVi IS NULL OR cfg.HocVi = gv.HocVi)
+      -- ✅ CHỨC DANH
       AND (
-        (
-          cfg.chuc_danh_id != 0
-          AND cfg.chuc_danh_id = gv.chuc_danh
-        )
-        OR
-        (
-          cfg.chuc_danh_id = 0
-          AND CAST(REPLACE(gv.HSL, ',', '.') AS DECIMAL(4,2)) >= cfg.HSL
-        )
+        cfg.chuc_danh_id = 1
+        OR cfg.chuc_danh_id = gv.chuc_danh
+      )
+
+      -- ✅ HSL
+      AND (
+        CAST(REPLACE(gv.HSL, ',', '.') AS DECIMAL(4,2)) >= cfg.HSL
       )
     ORDER BY 
       cfg.do_uu_tien DESC,
