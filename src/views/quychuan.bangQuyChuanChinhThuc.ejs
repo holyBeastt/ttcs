@@ -176,6 +176,29 @@
             <!-- <button class="dropdown-item" onclick="exportToWord()">Word</button> -->
           </div>
         </div>
+
+        <!-- Search row - separate line below filters -->
+        <div class="d-flex justify-content-start align-items-center mb-3" id="searchRow" style="display: none !important;">
+          <!-- Search by Lecturer Name (TKB) -->
+          <div class="input-group mx-1" style="width: 250px;" id="searchGiaoVienGroup">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchGiaoVien" placeholder="Tìm GV theo TKB..." style="height: 40px;">
+          </div>
+
+          <!-- Search by Lecturer Teaching -->
+          <div class="input-group mx-1" style="width: 250px;" id="searchGiaoVienGiangDayGroup">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchGiaoVienGiangDay" placeholder="Tìm GV giảng dạy..." style="height: 40px;">
+          </div>
+
+          <!-- Search by Class Section -->
+          <div class="input-group mx-1" style="width: 250px;" id="searchLopHocPhanGroup">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchLopHocPhan" placeholder="Tìm lớp học phần..." style="height: 40px;">
+          </div>
+
+        </div>
+
         <div id="loading" style="display: none">Loading...</div>
         <div id="table-info" style="margin-bottom: 10px; font-weight: bold; font-size: 14px;"></div>
         <div class="overflow-auto">
@@ -525,6 +548,12 @@
           renderData = await teachingResponse.json();
           console.log("Tổng hợp bảng dữ liệu:", renderData);
 
+          // Show search inputs and clear previous search values
+          showSearchInputs();
+          document.getElementById("searchGiaoVien").value = "";
+          document.getElementById("searchGiaoVienGiangDay").value = "";
+          document.getElementById("searchLopHocPhan").value = "";
+
           // Hiển thị dữ liệu lên bảng
           renderTable(renderData);
         } catch (error) {
@@ -698,6 +727,51 @@
 
         document.getElementById("data-table-body").innerHTML = tableRows;
       }
+
+      // Function to show search inputs after data is loaded
+      function showSearchInputs() {
+        document.getElementById("searchRow").style.display = "flex";
+        document.getElementById("searchRow").style.setProperty("display", "flex", "important");
+      }
+
+      // Function to apply search to the data
+      function applySearch() {
+        const searchGiaoVien = document.getElementById("searchGiaoVien").value.toLowerCase().trim();
+        const searchGiaoVienGiangDay = document.getElementById("searchGiaoVienGiangDay").value.toLowerCase().trim();
+        const searchLopHocPhan = document.getElementById("searchLopHocPhan").value.toLowerCase().trim();
+
+        let filteredData = renderData;
+
+        // Search by lecturer name TKB (case-insensitive, partial match)
+        if (searchGiaoVien) {
+          filteredData = filteredData.filter(item => 
+            item.GiaoVien && item.GiaoVien.toLowerCase().includes(searchGiaoVien)
+          );
+        }
+
+        // Search by lecturer teaching (case-insensitive, partial match)
+        if (searchGiaoVienGiangDay) {
+          filteredData = filteredData.filter(item => 
+            item.GiaoVienGiangDay && item.GiaoVienGiangDay.toLowerCase().includes(searchGiaoVienGiangDay)
+          );
+        }
+
+        // Search by class section (case-insensitive, partial match)
+        if (searchLopHocPhan) {
+          filteredData = filteredData.filter(item => 
+            item.LopHocPhan && item.LopHocPhan.toLowerCase().includes(searchLopHocPhan)
+          );
+        }
+
+        // Re-render the table with filtered data
+        renderTable(filteredData);
+      }
+
+      // Add event listeners for search inputs (trigger on input for real-time search)
+      document.getElementById("searchGiaoVien").addEventListener("input", applySearch);
+      document.getElementById("searchGiaoVienGiangDay").addEventListener("input", applySearch);
+      document.getElementById("searchLopHocPhan").addEventListener("input", applySearch);
+
 
     </script>
     <!-- Phần phân quyền -->

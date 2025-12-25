@@ -1277,10 +1277,55 @@
       const ki = document.getElementById('comboboxki').value;
       const namHoc = document.getElementById('NamHoc').value;
       
-      // Lấy giá trị khoa đang lọc
-      const filterKhoa = document.getElementById('filterKhoa').value;
+      // Lấy giá trị các bộ lọc hiện tại
+      const filterName = document.getElementById('filterName').value.toLowerCase();
+      const filterClass = document.getElementById('filterClass').value.toLowerCase();
+      const filterKhoa = document.getElementById('filterKhoa').value.toLowerCase();
+      const filterBoMon = document.getElementById('filterBoMon').value.toLowerCase();
 
       try {
+        // Lọc data theo các filter hiện tại (xuất đúng những gì đang hiển thị trên bảng)
+        let filteredData = globalData.filter(item => {
+          const nameValue = (item.GiaoVienGiangDay || '').toLowerCase();
+          const classValue = (item.LopHocPhan || '').toLowerCase();
+          const khoaValue = (item.Khoa || '').toLowerCase();
+          const boMonValue = (item.BoMon || '').toLowerCase();
+
+          const nameMatch = !filterName || nameValue.includes(filterName);
+          const classMatch = !filterClass || classValue.includes(filterClass);
+          const khoaMatch = !filterKhoa || khoaValue.includes(filterKhoa);
+          const boMonMatch = !filterBoMon || boMonValue.includes(filterBoMon);
+
+          return nameMatch && classMatch && khoaMatch && boMonMatch;
+        });
+
+        if (filteredData.length === 0) {
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Không có dữ liệu để xuất file sau khi lọc",
+            icon: 'warning',
+            confirmButtonText: 'OK',
+            width: 'auto',
+            padding: '20px',
+          });
+          return;
+        }
+
+        // Map he_dao_tao từ ID sang tên trước khi gửi BE (giống QCCT)
+        const exportData = filteredData.map(item => {
+          const newItem = { ...item };
+          if (newItem.he_dao_tao && heDaoTaoList.length > 0) {
+            const idValue = typeof newItem.he_dao_tao === 'string' 
+              ? parseInt(newItem.he_dao_tao, 10) 
+              : newItem.he_dao_tao;
+            const found = heDaoTaoList.find(h => h.id === idValue);
+            if (found) {
+              newItem.he_dao_tao = found.tenHe;
+            }
+          }
+          return newItem;
+        });
+
         // Gửi dữ liệu đến controller để xử lý
         const response = await fetch("/teaching-info-export-excel", {
           method: "POST",
@@ -1288,8 +1333,7 @@
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ 
-            renderData: globalData,
-            filterKhoa: filterKhoa // Gửi thêm thông tin khoa đang lọc
+            renderData: exportData  // Gửi data đã lọc và convert he_dao_tao
           }),
         });
 
@@ -1318,7 +1362,7 @@
 
         Swal.fire({
           title: 'Thông báo',
-          html: "Xuất file thành công!",
+          html: "Xuất file thành công!<br><small><i>Dữ liệu xuất ra file bao gồm kể cả phần lọc.</i></small>",
           icon: 'success',
           confirmButtonText: 'OK',
           width: 'auto',
