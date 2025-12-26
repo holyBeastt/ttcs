@@ -80,8 +80,8 @@ const thongkemgController = {
           // Query cho khoa cụ thể
           query = `
             SELECT gd.GiangVien as hoten, 
-                   SUM(gd.quychuan) as tongsotiet
-                   gd.he_dao_tao as hedaotao,
+                   SUM(gd.quychuan) as tongsotiet,
+                   gd.he_dao_tao as hedaotao
             FROM giangday gd
             LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
             WHERE gd.Khoa = ? AND gd.id_Gvm != 1

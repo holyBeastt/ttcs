@@ -95,20 +95,168 @@ const phongHocController = {
       }
       console.log('Phòng đã sử dụng:', phongDaSuDung);
 
-      // Lọc ra phòng trống
+      // Lấy danh sách phòng đã cho mượn
+      let phongMuon = [];
+      if (ca === "ALL") {
+        const phongMuonQueryAll = `
+          SELECT 
+            id,
+            phong,
+            ten_mon,
+            giangvien,
+            ca_start,
+            ca_end
+          FROM phong_muon
+          WHERE toanha = ? AND ngay = ?
+        `;
+        [phongMuon] = await connection.query(phongMuonQueryAll, [toaNha, ngay]);
+      } else {
+        const [start, end] = ca.split('-');
+        const phongMuonQuery = `
+          SELECT 
+            id,
+            phong,
+            ten_mon,
+            giangvien,
+            ca_start,
+            ca_end
+          FROM phong_muon
+          WHERE toanha = ? 
+            AND ngay = ?
+            AND NOT (ca_end < ? OR ca_start > ?)
+        `;
+        [phongMuon] = await connection.query(phongMuonQuery, [
+          toaNha,
+          ngay,
+          parseInt(start),
+          parseInt(end)
+        ]);
+      }
+
+      if (Array.isArray(phongMuon) && phongMuon.length > 0) {
+        const seen = new Set();
+        const dedup = [];
+        for (const pm of phongMuon) {
+          // Normalize values to string/number for stable key
+          const key = `${pm.phong}-${pm.ca_start}-${pm.ca_end}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            dedup.push(pm);
+          }
+        }
+        phongMuon = dedup;
+      }
+
+      const classUsed = phongDaSuDung;
+
+      // Map phong_muon rows to the same shape for display
+      const mappedPhongMuon = phongMuon.map(pm => ({
+        id: pm.id,
+        phong: pm.phong,
+        ten_mon: pm.ten_mon,
+        gv: pm.giangvien,
+        slsv: null,
+        period_start: pm.ca_start,
+        period_end: pm.ca_end,
+        ca_start: pm.ca_start,
+        ca_end: pm.ca_end
+      }));
+
+      // For display, include both class schedule entries and borrow entries
+      const allPhongDaSuDungForDisplay = [...classUsed, ...mappedPhongMuon];
+
+      // Lọc ra phòng trống (không có trong phòng đã sử dụng và phòng đã cho mượn)
       const phongTrong = tatCaPhong.filter(p => 
-        !phongDaSuDung.some(used => used.phong === p.phong)
+        !allPhongDaSuDungForDisplay.some(used => used.phong === p.phong)
       );
 
       res.json({
         success: true,
         phongTrong: phongTrong,
-        phongDaSuDung: phongDaSuDung
+        // Return combined used entries for display and borrow entries separately
+        phongDaSuDung: allPhongDaSuDungForDisplay,
+        phongMuon: phongMuon
       });
 
     } catch (error) {
       console.error("Lỗi khi lấy danh sách phòng:", error);
       res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  muonPhong: async (req, res) => {
+    const { phong, toanha, ngay, ten_mon, giangvien, ca_start, ca_end } = req.body;
+    let connection;
+    
+    try {
+      connection = await createConnection();
+      
+      // Kiểm tra xem phòng đã được cho mượn trong ca này chưa
+      const checkQuery = `
+        SELECT id FROM phong_muon 
+        WHERE phong = ? AND toanha = ? AND ngay = ?
+          AND NOT (ca_end < ? OR ca_start > ?)
+      `;
+      const [existing] = await connection.query(checkQuery, [
+        phong,
+        toanha,
+        ngay,
+        parseInt(ca_start),
+        parseInt(ca_end)
+      ]);
+
+      if (existing.length > 0) {
+        return res.json({
+          success: false,
+          message: "Phòng này đã được cho mượn trong ca này!"
+        });
+      }
+
+      // Bỏ kiểm tra xung đột với lịch học - cho phép cho mượn cả khi đã có lớp
+
+      // Thêm vào database
+      const insertQuery = `
+        INSERT INTO phong_muon (phong, toanha, ngay, ca_start, ca_end, ten_mon, giangvien)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `;
+      await connection.query(insertQuery, [
+        phong,
+        toanha,
+        ngay,
+        parseInt(ca_start),
+        parseInt(ca_end),
+        ten_mon || '',
+        giangvien || null
+      ]);
+
+      res.json({
+        success: true,
+        message: "Cho mượn phòng thành công!"
+      });
+
+    } catch (error) {
+      console.error("Lỗi khi cho mượn phòng:", error);
+      res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  // Hủy mượn phòng (xóa bản ghi phong_muon theo id)
+  huyMuon: async (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ success: false, message: 'Missing id' });
+    let connection;
+    try {
+      connection = await createConnection();
+      const deleteQuery = `DELETE FROM phong_muon WHERE id = ?`;
+      await connection.query(deleteQuery, [id]);
+      res.json({ success: true, message: 'Hủy mượn thành công' });
+    } catch (error) {
+      console.error('Lỗi khi hủy mượn:', error);
+      res.status(500).json({ success: false, message: 'Lỗi hệ thống' });
     } finally {
       if (connection) connection.release();
     }

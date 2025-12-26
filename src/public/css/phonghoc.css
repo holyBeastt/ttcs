@@ -423,3 +423,33 @@ body.modal-open .schedule-container {
     width: 100%; /* Đảm bảo các phần tử có cùng chiều rộng */
     height: 40px; /* Đặt chiều cao đồng nhất */
 }
+
+/* Style cho nút cho mượn phòng */
+.btn-muon-phong {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.btn-muon-phong:hover {
+    background: #f57c00;
+    transform: scale(1.1);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-muon-phong i {
+    font-size: 14px;
+}
