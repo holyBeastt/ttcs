@@ -166,6 +166,10 @@
       <div class="flex-grow-1">
         <div class="header-actions">
           <div class="left">
+            <button class="btn text-nowrap" id="add-new-file-qc"
+              style="width: max-content; margin-bottom: 0px; display: none">
+              Thêm file quy chuẩn dự kiến
+            </button>
             <button class="btn text-nowrap" id="export-file-btn"
               style="width: max-content; margin-bottom: 0px; display: none">
               Xuất file
@@ -235,6 +239,10 @@
     </div>
     <!-- hiện các chức năng theo role của site qc dự kiến -->
     <script>
+      document.getElementById("add-new-file-qc").onclick = function () {
+        window.location.href = "/import";
+      };
+
       document.addEventListener("DOMContentLoaded", async function () {
         const isKhoa = localStorage.getItem("isKhoa");
         const role = localStorage.getItem("userRole");
@@ -249,11 +257,13 @@
 
       function unhideButton2(role, MaPhongBan) {
         if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
+          const addNewFileQc = document.getElementById("add-new-file-qc");
           const addBtn = document.getElementById("add-row-btn");
           const exportBtn = document.getElementById("export-file-btn");
           const banHanhBtn = document.getElementById("ban-hanh");
           const deleteQcdkBtn = document.getElementById("xoa-qc-du-kien");
 
+          addNewFileQc.style.display = "block";
           addBtn.style.display = "block";
           exportBtn.style.display = "block";
           banHanhBtn.style.display = "block";
