@@ -1074,7 +1074,7 @@ const AdminController = {
         const tenNhanVien = 'ADMIN';
         const khoa = 'DAOTAO';
         const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
-        
+
         let changes = [];
         if (oldRecord.TenNhanVien !== TenNhanVien) {
           changes.push(`TenNhanVien: "${oldRecord.TenNhanVien}" -> "${TenNhanVien}"`);
@@ -1100,11 +1100,11 @@ const AdminController = {
         if (oldRecord.LyDoMienGiam !== LyDo) {
           changes.push(`LyDoMienGiam: "${oldRecord.LyDoMienGiam}" -> "${LyDo}"`);
         }
-        
-        const logMessage = changes.length > 0 
+
+        const logMessage = changes.length > 0
           ? `Admin cập nhật thông tin nhân viên ID ${Id_User}: ${changes.join(', ')}`
           : `Admin cập nhật thông tin nhân viên ID ${Id_User}: Không có thay đổi`;
-          
+
         await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
@@ -1186,13 +1186,13 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
       const loaiThongTin = 'Admin Log';
       const noiDungThayDoi = `Admin thêm hệ đào tạo mới: Viết tắt "${viet_tat}", Loại đào tạo "${loai_dao_tao}", Hệ đào tạo "${he_dao_tao}", Đối tượng "${doi_tuong}"`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
@@ -1220,10 +1220,10 @@ const AdminController = {
     try {
       // Lấy thông tin bản ghi trước khi xóa để ghi log
       const [recordToDelete] = await connection.query(
-        "SELECT * FROM kitubatdau WHERE lop_vi_du = ?", 
+        "SELECT * FROM kitubatdau WHERE lop_vi_du = ?",
         [lop_vi_du]
       );
-      
+
       const query = `DELETE FROM kitubatdau WHERE lop_vi_du = ?`;
       const [results] = await connection.query(query, [lop_vi_du]);
 
@@ -1234,14 +1234,14 @@ const AdminController = {
           (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
           VALUES (?, ?, ?, ?, ?, NOW())
         `;
-        
+
         const userId = 1;
         const tenNhanVien = 'ADMIN';
         const khoa = 'DAOTAO';
         const loaiThongTin = 'Admin Log';
         const deletedRecord = recordToDelete[0];
         const noiDungThayDoi = `Admin xóa hệ đào tạo: Lớp ví dụ "${deletedRecord.lop_vi_du}", Viết tắt "${deletedRecord.viet_tat}", Hệ đào tạo "${deletedRecord.he_dao_tao}"`;
-        
+
         await connection.query(logQuery, [
           userId,
           tenNhanVien,
@@ -1249,7 +1249,7 @@ const AdminController = {
           loaiThongTin,
           noiDungThayDoi
         ]);
-        
+
         res.status(200).json({ message: "Xóa thành công!" }); // Trả về thông báo thành công
       } else {
         res.status(404).json({ message: "Không tìm thấy Hệ đào tạođể xóa." }); // Nếu không tìm thấy ký tự bắt đầu
@@ -1276,14 +1276,14 @@ const AdminController = {
         "SELECT * FROM kitubatdau WHERE lop_vi_du = ?",
         [oldlop_vi_du]
       );
-      
+
       if (oldRecord.length === 0) {
         return res.status(404).json({
           success: false,
           message: "Không tìm thấy bản ghi để cập nhật",
         });
       }
-      
+
       const oldData = oldRecord[0];
 
       // Kiểm tra trùng lặp, loại trừ bản ghi hiện tại
@@ -1329,12 +1329,12 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
       const loaiThongTin = 'Admin Log';
-      
+
       let changes = [];
       if (oldData.lop_vi_du !== lop_vi_du) {
         changes.push(`LopViDu: "${oldData.lop_vi_du}" -> "${lop_vi_du}"`);
@@ -1351,11 +1351,11 @@ const AdminController = {
       if (oldData.doi_tuong !== doi_tuong) {
         changes.push(`DoiTuong: "${oldData.doi_tuong}" -> "${doi_tuong}"`);
       }
-      
-      const changeMessage = changes.length > 0 
+
+      const changeMessage = changes.length > 0
         ? `Admin cập nhật hệ đào tạo "${oldlop_vi_du}": ${changes.join(', ')}`
         : `Admin cập nhật hệ đào tạo "${oldlop_vi_du}": Không có thay đổi`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
@@ -1413,12 +1413,23 @@ const AdminController = {
         SELECT 
           t.STT,
           t.he_dao_tao,
-          h.he_dao_tao as he_dao_tao_name,
+          h.he_dao_tao AS he_dao_tao_name,
           t.HocVi,
-          t.SoTien
+          t.SoTien,
+          t.do_uu_tien,
+          t.HSL,
+          t.chuc_danh_id,
+          cd.chuc_danh  AS chuc_danh_text
         FROM tienluong t
-        LEFT JOIN he_dao_tao h ON t.he_dao_tao = h.id
+        LEFT JOIN he_dao_tao h 
+          ON t.he_dao_tao = h.id
+        LEFT JOIN chuc_danh_nghe_nghiep cd
+          ON t.chuc_danh_id = cd.id
+        ORDER BY t.he_dao_tao
       `);
+
+      console.log("tien = ", tienLuong)
+
       res.render("tienluong", {
         tienluong: tienLuong,
         message: req.query.success ? "Thêm mới thành công!" : null,
@@ -1432,16 +1443,16 @@ const AdminController = {
   },
 
   postTienLuong: async (req, res) => {
-    let { he_dao_tao, HocVi, SoTien } = req.body;
+    let { he_dao_tao, HocVi, SoTien, do_uu_tien, khoa, hsl, chuc_danh_id } = req.body;
     let connection;
     try {
       connection = await createPoolConnection();
       // Thêm vào bảng TienLuong
       const insertQuery = `
-        INSERT INTO tienluong (he_dao_tao, HocVi, SoTien) 
-        VALUES (?, ?, ?)
+        INSERT INTO tienluong (he_dao_tao, HocVi, SoTien, do_uu_tien, khoa, hsl, chuc_danh_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
-      await connection.execute(insertQuery, [he_dao_tao, HocVi, SoTien]);
+      await connection.execute(insertQuery, [he_dao_tao, HocVi, SoTien, do_uu_tien, khoa, hsl, chuc_danh_id]);
 
       // Lấy tên hệ đào tạo để ghi log
       const [heDaoTao] = await connection.query(
@@ -1469,12 +1480,14 @@ const AdminController = {
 
   updateTienLuong: async (req, res) => {
     const STT = req.params.STT; // Sử dụng STT từ params
-    const { he_dao_tao, HocVi, SoTien } = req.body; // Lấy dữ liệu từ body
+    const { he_dao_tao, HocVi, SoTien, do_uu_tien, hsl, chuc_danh_id } = req.body; // Lấy dữ liệu từ body
+
+    console.log("req = ", req.body);
     let connection;
 
     try {
       connection = await createPoolConnection();
-      
+
       // Lấy dữ liệu cũ trước khi update
       const selectQuery = `
         SELECT t.*, h.he_dao_tao as he_dao_tao_name 
@@ -1483,7 +1496,7 @@ const AdminController = {
         WHERE t.STT = ?
       `;
       const [oldData] = await connection.execute(selectQuery, [STT]);
-      
+
       if (oldData.length === 0) {
         return res.status(404).json({
           success: false,
@@ -1492,17 +1505,17 @@ const AdminController = {
       }
 
       const oldRecord = oldData[0];
-      
+
       // Lấy tên hệ đào tạo mới
       const [newHeDaoTao] = await connection.query(
         "SELECT he_dao_tao FROM he_dao_tao WHERE id = ?",
         [he_dao_tao]
       );
       const newHeDaoTaoName = newHeDaoTao.length > 0 ? newHeDaoTao[0].he_dao_tao : he_dao_tao;
-      
+
       const query = `
             UPDATE tienluong 
-            SET he_dao_tao = ?, HocVi = ?, SoTien = ?
+            SET he_dao_tao = ?, HocVi = ?, SoTien = ?, do_uu_tien = ?, hsl = ?, chuc_danh_id = ?
             WHERE STT = ?
         `;
 
@@ -1510,6 +1523,9 @@ const AdminController = {
         he_dao_tao,
         HocVi,
         SoTien,
+        do_uu_tien,
+        hsl,
+        chuc_danh_id,
         STT, // Sử dụng STT ở đây
       ]);
 
@@ -1569,7 +1585,7 @@ const AdminController = {
         WHERE t.STT = ?
       `;
       const [oldData] = await connection.execute(selectQuery, [STT]);
-      
+
       const query = `DELETE FROM tienluong WHERE STT = ?`;
       const [results] = await connection.execute(query, [STT]);
 
@@ -1584,7 +1600,7 @@ const AdminController = {
           const logContent = `Xóa tiền lương STT ${STT}: Hệ đào tạo: ${deletedRecord.he_dao_tao_name || deletedRecord.he_dao_tao}, Học vị: ${deletedRecord.HocVi}, Số tiền: ${deletedRecord.SoTien}`;
           await connection.execute(logQuery, [1, 'ADMIN', 'DAOTAO', 'DELETE', logContent]);
         }
-        
+
         res.status(200).json({ message: "Xóa thành công!" });
       } else {
         res.status(404).json({ message: "Không tìm thấy tiền lương để xóa." });
@@ -1598,16 +1614,17 @@ const AdminController = {
   },
 
   checkExistence: async (req, res) => {
-    const { he_dao_tao, HocVi } = req.body;
+    const { he_dao_tao, HocVi, khoa, hsl, chuc_danh_id } = req.body;
+    console.log("req = ", req.body);
     let connection;
 
     try {
       connection = await createPoolConnection();
       const query = `
             SELECT COUNT(*) as count FROM tienluong 
-            WHERE he_dao_tao = ? AND HocVi = ?
+            WHERE he_dao_tao = ? AND HocVi = ? and khoa = ? and hsl = ? and chuc_danh_id = ?
         `;
-      const [result] = await connection.execute(query, [he_dao_tao, HocVi]);
+      const [result] = await connection.execute(query, [he_dao_tao, HocVi, khoa, hsl, chuc_danh_id]);
 
       if (result[0].count > 0) {
         // Lấy tên hệ đào tạo để hiển thị
@@ -1616,7 +1633,7 @@ const AdminController = {
           [he_dao_tao]
         );
         const heDaoTaoName = heDaoTao.length > 0 ? heDaoTao[0].he_dao_tao : he_dao_tao;
-        
+
         return res.status(409).json({
           message: `Hệ Đào Tạo và Học Vị đã chọn: ${heDaoTaoName} và ${HocVi} đã tồn tại.`,
         });
@@ -1703,13 +1720,13 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
       const loaiThongTin = 'Admin Log';
       const noiDungThayDoi = `Admin thêm phần trăm miễn giảm mới: Lý do "${lydo}", Phần trăm ${phanTram}%`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
@@ -1738,22 +1755,22 @@ const AdminController = {
 
     try {
       connection = await createPoolConnection();
-      
+
       // Lấy dữ liệu cũ để so sánh thay đổi
       const [oldRecord] = await connection.execute(
         "SELECT * FROM phantrammiengiam WHERE Id = ?",
         [Id]
       );
-      
+
       if (oldRecord.length === 0) {
         return res.status(404).json({
           success: false,
           message: "Không tìm thấy bản ghi để cập nhật",
         });
       }
-      
+
       const oldData = oldRecord[0];
-      
+
       const query = `
             UPDATE phantrammiengiam 
             SET LyDo = ?, PhanTramMienGiam = ?
@@ -1779,12 +1796,12 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
       const loaiThongTin = 'Admin Log';
-      
+
       let changes = [];
       if (oldData.LyDo !== lydo) {
         changes.push(`LyDo: "${oldData.LyDo}" -> "${lydo}"`);
@@ -1792,11 +1809,11 @@ const AdminController = {
       if (oldData.PhanTramMienGiam !== phanTram) {
         changes.push(`PhanTramMienGiam: "${oldData.PhanTramMienGiam}" -> "${phanTram}"`);
       }
-      
-      const changeMessage = changes.length > 0 
+
+      const changeMessage = changes.length > 0
         ? `Admin cập nhật phần trăm miễn giảm ID ${Id}: ${changes.join(', ')}`
         : `Admin cập nhật phần trăm miễn giảm ID ${Id}: Không có thay đổi`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
@@ -1826,10 +1843,10 @@ const AdminController = {
     try {
       // Lấy thông tin bản ghi trước khi xóa để ghi log
       const [recordToDelete] = await connection.query(
-        "SELECT * FROM phantrammiengiam WHERE Id = ?", 
+        "SELECT * FROM phantrammiengiam WHERE Id = ?",
         [Id]
       );
-      
+
       const query = `DELETE FROM phantrammiengiam WHERE Id = ?`;
       const [results] = await connection.query(query, [Id]);
 
@@ -1840,14 +1857,14 @@ const AdminController = {
           (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
           VALUES (?, ?, ?, ?, ?, NOW())
         `;
-        
+
         const userId = 1;
         const tenNhanVien = 'ADMIN';
         const khoa = 'DAOTAO';
         const loaiThongTin = 'Admin Log';
         const deletedRecord = recordToDelete[0];
         const noiDungThayDoi = `Admin xóa phần trăm miễn giảm ID ${Id}: Lý do "${deletedRecord.LyDo}", Phần trăm ${deletedRecord.PhanTramMienGiam}%`;
-        
+
         await connection.query(logQuery, [
           userId,
           tenNhanVien,
@@ -1855,7 +1872,7 @@ const AdminController = {
           loaiThongTin,
           noiDungThayDoi
         ]);
-        
+
         res.status(200).json({ message: "Xóa thành công!" });
       } else {
         res.status(404).json({ message: "Không tìm thấy bản ghi để xóa." });

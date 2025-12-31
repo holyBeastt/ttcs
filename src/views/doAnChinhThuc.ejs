@@ -135,6 +135,24 @@
 
         </div>
 
+        <!-- Input Search Row -->
+        <div class="d-flex justify-content-start align-items-center mb-3">
+          <!-- Tìm theo Sinh viên -->
+          <input type="text" class="form-control mx-1" id="searchSinhVien" 
+                 placeholder="Tên sinh viên..." 
+                 style="width: 200px; height: 40px;">
+
+          <!-- Tìm theo Đề tài -->
+          <input type="text" class="form-control mx-1" id="searchDeTai" 
+                 placeholder="Tên đề tài..." 
+                 style="width: 220px; height: 40px;">
+
+          <!-- Tìm theo Giảng viên -->
+          <input type="text" class="form-control mx-1" id="searchGiangVien" 
+                 placeholder="Tên giảng viên..." 
+                 style="width: 200px; height: 40px;">
+        </div>
+
         <ul id="SoQD-list"></ul>
 
         <div style="margin-top: 0px;" class="overflow-auto">
@@ -439,6 +457,42 @@
           loadingSpinner.remove();
         }
       }
+
+      // Chức năng Search - Tìm theo Sinh viên, Tên đề tài, Giảng viên
+      function performSearch() {
+        const searchSinhVien = document.getElementById('searchSinhVien').value.toLowerCase().trim();
+        const searchDeTai = document.getElementById('searchDeTai').value.toLowerCase().trim();
+        const searchGiangVien = document.getElementById('searchGiangVien').value.toLowerCase().trim();
+        
+        const tableBody = document.getElementById('data-table-body');
+        const rows = tableBody.querySelectorAll('tr');
+
+        rows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          
+          // Cột 0 = Sinh viên
+          const sinhVienMatch = !searchSinhVien || 
+            (cells[0] && cells[0].textContent.toLowerCase().includes(searchSinhVien));
+          
+          // Cột 3 = Tên đề tài
+          const deTaiMatch = !searchDeTai || 
+            (cells[3] && cells[3].textContent.toLowerCase().includes(searchDeTai));
+          
+          // Cột 4, 5, 6 = Giảng viên
+          const giangVienMatch = !searchGiangVien || 
+            (cells[4] && cells[4].textContent.toLowerCase().includes(searchGiangVien)) ||
+            (cells[5] && cells[5].textContent.toLowerCase().includes(searchGiangVien)) ||
+            (cells[6] && cells[6].textContent.toLowerCase().includes(searchGiangVien));
+
+          // Hiển thị nếu tất cả điều kiện đều khớp
+          row.style.display = (sinhVienMatch && deTaiMatch && giangVienMatch) ? '' : 'none';
+        });
+      }
+
+      // Gắn sự kiện cho 3 ô search
+      document.getElementById('searchSinhVien').addEventListener('input', performSearch);
+      document.getElementById('searchDeTai').addEventListener('input', performSearch);
+      document.getElementById('searchGiangVien').addEventListener('input', performSearch);
 
     </script>
 

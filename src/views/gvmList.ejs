@@ -48,9 +48,9 @@
         <div class="">
           <h1>DANH SÁCH GIẢNG VIÊN MỜI</h1>
           <div class="header-actions">
-            <button id="createGvm" class="bi bi-plus btn" onclick="addClass()">
+            <!-- <button id="createGvm" class="bi bi-plus btn" onclick="addClass()">
               Thêm giảng viên mời
-            </button>
+            </button> -->
             <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput" />
               <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="searchBoMon" id="searchBoMon" />
 
@@ -79,10 +79,10 @@
                 let tr = table.getElementsByTagName("tr");
 
                 for (let i = 1; i < tr.length; i++) { // Bỏ qua hàng tiêu đề
-                  let nameCell = tr[i].getElementsByTagName("td")[2]; // Tên giảng viên
-                  let boMonCell = tr[i].getElementsByTagName("td")[5]; // Bộ môn
-                  let departmentCell = tr[i].getElementsByTagName("td")[4]; // Khoa
-                  let nghiHuuCell = tr[i].getElementsByTagName("td")[6]; // Đã nghỉ hưu (hidden)
+                  let nameCell = tr[i].getElementsByTagName("td")[1]; // Tên giảng viên
+                  let boMonCell = tr[i].getElementsByTagName("td")[8]; // Bộ môn
+                  let departmentCell = tr[i].getElementsByTagName("td")[7]; // Khoa
+                  let nghiHuuCell = tr[i].getElementsByTagName("td")[9]; // Đã nghỉ hưu (hidden)
 
                   // Lấy giá trị từ các ô
                   let nameValue = nameCell ? nameCell.textContent.toLowerCase() : '';
@@ -116,9 +116,12 @@
             <thead>
               <tr>
                 <th style="width: 100px;">STT</th>
-                <th>Căn cước công dân</th>
                 <th>Tên giảng viên mời</th>
+                <th>Bằng cấp</th>
+                <th>HSL</th>
+                <th>CCCD</th>
                 <th>Ngày sinh</th>
+                <th>Giới tính</th>
                 <th style="display: none;">Khoa</th>
                 <th>Bộ môn</th>
                 <th style="display: none;">isNghiHuu</th>
@@ -129,20 +132,40 @@
               <% const options={ year: 'numeric' , month: '2-digit' , day: '2-digit' }; %>
                 <% for (let i=0; i < gvmLists.length; i++) { %>
                   <tr>
+                    <!-- STT -->
                     <td>
                       <%= i + 1 %>
+                    </td>
+                    <!--  -->
+                    <td>
+                      <div class="fw-semibold">
+                        <%= gvmLists[i].HoTen %>
+                      </div>
+
+                      <div class="d-flex gap-1 mt-1 flex-wrap">
+                        <% if (Number(gvmLists[i].isNghiHuu) === 1) { %>
+                          <span style="color: #ff4fa1; font-weight: 600;">Đã nghỉ hưu</span>
+                        <% } %>
+
+                        <% if (Number(gvmLists[i].hoc_vien_duyet) !== 1) { %>
+                          <span style="color: #8a4fff; font-weight: 600;">Chờ duyệt</span>
+                        <% } %>
+                      </div>
+                    </td>
+                    <td>
+                      <%= gvmLists[i].HocVi %>
+                    </td>
+                    <td>
+                      <%= gvmLists[i].HSL %>
                     </td>
                     <td>
                       <%= gvmLists[i].CCCD %>
                     </td>
                     <td>
-                      <%= gvmLists[i].HoTen %>
-                      <% if (gvmLists[i].isNghiHuu == 1) { %>
-                        <span class="badge bg-secondary" style="font-size: 10px;">Đã nghỉ hưu</span>
-                      <% } %>
+                      <%= new Date(gvmLists[i].NgaySinh).toLocaleDateString('vi-VN', options) %>
                     </td>
                     <td>
-                      <%= new Date(gvmLists[i].NgaySinh).toLocaleDateString('vi-VN', options) %>
+                      <%= gvmLists[i].GioiTinh %>
                     </td>
                     <td style="display: none;">
                       <%= gvmLists[i].MaPhongBan %>
@@ -193,7 +216,7 @@
         const tableRows = document.querySelectorAll('#classTable tr');
 
         tableRows.forEach(row => {
-          const nameCell = row.querySelector('td:nth-child(6)'); // Lấy ô chứa bộ môn ở cột thứ 6
+          const nameCell = row.querySelector('td:nth-child(9)'); // Lấy ô chứa bộ môn ở cột thứ 6
 
           if (nameCell) {
             const name = nameCell.textContent.trim().toLowerCase(); // Lấy nội dung text của ô bộ môn
@@ -210,7 +233,7 @@
 
       // Thêm lớp học
       function addClass() {
-        window.location.href = "/daotaoxemhd/daotaonhap";
+        window.location.href = "/api/v1/gvm/create-site";
       }
 
       // Chỉnh sửa gvm
@@ -351,7 +374,7 @@
         let tr = table.getElementsByTagName("tr");
 
         for (let i = 1; i < tr.length; i++) { // Bỏ qua hàng tiêu đề
-          let td = tr[i].getElementsByTagName("td")[4]; // Đảm bảo cột chứa mã phòng ban là cột thứ 5
+          let td = tr[i].getElementsByTagName("td")[8]; // Đảm bảo cột chứa mã phòng ban là cột thứ 5
           if (td) {
             let textValue = (td.textContent || td.innerText).trim(); // Loại bỏ khoảng trắng thừa
 
@@ -520,13 +543,13 @@
       const role = localStorage.getItem("userRole");
 
       // Ẩn button ngay khi trang được tải
-      const createGvm = document.getElementById("createGvm");
+      // const createGvm = document.getElementById("createGvm");
       // Ẩn phần lọc khoa nếu role là Khoa
       const filterByDepartment =
         document.getElementById("filterByDepartment");
 
       if (isKhoa == 0 || role.toLowerCase() == APP_ROLES.gv.toLowerCase()) {
-        createGvm.style.display = "none"; // Ẩn button
+        // createGvm.style.display = "none"; // Ẩn button
         const editButtons = document.querySelectorAll('.action-button.edit');
         editButtons.forEach(button => button.style.visibility = 'hidden');
       }

@@ -5,7 +5,131 @@ const createPoolConnection = require("../config/databasePool");
 const { DON_GIA_EXPR } = require('../queries/hopdongQueries');
 
 /**
- * Redner site
+ * Tạo subquery chung cho dữ liệu đồ án tốt nghiệp
+ * Trích xuất giảng viên 1 (12-20 tiết) và giảng viên 2 (8 tiết)
+ * @param {string} namHoc - Năm học
+ * @param {string} dot - Đợt
+ * @param {string} ki - Kỳ
+ * @param {string|null} maPhongBan - Mã phòng ban (null hoặc "ALL" = tất cả)
+ * @param {string|null} heDaoTao - Hệ đào tạo (null = tất cả)
+ * @returns {{ subquery: string, params: Array }} Subquery và params
+ */
+const buildDoAnBaseQuery = (namHoc, dot, ki, maPhongBan = null, heDaoTao = null) => {
+    let params = [];
+
+    // Điều kiện WHERE cho GiangVien1 và GiangVien2
+    let whereConditions = `
+        NamHoc = ?
+        AND Dot = ?
+        AND ki = ?
+    `;
+
+    // Subquery cho Giảng viên 1 (12 hoặc 20 tiết)
+    let gv1Query = `
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            MaPhongBan,
+            TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+            Dot,
+            NamHoc,
+            ki,
+            TenDeTai,
+            SinhVien,
+            MaSV,
+            khoa_sinh_vien,
+            nganh,
+            he_dao_tao,
+            CASE
+                WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
+                ELSE 12
+            END AS SoTiet,
+            TaiChinhDuyet
+        FROM doantotnghiep
+        WHERE GiangVien1 IS NOT NULL
+            AND GiangVien1 != ''
+            AND (GiangVien1 NOT LIKE '%-%'
+                OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
+            AND ${whereConditions}
+    `;
+    params.push(namHoc, dot, ki);
+
+    // Thêm filter phòng ban nếu có
+    if (maPhongBan && maPhongBan !== "ALL") {
+        gv1Query += ` AND MaPhongBan = ?`;
+        params.push(maPhongBan);
+    }
+
+    // Thêm filter hệ đào tạo nếu có
+    if (heDaoTao) {
+        gv1Query += ` AND he_dao_tao = ?`;
+        params.push(heDaoTao);
+    }
+
+    // Subquery cho Giảng viên 2 (8 tiết)
+    let gv2Query = `
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            MaPhongBan,
+            TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+            Dot,
+            NamHoc,
+            ki,
+            TenDeTai,
+            SinhVien,
+            MaSV,
+            khoa_sinh_vien,
+            nganh,
+            he_dao_tao,
+            8 AS SoTiet,
+            TaiChinhDuyet
+        FROM doantotnghiep
+        WHERE GiangVien2 IS NOT NULL
+            AND GiangVien2 != 'không'
+            AND GiangVien2 != ''
+            AND (GiangVien2 NOT LIKE '%-%'
+                OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
+            AND ${whereConditions}
+    `;
+    params.push(namHoc, dot, ki);
+
+    // Thêm filter phòng ban nếu có
+    if (maPhongBan && maPhongBan !== "ALL") {
+        gv2Query += ` AND MaPhongBan = ?`;
+        params.push(maPhongBan);
+    }
+
+    // Thêm filter hệ đào tạo nếu có
+    if (heDaoTao) {
+        gv2Query += ` AND he_dao_tao = ?`;
+        params.push(heDaoTao);
+    }
+
+    // Kết hợp thành UNION ALL
+    const subquery = `(${gv1Query} UNION ALL ${gv2Query}) da`;
+
+    return { subquery, params };
+};
+
+/**
+ * Lấy định mức số tiết giảng dạy
+ * @param {Object} connection - Database connection
+ * @returns {Promise<{SoTietDinhMuc, SoTietDinhMucChuaNghiHuu, SoTietDinhMucDaNghiHuu}>}
+ */
+const getSoTietDinhMuc = async (connection) => {
+    const [sotietResult] = await connection.query(
+        `SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu FROM sotietdinhmuc LIMIT 1`
+    );
+    return {
+        SoTietDinhMuc: sotietResult[0]?.GiangDay || 0,
+        SoTietDinhMucChuaNghiHuu: sotietResult[0]?.GiangDayChuaNghiHuu || sotietResult[0]?.GiangDay || 280,
+        SoTietDinhMucDaNghiHuu: sotietResult[0]?.GiangDayDaNghiHuu || 560
+    };
+};
+
+/**
+ * Render site
  */
 const getDuyetHopDongPage = (req, res) => {
     try {
@@ -15,6 +139,7 @@ const getDuyetHopDongPage = (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 };
+
 
 /**
  * Xem theo giảng viên 
@@ -32,138 +157,69 @@ const getDuyetHopDongData = async (req, res) => {
             });
         }
 
-        // Build query with MAX(TaiChinhDuyet)
-        let query = `
-      SELECT
-        da.NgayBatDau,
-        da.NgayKetThuc,
-        gv.id_Gvm,
-        gv.HoTen,
-        gv.GioiTinh,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.Email,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        gv.isNghiHuu,
-        da.MaPhongBan AS MaKhoaMonHoc,
-        SUM(da.SoTiet) AS SoTiet,
-        da.he_dao_tao,
-        da.NamHoc,
-        da.Dot,
-        da.ki,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep,
-        gv.NoiCongTac,
-        gv.BangTotNghiepLoai,
-        gv.MonGiangDayChinh,
-        GROUP_CONCAT(DISTINCT da.TenDeTai SEPARATOR ', ') AS MonHoc,
-        GROUP_CONCAT(DISTINCT da.SinhVien  SEPARATOR ', ') AS Lop,
-        GROUP_CONCAT(DISTINCT da.MaSV      SEPARATOR ', ') AS SiSo,
-        GROUP_CONCAT(DISTINCT da.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
-        GROUP_CONCAT(DISTINCT da.nganh SEPARATOR ', ') AS Nganh,
-        ${DON_GIA_EXPR('da', 'MaPhongBan')}                       AS TienMoiGiang,
-        SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')}         AS ThanhTien,
-        SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1   AS Thue,
-        SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9   AS ThucNhan,
-        NULL                          AS SoHopDong,
-        'Chưa có hợp đồng'            AS TrangThaiHopDong,
-        pb.TenPhongBan,
-        1                              AS DaoTaoDuyet,
-        MAX(da.TaiChinhDuyet)          AS TaiChinhDuyet
-      FROM (
-        -- Phần dành cho Giảng viên 1
-        SELECT
-          NgayBatDau,
-          NgayKetThuc,
-          MaPhongBan,
-          TRIM(SUBSTRING_INDEX(GiangVien1,'-',1)) AS GiangVien,
-          Dot,
-          NamHoc,
-          ki,
-          TenDeTai,
-          SinhVien,
-          MaSV,
-          khoa_sinh_vien,
-          nganh,
-          he_dao_tao,
-          CASE
-            WHEN GiangVien2='không' OR GiangVien2='' THEN 20
-            ELSE 12
-          END AS SoTiet,
-          TaiChinhDuyet
-        FROM doantotnghiep
-        WHERE GiangVien1 IS NOT NULL
-          AND GiangVien1!=''
-          AND (GiangVien1 NOT LIKE '%-%'
-               OR TRIM(SUBSTRING_INDEX(
-                   SUBSTRING_INDEX(GiangVien1,'-',2),'-',-1
-                 ))='Giảng viên mời')
-          AND NamHoc=?
-          AND Dot=?
-          AND ki=?
+        // Sử dụng shared base query
+        const { subquery, params } = buildDoAnBaseQuery(namHoc, dot, ki, maPhongBan);
 
-        UNION ALL
-
-        -- Phần dành cho Giảng viên 2
-        SELECT
-          NgayBatDau,
-          NgayKetThuc,
-          MaPhongBan,
-          TRIM(SUBSTRING_INDEX(GiangVien2,'-',1)) AS GiangVien,
-          Dot,
-          NamHoc,
-          ki,
-          TenDeTai,
-          SinhVien,
-          MaSV,
-          khoa_sinh_vien,
-          nganh,
-          he_dao_tao,
-          8 AS SoTiet,
-          TaiChinhDuyet
-        FROM doantotnghiep
-        WHERE GiangVien2 IS NOT NULL
-          AND GiangVien2!='không'
-          AND GiangVien2!=''
-          AND (GiangVien2 NOT LIKE '%-%'
-               OR TRIM(SUBSTRING_INDEX(
-                   SUBSTRING_INDEX(GiangVien2,'-',2),'-',-1
-                 ))='Giảng viên mời')
-          AND NamHoc=?
-          AND Dot=?
-          AND ki=?
-      ) da
-      JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
-      LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-      WHERE 1=1
-    `;
-
-        const params = [namHoc, dot, ki, namHoc, dot, ki];
-        if (maPhongBan && maPhongBan !== "ALL") {
-            query += ` AND da.MaPhongBan = ?`;
-            params.push(maPhongBan);
-        }
-
-        query += `
-      GROUP BY
-        gv.id_Gvm, gv.HoTen, da.MaPhongBan, pb.TenPhongBan,
-        gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD,
-        gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL,
-        gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu,
-        da.NamHoc, da.Dot, da.ki, da.he_dao_tao,
-        gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep,
-        gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh,
-        da.NgayBatDau, da.NgayKetThuc
-    `;
+        // Build outer query với các SELECT fields và JOINs
+        const query = `
+            SELECT
+                da.NgayBatDau,
+                da.NgayKetThuc,
+                gv.id_Gvm,
+                gv.HoTen,
+                gv.GioiTinh,
+                gv.NgaySinh,
+                gv.CCCD,
+                gv.NoiCapCCCD,
+                gv.Email,
+                gv.MaSoThue,
+                gv.HocVi,
+                gv.ChucVu,
+                gv.HSL,
+                gv.DienThoai,
+                gv.STK,
+                gv.NganHang,
+                gv.MaPhongBan,
+                gv.isNghiHuu,
+                da.MaPhongBan AS MaKhoaMonHoc,
+                SUM(da.SoTiet) AS SoTiet,
+                da.he_dao_tao,
+                da.NamHoc,
+                da.Dot,
+                da.ki,
+                gv.NgayCapCCCD,
+                gv.DiaChi,
+                gv.BangTotNghiep,
+                gv.NoiCongTac,
+                gv.BangTotNghiepLoai,
+                gv.MonGiangDayChinh,
+                GROUP_CONCAT(DISTINCT da.TenDeTai SEPARATOR ', ') AS MonHoc,
+                GROUP_CONCAT(DISTINCT da.SinhVien  SEPARATOR ', ') AS Lop,
+                GROUP_CONCAT(DISTINCT da.MaSV      SEPARATOR ', ') AS SiSo,
+                GROUP_CONCAT(DISTINCT da.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+                GROUP_CONCAT(DISTINCT da.nganh SEPARATOR ', ') AS Nganh,
+                ${DON_GIA_EXPR('da', 'MaPhongBan')}                       AS TienMoiGiang,
+                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')}         AS ThanhTien,
+                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1   AS Thue,
+                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9   AS ThucNhan,
+                NULL                          AS SoHopDong,
+                'Chưa có hợp đồng'            AS TrangThaiHopDong,
+                pb.TenPhongBan,
+                1                              AS DaoTaoDuyet,
+                MAX(da.TaiChinhDuyet)          AS TaiChinhDuyet
+            FROM ${subquery}
+            JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
+            LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
+            GROUP BY
+                gv.id_Gvm, gv.HoTen, da.MaPhongBan, pb.TenPhongBan,
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD,
+                gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL,
+                gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu,
+                da.NamHoc, da.Dot, da.ki, da.he_dao_tao,
+                gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep,
+                gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh,
+                da.NgayBatDau, da.NgayKetThuc
+        `;
 
         const [results] = await connection.query(query, params);
 
@@ -506,13 +562,13 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
     try {
         connection = await createPoolConnection();
 
-        const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;
+        const { dot, namHoc, maPhongBan, loaiHopDong, ki } = req.body;
 
-        // Validate required parameters
-        if (!dot || !namHoc || !loaiHopDong) {
+        // Validate required parameters - thêm ki vào validation
+        if (!dot || !namHoc || !loaiHopDong || !ki) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
             });
         }// Validate loaiHopDong - only support thesis contracts
         if (loaiHopDong !== "Đồ án") {
@@ -521,8 +577,13 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Đồ án'",
                 receivedLoaiHopDong: loaiHopDong
             });
-        }        // Query for "Đồ án" - chỉ lấy he_dao_tao (ID), frontend sẽ mapping lấy tên
-        let query = `
+        }
+
+        // Sử dụng shared base query cho main aggregate query
+        const { subquery, params } = buildDoAnBaseQuery(namHoc, dot, ki, maPhongBan);
+
+        // Query for "Đồ án" - chỉ lấy he_dao_tao (ID), frontend sẽ mapping lấy tên
+        const query = `
             SELECT
                 MIN(da.NgayBatDau) AS NgayBatDau,
                 MAX(da.NgayKetThuc) AS NgayKetThuc,
@@ -530,62 +591,16 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 da.NamHoc,
                 da.Dot,
                 SUM(da.SoTiet) AS SoTiet,
-                ${DON_GIA_EXPR('da', 'MaPhongBan')} AS TienMoiGiang,
-                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} AS ThanhTien,
-                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1 AS Thue,
-                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9 AS ThucNhan,
+                100000 AS TienMoiGiang,
+                SUM(da.SoTiet) * 100000 AS ThanhTien,
+                SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
+                SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
                 1 AS DaoTaoDuyet,
                 1 AS TaiChinhDuyet,
                 COUNT(DISTINCT da.GiangVien) AS SoGiangVien
-            FROM (
-                SELECT
-                    NgayBatDau,
-                    NgayKetThuc,
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-                    Dot,
-                    NamHoc,
-                    he_dao_tao,
-                    CASE 
-                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
-                        ELSE 12
-                    END AS SoTiet
-                FROM doantotnghiep
-                WHERE GiangVien1 IS NOT NULL
-                    AND GiangVien1 != ''
-                    AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-                    AND NamHoc = ?
-                    AND Dot = ?
-                
-                UNION ALL
-                
-                SELECT
-                    NgayBatDau,
-                    NgayKetThuc,
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                    Dot,
-                    NamHoc,
-                    he_dao_tao,
-                    8 AS SoTiet
-                FROM doantotnghiep
-                WHERE GiangVien2 IS NOT NULL 
-                    AND GiangVien2 != 'không'
-                    AND GiangVien2 != ''
-                    AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                    AND NamHoc = ?
-                    AND Dot = ?
-            ) da
+            FROM ${subquery}
             JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
             LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-            WHERE 1=1
-        `;
-        let params = [namHoc, dot, namHoc, dot];
-
-        if (maPhongBan && maPhongBan !== "ALL") {
-            query += " AND da.MaPhongBan = ?";
-            params.push(maPhongBan);
-        } query += `
             GROUP BY da.NamHoc, da.Dot, da.he_dao_tao
             ORDER BY da.he_dao_tao
         `;
@@ -605,10 +620,17 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         const enhancedResults = [];
 
         for (const heDaoTao of results) {
-            // Query to get detailed teacher info for all thesis contracts (since we group everything under "Đại học")
+            // Sử dụng shared base query với filter heDaoTao
+            const { subquery: teacherSubquery, params: baseTeacherParams } = buildDoAnBaseQuery(
+                namHoc, dot, ki, maPhongBan, heDaoTao.he_dao_tao
+            );
+
+            // Query to get detailed teacher info for this training program
+            // Sử dụng subquery thay vì LEFT JOIN để tránh nhân bản rows khi SUM SoTiet
             const teacherQuery = `
                 SELECT
                     gv.id_Gvm,
+                    da.GiangVien,
                     gv.HoTen,
                     gv.GioiTinh,
                     gv.NgaySinh,
@@ -625,6 +647,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     gv.MaPhongBan,
                     gv.isNghiHuu,
                     pb.TenPhongBan,
+                    da.he_dao_tao,
                     
                     SUM(da.SoTiet) AS SoTiet,
                     ${DON_GIA_EXPR('da', 'MaPhongBan')} AS TienMoiGiang,
@@ -635,79 +658,76 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     1 AS DaoTaoDuyet,
                     1 AS TaiChinhDuyet,
                     
-                    GROUP_CONCAT(DISTINCT dt.TenDeTai SEPARATOR ', ') as MonHoc,
-                    GROUP_CONCAT(DISTINCT dt.SinhVien SEPARATOR ', ') as Lop,
-                    GROUP_CONCAT(DISTINCT dt.MaSV SEPARATOR ', ') as SiSo,
-                    GROUP_CONCAT(DISTINCT dt.khoa_sinh_vien SEPARATOR ', ') as KhoaSinhVien,
-                    GROUP_CONCAT(DISTINCT dt.nganh SEPARATOR ', ') as Nganh
+                    -- Lấy thông tin đồ án bằng subquery để tránh duplicate rows
+                    (SELECT GROUP_CONCAT(DISTINCT TenDeTai SEPARATOR ', ') 
+                     FROM doantotnghiep 
+                     WHERE (TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) = gv.HoTen 
+                            OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) = gv.HoTen)
+                       AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?
+                    ) as MonHoc,
+                    (SELECT GROUP_CONCAT(DISTINCT SinhVien SEPARATOR ', ') 
+                     FROM doantotnghiep 
+                     WHERE (TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) = gv.HoTen 
+                            OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) = gv.HoTen)
+                       AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?
+                    ) as Lop,
+                    (SELECT GROUP_CONCAT(DISTINCT MaSV SEPARATOR ', ') 
+                     FROM doantotnghiep 
+                     WHERE (TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) = gv.HoTen 
+                            OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) = gv.HoTen)
+                       AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?
+                    ) as SiSo,
+                    (SELECT GROUP_CONCAT(DISTINCT khoa_sinh_vien SEPARATOR ', ') 
+                     FROM doantotnghiep 
+                     WHERE (TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) = gv.HoTen 
+                            OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) = gv.HoTen)
+                       AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?
+                    ) as KhoaSinhVien,
+                    (SELECT GROUP_CONCAT(DISTINCT nganh SEPARATOR ', ') 
+                     FROM doantotnghiep 
+                     WHERE (TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) = gv.HoTen 
+                            OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) = gv.HoTen)
+                       AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?
+                    ) as Nganh
 
-                FROM (
-                    SELECT
-                        MaPhongBan,
-                        he_dao_tao,
-                        TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-                        CASE 
-                            WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
-                            ELSE 12
-                        END AS SoTiet
-                    FROM doantotnghiep
-                    WHERE GiangVien1 IS NOT NULL
-                        AND GiangVien1 != ''
-                        AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')                        AND NamHoc = ?
-                        AND Dot = ?
-                    
-                    UNION ALL
-                    
-                    SELECT
-                        MaPhongBan,
-                        he_dao_tao,
-                        TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                        8 AS SoTiet
-                    FROM doantotnghiep
-                    WHERE GiangVien2 IS NOT NULL 
-                        AND GiangVien2 != 'không'
-                        AND GiangVien2 != ''
-                        AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                        AND NamHoc = ?
-                        AND Dot = ?
-                ) da
+                FROM ${teacherSubquery}
                 JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
-                LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan                LEFT JOIN doantotnghiep dt ON (
-                    (TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen OR TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen)
-                    AND dt.NamHoc = ? AND dt.Dot = ?
-                    AND dt.MaPhongBan = da.MaPhongBan  -- Thêm điều kiện này để tránh duplicate
-                )
-                WHERE 1=1
+                LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
+                GROUP BY
+                    gv.id_Gvm, da.GiangVien, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
+                    gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
+                    gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu, pb.TenPhongBan, da.he_dao_tao
+                ORDER BY SoTiet DESC, gv.HoTen
             `;
 
-            let teacherParams = [namHoc, dot, namHoc, dot, namHoc, dot];
-            let teacherQueryWithFilter = teacherQuery;
+            // params cho subqueries: 5 subqueries x 4 params each = 20 params sau baseTeacherParams
+            const hdt = heDaoTao.he_dao_tao;
+            const teacherParams = [
+                ...baseTeacherParams,
+                // Subquery MonHoc
+                namHoc, dot, ki, hdt,
+                // Subquery Lop
+                namHoc, dot, ki, hdt,
+                // Subquery SiSo
+                namHoc, dot, ki, hdt,
+                // Subquery KhoaSinhVien
+                namHoc, dot, ki, hdt,
+                // Subquery Nganh
+                namHoc, dot, ki, hdt
+            ];
+            const [teacherDetails] = await connection.query(teacherQuery, teacherParams);
 
-            // Add department filter if specified
-            if (maPhongBan && maPhongBan !== "ALL") {
-                teacherQueryWithFilter += " AND da.MaPhongBan = ?";
-                teacherParams.push(maPhongBan);
-            }
-
-            teacherQueryWithFilter += `
-                GROUP BY
-                    gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
-                    gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
-                    gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu, pb.TenPhongBan
-                ORDER BY SoTiet DESC, gv.HoTen
-            `; const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
-
-            // DEBUG: Check isNghiHuu and HSL in database results
-            if (teacherDetails.length > 0) {
-                console.log('[DEBUG CONTROLLER HE DAO TAO] First teacher from DB:', {
-                    teacher: teacherDetails[0].HoTen,
-                    isNghiHuu: teacherDetails[0].isNghiHuu,
-                    isNghiHuuType: typeof teacherDetails[0].isNghiHuu,
-                    HSL: teacherDetails[0].HSL,
-                    HSLType: typeof teacherDetails[0].HSL,
-                    allKeys: Object.keys(teacherDetails[0])
-                });
-            }
+            // // DEBUG: Check isNghiHuu and HSL in database results
+            // if (teacherDetails.length > 0) {
+            //     console.log('[DEBUG CONTROLLER HE DAO TAO] First teacher from DB:', {
+            //         teacher: teacherDetails[0].HoTen,
+            //         isNghiHuu: teacherDetails[0].isNghiHuu,
+            //         isNghiHuuType: typeof teacherDetails[0].isNghiHuu,
+            //         HSL: teacherDetails[0].HSL,
+            //         HSLType: typeof teacherDetails[0].HSL,
+            //         allKeys: Object.keys(teacherDetails[0])
+            //     });
+            // }
 
             // Original HSL debug
             if (teacherDetails.length > 0) {

@@ -176,6 +176,26 @@
             <!-- <button class="dropdown-item" onclick="exportToWord()">Word</button> -->
           </div>
         </div>
+
+        <!-- Search row - separate line below filters -->
+        <div class="d-flex justify-content-start align-items-center mb-3" id="searchRow" style="display: none !important;">
+          <!-- Search by Lecturer Name (TKB) -->
+          <input type="text" class="form-control mx-1" id="searchGiaoVien" 
+                 placeholder="Tìm GV theo TKB..." 
+                 style="width: 200px; height: 40px;">
+
+          <!-- Search by Lecturer Teaching -->
+          <input type="text" class="form-control mx-1" id="searchGiaoVienGiangDay" 
+                 placeholder="Tìm GV giảng dạy..." 
+                 style="width: 200px; height: 40px;">
+
+          <!-- Search by Class Section -->
+          <input type="text" class="form-control mx-1" id="searchLopHocPhan" 
+                 placeholder="Tìm lớp học phần..." 
+                 style="width: 200px; height: 40px;">
+
+        </div>
+
         <div id="loading" style="display: none">Loading...</div>
         <div id="table-info" style="margin-bottom: 10px; font-weight: bold; font-size: 14px;"></div>
         <div class="overflow-auto">
@@ -278,13 +298,27 @@
       // Hàm xuất Excel với 19 cột (API mới)
       async function exportToExcelQC() {
         try {
-          // Gửi renderData trực tiếp, không cần format lại vì BE sẽ xử lý
+          // Map he_dao_tao từ ID sang tên trước khi gửi BE
+          const exportData = renderData.map(item => {
+            const newItem = { ...item };
+            if (newItem.he_dao_tao && heDaoTaoList.length > 0) {
+              const idValue = typeof newItem.he_dao_tao === 'string' 
+                ? parseInt(newItem.he_dao_tao, 10) 
+                : newItem.he_dao_tao;
+              const found = heDaoTaoList.find(h => h.id === idValue);
+              if (found) {
+                newItem.he_dao_tao = found.tenHe;
+              }
+            }
+            return newItem;
+          });
+
           const response = await fetch("/qcct-export-excel", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ renderData: renderData }),
+            body: JSON.stringify({ renderData: exportData }),
           });
 
           if (!response.ok) {
@@ -511,6 +545,12 @@
           renderData = await teachingResponse.json();
           console.log("Tổng hợp bảng dữ liệu:", renderData);
 
+          // Show search inputs and clear previous search values
+          showSearchInputs();
+          document.getElementById("searchGiaoVien").value = "";
+          document.getElementById("searchGiaoVienGiangDay").value = "";
+          document.getElementById("searchLopHocPhan").value = "";
+
           // Hiển thị dữ liệu lên bảng
           renderTable(renderData);
         } catch (error) {
@@ -684,6 +724,51 @@
 
         document.getElementById("data-table-body").innerHTML = tableRows;
       }
+
+      // Function to show search inputs after data is loaded
+      function showSearchInputs() {
+        document.getElementById("searchRow").style.display = "flex";
+        document.getElementById("searchRow").style.setProperty("display", "flex", "important");
+      }
+
+      // Function to apply search to the data
+      function applySearch() {
+        const searchGiaoVien = document.getElementById("searchGiaoVien").value.toLowerCase().trim();
+        const searchGiaoVienGiangDay = document.getElementById("searchGiaoVienGiangDay").value.toLowerCase().trim();
+        const searchLopHocPhan = document.getElementById("searchLopHocPhan").value.toLowerCase().trim();
+
+        let filteredData = renderData;
+
+        // Search by lecturer name TKB (case-insensitive, partial match)
+        if (searchGiaoVien) {
+          filteredData = filteredData.filter(item => 
+            item.GiaoVien && item.GiaoVien.toLowerCase().includes(searchGiaoVien)
+          );
+        }
+
+        // Search by lecturer teaching (case-insensitive, partial match)
+        if (searchGiaoVienGiangDay) {
+          filteredData = filteredData.filter(item => 
+            item.GiaoVienGiangDay && item.GiaoVienGiangDay.toLowerCase().includes(searchGiaoVienGiangDay)
+          );
+        }
+
+        // Search by class section (case-insensitive, partial match)
+        if (searchLopHocPhan) {
+          filteredData = filteredData.filter(item => 
+            item.LopHocPhan && item.LopHocPhan.toLowerCase().includes(searchLopHocPhan)
+          );
+        }
+
+        // Re-render the table with filtered data
+        renderTable(filteredData);
+      }
+
+      // Add event listeners for search inputs (trigger on input for real-time search)
+      document.getElementById("searchGiaoVien").addEventListener("input", applySearch);
+      document.getElementById("searchGiaoVienGiangDay").addEventListener("input", applySearch);
+      document.getElementById("searchLopHocPhan").addEventListener("input", applySearch);
+
 
     </script>
     <!-- Phần phân quyền -->

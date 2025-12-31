@@ -277,7 +277,7 @@ const previewContract = async (req, res) => {
     connection = await createPoolConnection();
 
     const { teacherId, heHopDong, dot, ki, namHoc, teacherData } = req.body;
-    
+
     // LOG: Request data
     console.log('[Preview API] Request received:', {
       teacherId,
@@ -307,13 +307,13 @@ const previewContract = async (req, res) => {
     // heHopDong now can be either ID (number/string) or name (for backward compatibility)
     let heHopDongId = heHopDong;
     let heHopDongName = heHopDong;
-    
+
     console.log('[Preview API] Processing heHopDong:', {
       raw: heHopDong,
       type: typeof heHopDong,
       isNaN: isNaN(heHopDong)
     });
-    
+
     // Check if heHopDong is a number (ID) or string (name)
     if (!isNaN(heHopDong)) {
       // It's an ID, query to get name
@@ -322,12 +322,12 @@ const previewContract = async (req, res) => {
         'SELECT id, he_dao_tao FROM he_dao_tao WHERE id = ?',
         [heHopDong]
       );
-      
+
       console.log('[Preview API] Query result:', {
         found: heDaoTaoRows.length > 0,
         data: heDaoTaoRows[0]
       });
-      
+
       if (heDaoTaoRows.length > 0) {
         heHopDongId = heDaoTaoRows[0].id;
         heHopDongName = heDaoTaoRows[0].he_dao_tao;
@@ -345,12 +345,12 @@ const previewContract = async (req, res) => {
         'SELECT id, he_dao_tao FROM he_dao_tao WHERE he_dao_tao = ?',
         [heHopDong]
       );
-      
+
       console.log('[Preview API] Query result:', {
         found: heDaoTaoRows.length > 0,
         data: heDaoTaoRows[0]
       });
-      
+
       if (heDaoTaoRows.length > 0) {
         heHopDongId = heDaoTaoRows[0].id;
         heHopDongName = heDaoTaoRows[0].he_dao_tao;
@@ -490,7 +490,7 @@ const previewContract = async (req, res) => {
           tienMoiGiang = tienLuong.SoTien;
           tienText = soTiet * tienLuong.SoTien;
           // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-          tienThueText = tienText <= 2000000 ? 0 : tienText * 0.1;
+          tienThueText = tienText < 2000000 ? 0 : tienText * 0.1;
           tienThucNhanText = tienText - tienThueText;
         }
       }
@@ -542,15 +542,15 @@ const previewContract = async (req, res) => {
 
     // Choose template based on contract type name pattern matching
     let templateFileName;
-    
+
     console.log('[Preview API] Selecting template for:', {
       heHopDongId,
       heHopDongName
     });
-    
+
     // Pattern matching based on contract name
     const nameLower = heHopDongName.toLowerCase();
-    
+
     if (nameLower.includes("đồ án")) {
       // Đồ án
       if (nameLower.includes("cao học")) {
@@ -575,7 +575,7 @@ const previewContract = async (req, res) => {
       console.warn('[Preview API] No pattern matched, using default template HP');
       templateFileName = "HopDongHP.docx";
     }
-    
+
     console.log('[Preview API] Pattern matched template:', {
       pattern: nameLower,
       selectedTemplate: templateFileName
@@ -839,10 +839,10 @@ function suppressConsole() {
   };
 
   // Override console methods with empty functions
-  console.log = () => {};
-  console.error = () => {};
-  console.warn = () => {};
-  console.info = () => {};
+  console.log = () => { };
+  console.error = () => { };
+  console.warn = () => { };
+  console.info = () => { };
 
   return originalConsole;
 }
