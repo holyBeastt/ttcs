@@ -71,6 +71,67 @@
       padding-left: 8px;
       padding-right: 8px;
     }
+    /* Bảng chiếm toàn bộ chiều rộng */
+    #detail-list-wrapper-dhp,
+    #detail-list-wrapper-mm {
+      width: 100%;
+      background-color: #ffffff !important;
+      padding: 15px;
+      border-radius: 5px;
+    }
+
+    /* Căn giữa nội dung trong các ô bảng */
+    #detail-list-wrapper-dhp table td,
+    #detail-list-wrapper-dhp table th,
+    #detail-list-wrapper-mm table td,
+    #detail-list-wrapper-mm table th {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    /* Màu nền bảng giống bên thêm người thụ hưởng */
+    #detail-list-wrapper-dhp .table,
+    #detail-list-wrapper-mm .table {
+      background-color: #ffffff !important;
+    }
+
+    #detail-list-wrapper-dhp .table thead.table-light,
+    #detail-list-wrapper-mm .table thead.table-light {
+      background-color: #f8f9fa !important;
+    }
+    
+    #detail-list-wrapper-dhp .table-responsive,
+    #detail-list-wrapper-mm .table-responsive {
+      background-color: #ffffff !important;
+    }
+
+    #detail-list-wrapper-dhp .table tbody tr:nth-of-type(odd),
+    #detail-list-wrapper-mm .table tbody tr:nth-of-type(odd) {
+      background-color: #ffffff;
+    }
+
+    #detail-list-wrapper-dhp .table tbody tr:nth-of-type(even),
+    #detail-list-wrapper-mm .table tbody tr:nth-of-type(even) {
+      background-color: #f8f9fa;
+    }
+
+    #detail-list-wrapper-dhp .table tbody tr:hover,
+    #detail-list-wrapper-mm .table tbody tr:hover {
+      background-color: #e9ecef;
+    }
+
+    /* Thu nhỏ nút trong ô thao tác */
+    #detail-list-wrapper-dhp .btn-sm,
+    #detail-list-wrapper-mm .btn-sm {
+      padding: 0.15rem 0.3rem;
+      font-size: 0.75rem;
+      line-height: 1.2;
+    }
+
+    #detail-list-wrapper-dhp .btn-sm i,
+    #detail-list-wrapper-mm .btn-sm i {
+      font-size: 0.7rem;
+    }
   </style>
 </head>
 
@@ -110,7 +171,7 @@
               </div>
               <div class="col-md-4">
                 <label for="dvnt-dhp" class="form-label"><strong>Đơn vị nhận tiền</strong></label>
-                <input type="text" class="form-control" id="dvnt-dhp" name="dvnt" readonly>
+                <input type="text" class="form-control" id="dvnt-dhp" name="dvnt" placeholder="Nhập STT hoặc Đơn vị nhận tiền">
               </div>
               <div class="col-md-3">
                 <label for="stk-dhp" class="form-label"><strong>Số tài khoản</strong></label>
@@ -139,8 +200,33 @@
                 <button type="button" class="btn btn-success ms-2" onclick="exportExcel('dong-hoc-phi')">
                   <i class="fas fa-file-excel me-1"></i>Xuất file Excel
                 </button>
+                <button type="button" class="btn btn-info ms-2" onclick="viewDetailList('dong-hoc-phi')">
+                  <i class="fas fa-list me-1"></i>Xem danh sách
+                </button>
               </div>
             </form>
+            
+            <!-- Bảng danh sách cho tab Đóng học phí -->
+            <div id="detail-list-wrapper-dhp" class="mt-4" style="display: none;">
+              <h6><i class="fas fa-table me-1"></i>Danh sách UNC ngoài - Đóng học phí</h6>
+              <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 60px;">STT</th>
+                      <th>Đơn vị nhận tiền</th>
+                      <th>Số tài khoản</th>
+                      <th>Ngân hàng</th>
+                      <th style="width: 120px;">Số tiền</th>
+                      <th>Nội dung chi</th>
+                      <th style="width: 100px;">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detail-list-tbody-dhp">
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           <!-- Tab Mật mã -->
@@ -152,7 +238,7 @@
               </div>
               <div class="col-md-4">
                 <label for="dvnt-mm" class="form-label"><strong>Đơn vị nhận tiền</strong></label>
-                <input type="text" class="form-control" id="dvnt-mm" name="dvnt" readonly>
+                <input type="text" class="form-control" id="dvnt-mm" name="dvnt" placeholder="Nhập STT hoặc Đơn vị nhận tiền">
               </div>
               <div class="col-md-3">
                 <label for="stk-mm" class="form-label"><strong>Số tài khoản</strong></label>
@@ -209,8 +295,40 @@
                 <button type="button" class="btn btn-success ms-2" onclick="exportExcel('mat-ma')">
                   <i class="fas fa-file-excel me-1"></i>Xuất file Excel
                 </button>
+                <button type="button" class="btn btn-info ms-2" onclick="viewDetailList('mat-ma')">
+                  <i class="fas fa-list me-1"></i>Xem danh sách
+                </button>
               </div>
             </form>
+            
+            <!-- Bảng danh sách cho tab Mật mã -->
+            <div id="detail-list-wrapper-mm" class="mt-4" style="display: none;">
+              <h6><i class="fas fa-table me-1"></i>Danh sách UNC ngoài - Mật mã</h6>
+              <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 60px;">STT</th>
+                      <th>Đơn vị nhận tiền</th>
+                      <th>Số tài khoản</th>
+                      <th>Ngân hàng</th>
+                      <th style="width: 120px;">Số tiền</th>
+                      <th>Nội dung chi</th>
+                      <th>Mã nguồn NS</th>
+                      <th>Niên độ NS</th>
+                      <th>Địa chỉ</th>
+                      <th>Người nhận tiền</th>
+                      <th>CCCD</th>
+                      <th>Ngày cấp</th>
+                      <th>Nơi cấp</th>
+                      <th style="width: 100px;">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detail-list-tbody-mm">
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -221,10 +339,26 @@
   <script>
     // Khi nhập STT, tự động load thông tin từ bảng uncngoai
     document.getElementById('stt-dhp').addEventListener('blur', function() {
-      loadUNCNgoaiInfo(this.value, 'dong-hoc-phi');
+      if (this.value) {
+        loadUNCNgoaiInfo(this.value, 'dong-hoc-phi', 'stt');
+      }
     });
     document.getElementById('stt-mm').addEventListener('blur', function() {
-      loadUNCNgoaiInfo(this.value, 'mat-ma');
+      if (this.value) {
+        loadUNCNgoaiInfo(this.value, 'mat-ma', 'stt');
+      }
+    });
+
+    // Khi nhập Đơn vị nhận tiền, tự động load thông tin từ bảng uncngoai
+    document.getElementById('dvnt-dhp').addEventListener('blur', function() {
+      if (this.value && this.value.trim()) {
+        loadUNCNgoaiInfo(this.value.trim(), 'dong-hoc-phi', 'dvnt');
+      }
+    });
+    document.getElementById('dvnt-mm').addEventListener('blur', function() {
+      if (this.value && this.value.trim()) {
+        loadUNCNgoaiInfo(this.value.trim(), 'mat-ma', 'dvnt');
+      }
     });
 
     // Khi nhập số tiền, tự động chuyển sang chữ
@@ -235,25 +369,51 @@
       convertNumberToWords(this.value, 'mat-ma');
     });
 
-    // Load thông tin từ bảng uncngoai theo STT
-    function loadUNCNgoaiInfo(stt, tabType) {
-      if (!stt || stt <= 0) return;
+    // Load thông tin từ bảng uncngoai theo STT hoặc ĐVNT
+    function loadUNCNgoaiInfo(value, tabType, searchType) {
+      if (!value) return;
 
-      fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-uncngoai-info?stt=${stt}`)
+      const hedaotao = tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã';
+      const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+      const queryParam = searchType === 'stt' ? `stt=${value}` : `dvnt=${encodeURIComponent(value)}`;
+
+      fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-uncngoai-info?${queryParam}`)
         .then(response => response.json())
         .then(data => {
           if (data.success && data.data) {
-            const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+            // Fill thông tin từ uncngoai
+            if (searchType === 'stt') {
+              document.getElementById(`stt-${prefix}`).value = data.data.stt || '';
+            } else {
+              document.getElementById(`stt-${prefix}`).value = data.data.stt || '';
+            }
             document.getElementById(`dvnt-${prefix}`).value = data.data.dvnt || '';
             document.getElementById(`stk-${prefix}`).value = data.data.stk || '';
             document.getElementById(`nganhang-${prefix}`).value = data.data.nganhang || '';
+
+            // Kiểm tra và fill sotien từ uncngoaidetail (bản ghi mới nhất)
+            if (data.data.stt) {
+              fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-latest-sotien?stt=${data.data.stt}&hedaotao=${encodeURIComponent(hedaotao)}`)
+                .then(response => response.json())
+                .then(sotienData => {
+                  if (sotienData.success && sotienData.data && sotienData.data.sotien) {
+                    document.getElementById(`sotien-${prefix}`).value = sotienData.data.sotien;
+                    convertNumberToWords(sotienData.data.sotien, tabType);
+                  }
+                })
+                .catch(error => {
+                  console.error('Error getting sotien:', error);
+                });
+            }
           } else {
             Swal.fire({
               title: 'Thông báo',
-              text: data.message || 'Không tìm thấy thông tin với STT này',
+              text: data.message || `Không tìm thấy thông tin với ${searchType === 'stt' ? 'STT' : 'Đơn vị nhận tiền'} này`,
               icon: 'warning'
             });
-            const prefix = tabType === 'dong-hoc-phi' ? 'dhp' : 'mm';
+            if (searchType === 'stt') {
+              document.getElementById(`stt-${prefix}`).value = '';
+            }
             document.getElementById(`dvnt-${prefix}`).value = '';
             document.getElementById(`stk-${prefix}`).value = '';
             document.getElementById(`nganhang-${prefix}`).value = '';
@@ -348,6 +508,14 @@
             document.getElementById(`dvnt-${prefixReset}`).value = '';
             document.getElementById(`stk-${prefixReset}`).value = '';
             document.getElementById(`nganhang-${prefixReset}`).value = '';
+            
+            // Reload danh sách nếu đang hiển thị
+            const wrapperId = tabType === 'dong-hoc-phi' ? 'detail-list-wrapper-dhp' : 'detail-list-wrapper-mm';
+            const wrapper = document.getElementById(wrapperId);
+            if (wrapper && wrapper.style.display !== 'none') {
+              const tbodyId = tabType === 'dong-hoc-phi' ? 'detail-list-tbody-dhp' : 'detail-list-tbody-mm';
+              loadDetailList(tabType, tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã', tabType === 'mat-ma', tbodyId);
+            }
           } else {
             Swal.fire({
               title: 'Lỗi',
@@ -664,6 +832,334 @@
             icon: 'error'
           });
         });
+    }
+
+    // Xem danh sách uncngoaidetail
+    function viewDetailList(tabType) {
+      const hedaotao = tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã';
+      const isMatMa = tabType === 'mat-ma';
+      const wrapperId = tabType === 'dong-hoc-phi' ? 'detail-list-wrapper-dhp' : 'detail-list-wrapper-mm';
+      const tbodyId = tabType === 'dong-hoc-phi' ? 'detail-list-tbody-dhp' : 'detail-list-tbody-mm';
+      
+      const wrapper = document.getElementById(wrapperId);
+      const tbody = document.getElementById(tbodyId);
+      
+      // Toggle hiển thị
+      if (wrapper.style.display === 'none') {
+        wrapper.style.display = 'block';
+        loadDetailList(tabType, hedaotao, isMatMa, tbodyId);
+      } else {
+        wrapper.style.display = 'none';
+      }
+    }
+
+    // Load danh sách uncngoaidetail
+    function loadDetailList(tabType, hedaotao, isMatMa, tbodyId) {
+      const tbody = document.getElementById(tbodyId);
+      tbody.innerHTML = '<tr><td colspan="100%" class="text-center"><p class="text-muted">Đang tải dữ liệu...</p></td></tr>';
+      
+      fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-detail-list-full?hedaotao=${encodeURIComponent(hedaotao)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success || !data.data || data.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="100%" class="text-center"><p class="text-muted">Không có dữ liệu</p></td></tr>';
+            return;
+          }
+
+          let html = '';
+
+          data.data.forEach((row, index) => {
+            const ngaycapValue = row.ngaycap ? (row.ngaycap.includes('T') ? row.ngaycap.split('T')[0] : row.ngaycap) : '';
+            html += `
+              <tr data-sounc="${row.sounc}" data-stt="${row.stt}" data-niendons="${row.niendons || ''}">
+                <td>${row.stt || ''}</td>
+                <td class="cell-dvnt">${row.dvnt || ''}</td>
+                <td class="cell-stk">${row.stk || ''}</td>
+                <td class="cell-nganhang">${row.nganhang || ''}</td>
+                <td class="cell-sotien">${row.sotien ? row.sotien.toLocaleString('vi-VN') : ''}</td>
+                <td class="cell-noidung">${row.noidung || ''}</td>
+            `;
+            
+            if (isMatMa) {
+              html += `
+                <td class="cell-manguonns">${row.manguonns || ''}</td>
+                <td class="cell-niendons">${row.niendons || ''}</td>
+                <td class="cell-diachi">${row.diachi || ''}</td>
+                <td class="cell-nguoinhantien">${row.nguoinhantien || ''}</td>
+                <td class="cell-cccd">${row.cccd || ''}</td>
+                <td class="cell-ngaycap">${row.ngaycap ? (row.ngaycap.includes('T') ? new Date(row.ngaycap).toLocaleDateString('vi-VN') : row.ngaycap) : ''}</td>
+                <td class="cell-noicap">${row.noicap || ''}</td>
+              `;
+            }
+            
+            html += `
+                <td>
+                  <button type="button" class="btn btn-sm btn-warning" onclick="enterEditDetailRow(this, '${tabType}')" title="Sửa">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-danger" onclick="deleteDetailRow(this, '${tabType}')" title="Xóa">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+
+          tbody.innerHTML = html;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          tbody.innerHTML = '<tr><td colspan="100%" class="text-center"><p class="text-danger">Có lỗi xảy ra khi tải dữ liệu</p></td></tr>';
+        });
+    }
+
+    // Vào chế độ sửa trực tiếp trên bảng
+    function enterEditDetailRow(button, tabType) {
+      const row = button.closest('tr');
+      
+      // Nếu đã ở chế độ edit thì bỏ qua
+      if (row.classList.contains('editing')) return;
+      row.classList.add('editing');
+
+      const isMatMa = tabType === 'mat-ma';
+      const original = {};
+
+      // Lấy giá trị hiện tại
+      original.dvnt = row.querySelector('.cell-dvnt').textContent.trim();
+      original.stk = row.querySelector('.cell-stk').textContent.trim();
+      original.nganhang = row.querySelector('.cell-nganhang').textContent.trim();
+      original.sotien = row.querySelector('.cell-sotien').textContent.replace(/[^\d]/g, '') || '';
+      original.noidung = row.querySelector('.cell-noidung').textContent.trim();
+
+      if (isMatMa) {
+        original.manguonns = row.querySelector('.cell-manguonns').textContent.trim();
+        original.niendons = row.querySelector('.cell-niendons').textContent.trim();
+        original.diachi = row.querySelector('.cell-diachi').textContent.trim();
+        original.nguoinhantien = row.querySelector('.cell-nguoinhantien').textContent.trim();
+        original.cccd = row.querySelector('.cell-cccd').textContent.trim();
+        const ngaycapText = row.querySelector('.cell-ngaycap').textContent.trim();
+        if (ngaycapText) {
+          const parts = ngaycapText.split('/');
+          if (parts.length === 3) {
+            original.ngaycap = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          } else {
+            original.ngaycap = ngaycapText;
+          }
+        } else {
+          original.ngaycap = '';
+        }
+        original.noicap = row.querySelector('.cell-noicap').textContent.trim();
+      }
+
+      // Lưu original data vào row để dùng khi cancel
+      row.dataset.originalData = JSON.stringify(original);
+
+      // Chuyển các ô thành input
+      row.querySelector('.cell-dvnt').innerHTML = `<input class="form-control form-control-sm" value="${original.dvnt.replace(/"/g, '&quot;')}">`;
+      row.querySelector('.cell-stk').innerHTML = `<input class="form-control form-control-sm" value="${original.stk.replace(/"/g, '&quot;')}">`;
+      row.querySelector('.cell-nganhang').innerHTML = `<input class="form-control form-control-sm" value="${original.nganhang.replace(/"/g, '&quot;')}">`;
+      row.querySelector('.cell-sotien').innerHTML = `<input type="number" class="form-control form-control-sm" value="${original.sotien}">`;
+      row.querySelector('.cell-noidung').innerHTML = `<input class="form-control form-control-sm" value="${original.noidung.replace(/"/g, '&quot;')}">`;
+
+      if (isMatMa) {
+        row.querySelector('.cell-manguonns').innerHTML = `<input class="form-control form-control-sm" value="${(original.manguonns || '').replace(/"/g, '&quot;')}">`;
+        row.querySelector('.cell-niendons').innerHTML = `<input class="form-control form-control-sm" value="${(original.niendons || '').replace(/"/g, '&quot;')}">`;
+        row.querySelector('.cell-diachi').innerHTML = `<input class="form-control form-control-sm" value="${(original.diachi || '').replace(/"/g, '&quot;')}">`;
+        row.querySelector('.cell-nguoinhantien').innerHTML = `<input class="form-control form-control-sm" value="${(original.nguoinhantien || '').replace(/"/g, '&quot;')}">`;
+        row.querySelector('.cell-cccd').innerHTML = `<input class="form-control form-control-sm" value="${(original.cccd || '').replace(/"/g, '&quot;')}">`;
+        row.querySelector('.cell-ngaycap').innerHTML = `<input type="date" class="form-control form-control-sm" value="${original.ngaycap}">`;
+        row.querySelector('.cell-noicap').innerHTML = `<input class="form-control form-control-sm" value="${(original.noicap || '').replace(/"/g, '&quot;')}">`;
+      }
+
+      // Thay đổi nút thao tác
+      const actionCell = row.querySelector('td:last-child');
+      const sounc = row.dataset.sounc;
+      const stt = row.dataset.stt;
+      actionCell.innerHTML = `
+        <button type="button" class="btn btn-sm btn-success" onclick="saveEditDetailRow(this, '${tabType}')" title="Lưu">
+          <i class="fas fa-check"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cancelEditDetailRow(this, '${tabType}')" title="Hủy">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+    }
+
+    // Lưu sửa đổi trực tiếp trên bảng
+    function saveEditDetailRow(button, tabType) {
+      const row = button.closest('tr');
+      const isMatMa = tabType === 'mat-ma';
+      const hedaotao = tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã';
+
+      // Lấy giá trị từ input
+      const data = {
+        sounc: parseInt(row.dataset.sounc),
+        stt: parseInt(row.dataset.stt),
+        niendons: row.dataset.niendons || null,
+        hedaotao: hedaotao,
+        dvnt: row.querySelector('.cell-dvnt input').value.trim(),
+        stk: row.querySelector('.cell-stk input').value.trim(),
+        nganhang: row.querySelector('.cell-nganhang input').value.trim(),
+        sotien: parseInt(row.querySelector('.cell-sotien input').value) || 0,
+        noidung: row.querySelector('.cell-noidung input').value.trim()
+      };
+
+      if (isMatMa) {
+        data.manguonns = row.querySelector('.cell-manguonns input').value.trim() || null;
+        data.niendons = row.querySelector('.cell-niendons input').value.trim() || null;
+        data.diachi = row.querySelector('.cell-diachi input').value.trim() || null;
+        data.nguoinhantien = row.querySelector('.cell-nguoinhantien input').value.trim() || null;
+        data.cccd = row.querySelector('.cell-cccd input').value.trim() || null;
+        data.ngaycap = row.querySelector('.cell-ngaycap input').value || null;
+        data.noicap = row.querySelector('.cell-noicap input').value.trim() || null;
+      }
+
+      // Validate
+      if (!data.dvnt || !data.stk || !data.nganhang || !data.sotien || !data.noidung) {
+        Swal.fire({
+          title: 'Thông báo',
+          text: 'Vui lòng nhập đầy đủ thông tin bắt buộc',
+          icon: 'warning'
+        });
+        return;
+      }
+
+      fetch('/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/update-detail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            Swal.fire({
+              title: 'Thành công',
+              text: 'Đã cập nhật bản ghi thành công',
+              icon: 'success'
+            });
+            // Reload danh sách
+            const tbodyId = tabType === 'dong-hoc-phi' ? 'detail-list-tbody-dhp' : 'detail-list-tbody-mm';
+            loadDetailList(tabType, hedaotao, isMatMa, tbodyId);
+          } else {
+            Swal.fire({
+              title: 'Lỗi',
+              text: result.message || 'Không thể cập nhật bản ghi',
+              icon: 'error'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Lỗi',
+            text: 'Có lỗi xảy ra khi cập nhật bản ghi',
+            icon: 'error'
+          });
+        });
+    }
+
+    // Hủy sửa đổi
+    function cancelEditDetailRow(button, tabType) {
+      const row = button.closest('tr');
+      const original = JSON.parse(row.dataset.originalData || '{}');
+      const isMatMa = tabType === 'mat-ma';
+
+      // Khôi phục giá trị ban đầu
+      row.querySelector('.cell-dvnt').textContent = original.dvnt || '';
+      row.querySelector('.cell-stk').textContent = original.stk || '';
+      row.querySelector('.cell-nganhang').textContent = original.nganhang || '';
+      row.querySelector('.cell-sotien').textContent = original.sotien ? parseInt(original.sotien).toLocaleString('vi-VN') : '';
+      row.querySelector('.cell-noidung').textContent = original.noidung || '';
+
+      if (isMatMa) {
+        row.querySelector('.cell-manguonns').textContent = original.manguonns || '';
+        row.querySelector('.cell-niendons').textContent = original.niendons || '';
+        row.querySelector('.cell-diachi').textContent = original.diachi || '';
+        row.querySelector('.cell-nguoinhantien').textContent = original.nguoinhantien || '';
+        row.querySelector('.cell-cccd').textContent = original.cccd || '';
+        if (original.ngaycap) {
+          const date = new Date(original.ngaycap);
+          row.querySelector('.cell-ngaycap').textContent = date.toLocaleDateString('vi-VN');
+        } else {
+          row.querySelector('.cell-ngaycap').textContent = '';
+        }
+        row.querySelector('.cell-noicap').textContent = original.noicap || '';
+      }
+
+      // Khôi phục nút thao tác
+      const actionCell = row.querySelector('td:last-child');
+      actionCell.innerHTML = `
+        <button type="button" class="btn btn-sm btn-warning" onclick="enterEditDetailRow(this, '${tabType}')" title="Sửa">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="deleteDetailRow(this, '${tabType}')" title="Xóa">
+          <i class="fas fa-trash"></i>
+        </button>
+      `;
+
+      row.classList.remove('editing');
+      delete row.dataset.originalData;
+    }
+
+    // Xóa dòng trong danh sách
+    function deleteDetailRow(button, tabType) {
+      const row = button.closest('tr');
+      const sounc = row.dataset.sounc;
+      const stt = row.dataset.stt;
+      const niendons = row.dataset.niendons;
+
+      Swal.fire({
+        title: 'Xác nhận xóa',
+        text: 'Bạn có chắc chắn muốn xóa bản ghi này?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        fetch('/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/delete-selected', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ids: [{
+              sounc: parseInt(sounc),
+              stt: parseInt(stt),
+              niendons: niendons || null
+            }]
+          })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Thành công',
+                text: 'Đã xóa bản ghi thành công',
+                icon: 'success'
+              });
+              const tbodyId = tabType === 'dong-hoc-phi' ? 'detail-list-tbody-dhp' : 'detail-list-tbody-mm';
+              loadDetailList(tabType, tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã', tabType === 'mat-ma', tbodyId);
+            } else {
+              Swal.fire({
+                title: 'Lỗi',
+                text: data.message || 'Không thể xóa bản ghi',
+                icon: 'error'
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+              title: 'Lỗi',
+              text: 'Có lỗi xảy ra khi xóa bản ghi',
+              icon: 'error'
+            });
+          });
+      });
     }
   </script>
 </body>

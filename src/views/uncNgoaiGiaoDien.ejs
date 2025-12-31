@@ -78,6 +78,9 @@
             <button type="button" id="btn-view-unc-ngoai-list" class="btn btn-sm btn-outline-secondary">
               <i class="fas fa-list me-1"></i>Xem danh sách
             </button>
+            <button type="button" class="btn btn-sm btn-success" onclick="exportExcelFromGiaoDien()">
+              <i class="fas fa-file-excel me-1"></i>Xuất file Excel
+            </button>
           </div>
         </form>
 
@@ -374,6 +377,57 @@
             });
           });
       });
+    }
+
+    // Xuất file Excel từ CSDL
+    function exportExcelFromGiaoDien() {
+      Swal.fire({
+        title: 'Đang xuất file...',
+        text: 'Vui lòng chờ trong giây lát',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch('/uy-nhiem-chi/unc-ngoai/nhap-du-lieu/import-file/api/export-from-db', {
+        method: 'GET'
+      })
+        .then(response => {
+          if (response.ok) {
+            return response.blob();
+          } else {
+            return response.json().then(data => {
+              throw new Error(data.message || 'Có lỗi xảy ra');
+            });
+          }
+        })
+        .then(blob => {
+          Swal.close();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `UNC_ngoai_${new Date().getTime()}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          Swal.fire({
+            title: 'Thành công',
+            text: 'Đã xuất file Excel thành công',
+            icon: 'success'
+          });
+        })
+        .catch(error => {
+          Swal.close();
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Lỗi',
+            text: error.message || 'Có lỗi xảy ra khi xuất file Excel',
+            icon: 'error'
+          });
+        });
     }
   </script>
 </body>

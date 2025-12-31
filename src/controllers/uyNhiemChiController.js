@@ -705,28 +705,42 @@ const taiUyNhiemChiController = {
     }
   },
 
-  // API lấy thông tin từ bảng uncngoai theo STT
+  // API lấy thông tin từ bảng uncngoai theo STT hoặc ĐVNT
   getUNCNgoaiInfo: async (req, res) => {
     let connection;
     try {
-      const stt = parseInt(req.query.stt);
-      if (!stt || stt <= 0) {
+      const stt = req.query.stt ? parseInt(req.query.stt) : null;
+      const dvnt = req.query.dvnt ? req.query.dvnt.trim() : null;
+
+      if (!stt && !dvnt) {
         return res.status(400).json({
           success: false,
-          message: 'STT không hợp lệ'
+          message: 'Vui lòng nhập STT hoặc Đơn vị nhận tiền'
         });
       }
 
       connection = await createPoolConnection();
-      const [rows] = await connection.execute(
-        `SELECT stt, dvnt, stk, nganhang FROM uncngoai WHERE stt = ?`,
-        [stt]
-      );
+      let query, params;
+
+      if (stt && stt > 0) {
+        query = `SELECT stt, dvnt, stk, nganhang FROM uncngoai WHERE stt = ?`;
+        params = [stt];
+      } else if (dvnt) {
+        query = `SELECT stt, dvnt, stk, nganhang FROM uncngoai WHERE TRIM(dvnt) = ? LIMIT 1`;
+        params = [dvnt];
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'STT hoặc Đơn vị nhận tiền không hợp lệ'
+        });
+      }
+
+      const [rows] = await connection.execute(query, params);
 
       if (rows.length === 0) {
         return res.json({
           success: false,
-          message: 'Không tìm thấy thông tin với STT này'
+          message: stt ? 'Không tìm thấy thông tin với STT này' : 'Không tìm thấy thông tin với Đơn vị nhận tiền này'
         });
       }
 
@@ -739,6 +753,53 @@ const taiUyNhiemChiController = {
       return res.status(500).json({
         success: false,
         message: 'Lỗi server khi lấy thông tin UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API lấy số tiền mới nhất từ uncngoaidetail
+  getLatestSotien: async (req, res) => {
+    let connection;
+    try {
+      const stt = parseInt(req.query.stt);
+      const hedaotao = req.query.hedaotao;
+
+      if (!stt || stt <= 0 || !hedaotao) {
+        return res.status(400).json({
+          success: false,
+          message: 'STT hoặc Hệ đào tạo không hợp lệ'
+        });
+      }
+
+      connection = await createPoolConnection();
+      const [rows] = await connection.execute(
+        `SELECT sotien FROM uncngoaidetail 
+         WHERE stt = ? AND hedaotao = ? 
+         ORDER BY ngaynhap DESC, sounc DESC 
+         LIMIT 1`,
+        [stt, hedaotao]
+      );
+
+      if (rows.length === 0) {
+        return res.json({
+          success: false,
+          message: 'Không tìm thấy số tiền'
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: { sotien: rows[0].sotien }
+      });
+    } catch (error) {
+      console.error('Error in getLatestSotien:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lấy số tiền'
       });
     } finally {
       if (connection) {
@@ -918,6 +979,141 @@ const taiUyNhiemChiController = {
       return res.status(500).json({
         success: false,
         message: 'Lỗi server khi lấy danh sách UNC ngoài chi tiết'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API lấy danh sách đầy đủ uncngoaidetail để hiển thị và sửa/xóa
+  getUNCNgoaiDetailListFull: async (req, res) => {
+    let connection;
+    try {
+      const { hedaotao } = req.query;
+
+      if (!hedaotao) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu thông tin hệ đào tạo'
+        });
+      }
+
+      connection = await createPoolConnection();
+      const query = `SELECT 
+        sounc, stt, dvnt, stk, nganhang, sotien, noidung,
+        manguonns, niendons, diachi, nguoinhantien, cccd, ngaycap, noicap, ngaynhap
+        FROM uncngoaidetail 
+        WHERE hedaotao = ? 
+        ORDER BY ngaynhap DESC, sounc DESC`;
+
+      const [rows] = await connection.execute(query, [hedaotao]);
+
+      return res.json({
+        success: true,
+        data: rows || []
+      });
+    } catch (error) {
+      console.error('Error in getUNCNgoaiDetailListFull:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lấy danh sách UNC ngoài chi tiết'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API cập nhật một bản ghi uncngoaidetail
+  updateUNCNgoaiDetail: async (req, res) => {
+    let connection;
+    try {
+      const {
+        sounc,
+        stt,
+        hedaotao,
+        dvnt,
+        stk,
+        nganhang,
+        sotien,
+        noidung,
+        manguonns,
+        niendons,
+        diachi,
+        nguoinhantien,
+        cccd,
+        ngaycap,
+        noicap
+      } = req.body;
+
+      // Validate các trường bắt buộc
+      if (!sounc || !stt || !hedaotao || !dvnt || !stk || !nganhang || !sotien || !noidung) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng nhập đầy đủ thông tin bắt buộc'
+        });
+      }
+
+      connection = await createPoolConnection();
+      await connection.beginTransaction();
+
+      // Format ngày cấp nếu có
+      let ngaycapFormatted = null;
+      if (ngaycap) {
+        ngaycapFormatted = ngaycap;
+      }
+
+      // Update bản ghi
+      const [result] = await connection.execute(
+        `UPDATE uncngoaidetail SET 
+          dvnt = ?, stk = ?, nganhang = ?, sotien = ?, noidung = ?,
+          manguonns = ?, niendons = ?, diachi = ?, nguoinhantien = ?, 
+          cccd = ?, ngaycap = ?, noicap = ?
+         WHERE sounc = ? AND stt = ? AND hedaotao = ?`,
+        [
+          dvnt,
+          stk,
+          nganhang,
+          parseInt(sotien),
+          noidung,
+          manguonns || null,
+          niendons || null,
+          diachi || null,
+          nguoinhantien || null,
+          cccd || null,
+          ngaycapFormatted,
+          noicap || null,
+          parseInt(sounc),
+          parseInt(stt),
+          hedaotao
+        ]
+      );
+
+      if (result.affectedRows === 0) {
+        await connection.rollback();
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy bản ghi để cập nhật'
+        });
+      }
+
+      await connection.commit();
+
+      return res.json({
+        success: true,
+        message: 'Đã cập nhật bản ghi thành công'
+      });
+    } catch (error) {
+      if (connection) {
+        await connection.rollback();
+      }
+      console.error('Error in updateUNCNgoaiDetail:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi cập nhật bản ghi: ' + error.message
       });
     } finally {
       if (connection) {
@@ -1300,6 +1496,21 @@ const taiUyNhiemChiController = {
       }
 
       connection = await createPoolConnection();
+
+      // Kiểm tra xem số tài khoản đã tồn tại chưa (sau khi trim)
+      const [existingStk] = await connection.execute(
+        `SELECT stt, dvnt, stk, nganhang 
+         FROM uncngoai 
+         WHERE TRIM(stk) = ?`,
+        [stk]
+      );
+
+      if (existingStk.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Số tài khoản đã tồn tại với id ${existingStk[0].stt}`
+        });
+      }
 
       // Kiểm tra xem người thụ hưởng đã tồn tại chưa (cả 3 cột đều trùng)
       const [existing] = await connection.execute(
