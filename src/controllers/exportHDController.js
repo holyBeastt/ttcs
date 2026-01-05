@@ -747,27 +747,29 @@ const exportMultipleContracts = async (req, res) => {
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
 
 
-    // Tạo file Excel báo cáo thuế
-    const taxReportData = summaryData.map((item, index) => {
-      // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
-      const tienTruocThue = item.TongTien || (item.ThucNhan < 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
-      // Nếu số tiền <= 2 triệu thì không có thuế
-      const thuePhaiTra = tienTruocThue < 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu < 2 triệu)
+    // Tạo file Excel báo cáo thuế - lấy dữ liệu trực tiếp từ database
+    const taxReportData = teachers.map((teacher, index) => {
+      const hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+      // Ép kiểu Number để đảm bảo Excel SUM hoạt động đúng
+      const amount = Number(teacher.SoTien);
+      const taxDeducted = Number(teacher.TruThue);
+      const netAmount = Number(teacher.ThucNhan);
 
       return {
         stt: index + 1,
-        contractNumber: item.SoHopDong,
-        executor: item.HoTen,
+        contractNumber: teacher.SoHopDong,
+        executor: hoTenTrim,
         expenseDescription: `Hợp đồng giao khoán công việc`,
-        idNumber: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.CCCD || '',
-        issueDate: formatDateForExcel(teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NgayCap),
-        issuePlace: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NoiCapCCCD || '',
-        idAddress: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DiaChi || '',
-        phoneNumber: item.DienThoai,
-        taxCode: item.MaSoThue,
-        amount: tienTruocThue, // Tổng tiền trước thuế
-        taxDeducted: thuePhaiTra, // Thuế 10%
-        netAmount: item.ThucNhan // Tiền sau thuế
+        idNumber: teacher.CCCD || '',
+        issueDate: formatDateForExcel(teacher.NgayCap),
+        issuePlace: teacher.NoiCapCCCD || '',
+        idAddress: teacher.DiaChi || '',
+        phoneNumber: teacher.DienThoai,
+        taxCode: teacher.MaSoThue,
+        amount: amount, // Tổng tiền trước thuế từ DB (đã ép kiểu Number)
+        taxDeducted: taxDeducted, // Thuế từ DB (đã ép kiểu Number)
+        netAmount: netAmount // Tiền sau thuế từ DB (đã ép kiểu Number)
       };
     });
 
@@ -2674,7 +2676,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || '') + '   /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+              createCell((row.SoHopDong || '') + '', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
               createCell(row.DienThoai || ""),
               createCell(row.MaSoThue || ""),
@@ -2990,12 +2992,24 @@ function createTaxReportWorkbook(records) {
     });
   }
 
-  // Footer: Tổng cộng - sử dụng dataEndRow đã được tính chính xác ở trên
+  // Tính tổng trước khi thêm vào Excel
+  let totalAmount = 0;
+  let totalTax = 0;
+  let totalNet = 0;
+  if (records && records.length > 0) {
+    records.forEach(record => {
+      totalAmount += typeof record.amount === 'number' ? record.amount : 0;
+      totalTax += typeof record.taxDeducted === 'number' ? record.taxDeducted : 0;
+      totalNet += typeof record.netAmount === 'number' ? record.netAmount : 0;
+    });
+  }
+
+  // Footer: Tổng cộng - sử dụng giá trị đã tính sẵn thay vì formula
   worksheet.addRow([
     'Tổng cộng:', '', '', '', '', '', '', '', '', '',
-    { formula: `SUM(K${dataStartRow}:K${dataEndRow})` },
-    { formula: `SUM(L${dataStartRow}:L${dataEndRow})` },
-    { formula: `SUM(M${dataStartRow}:M${dataEndRow})` }
+    totalAmount,
+    totalTax,
+    totalNet
   ]);
   const totalRow = worksheet.lastRow.number;
   worksheet.mergeCells(`A${totalRow}:J${totalRow}`);
@@ -3007,16 +3021,7 @@ function createTaxReportWorkbook(records) {
     worksheet.getCell(`${col}${totalRow}`).numFmt = '#,##0';
   });
 
-  // Tính tổng số tiền để chuyển thành chữ
-  let totalAmount = 0;
-  if (records && records.length > 0) {
-    totalAmount = records.reduce((sum, record) => {
-      const amount = typeof record.amount === 'number' ? record.amount : 0;
-      return sum + amount;
-    }, 0);
-  }
-
-  // Bằng chữ
+  // Bằng chữ - sử dụng totalAmount đã tính ở trên
   const textRowVal = `Bằng chữ: ${numberToWords(totalAmount)} đồng chẵn.`;
   worksheet.addRow([textRowVal]);
   const textRow = worksheet.lastRow.number;
