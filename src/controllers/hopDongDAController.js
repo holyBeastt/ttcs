@@ -7,6 +7,7 @@ const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
 const exportPhuLucDAController = require("../controllers/exportPhuLucDAController");
+const gvmServices = require("../services/gvmServices");
 
 // Import các thư viện cần thiết để tạo file Word
 const {
@@ -489,6 +490,8 @@ GROUP BY
 
     // Lấy dữ liệu phòng ban
     const [phongBanList] = await connection.query("SELECT * FROM phongban");
+
+    // const heDaoTaoData = await gvmServices.getHeDaoTaoData();
 
     // Lấy thông tin hệ đào tạo từ ID
     const [[heDaoTaoInfo]] = await connection.query(

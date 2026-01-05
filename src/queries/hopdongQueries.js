@@ -293,7 +293,7 @@ DaiHocHopDongDuKien AS (
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1 AND qc.NamHoc = ? AND qc.he_dao_tao in (select id from he_dao_tao where cap_do = 1)
+        qc.MoiGiang = 1 AND qc.NamHoc = ? AND qc.he_dao_tao in (select id from he_dao_tao where cap_do <= 2)
     )
 `;
 
@@ -344,7 +344,7 @@ SoTietSauDaiHoc AS (
         JOIN 
             gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
         WHERE
-            qc.NamHoc = ? AND qc.he_dao_tao not in (select id from he_dao_tao where cap_do = 1)
+            qc.NamHoc = ? AND qc.he_dao_tao not in (select id from he_dao_tao where cap_do <= 2)
     ),
     SauDaiHocHopDongDuKien AS (
         SELECT
