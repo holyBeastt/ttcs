@@ -237,7 +237,6 @@ const getExportPhuLucGiangVienMoiPath = async (
 
     // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
     const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== ''
-    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== ''
       ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong} `
       : `Kèm theo biên bản nghiệm thu Hợp đồng số:           /HĐNT-ĐT `;
 
@@ -508,7 +507,6 @@ const getExportPhuLucGiangVienMoiPath = async (
       const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-      const contractNumber = soHopDong && soHopDong.trim() !== ''
       const contractNumber = soHopDong && soHopDong.trim() !== ''
         ? `Hợp đồng số: ${soHopDong} ${formattedEarliestDate}`
         : `Hợp đồng số:           /HĐ-ĐT ${formattedEarliestDate}`;
