@@ -378,10 +378,6 @@ const exportMultipleContracts = async (req, res) => {
         );
       }
     }
-    // Truy vấn bảng tienluong để lấy mức tiền
-    const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
-    const [tienLuongList] = await connection.execute(tienLuongQuery);
-
     // Lấy hệ đào tạo
     const heDaoTaoData = await gvmServices.getHeDaoTaoData(req, res);
 
@@ -556,49 +552,38 @@ const exportMultipleContracts = async (req, res) => {
 
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
+      console.log("Processing teacher:", teacher);
       const soTiet = teacher.SoTiet || 0;
 
       // Gán giá trị mặc định "Thạc sĩ" nếu cột học vị trống
       teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
-      const tienLuong = tienLuongList.find(
-        (item) =>
-          item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDongId
-      );
-
-      if (!tienLuong) {
-        return res
-          .status(404)
-          .send(
-            "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
-          );
-      }
 
       // Đảm bảo soTiet là số và làm tròn để tránh lỗi floating-point
       const soTietNumber = typeof soTiet === 'string' ? parseFloat(soTiet) : soTiet;
 
       // Làm tròn kết quả để tránh lỗi floating-point (27839999.999999996 -> 27840000)
-      const tienText = Math.round(tienLuong.SoTien * soTietNumber);
+      const tienText = Math.round(teacher.SoTien || 0);
 
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
+      const tienThueText = Math.round(teacher.TruThue || 0);
 
-      const tienThucNhanText = tienText - tienThueText;
+      const tienThucNhanText = teacher.ThucNhan;
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
         teacher.NgayKetThuc
       );
 
       // Cập nhật lại số tiền vào bảng hopdonggvmoi
-      await updateSoTienThucNhan(
-        connection,
-        teacher.id_Gvm,
-        dot,
-        ki,
-        namHoc,
-        tienThueText,
-        tienThucNhanText
-      );
+      // await updateSoTienThucNhan(
+      //   connection,
+      //   teacher.id_Gvm,
+      //   dot,
+      //   ki,
+      //   namHoc,
+      //   tienThueText,
+      //   tienThucNhanText
+      // );
 
       // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
@@ -626,6 +611,7 @@ const exportMultipleContracts = async (req, res) => {
 
       const bangChuSoTien = numberToWords(tienText);
       const bangChuThucNhan = numberToWords(tienThucNhanText);
+      const MucTien = teacher.SoTien / teacher.SoTiet;
 
       const data = {
         Số_hợp_đồng: teacher.SoHopDong || "    ",
@@ -656,7 +642,7 @@ const exportMultipleContracts = async (req, res) => {
         Kỳ: convertToRoman(teacher.KiHoc),
         Năm_học: teacher.NamHoc,
         Thời_gian_thực_hiện: thoiGianThucHien,
-        Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
+        Mức_tiền: MucTien.toLocaleString("vi-VN"),
         Nơi_công_tác: teacher.NoiCongTac,
         Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã"
       };
