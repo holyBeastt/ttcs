@@ -302,12 +302,7 @@
                     <strong>Tất cả hệ</strong>
                   </label>
                   <div class="dropdown-divider"></div>
-                  <label class="dropdown-item">
-                    <input type="checkbox" value="Đồ án (Đại học)" /> Đồ án (Đại học)
-                  </label>
-                  <label class="dropdown-item">
-                    <input type="checkbox" value="Đồ án (Cao học)" /> Đồ án (Cao học)
-                  </label>
+                  <!-- Các hệ đào tạo sẽ được load động từ API /api/gvm/v1/he-do-an -->
                 </div>
                 <div class="selected-items" id="selectedHe"></div>
               </div>
@@ -531,9 +526,52 @@
       
       <!-- ĐTPH thesis contract specific script -->
       <script>
-        // ===== CONSTANTS FOR ĐTPH =====
         const FIXED_KHOA = 'ĐTPH';
         let selectedHeValues = [];
+        
+        // ===== HỆ ĐÀO TẠO API (ĐỒ ÁN) =====
+        let heDaoTaoList = [];
+
+        async function loadHeDaoTaoFromAPI() {
+          try {
+            const response = await fetch('/api/gvm/v1/he-do-an');
+            if (!response.ok) throw new Error('Failed to fetch');
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+              heDaoTaoList = result.data.map(item => ({
+                id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
+                tenHe: item.he_dao_tao
+              }));
+              console.log('Đã load danh sách hệ đào tạo đồ án từ API:', heDaoTaoList);
+              renderHeDaoTaoDropdown();
+            }
+          } catch (error) {
+            console.error('Lỗi khi gọi API hệ đào tạo:', error);
+            heDaoTaoList = [];
+          }
+        }
+
+        function renderHeDaoTaoDropdown() {
+          const heMenu = $('#heCheckboxMenu');
+          heMenu.find('.dropdown-item:not(:first-child)').remove();
+          heMenu.find('.dropdown-divider').nextAll().remove();
+          
+          heDaoTaoList.forEach(he => {
+            heMenu.append(`
+              <label class="dropdown-item">
+                <input type="checkbox" value="${he.id}" /> ${he.tenHe}
+              </label>
+            `);
+          });
+        }
+
+        function getTenHeById(heId) {
+          if (!heId || heDaoTaoList.length === 0) return heId || '';
+          const heIdNumber = typeof heId === 'string' ? parseInt(heId, 10) : heId;
+          const found = heDaoTaoList.find(item => item.id === heIdNumber);
+          return found ? found.tenHe : heId;
+        }
 
         // ===== SIMPLIFIED MULTI-SELECT FOR HỆ ĐÀO TẠO =====
         function initHeMultiSelect() {
@@ -612,7 +650,7 @@
             } else {
               const checkbox = container.querySelector(`input[value="${value}"]`);
               if (checkbox) {
-                const label = checkbox.closest('label').textContent.trim();
+                let label = getTenHeById(value) || checkbox.closest('label').textContent.trim();
                 const tag = document.createElement('span');
                 tag.className = 'selected-tag';
                 tag.innerHTML = `${label} <span class="remove-tag" onclick="removeHeTag('${value}')">×</span>`;
@@ -642,9 +680,15 @@
         function getSelectedHe() {
           console.log('selectedHeValues:', selectedHeValues);
           if (selectedHeValues.length === 0 || selectedHeValues.includes('ALL')) {
+            if (heDaoTaoList.length > 0) {
+              return heDaoTaoList.map(he => he.id);
+            }
             return ['ALL'];
           }
-          return selectedHeValues;
+          return selectedHeValues.map(v => {
+            if (v === 'ALL') return 'ALL';
+            return typeof v === 'string' ? parseInt(v, 10) : v;
+          });
         }
 
         // Cập nhật ví dụ số hợp đồng khi người dùng thay đổi số bắt đầu hoặc kí hiệu
@@ -866,11 +910,12 @@
           // Flatten data để dễ xử lý
           const rows = [];
           Object.keys(groupedContracts).forEach(he => {
+            const heDisplayName = getTenHeById(he) || he;
             Object.keys(groupedContracts[he]).forEach(khoa => {
               groupedContracts[he][khoa].forEach((contract, idx) => {
                 rows.push({
                   ...contract,
-                  groupInfo: he, // Chỉ hiển thị hệ đào tạo cho ĐTPH
+                  groupInfo: heDisplayName,
                   index: rows.length + 1
                 });
               });
@@ -1039,7 +1084,7 @@
                     <td>${contract.HoTen || ''}</td>
                     ${isFirst
                     ? `<td rowspan="${rowSpan}" class="text-center align-middle bg-light">
-                         <strong>${system}</strong>
+                         <strong>${getTenHeById(system) || system}</strong>
                        </td>`
                     : ''
                   }
@@ -1097,6 +1142,9 @@
         $(document).ready(function () {
           console.log('Document ready, initializing ĐTPH thesis site...');
           
+          // Load danh sách hệ đào tạo từ API
+          loadHeDaoTaoFromAPI();
+
           // Đặt mặc định cho hệ đào tạo
           selectedHeValues = ['ALL'];
 
@@ -1106,7 +1154,7 @@
             // Set mặc định cho checkboxes
             $('#selectAllHe').prop('checked', true);
             updateHeDisplay();
-          }, 500);
+          }, 800);
 
           // Khởi tạo giao diện
           updateNumberPreview();
