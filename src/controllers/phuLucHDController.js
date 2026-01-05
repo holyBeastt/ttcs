@@ -3,6 +3,7 @@ const ExcelJS = require("exceljs");
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const path = require("path");
+const gvmService = require("../services/gvmServices");
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
@@ -147,23 +148,14 @@ const getTienLuongList = async (connection) => {
   const [tienLuongList] = await connection.execute(query);
   return tienLuongList;
 };
-function tinhSoTien(row, soTiet, tienLuongList) {
-  const tienLuong = tienLuongList.find(
-    (tl) => tl.he_dao_tao === row.he_dao_tao && tl.HocVi === row.HocVi
-  );
-  if (tienLuong) {
-    return soTiet * tienLuong.SoTien;
-  } else {
-    return 0;
-  }
-}
+
 const getExportPhuLucGiangVienMoiPath = async (
   req,
   connection,
   dot,
   ki,
   namHoc,
-  loaiHopDong,
+  loaiHopDongText,
   khoa,
   teacherName,
   data
@@ -314,13 +306,11 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
-        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
-        const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
-        const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
-        );
-        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        const soTien = item.SoTien; // Lấy Số Tiền trực tiếp từ dữ liệu
+        const truThue = item.TruThue; // Lấy Trừ Thuế trực tiếp từ dữ liệu
+        const thucNhan = item.ThucNhan; // Lấy Thực Nhận trực tiếp từ dữ liệu
+
+        const mucThanhToan = item.SoTien / item.SoTiet;
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
             ? "TS"
@@ -620,13 +610,11 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
-        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
-        const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
-        const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
-        );
-        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        const soTien = item.SoTien; // Lấy Số Tiền trực tiếp từ dữ liệu
+        const truThue = item.TruThue; // Lấy Trừ Thuế trực tiếp từ dữ liệu
+        const thucNhan = item.ThucNhan; // Lấy Thực Nhận trực tiếp từ dữ liệu
+
+        const mucThanhToan = item.SoTien / item.SoTiet;
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
@@ -907,13 +895,11 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ";
-        const soTien = tinhSoTien(item, soTiet, tienLuongList);
-        const truThue = soTien * 0.1;
-        const thucNhan = soTien - truThue;
-        const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
-        );
-        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        const soTien = item.SoTien;
+        const truThue = item.TruThue;
+        const thucNhan = item.ThucNhan;
+
+        const mucThanhToan = item.SoTien / item.SoTiet;
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
@@ -1071,7 +1057,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       fs.mkdirSync(tempDir, { recursive: true });
     }
     // Tạo tên file
-    let fileName = `PhuLuc_GiangDay_Dot${dot}_Ki${ki}_${namHoc}`;
+    let fileName = `PhuLuc_GiangDay_${loaiHopDongText}_Dot${dot}_Ki${ki}_${namHoc}`;
     if (khoa && khoa !== "ALL") {
       fileName += `_${sanitizeFileName(khoa)}`;
     }
@@ -1157,7 +1143,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         UNION
         SELECT * FROM phuLucDH
     )    
-    SELECT DISTINCT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
+    SELECT DISTINCT t.*, hd.SoTiet, hd.SoTien, hd.TruThue, hd.ThucNhan, hd.SoHopDong, hd.SoThanhLyHopDong 
     FROM table_ALL t
     LEFT JOIN hopdonggvmoi hd ON t.CCCD = hd.CCCD 
         AND t.Dot = hd.Dot 
@@ -1179,13 +1165,17 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     const [data] = await connection.execute(query, params);
 
-    console.log("data with contract signatures = ", data);
-
     if (data.length === 0) {
       return res.send(
         `<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/phuLucHD';</script>`
       );
     }
+
+    const heDaoTaoData = await gvmService.getHeMoiGiangData(req, res);
+
+    const loaiHopDongText = heDaoTaoData.find(
+      (item) => item.id.toString() === loaiHopDong.toString()
+    )?.he_dao_tao || "UnknownType";
 
     const filePaths = await getExportPhuLucGiangVienMoiPath(
       req,
@@ -1193,7 +1183,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       dot,
       ki,
       namHoc,
-      loaiHopDong,
+      loaiHopDongText,
       khoa,
       teacherName,
       data
