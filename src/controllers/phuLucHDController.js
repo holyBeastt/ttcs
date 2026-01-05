@@ -225,7 +225,7 @@ const getExportPhuLucGiangVienMoiPath = async (
     const firstSoThanhLyHopDong = data[0]?.SoThanhLyHopDong || '';
 
     // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== '' 
+    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== ''
       ? `Hợp đồng số: ${firstSoHopDong} `
       : `Hợp đồng số:           /HĐ-ĐT `;
 
@@ -235,7 +235,7 @@ const getExportPhuLucGiangVienMoiPath = async (
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
     // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== '' 
+    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== ''
       ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong} `
       : `Kèm theo biên bản nghiệm thu Hợp đồng số:           /HĐNT-ĐT `;
 
@@ -506,7 +506,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-      const contractNumber = soHopDong && soHopDong.trim() !== '' 
+      const contractNumber = soHopDong && soHopDong.trim() !== ''
         ? `Hợp đồng số: ${soHopDong} ${formattedEarliestDate}`
         : `Hợp đồng số:           /HĐ-ĐT ${formattedEarliestDate}`;
 
@@ -791,21 +791,25 @@ const getExportPhuLucGiangVienMoiPath = async (
       const titleRow2_2 = worksheet2.addRow(["Phụ lục"]);
       titleRow2_2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2_2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet2.mergeCells(`A${titleRow2_2.number}:L${titleRow2_2.number}`);      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
-      const earliestDate_2 = giangVienData.reduce((minDate, item) => {
-        const currentStartDate = new Date(item.NgayBatDau);
-        return currentStartDate < minDate ? currentStartDate : minDate;
-      }, new Date(giangVienData[0].NgayBatDau));
+      worksheet2.mergeCells(`A${titleRow2_2.number}:L${titleRow2_2.number}`);
 
-      // Định dạng ngày bắt đầu sớm nhất thành chuỗi
-      const formattedEarliestDate_2 = formatVietnameseDate(earliestDate_2);      // Lấy SoThanhLyHopDong từ dữ liệu giảng viên
+      // Tìm ngày kết thúc muộn nhất từ dữ liệu giảng viên (cho biên bản nghiệm thu)
+      const latestEndDate = giangVienData.reduce((maxDate, item) => {
+        const currentEndDate = new Date(item.NgayKetThuc);
+        return currentEndDate > maxDate ? currentEndDate : maxDate;
+      }, new Date(giangVienData[0].NgayKetThuc));
+
+      // Định dạng ngày kết thúc muộn nhất thành chuỗi
+      const formattedLatestEndDate = formatVietnameseDate(latestEndDate);
+
+      // Lấy SoThanhLyHopDong từ dữ liệu giảng viên
       const soHopDong_2 = giangVienData[0]?.SoHopDong || '';
       const soThanhLyHopDong_2 = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // Xử lý soThanhLyHopDong_2: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== '' 
-        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2} ${formattedEarliestDate_2}`
-        : `Kèm theo biên bản nghiệm thu Hợp đồng số:           /HĐNT-ĐT ${formattedEarliestDate_2}`;
+      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== ''
+        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2} ${formattedLatestEndDate}`
+        : `Kèm theo biên bản nghiệm thu Hợp đồng số:           /HĐNT-ĐT ${formattedLatestEndDate}`;
 
       const titleRow4_2 = worksheet2.addRow([
         contractNumberWithVerification,
@@ -1260,7 +1264,7 @@ const getPhuLucHDSite = async (req, res) => {
     const query = `select HoTen, MaPhongBan from gvmoi`;
     const [gvmoiList] = await connection.query(query);
 
-    res.render("phuLucHD.ejs", {
+    res.render("moigiang.phuLucHopDongGVM.ejs", {
       gvmoiList: gvmoiList,
     });
   } catch (error) {
