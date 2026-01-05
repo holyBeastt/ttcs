@@ -200,14 +200,11 @@
                 <button type="button" class="btn btn-success ms-2" onclick="exportExcel('dong-hoc-phi')">
                   <i class="fas fa-file-excel me-1"></i>Xuất file Excel
                 </button>
-                <button type="button" class="btn btn-info ms-2" onclick="viewDetailList('dong-hoc-phi')">
-                  <i class="fas fa-list me-1"></i>Xem danh sách
-                </button>
               </div>
             </form>
             
             <!-- Bảng danh sách cho tab Đóng học phí -->
-            <div id="detail-list-wrapper-dhp" class="mt-4" style="display: none;">
+            <div id="detail-list-wrapper-dhp" class="mt-4" style="display: block;">
               <h6><i class="fas fa-table me-1"></i>Danh sách UNC ngoài - Đóng học phí</h6>
               <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
@@ -226,6 +223,11 @@
                   </tbody>
                 </table>
               </div>
+              <!-- Phân trang -->
+              <nav aria-label="Phân trang" class="mt-3">
+                <ul class="pagination justify-content-center" id="pagination-dhp">
+                </ul>
+              </nav>
             </div>
           </div>
 
@@ -295,14 +297,11 @@
                 <button type="button" class="btn btn-success ms-2" onclick="exportExcel('mat-ma')">
                   <i class="fas fa-file-excel me-1"></i>Xuất file Excel
                 </button>
-                <button type="button" class="btn btn-info ms-2" onclick="viewDetailList('mat-ma')">
-                  <i class="fas fa-list me-1"></i>Xem danh sách
-                </button>
               </div>
             </form>
             
             <!-- Bảng danh sách cho tab Mật mã -->
-            <div id="detail-list-wrapper-mm" class="mt-4" style="display: none;">
+            <div id="detail-list-wrapper-mm" class="mt-4" style="display: block;">
               <h6><i class="fas fa-table me-1"></i>Danh sách UNC ngoài - Mật mã</h6>
               <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
@@ -328,6 +327,11 @@
                   </tbody>
                 </table>
               </div>
+              <!-- Phân trang -->
+              <nav aria-label="Phân trang" class="mt-3">
+                <ul class="pagination justify-content-center" id="pagination-mm">
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -337,6 +341,18 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // Biến lưu trang hiện tại
+    let currentPageDHP = 1;
+    let currentPageMM = 1;
+
+    // Tự động load dữ liệu khi trang được tải
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load dữ liệu cho tab Đóng học phí
+      loadDetailList('dong-hoc-phi', 'Đóng học phí', false, 'detail-list-tbody-dhp', 1);
+      // Load dữ liệu cho tab Mật mã
+      loadDetailList('mat-ma', 'Mật mã', true, 'detail-list-tbody-mm', 1);
+    });
+
     // Khi nhập STT, tự động load thông tin từ bảng uncngoai
     document.getElementById('stt-dhp').addEventListener('blur', function() {
       if (this.value) {
@@ -847,22 +863,32 @@
       // Toggle hiển thị
       if (wrapper.style.display === 'none') {
         wrapper.style.display = 'block';
-        loadDetailList(tabType, hedaotao, isMatMa, tbodyId);
+        loadDetailList(tabType, hedaotao, isMatMa, tbodyId, 1);
       } else {
         wrapper.style.display = 'none';
       }
     }
 
-    // Load danh sách uncngoaidetail
-    function loadDetailList(tabType, hedaotao, isMatMa, tbodyId) {
+    // Load danh sách uncngoaidetail với phân trang
+    function loadDetailList(tabType, hedaotao, isMatMa, tbodyId, page = 1) {
       const tbody = document.getElementById(tbodyId);
+      const paginationId = tabType === 'dong-hoc-phi' ? 'pagination-dhp' : 'pagination-mm';
+      
+      // Lưu trang hiện tại
+      if (tabType === 'dong-hoc-phi') {
+        currentPageDHP = page;
+      } else {
+        currentPageMM = page;
+      }
+      
       tbody.innerHTML = '<tr><td colspan="100%" class="text-center"><p class="text-muted">Đang tải dữ liệu...</p></td></tr>';
       
-      fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-detail-list-full?hedaotao=${encodeURIComponent(hedaotao)}`)
+      fetch(`/uy-nhiem-chi/unc-ngoai/xem-du-lieu/api/get-detail-list-full?hedaotao=${encodeURIComponent(hedaotao)}&page=${page}&limit=35`)
         .then(response => response.json())
         .then(data => {
           if (!data.success || !data.data || data.data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="100%" class="text-center"><p class="text-muted">Không có dữ liệu</p></td></tr>';
+            document.getElementById(paginationId).innerHTML = '';
             return;
           }
 
@@ -906,11 +932,89 @@
           });
 
           tbody.innerHTML = html;
+          
+          // Render phân trang
+          if (data.pagination && data.pagination.totalPages > 1) {
+            renderPagination(paginationId, data.pagination, tabType, hedaotao, isMatMa, tbodyId);
+          } else {
+            document.getElementById(paginationId).innerHTML = '';
+          }
         })
         .catch(error => {
           console.error('Error:', error);
           tbody.innerHTML = '<tr><td colspan="100%" class="text-center"><p class="text-danger">Có lỗi xảy ra khi tải dữ liệu</p></td></tr>';
         });
+    }
+
+    // Render phân trang
+    function renderPagination(paginationId, pagination, tabType, hedaotao, isMatMa, tbodyId) {
+      const paginationEl = document.getElementById(paginationId);
+      let html = '';
+      
+      const currentPage = pagination.page;
+      const totalPages = pagination.totalPages;
+      const maxVisible = 5; // Số trang hiển thị tối đa
+      
+      // Nút Previous
+      html += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="loadDetailList('${tabType}', '${hedaotao}', ${isMatMa}, '${tbodyId}', ${currentPage - 1}); return false;">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+        </li>
+      `;
+      
+      // Tính toán range hiển thị
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      
+      if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+      
+      // Trang đầu
+      if (startPage > 1) {
+        html += `
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="loadDetailList('${tabType}', '${hedaotao}', ${isMatMa}, '${tbodyId}', 1); return false;">1</a>
+          </li>
+        `;
+        if (startPage > 2) {
+          html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+      }
+      
+      // Các trang ở giữa
+      for (let i = startPage; i <= endPage; i++) {
+        html += `
+          <li class="page-item ${i === currentPage ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="loadDetailList('${tabType}', '${hedaotao}', ${isMatMa}, '${tbodyId}', ${i}); return false;">${i}</a>
+          </li>
+        `;
+      }
+      
+      // Trang cuối
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        html += `
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="loadDetailList('${tabType}', '${hedaotao}', ${isMatMa}, '${tbodyId}', ${totalPages}); return false;">${totalPages}</a>
+          </li>
+        `;
+      }
+      
+      // Nút Next
+      html += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="loadDetailList('${tabType}', '${hedaotao}', ${isMatMa}, '${tbodyId}', ${currentPage + 1}); return false;">
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </li>
+      `;
+      
+      paginationEl.innerHTML = html;
     }
 
     // Vào chế độ sửa trực tiếp trên bảng
@@ -1039,9 +1143,10 @@
               text: 'Đã cập nhật bản ghi thành công',
               icon: 'success'
             });
-            // Reload danh sách
+            // Reload danh sách với trang hiện tại
             const tbodyId = tabType === 'dong-hoc-phi' ? 'detail-list-tbody-dhp' : 'detail-list-tbody-mm';
-            loadDetailList(tabType, hedaotao, isMatMa, tbodyId);
+            const currentPage = tabType === 'dong-hoc-phi' ? currentPageDHP : currentPageMM;
+            loadDetailList(tabType, hedaotao, isMatMa, tbodyId, currentPage);
           } else {
             Swal.fire({
               title: 'Lỗi',
@@ -1142,7 +1247,8 @@
                 icon: 'success'
               });
               const tbodyId = tabType === 'dong-hoc-phi' ? 'detail-list-tbody-dhp' : 'detail-list-tbody-mm';
-              loadDetailList(tabType, tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã', tabType === 'mat-ma', tbodyId);
+              const currentPage = tabType === 'dong-hoc-phi' ? currentPageDHP : currentPageMM;
+              loadDetailList(tabType, tabType === 'dong-hoc-phi' ? 'Đóng học phí' : 'Mật mã', tabType === 'mat-ma', tbodyId, currentPage);
             } else {
               Swal.fire({
                 title: 'Lỗi',
