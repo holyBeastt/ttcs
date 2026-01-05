@@ -3009,12 +3009,24 @@ function createTaxReportWorkbook(records) {
     });
   }
 
-  // Footer: Tổng cộng - sử dụng dataEndRow đã được tính chính xác ở trên
+  // Tính tổng trước khi thêm vào Excel
+  let totalAmount = 0;
+  let totalTax = 0;
+  let totalNet = 0;
+  if (records && records.length > 0) {
+    records.forEach(record => {
+      totalAmount += typeof record.amount === 'number' ? record.amount : 0;
+      totalTax += typeof record.taxDeducted === 'number' ? record.taxDeducted : 0;
+      totalNet += typeof record.netAmount === 'number' ? record.netAmount : 0;
+    });
+  }
+
+  // Footer: Tổng cộng - sử dụng giá trị đã tính sẵn thay vì formula
   worksheet.addRow([
     'Tổng cộng:', '', '', '', '', '', '', '', '', '',
-    { formula: `SUM(K${dataStartRow}:K${dataEndRow})` },
-    { formula: `SUM(L${dataStartRow}:L${dataEndRow})` },
-    { formula: `SUM(M${dataStartRow}:M${dataEndRow})` }
+    totalAmount,
+    totalTax,
+    totalNet
   ]);
   const totalRow = worksheet.lastRow.number;
   worksheet.mergeCells(`A${totalRow}:J${totalRow}`);
