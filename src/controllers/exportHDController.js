@@ -1114,7 +1114,9 @@ const exportAdditionalInfoGvm = async (req, res) => {
 
     const heDaoTaoData = await gvmServices.getHeDaoTaoData(req, res);
 
-    console.log("Hệ đào tạo được chọn:", heDaoTaoData);
+    const loaiHopDongText = heDaoTaoData.find(
+      (item) => item.id.toString() === loaiHopDong.toString()
+    )?.he_dao_tao || "UnknownType";
 
     // Lấy danh sách phụ lục hợp đồng của giảng viên
     const phuLucData = await getAppendixData(
@@ -1187,7 +1189,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
             dot,
             ki,
             namHoc,
-            loaiHopDong,
+            loaiHopDongText,
             khoa,
             teacherName,
             phuLucTeacher

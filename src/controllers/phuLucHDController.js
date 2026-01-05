@@ -3,6 +3,7 @@ const ExcelJS = require("exceljs");
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const path = require("path");
+const gvmService = require("../services/gvmServices");
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
@@ -163,7 +164,7 @@ const getExportPhuLucGiangVienMoiPath = async (
   dot,
   ki,
   namHoc,
-  loaiHopDong,
+  loaiHopDongText,
   khoa,
   teacherName,
   data
@@ -225,7 +226,7 @@ const getExportPhuLucGiangVienMoiPath = async (
     const firstSoThanhLyHopDong = data[0]?.SoThanhLyHopDong || '';
 
     // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== '' 
+    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== ''
       ? `Hợp đồng số: ${firstSoHopDong} `
       : `Hợp đồng số:           /HĐ-ĐT `;
 
@@ -235,7 +236,7 @@ const getExportPhuLucGiangVienMoiPath = async (
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
     // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== '' 
+    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== ''
       ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong} `
       : `Kèm theo biên bản nghiệm thu Hợp đồng số:           /HĐNT-ĐT `;
 
@@ -506,7 +507,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-      const contractNumber = soHopDong && soHopDong.trim() !== '' 
+      const contractNumber = soHopDong && soHopDong.trim() !== ''
         ? `Hợp đồng số: ${soHopDong} ${formattedEarliestDate}`
         : `Hợp đồng số:           /HĐ-ĐT ${formattedEarliestDate}`;
 
@@ -803,7 +804,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       const soThanhLyHopDong_2 = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // Xử lý soThanhLyHopDong_2: nếu null, undefined, hoặc rỗng thì để trống với kí hiệu hardcode, ngược lại hiển thị trực tiếp từ DB
-      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== '' 
+      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== ''
         ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2} ${formattedEarliestDate_2}`
         : `Kèm theo biên bản nghiệm thu Hợp đồng số:           /HĐNT-ĐT ${formattedEarliestDate_2}`;
 
@@ -1067,7 +1068,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       fs.mkdirSync(tempDir, { recursive: true });
     }
     // Tạo tên file
-    let fileName = `PhuLuc_GiangDay_Dot${dot}_Ki${ki}_${namHoc}`;
+    let fileName = `PhuLuc_GiangDay_${loaiHopDongText}_Dot${dot}_Ki${ki}_${namHoc}`;
     if (khoa && khoa !== "ALL") {
       fileName += `_${sanitizeFileName(khoa)}`;
     }
@@ -1175,13 +1176,17 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     const [data] = await connection.execute(query, params);
 
-    console.log("data with contract signatures = ", data);
-
     if (data.length === 0) {
       return res.send(
         `<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/phuLucHD';</script>`
       );
     }
+
+    const heDaoTaoData = await gvmService.getHeMoiGiangData(req, res);
+
+    const loaiHopDongText = heDaoTaoData.find(
+      (item) => item.id.toString() === loaiHopDong.toString()
+    )?.he_dao_tao || "UnknownType";
 
     const filePaths = await getExportPhuLucGiangVienMoiPath(
       req,
@@ -1189,7 +1194,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       dot,
       ki,
       namHoc,
-      loaiHopDong,
+      loaiHopDongText,
       khoa,
       teacherName,
       data
