@@ -378,6 +378,7 @@ const exportMultipleContracts = async (req, res) => {
         );
       }
     }
+
     // Truy vấn bảng tienluong để lấy mức tiền
     const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
     const [tienLuongList] = await connection.execute(tienLuongQuery);
@@ -589,16 +590,7 @@ const exportMultipleContracts = async (req, res) => {
         teacher.NgayKetThuc
       );
 
-      // Cập nhật lại số tiền vào bảng hopdonggvmoi
-      await updateSoTienThucNhan(
-        connection,
-        teacher.id_Gvm,
-        dot,
-        ki,
-        namHoc,
-        tienThueText,
-        tienThucNhanText
-      );
+
 
       // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
@@ -761,27 +753,24 @@ const exportMultipleContracts = async (req, res) => {
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
 
 
-    // Tạo file Excel báo cáo thuế
-    const taxReportData = summaryData.map((item, index) => {
-      // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
-      const tienTruocThue = item.TongTien || (item.ThucNhan < 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
-      // Nếu số tiền <= 2 triệu thì không có thuế
-      const thuePhaiTra = tienTruocThue < 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu < 2 triệu)
+    // Tạo file Excel báo cáo thuế - lấy dữ liệu trực tiếp từ database
+    const taxReportData = teachers.map((teacher, index) => {
+      const hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
       return {
         stt: index + 1,
-        contractNumber: item.SoHopDong,
-        executor: item.HoTen,
+        contractNumber: teacher.SoHopDong,
+        executor: hoTenTrim,
         expenseDescription: `Hợp đồng giao khoán công việc`,
-        idNumber: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.CCCD || '',
-        issueDate: formatDateForExcel(teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NgayCap),
-        issuePlace: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NoiCapCCCD || '',
-        idAddress: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DiaChi || '',
-        phoneNumber: item.DienThoai,
-        taxCode: item.MaSoThue,
-        amount: tienTruocThue, // Tổng tiền trước thuế
-        taxDeducted: thuePhaiTra, // Thuế 10%
-        netAmount: item.ThucNhan // Tiền sau thuế
+        idNumber: teacher.CCCD || '',
+        issueDate: formatDateForExcel(teacher.NgayCap),
+        issuePlace: teacher.NoiCapCCCD || '',
+        idAddress: teacher.DiaChi || '',
+        phoneNumber: teacher.DienThoai,
+        taxCode: teacher.MaSoThue,
+        amount: teacher.SoTien || 0, // Tổng tiền trước thuế từ DB
+        taxDeducted: teacher.TruThue || 0, // Thuế từ DB
+        netAmount: teacher.ThucNhan || 0 // Tiền sau thuế từ DB
       };
     });
 
@@ -2703,7 +2692,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || '') + '   /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+              createCell((row.SoHopDong || '') + '', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
               createCell(row.DienThoai || ""),
               createCell(row.MaSoThue || ""),
