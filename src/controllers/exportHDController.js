@@ -2314,7 +2314,7 @@ const getImageDownloadSite = async (req, res) => {
     const query = `select HoTen, MaPhongBan from gvmoi`;
     const [gvmoiList] = await connection.query(query);
 
-    res.render("hopdong.fileBoSungDownload.ejs", {
+    res.render("moigiang.phuLucMinhChungGVM.ejs", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
     });
   } catch (error) {
@@ -2340,6 +2340,23 @@ const exportImageDownloadData = async (req, res) => {
     }
 
     connection = await createPoolConnection();
+
+    // Convert loaiHopDong from name to ID if it's a string
+    let loaiHopDongId = loaiHopDong;
+    if (loaiHopDong && isNaN(loaiHopDong)) {
+      // It's a name, convert to ID
+      const [heDaoTaoRows] = await connection.query(
+        'SELECT id FROM he_dao_tao WHERE he_dao_tao = ?',
+        [loaiHopDong]
+      );
+      if (heDaoTaoRows.length > 0) {
+        loaiHopDongId = heDaoTaoRows[0].id;
+      } else {
+        return res.status(404).send(
+          "<script>alert('Không tìm thấy hệ đào tạo'); window.location.href='/phu-luc-minh-chung-gvm';</script>"
+        );
+      }
+    }
 
     let query = `SELECT
     hd.id_Gvm,
@@ -2382,7 +2399,7 @@ const exportImageDownloadData = async (req, res) => {
     hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
     hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
-    let params = [dot, ki, namHoc, loaiHopDongId];
+    let params = [dot, ki, namHoc, loaiHopDong];
 
     // Xử lý các trường hợp khác nhau
     if (khoa && khoa !== "ALL") {
