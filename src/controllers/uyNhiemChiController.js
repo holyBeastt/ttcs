@@ -966,17 +966,17 @@ const taiUyNhiemChiController = {
       const total = countResult[0].total;
       
       // Query để lấy dữ liệu với phân trang, sắp xếp mới nhất trước (theo sounc DESC, stt DESC)
+      // LIMIT và OFFSET không dùng placeholder vì MySQL2 prepared statement không hỗ trợ tốt
       const query = `
         SELECT sounc, stt, hedaotao, dvnt, stk, nganhang, sotien, noidung, 
                manguonns, niendons, diachi, nguoinhantien, cccd, ngaycap, noicap
         FROM uncngoaidetail 
         WHERE hedaotao = ?
         ORDER BY sounc DESC, stt DESC
-        LIMIT ? OFFSET ?
+        LIMIT ${limitNum} OFFSET ${offset}
       `;
       
-      // Ép kiểu số nguyên cho limit và offset
-      const [rows] = await connection.execute(query, [hedaotao, Math.floor(limitNum), Math.floor(offset)]);
+      const [rows] = await connection.execute(query, [hedaotao]);
 
       res.json({
         success: true,
