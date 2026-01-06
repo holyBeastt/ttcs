@@ -975,7 +975,8 @@ const taiUyNhiemChiController = {
         LIMIT ? OFFSET ?
       `;
       
-      const [rows] = await connection.execute(query, [hedaotao, limitNum, offset]);
+      // Chú ý: Sử dụng .query thay vì .execute
+      const [rows] = await connection.query(query, [hedaotao, limitNum, offset]);
 
       res.json({
         success: true,
