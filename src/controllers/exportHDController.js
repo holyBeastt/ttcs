@@ -1097,9 +1097,6 @@ const exportAdditionalInfoGvm = async (req, res) => {
       );
     }
 
-    // Lấy danh sách tiền lương
-    const tienLuongList = await getTienLuongList(connection);
-
     const heDaoTaoData = await gvmServices.getHeDaoTaoData(req, res);
 
     const loaiHopDongText = heDaoTaoData.find(
@@ -1150,14 +1147,10 @@ const exportAdditionalInfoGvm = async (req, res) => {
         const filePathContract = await generateContractForTeacher(
           teacher,
           loaiHopDong,
-          tienLuongList,
           tempDir,
           heDaoTaoData,
         );
 
-        console.log("Generated contract file for teacher:", teacher.HoTen);
-
-        console.log("Generated contract file at:", filePathContract);
 
         // Lấy file tài liệu bổ sung
         const filePathAdditional = await generateAdditionalFile(
@@ -1331,7 +1324,6 @@ const exportAdditionalInfoGvm = async (req, res) => {
 const generateContractForTeacher = async (
   teacher,
   loaiHopDong,
-  tienLuongList,
   tempDir,
   heDaoTaoData
 ) => {
@@ -1340,24 +1332,15 @@ const generateContractForTeacher = async (
   // Assign default value "Thạc sĩ" if HocVi is empty
   teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
-  const tienLuong = tienLuongList.find(
-    (item) => item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDong
-  );
-
-  if (!tienLuong) {
-    throw new Error(
-      `Không tìm thấy mức tiền phù hợp cho giảng viên: ${teacher.HoTen}`
-    );
-  }
-
-  const tienText = tienLuong.SoTien * soTiet;
+  const tienText = teacher.SoTien || 0;
   // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-  const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
-  const tienThucNhanText = tienText - tienThueText;
+  const tienThueText = teacher.TruThue || 0;
+  const tienThucNhanText = teacher.ThucNhan || 0;
   const thoiGianThucHien = formatDateRange(
     teacher.NgayBatDau,
     teacher.NgayKetThuc
   );
+  const MucTien = teacher.SoTien / soTiet || 0;
 
   const data = {
     Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
@@ -1386,7 +1369,7 @@ const generateContractForTeacher = async (
     Kỳ: convertToRoman(teacher.KiHoc),
     Năm_học: teacher.NamHoc,
     Thời_gian_thực_hiện: thoiGianThucHien,
-    Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
+    Mức_tiền: MucTien.toLocaleString("vi-VN"),
     Nơi_công_tác: teacher.NoiCongTac,
     Số_hợp_đồng: teacher.SoHopDong || "",
     Số_thanh_lý: teacher.SoThanhLyHopDong || "",

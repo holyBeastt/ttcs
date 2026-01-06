@@ -306,11 +306,11 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        const soTien = item.SoTien; // Lấy Số Tiền trực tiếp từ dữ liệu
-        const truThue = item.TruThue; // Lấy Trừ Thuế trực tiếp từ dữ liệu
-        const thucNhan = item.ThucNhan; // Lấy Thực Nhận trực tiếp từ dữ liệu
+        const soTien = item.SoTien || 0; // Lấy Số Tiền trực tiếp từ dữ liệu
+        const truThue = item.TruThue || 0; // Lấy Trừ Thuế trực tiếp từ dữ liệu
+        const thucNhan = item.ThucNhan || 0; // Lấy Thực Nhận trực tiếp từ dữ liệu
 
-        const mucThanhToan = item.SoTien / item.SoTiet;
+        const mucThanhToan = item.SoTien / item.SoTiet || 0;
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
             ? "TS"
@@ -610,11 +610,11 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        const soTien = item.SoTien; // Lấy Số Tiền trực tiếp từ dữ liệu
-        const truThue = item.TruThue; // Lấy Trừ Thuế trực tiếp từ dữ liệu
-        const thucNhan = item.ThucNhan; // Lấy Thực Nhận trực tiếp từ dữ liệu
+        const soTien = item.SoTien || 0; // Lấy Số Tiền trực tiếp từ dữ liệu
+        const truThue = item.TruThue || 0; // Lấy Trừ Thuế trực tiếp từ dữ liệu
+        const thucNhan = item.ThucNhan || 0; // Lấy Thực Nhận trực tiếp từ dữ liệu
 
-        const mucThanhToan = item.SoTien / item.SoTiet;
+        const mucThanhToan = item.SoTien / item.SoTiet || 0;
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
@@ -895,11 +895,11 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ";
-        const soTien = item.SoTien;
-        const truThue = item.TruThue;
-        const thucNhan = item.ThucNhan;
+        const soTien = item.SoTien || 0;
+        const truThue = item.TruThue || 0;
+        const thucNhan = item.ThucNhan || 0;
 
-        const mucThanhToan = item.SoTien / item.SoTiet;
+        const mucThanhToan = item.SoTien / item.SoTiet || 0;
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
