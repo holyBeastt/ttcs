@@ -1126,7 +1126,9 @@ const taiUyNhiemChiController = {
   deleteSelectedUNCNgoaiDetail: async (req, res) => {
     let connection;
     try {
-      const { ids } = req.body;
+      const { ids, hedaotao } = req.body;
+
+      console.log('Delete request:', { ids, hedaotao });
 
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({
@@ -1141,14 +1143,23 @@ const taiUyNhiemChiController = {
       let deletedCount = 0;
       for (const idObj of ids) {
         const { sounc, stt, niendons } = idObj;
+        
+        if (!sounc || !stt) {
+          console.log('Skipping invalid record:', idObj);
+          continue;
+        }
+
         let query, params;
-        if (niendons) {
-          query = `DELETE FROM uncngoaidetail WHERE sounc = ? AND stt = ? AND niendons = ?`;
-          params = [sounc, stt, niendons];
+        // Xử lý cả trường hợp niendons = null hoặc undefined
+        if (niendons !== null && niendons !== undefined && niendons !== '') {
+          query = `DELETE FROM uncngoaidetail WHERE sounc = ? AND stt = ? AND (niendons = ? OR (niendons IS NULL AND ? IS NULL))`;
+          params = [sounc, stt, niendons, niendons];
         } else {
-          query = `DELETE FROM uncngoaidetail WHERE sounc = ? AND stt = ? AND niendons IS NULL`;
+          query = `DELETE FROM uncngoaidetail WHERE sounc = ? AND stt = ?`;
           params = [sounc, stt];
         }
+        
+        console.log('Executing delete:', { query, params });
         const [result] = await connection.execute(query, params);
         deletedCount += result.affectedRows;
       }
@@ -1167,7 +1178,7 @@ const taiUyNhiemChiController = {
       console.error('Error in deleteSelectedUNCNgoaiDetail:', error);
       return res.status(500).json({
         success: false,
-        message: 'Lỗi server khi xóa các bản ghi'
+        message: 'Lỗi server khi xóa các bản ghi: ' + error.message
       });
     } finally {
       if (connection) {
@@ -1442,25 +1453,36 @@ const taiUyNhiemChiController = {
       res.download(outputPath, fileName, (err) => {
         if (err) {
           console.error('Error downloading file:', err);
-          res.status(500).json({
-            success: false,
-            message: 'Lỗi khi tải file'
-          });
+          // Chỉ gửi JSON response nếu chưa gửi headers
+          if (!res.headersSent) {
+            res.status(500).json({
+              success: false,
+              message: 'Lỗi khi tải file'
+            });
+          }
         } else {
+          console.log('File downloaded successfully:', fileName);
           // Xóa file tạm sau khi download
           setTimeout(() => {
-            if (fs.existsSync(outputPath)) {
-              fs.unlinkSync(outputPath);
+            try {
+              if (fs.existsSync(outputPath)) {
+                fs.unlinkSync(outputPath);
+                console.log('Temporary file deleted:', outputPath);
+              }
+            } catch (deleteError) {
+              console.error('Error deleting temporary file:', deleteError);
             }
           }, 5000);
         }
       });
     } catch (error) {
       console.error('Error in exportSelectedUNCNgoaiDetailExcel:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Lỗi server khi xuất file Excel: ' + error.message
-      });
+      if (!res.headersSent) {
+        return res.status(500).json({
+          success: false,
+          message: 'Lỗi server khi xuất file Excel: ' + error.message
+        });
+      }
     } finally {
       if (connection) {
         await connection.release();
