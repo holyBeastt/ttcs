@@ -306,13 +306,13 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        
+
         // Tìm mức tiền lương dựa trên he_dao_tao và HocVi
         const tienLuong = tienLuongList.find(
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
-        
+
         // Tính toán số tiền, thuế, thực nhận
         const soTien = soTiet * mucThanhToan;
         const truThue = soTien < 2000000 ? 0 : soTien * 0.1;
@@ -616,13 +616,13 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        
+
         // Tìm mức tiền lương dựa trên he_dao_tao và HocVi
         const tienLuong = tienLuongList.find(
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
-        
+
         // Tính toán số tiền, thuế, thực nhận
         const soTien = soTiet * mucThanhToan;
         const truThue = soTien < 2000000 ? 0 : soTien * 0.1;
@@ -907,13 +907,13 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ";
-        
+
         // Tìm mức tiền lương dựa trên he_dao_tao và HocVi
         const tienLuong = tienLuongList.find(
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
-        
+
         // Tính toán số tiền, thuế, thực nhận
         const soTien = soTiet * mucThanhToan;
         const truThue = soTien < 2000000 ? 0 : soTien * 0.1;
@@ -1127,7 +1127,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc,
             qc.NamHoc,
             qc.Khoa,
-            qc.he_dao_tao
+            qc.he_dao_tao,
+            gv.MaPhongBan
         FROM quychuan qc
         JOIN gvmoi gv 
             ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen 
@@ -1150,7 +1151,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc,
             qc.NamHoc,
             qc.Khoa,
-            qc.he_dao_tao
+            qc.he_dao_tao,
+            gv.MaPhongBan
         FROM quychuan qc
         JOIN gvmoi gv 
             ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
@@ -1182,12 +1184,12 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         AND t.KiHoc = hd.KiHoc 
         AND t.NamHoc = hd.NamHoc
         AND t.he_dao_tao = hd.he_dao_tao
-        AND t.Khoa = hd.MaPhongBan
+        AND t.MaPhongBan = hd.MaPhongBan
     WHERE t.Dot = ? AND t.KiHoc = ? AND t.NamHoc = ? AND t.he_dao_tao = ?
     `;
 
     let params = [dot, ki, namHoc, loaiHopDong, dot, ki, namHoc, loaiHopDong]; if (khoa && khoa !== "ALL") {
-      query += ` AND t.Khoa = ?`;
+      query += ` AND t.MaPhongBan = ?`;
       params.push(khoa);
     }
 
