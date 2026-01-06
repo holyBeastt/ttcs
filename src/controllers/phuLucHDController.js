@@ -306,11 +306,17 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        const soTien = item.SoTien || 0; // Lấy Số Tiền trực tiếp từ dữ liệu
-        const truThue = item.TruThue || 0; // Lấy Trừ Thuế trực tiếp từ dữ liệu
-        const thucNhan = item.ThucNhan || 0; // Lấy Thực Nhận trực tiếp từ dữ liệu
-
-        const mucThanhToan = item.SoTien / item.SoTiet || 0;
+        
+        // Tìm mức tiền lương dựa trên he_dao_tao và HocVi
+        const tienLuong = tienLuongList.find(
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
+        );
+        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        
+        // Tính toán số tiền, thuế, thực nhận
+        const soTien = soTiet * mucThanhToan;
+        const truThue = soTien < 2000000 ? 0 : soTien * 0.1;
+        const thucNhan = soTien - truThue;
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
             ? "TS"
@@ -610,11 +616,17 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
-        const soTien = item.SoTien || 0; // Lấy Số Tiền trực tiếp từ dữ liệu
-        const truThue = item.TruThue || 0; // Lấy Trừ Thuế trực tiếp từ dữ liệu
-        const thucNhan = item.ThucNhan || 0; // Lấy Thực Nhận trực tiếp từ dữ liệu
-
-        const mucThanhToan = item.SoTien / item.SoTiet || 0;
+        
+        // Tìm mức tiền lương dựa trên he_dao_tao và HocVi
+        const tienLuong = tienLuongList.find(
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
+        );
+        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        
+        // Tính toán số tiền, thuế, thực nhận
+        const soTien = soTiet * mucThanhToan;
+        const truThue = soTien < 2000000 ? 0 : soTien * 0.1;
+        const thucNhan = soTien - truThue;
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
@@ -895,11 +907,17 @@ const getExportPhuLucGiangVienMoiPath = async (
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const hocVi = item.HocVi || "Thạc sĩ";
-        const soTien = item.SoTien || 0;
-        const truThue = item.TruThue || 0;
-        const thucNhan = item.ThucNhan || 0;
-
-        const mucThanhToan = item.SoTien / item.SoTiet || 0;
+        
+        // Tìm mức tiền lương dựa trên he_dao_tao và HocVi
+        const tienLuong = tienLuongList.find(
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
+        );
+        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        
+        // Tính toán số tiền, thuế, thực nhận
+        const soTien = soTiet * mucThanhToan;
+        const truThue = soTien < 2000000 ? 0 : soTien * 0.1;
+        const thucNhan = soTien - truThue;
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
@@ -1142,19 +1160,34 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         SELECT * FROM phuLucSauDH
         UNION
         SELECT * FROM phuLucDH
+    ),
+    hopDongInfo AS (
+        SELECT 
+            CCCD, 
+            he_dao_tao,
+            Dot,
+            KiHoc,
+            NamHoc,
+            MaPhongBan,
+            MAX(SoHopDong) as SoHopDong, 
+            MAX(SoThanhLyHopDong) as SoThanhLyHopDong
+        FROM hopdonggvmoi
+        WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ?
+        GROUP BY CCCD, he_dao_tao, Dot, KiHoc, NamHoc, MaPhongBan
     )    
-    SELECT DISTINCT t.*, hd.SoTiet, hd.SoTien, hd.TruThue, hd.ThucNhan, hd.SoHopDong, hd.SoThanhLyHopDong 
+    SELECT DISTINCT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
     FROM table_ALL t
-    LEFT JOIN hopdonggvmoi hd ON t.CCCD = hd.CCCD 
+    LEFT JOIN hopDongInfo hd ON t.CCCD = hd.CCCD 
         AND t.Dot = hd.Dot 
         AND t.KiHoc = hd.KiHoc 
         AND t.NamHoc = hd.NamHoc
         AND t.he_dao_tao = hd.he_dao_tao
+        AND t.Khoa = hd.MaPhongBan
     WHERE t.Dot = ? AND t.KiHoc = ? AND t.NamHoc = ? AND t.he_dao_tao = ?
     `;
 
-    let params = [dot, ki, namHoc, loaiHopDong]; if (khoa && khoa !== "ALL") {
-      query += ` AND hd.MaPhongBan = ?`;
+    let params = [dot, ki, namHoc, loaiHopDong, dot, ki, namHoc, loaiHopDong]; if (khoa && khoa !== "ALL") {
+      query += ` AND t.Khoa = ?`;
       params.push(khoa);
     }
 
