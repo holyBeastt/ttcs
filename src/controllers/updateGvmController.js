@@ -90,6 +90,13 @@ const getViewGvm = async (req, res) => {
   }
 };
 
+function normalizeName(name) {
+  return name
+    .trim()
+    .replace(/\s+/g, " ")
+    .normalize("NFC");
+}
+
 const upload = multer().single("truocCCCD");
 
 const postUpdateGvm = async (req, res) => {
@@ -239,12 +246,18 @@ const postUpdateGvm = async (req, res) => {
 
       for (const field in fields) {
         if (!req.files[field] && fields[field]) {
+          const oldHoTenNorm = normalizeName(oldHoTen);
+          const newHoTenNorm = normalizeName(HoTen);
+
+          const newFileLLName = `${MaPhongBan}_Lý lịch_${newHoTenNorm}${path.extname(oldFileLyLich)}`;
+          const newFileBoSung = `${MaPhongBan}_${newHoTenNorm}${path.extname(oldFileLyLich)}`; // ⚠️ update để ghi DB
+
           const oldPath = path.join(
             appRoot.path,
             "Giang_Vien_Moi",
             oldMaPhongBan,
             oldMonGiangDayChinh,
-            oldHoTen,
+            oldHoTenNorm,
             fields[field]
           );
           const newPath = path.join(
@@ -252,13 +265,15 @@ const postUpdateGvm = async (req, res) => {
             "Giang_Vien_Moi",
             MaPhongBan,
             MonGiangDayChinh,
-            HoTen,
+            newHoTenNorm,
             fields[field]
           );
           fs.mkdirSync(path.dirname(newPath), { recursive: true });
 
           if (fs.existsSync(oldPath)) {
             fs.renameSync(oldPath, newPath);
+            FileLyLich = newFileLLName; // ⚠️ update để ghi DB
+            fileBoSung = newFileBoSung; // ⚠️ update để ghi DB
 
             console.log(
               `Đã di chuyển file '${field}' từ:\n  ${oldPath}\n  => ${newPath}`

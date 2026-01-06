@@ -2331,7 +2331,8 @@ const exportImageDownloadData = async (req, res) => {
       }
     }
 
-    let query = `SELECT
+    let query = `
+  SELECT
     hd.id_Gvm,
     hd.DienThoai,
     hd.Email,
@@ -2349,121 +2350,60 @@ const exportImageDownloadData = async (req, res) => {
     hd.NganHang,
     MIN(hd.NgayBatDau) AS NgayBatDau,
     MAX(hd.NgayKetThuc) AS NgayKetThuc,
-    SUM(hd.SoTiet) AS SoTiet,
-    hd.SoTien,
-    hd.TruThue,
-    hd.NgayCap,
-    hd.ThucNhan,
-    hd.NgayNghiemThu,
     hd.Dot,
     hd.KiHoc,
     hd.NamHoc,
     hd.MaPhongBan,
     hd.MaBoMon,
     hd.NoiCongTac
-  FROM
-    hopdonggvmoi hd
-  JOIN
-    gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
-  WHERE
-    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.he_dao_tao = ?
-  GROUP BY
-    hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+  FROM hopdonggvmoi hd
+  JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
+`;
 
-    let params = [dot, ki, namHoc, loaiHopDong];
+    const conditions = [];
+    const params = [];
 
-    // Xử lý các trường hợp khác nhau
+    /* điều kiện bắt buộc */
+    conditions.push("hd.Dot = ?");
+    params.push(dot);
+
+    conditions.push("hd.KiHoc = ?");
+    params.push(ki);
+
+    conditions.push("hd.NamHoc = ?");
+    params.push(namHoc);
+
+    conditions.push("hd.he_dao_tao = ?");
+    params.push(loaiHopDongId);
+
+    /* điều kiện theo khoa */
     if (khoa && khoa !== "ALL") {
-      query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      hd.NoiCongTac  
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
-    WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDongId];
+      conditions.push("hd.MaPhongBan LIKE ?");
+      params.push(`%${khoa}%`);
     }
-    if (teacherName) {
-      query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      hd.NoiCongTac
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
-    WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
-      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDongId];
+    /* điều kiện theo tên giảng viên */
+    if (teacherName) {
+      conditions.push("hd.HoTen LIKE ?");
+      params.push(`%${teacherName}%`);
     }
+
+    /* ghép WHERE */
+    query += " WHERE " + conditions.join(" AND ");
+
+    /* GROUP BY */
+    query += `
+  GROUP BY
+    hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue,
+    hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
+    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi,
+    hd.STK, hd.NganHang,
+    hd.Dot, hd.KiHoc, hd.NamHoc,
+    hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac
+  `;
 
     const [teachers] = await connection.execute(query, params);
+
 
     if (!teachers || teachers.length === 0) {
       return res.send(
@@ -2486,6 +2426,8 @@ const exportImageDownloadData = async (req, res) => {
 
     try {
       const fileList = [];
+      const missingFiles = [];
+
 
       for (const teacher of teachers) {
         const filePathAdditional = await generateAdditionalFile(
@@ -2494,7 +2436,10 @@ const exportImageDownloadData = async (req, res) => {
         );
         if (filePathAdditional) {
           fileList.push(filePathAdditional);
+        } else {
+          missingFiles.push(teacher.HoTen);
         }
+
       }
 
       if (fileList.length === 0) {
@@ -2518,19 +2463,51 @@ const exportImageDownloadData = async (req, res) => {
         } else if (khoa != "ALL") {
           fileName += "_" + khoa + ".zip";
         } else {
-          fileName += "_ALL" + ".zip";
+          fileName += "_ALL.zip";
         }
-        // Gửi file zip về client
-        res.download(zipPath, `${fileName}`, (err) => {
+
+        let warningMsg = "";
+        if (missingFiles.length > 0) {
+          warningMsg = `\\n⚠ Thiếu file minh chứng của: ${missingFiles.join(", ")}`;
+        }
+
+        res.download(zipPath, fileName, (err) => {
           if (err) {
             console.error("Lỗi gửi file:", err.message);
             res.status(500).send("Không thể tải file zip.");
           }
 
-          // Xoá file zip sau khi tải nếu muốn
           fs.unlinkSync(zipPath);
+
+          if (warningMsg) {
+            console.warn(warningMsg);
+          }
         });
       });
+
+
+      // output.on("close", () => {
+
+      //   let fileName = `file_bo_sung_dot${dot}_ki${ki}_${namHoc}`;
+
+      //   if (teacherName) {
+      //     fileName += "_" + teacherName + ".zip";
+      //   } else if (khoa != "ALL") {
+      //     fileName += "_" + khoa + ".zip";
+      //   } else {
+      //     fileName += "_ALL" + ".zip";
+      //   }
+      //   // Gửi file zip về client
+      //   res.download(zipPath, `${fileName}`, (err) => {
+      //     if (err) {
+      //       console.error("Lỗi gửi file:", err.message);
+      //       res.status(500).send("Không thể tải file zip.");
+      //     }
+
+      //     // Xoá file zip sau khi tải nếu muốn
+      //     fs.unlinkSync(zipPath);
+      //   });
+      // });
 
       archive.on("error", (err) => {
         throw err;
