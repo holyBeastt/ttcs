@@ -378,10 +378,6 @@ const exportMultipleContracts = async (req, res) => {
         );
       }
     }
-    // Truy vấn bảng tienluong để lấy mức tiền
-    const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
-    const [tienLuongList] = await connection.execute(tienLuongQuery);
-
     // Lấy hệ đào tạo
     const heDaoTaoData = await gvmServices.getHeDaoTaoData(req, res);
 
@@ -556,49 +552,38 @@ const exportMultipleContracts = async (req, res) => {
 
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
+      console.log("Processing teacher:", teacher);
       const soTiet = teacher.SoTiet || 0;
 
       // Gán giá trị mặc định "Thạc sĩ" nếu cột học vị trống
       teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
-      const tienLuong = tienLuongList.find(
-        (item) =>
-          item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDongId
-      );
-
-      if (!tienLuong) {
-        return res
-          .status(404)
-          .send(
-            "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
-          );
-      }
 
       // Đảm bảo soTiet là số và làm tròn để tránh lỗi floating-point
       const soTietNumber = typeof soTiet === 'string' ? parseFloat(soTiet) : soTiet;
 
       // Làm tròn kết quả để tránh lỗi floating-point (27839999.999999996 -> 27840000)
-      const tienText = Math.round(tienLuong.SoTien * soTietNumber);
+      const tienText = Math.round(teacher.SoTien || 0);
 
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
+      const tienThueText = Math.round(teacher.TruThue || 0);
 
-      const tienThucNhanText = tienText - tienThueText;
+      const tienThucNhanText = teacher.ThucNhan;
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
         teacher.NgayKetThuc
       );
 
       // Cập nhật lại số tiền vào bảng hopdonggvmoi
-      await updateSoTienThucNhan(
-        connection,
-        teacher.id_Gvm,
-        dot,
-        ki,
-        namHoc,
-        tienThueText,
-        tienThucNhanText
-      );
+      // await updateSoTienThucNhan(
+      //   connection,
+      //   teacher.id_Gvm,
+      //   dot,
+      //   ki,
+      //   namHoc,
+      //   tienThueText,
+      //   tienThucNhanText
+      // );
 
       // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
@@ -626,6 +611,7 @@ const exportMultipleContracts = async (req, res) => {
 
       const bangChuSoTien = numberToWords(tienText);
       const bangChuThucNhan = numberToWords(tienThucNhanText);
+      const MucTien = teacher.SoTien / teacher.SoTiet;
 
       const data = {
         Số_hợp_đồng: teacher.SoHopDong || "    ",
@@ -656,7 +642,7 @@ const exportMultipleContracts = async (req, res) => {
         Kỳ: convertToRoman(teacher.KiHoc),
         Năm_học: teacher.NamHoc,
         Thời_gian_thực_hiện: thoiGianThucHien,
-        Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
+        Mức_tiền: MucTien.toLocaleString("vi-VN"),
         Nơi_công_tác: teacher.NoiCongTac,
         Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã"
       };
@@ -761,27 +747,29 @@ const exportMultipleContracts = async (req, res) => {
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
 
 
-    // Tạo file Excel báo cáo thuế
-    const taxReportData = summaryData.map((item, index) => {
-      // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
-      const tienTruocThue = item.TongTien || (item.ThucNhan < 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
-      // Nếu số tiền <= 2 triệu thì không có thuế
-      const thuePhaiTra = tienTruocThue < 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu < 2 triệu)
+    // Tạo file Excel báo cáo thuế - lấy dữ liệu trực tiếp từ database
+    const taxReportData = teachers.map((teacher, index) => {
+      const hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+      // Ép kiểu Number để đảm bảo Excel SUM hoạt động đúng
+      const amount = Number(teacher.SoTien);
+      const taxDeducted = Number(teacher.TruThue);
+      const netAmount = Number(teacher.ThucNhan);
 
       return {
         stt: index + 1,
-        contractNumber: item.SoHopDong,
-        executor: item.HoTen,
+        contractNumber: teacher.SoHopDong,
+        executor: hoTenTrim,
         expenseDescription: `Hợp đồng giao khoán công việc`,
-        idNumber: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.CCCD || '',
-        issueDate: formatDateForExcel(teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NgayCap),
-        issuePlace: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NoiCapCCCD || '',
-        idAddress: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DiaChi || '',
-        phoneNumber: item.DienThoai,
-        taxCode: item.MaSoThue,
-        amount: tienTruocThue, // Tổng tiền trước thuế
-        taxDeducted: thuePhaiTra, // Thuế 10%
-        netAmount: item.ThucNhan // Tiền sau thuế
+        idNumber: teacher.CCCD || '',
+        issueDate: formatDateForExcel(teacher.NgayCap),
+        issuePlace: teacher.NoiCapCCCD || '',
+        idAddress: teacher.DiaChi || '',
+        phoneNumber: teacher.DienThoai,
+        taxCode: teacher.MaSoThue,
+        amount: amount, // Tổng tiền trước thuế từ DB (đã ép kiểu Number)
+        taxDeducted: taxDeducted, // Thuế từ DB (đã ép kiểu Number)
+        netAmount: netAmount // Tiền sau thuế từ DB (đã ép kiểu Number)
       };
     });
 
@@ -1109,12 +1097,11 @@ const exportAdditionalInfoGvm = async (req, res) => {
       );
     }
 
-    // Lấy danh sách tiền lương
-    const tienLuongList = await getTienLuongList(connection);
-
     const heDaoTaoData = await gvmServices.getHeDaoTaoData(req, res);
 
-    console.log("Hệ đào tạo được chọn:", heDaoTaoData);
+    const loaiHopDongText = heDaoTaoData.find(
+      (item) => item.id.toString() === loaiHopDong.toString()
+    )?.he_dao_tao || "UnknownType";
 
     // Lấy danh sách phụ lục hợp đồng của giảng viên
     const phuLucData = await getAppendixData(
@@ -1160,14 +1147,10 @@ const exportAdditionalInfoGvm = async (req, res) => {
         const filePathContract = await generateContractForTeacher(
           teacher,
           loaiHopDong,
-          tienLuongList,
           tempDir,
           heDaoTaoData,
         );
 
-        console.log("Generated contract file for teacher:", teacher.HoTen);
-
-        console.log("Generated contract file at:", filePathContract);
 
         // Lấy file tài liệu bổ sung
         const filePathAdditional = await generateAdditionalFile(
@@ -1187,7 +1170,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
             dot,
             ki,
             namHoc,
-            loaiHopDong,
+            loaiHopDongText,
             khoa,
             teacherName,
             phuLucTeacher
@@ -1341,7 +1324,6 @@ const exportAdditionalInfoGvm = async (req, res) => {
 const generateContractForTeacher = async (
   teacher,
   loaiHopDong,
-  tienLuongList,
   tempDir,
   heDaoTaoData
 ) => {
@@ -1350,24 +1332,15 @@ const generateContractForTeacher = async (
   // Assign default value "Thạc sĩ" if HocVi is empty
   teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
-  const tienLuong = tienLuongList.find(
-    (item) => item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDong
-  );
-
-  if (!tienLuong) {
-    throw new Error(
-      `Không tìm thấy mức tiền phù hợp cho giảng viên: ${teacher.HoTen}`
-    );
-  }
-
-  const tienText = tienLuong.SoTien * soTiet;
+  const tienText = teacher.SoTien || 0;
   // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-  const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
-  const tienThucNhanText = tienText - tienThueText;
+  const tienThueText = teacher.TruThue || 0;
+  const tienThucNhanText = teacher.ThucNhan || 0;
   const thoiGianThucHien = formatDateRange(
     teacher.NgayBatDau,
     teacher.NgayKetThuc
   );
+  const MucTien = teacher.SoTien / soTiet || 0;
 
   const data = {
     Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
@@ -1396,7 +1369,7 @@ const generateContractForTeacher = async (
     Kỳ: convertToRoman(teacher.KiHoc),
     Năm_học: teacher.NamHoc,
     Thời_gian_thực_hiện: thoiGianThucHien,
-    Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
+    Mức_tiền: MucTien.toLocaleString("vi-VN"),
     Nơi_công_tác: teacher.NoiCongTac,
     Số_hợp_đồng: teacher.SoHopDong || "",
     Số_thanh_lý: teacher.SoThanhLyHopDong || "",
@@ -2703,7 +2676,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || '') + '   /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+              createCell((row.SoHopDong || '') + '', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
               createCell(row.DienThoai || ""),
               createCell(row.MaSoThue || ""),
@@ -3019,12 +2992,24 @@ function createTaxReportWorkbook(records) {
     });
   }
 
-  // Footer: Tổng cộng - sử dụng dataEndRow đã được tính chính xác ở trên
+  // Tính tổng trước khi thêm vào Excel
+  let totalAmount = 0;
+  let totalTax = 0;
+  let totalNet = 0;
+  if (records && records.length > 0) {
+    records.forEach(record => {
+      totalAmount += typeof record.amount === 'number' ? record.amount : 0;
+      totalTax += typeof record.taxDeducted === 'number' ? record.taxDeducted : 0;
+      totalNet += typeof record.netAmount === 'number' ? record.netAmount : 0;
+    });
+  }
+
+  // Footer: Tổng cộng - sử dụng giá trị đã tính sẵn thay vì formula
   worksheet.addRow([
     'Tổng cộng:', '', '', '', '', '', '', '', '', '',
-    { formula: `SUM(K${dataStartRow}:K${dataEndRow})` },
-    { formula: `SUM(L${dataStartRow}:L${dataEndRow})` },
-    { formula: `SUM(M${dataStartRow}:M${dataEndRow})` }
+    totalAmount,
+    totalTax,
+    totalNet
   ]);
   const totalRow = worksheet.lastRow.number;
   worksheet.mergeCells(`A${totalRow}:J${totalRow}`);
@@ -3036,16 +3021,7 @@ function createTaxReportWorkbook(records) {
     worksheet.getCell(`${col}${totalRow}`).numFmt = '#,##0';
   });
 
-  // Tính tổng số tiền để chuyển thành chữ
-  let totalAmount = 0;
-  if (records && records.length > 0) {
-    totalAmount = records.reduce((sum, record) => {
-      const amount = typeof record.amount === 'number' ? record.amount : 0;
-      return sum + amount;
-    }, 0);
-  }
-
-  // Bằng chữ
+  // Bằng chữ - sử dụng totalAmount đã tính ở trên
   const textRowVal = `Bằng chữ: ${numberToWords(totalAmount)} đồng chẵn.`;
   worksheet.addRow([textRowVal]);
   const textRow = worksheet.lastRow.number;
