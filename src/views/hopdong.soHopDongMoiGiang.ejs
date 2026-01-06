@@ -970,7 +970,7 @@
           const startNum = parseInt($('#unifiedStartingNumber').val()) || 1;
           const kiHieuTruocSo = $('#kiHieuTruocSo').val() || '';
           const kiHieuSauSo = $('#kiHieuSauSo').val() || '';
-          const formattedNumber = String(startNum).padStart(2, '0');
+          const formattedNumber = String(startNum).padStart(3, '0');
           const fullNumber = kiHieuTruocSo + formattedNumber + kiHieuSauSo;
 
           const data = {
@@ -979,6 +979,7 @@
             nam: $('#NamHoc').val(),
             khoaList: getSelectedKhoa(),
             heDaoTaoList: getSelectedHe(),
+            loaiHopDong: "Mời giảng",
             startingNumber: fullNumber,
             kiHieuTruocSo: kiHieuTruocSo,
             kiHieuSauSo: kiHieuSauSo,
@@ -1024,13 +1025,14 @@
           tbody.empty();
 
           // Flatten data để dễ xử lý
+          // Data structure đã đổi: groupedContracts[Khoa][He] thay vì [He][Khoa]
           const rows = [];
           console.log('[DEBUG] Starting to flatten data...');
-          Object.keys(groupedContracts).forEach(he => {
-            // Chuyển đổi he (có thể là ID) sang tên hiển thị
-            const heDisplayName = getTenHeById(he) || he;
-            Object.keys(groupedContracts[he]).forEach(khoa => {
-              groupedContracts[he][khoa].forEach((contract, idx) => {
+          Object.keys(groupedContracts).sort().forEach(khoa => {
+            Object.keys(groupedContracts[khoa]).sort().forEach(he => {
+              // Chuyển đổi he (có thể là ID) sang tên hiển thị
+              const heDisplayName = getTenHeById(he) || he;
+              groupedContracts[khoa][he].forEach((contract, idx) => {
                 rows.push({
                   ...contract,
                   groupInfo: `${khoa} - ${heDisplayName}`,
