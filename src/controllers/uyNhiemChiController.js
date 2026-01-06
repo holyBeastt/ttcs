@@ -975,8 +975,8 @@ const taiUyNhiemChiController = {
         LIMIT ? OFFSET ?
       `;
       
-      // Chú ý: Sử dụng .query thay vì .execute
-      const [rows] = await connection.query(query, [hedaotao, limitNum, offset]);
+      // Ép kiểu số nguyên cho limit và offset
+      const [rows] = await connection.execute(query, [hedaotao, Math.floor(limitNum), Math.floor(offset)]);
 
       res.json({
         success: true,
