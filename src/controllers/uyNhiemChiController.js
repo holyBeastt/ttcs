@@ -956,7 +956,9 @@ const taiUyNhiemChiController = {
 
       connection = await createPoolConnection();
       
-      const offset = (parseInt(page) - 1) * parseInt(limit);
+      const pageNum = parseInt(page) || 1;
+      const limitNum = parseInt(limit) || 35;
+      const offset = (pageNum - 1) * limitNum;
       
       // Query để lấy tổng số bản ghi
       const countQuery = `SELECT COUNT(*) as total FROM uncngoaidetail WHERE hedaotao = ?`;
@@ -973,16 +975,16 @@ const taiUyNhiemChiController = {
         LIMIT ? OFFSET ?
       `;
       
-      const [rows] = await connection.execute(query, [hedaotao, parseInt(limit), offset]);
+      const [rows] = await connection.execute(query, [hedaotao, limitNum, offset]);
 
       res.json({
         success: true,
         data: rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: pageNum,
+          limit: limitNum,
           total: total,
-          totalPages: Math.ceil(total / parseInt(limit))
+          totalPages: Math.ceil(total / limitNum)
         }
       });
     } catch (error) {
