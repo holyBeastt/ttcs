@@ -1010,6 +1010,54 @@ const getGVData = async () => {
   }
 };
 
+/**
+ * Tính đơn giá (TienMoiGiang) với CACHING để tối ưu hiệu suất
+ * Query bảng tienluong 1 lần, sau đó lookup trong memory
+ * Logic tương tự DON_GIA_EXPR trong hopDongQueries.js
+ * 
+ * @param {Array} tienLuongCache - Cached tienluong table data
+ * @param {Object} gvInfo - Teacher info (HocVi, HSL, chuc_danh)
+ * @param {Number} he_dao_tao - Education level ID
+ * @returns {Number} Price per hour
+ */
+const calculateDonGiaWithCache = (tienLuongCache, gvInfo, he_dao_tao) => {
+  try {
+    const HSL_decimal = gvInfo.HSL ? parseFloat(gvInfo.HSL.toString().replace(',', '.')) : 0;
+
+    // Filter in-memory cache based on matching criteria
+    const matchedPrices = tienLuongCache.filter(cfg => {
+      // Check he_dao_tao (NULL means apply to all)
+      if (cfg.he_dao_tao !== null && cfg.he_dao_tao !== he_dao_tao) return false;
+
+      // Check HocVi (NULL means apply to all)
+      if (cfg.HocVi !== null && cfg.HocVi !== gvInfo.HocVi) return false;
+
+      // Check chuc_danh (1 means apply to all, otherwise must match)
+      if (cfg.chuc_danh_id !== 1 && cfg.chuc_danh_id !== gvInfo.chuc_danh) return false;
+
+      // Check HSL (teacher's HSL must be >= config HSL)
+      if (HSL_decimal < cfg.HSL) return false;
+
+      return true;
+    });
+
+    // Sort by priority (same as SQL ORDER BY)
+    matchedPrices.sort((a, b) => {
+      // do_uu_tien DESC
+      if (b.do_uu_tien !== a.do_uu_tien) return b.do_uu_tien - a.do_uu_tien;
+      // SoTien DESC
+      if (b.SoTien !== a.SoTien) return b.SoTien - a.SoTien;
+      // HSL DESC
+      return b.HSL - a.HSL;
+    });
+
+    return matchedPrices.length > 0 ? matchedPrices[0].SoTien : 0;
+  } catch (error) {
+    console.error('❌ Error calculating don gia:', error);
+    return 0;
+  }
+};
+
 const saveToExportDoAn = async (req, res) => {
   const Dot = req.body.Dot;
   const ki = req.body.ki;
@@ -1025,6 +1073,30 @@ const saveToExportDoAn = async (req, res) => {
     const gvData = await getGVData();
     const uniqueGV = gvData.uniqueGV;
     const allGV = gvData.allGV;
+
+    // ✅ PERFORMANCE OPTIMIZATION: Load config tables ONCE and cache in memory
+    // Query bảng sotietdoan để lấy cấu hình số tiết theo he_dao_tao
+    const [soTietDoanConfig] = await connection.query(
+      'SELECT * FROM sotietdoan'
+    );
+
+    // Tạo map để tra cứu nhanh: { he_dao_tao_id: { tong_tiet, so_tiet_1, so_tiet_2 } }
+    const soTietMap = {};
+    soTietDoanConfig.forEach(config => {
+      soTietMap[config.he_dao_tao] = {
+        tong_tiet: config.tong_tiet,
+        so_tiet_1: config.so_tiet_1,
+        so_tiet_2: config.so_tiet_2
+      };
+    });
+
+    // Query bảng tienluong 1 lần duy nhất, cache toàn bộ trong memory
+    const [tienLuongCache] = await connection.query(
+      'SELECT * FROM tienluong ORDER BY do_uu_tien DESC, SoTien DESC, HSL DESC'
+    );
+
+    console.log(`✅ [saveToExportDoAn] Loaded config: ${soTietDoanConfig.length} sotietdoan rows, ${tienLuongCache.length} tienluong rows`);
+
 
     // Query dữ liệu từ doantotnghiep - không cần filter he_dao_tao vì lấy tất cả
     let queryData, data;
@@ -1054,10 +1126,10 @@ const saveToExportDoAn = async (req, res) => {
         AND TaiChinhDuyet = 1
         ${MaKhoa !== "ALL" ? "AND MaPhongBan = ?" : ""}
     `;
-    const daDuyetHetParams = MaKhoa !== "ALL" 
+    const daDuyetHetParams = MaKhoa !== "ALL"
       ? [Dot, ki, NamHoc, MaKhoa]
       : [Dot, ki, NamHoc];
-    
+
     const [daDuyetHetResult] = await connection.query(daDuyetHetQuery, daDuyetHetParams);
     const daDuyetHetArray = daDuyetHetResult.map(row => row.MaPhongBan);
 
@@ -1135,11 +1207,31 @@ const saveToExportDoAn = async (req, res) => {
             }
           }
 
-          let SoTiet = 20;
+          // ✅ DYNAMIC CALCULATION: Get SoTiet from sotietdoan table (NO MORE HARDCODED!)
+          let SoTiet = 0;
+          const soTietConfig = soTietMap[item.he_dao_tao];
 
-          if (SoNguoi == 2) {
-            SoTiet = 12;
+          if (!soTietConfig) {
+            errors.push(
+              `\nKhông tìm thấy cấu hình số tiết cho he_dao_tao = ${item.he_dao_tao} (Sinh viên: ${item.SinhVien})`
+            );
+            return;
           }
+
+          if (SoNguoi == 1) {
+            // 1 giảng viên duy nhất → tong_tiet
+            SoTiet = soTietConfig.tong_tiet;
+          } else if (SoNguoi == 2) {
+            // 2 giảng viên - GV1 → so_tiet_1
+            SoTiet = soTietConfig.so_tiet_1;
+          }
+
+          // ✅ Calculate TienMoiGiang using CACHED data (NO database query!)
+          const TienMoiGiang = calculateDonGiaWithCache(tienLuongCache, matchedItem1, item.he_dao_tao);
+          const ThanhTien = SoTiet * TienMoiGiang;
+          const Thue = ThanhTien * 0.1;
+          const ThucNhan = ThanhTien * 0.9;
+
 
           values.push([
             item.SinhVien || null,
@@ -1178,6 +1270,10 @@ const saveToExportDoAn = async (req, res) => {
             item.he_dao_tao,
             item.khoa_sinh_vien || null,
             item.nganh || null,
+            TienMoiGiang || null,     // ✅ NEW: Đơn giá
+            ThanhTien || null,        // ✅ NEW: Thành tiền
+            Thue || null,             // ✅ NEW: Thuế 10%
+            ThucNhan || null,         // ✅ NEW: Thực nhận 90%
           ]);
           let matchedItem2;
           count++;
@@ -1233,7 +1329,15 @@ const saveToExportDoAn = async (req, res) => {
               }
             }
 
-            SoTiet = 8; // Giảm số tiết cho giảng viên thứ 2
+            // ✅ DYNAMIC CALCULATION: GV2 gets so_tiet_2 from sotietdoan
+            SoTiet = soTietConfig.so_tiet_2;
+
+            // ✅ Calculate TienMoiGiang for GV2 using CACHED data (NO database query!)
+            const TienMoiGiang2 = calculateDonGiaWithCache(tienLuongCache, matchedItem2, item.he_dao_tao);
+            const ThanhTien2 = SoTiet * TienMoiGiang2;
+            const Thue2 = ThanhTien2 * 0.1;
+            const ThucNhan2 = ThanhTien2 * 0.9;
+
             values.push([
               item.SinhVien || null,
               item.MaSV || null,
@@ -1271,7 +1375,13 @@ const saveToExportDoAn = async (req, res) => {
               item.he_dao_tao,
               item.khoa_sinh_vien || null,
               item.nganh || null,
+              TienMoiGiang2 || null,    // ✅ NEW: Đơn giá GV2
+              ThanhTien2 || null,       // ✅ NEW: Thành tiền GV2
+              Thue2 || null,            // ✅ NEW: Thuế 10% GV2
+              ThucNhan2 || null,        // ✅ NEW: Thực nhận 90% GV2
             ]);
+
+            count++;
           }
         })
     );
@@ -1290,11 +1400,13 @@ const saveToExportDoAn = async (req, res) => {
       await connection.query(updateQuery, [...daDuyetHetArray]);
     }
 
-    // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
+    // ✅ Câu lệnh SQL để chèn tất cả dữ liệu vào bảng (UPDATED with money fields)
+    // NOTE: Requires ALTER TABLE exportdoantotnghiep to add: TienMoiGiang, ThanhTien, Thue, ThucNhan
     const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, 
     isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, ki, Dot, TT,
     GioiTinh, NgaySinh, NgayCapCCCD, NoiCapCCCD, DiaChi, DienThoai, Email, MaSoThue, HocVi, NoiCongTac,
-    ChucVu, STK, NganHang, MonGiangDayChinh, HSL, he_dao_tao, khoa_sinh_vien, nganh)
+    ChucVu, STK, NganHang, MonGiangDayChinh, HSL, he_dao_tao, khoa_sinh_vien, nganh,
+    TienMoiGiang, ThanhTien, TruThue, ThucNhan)
                  VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values

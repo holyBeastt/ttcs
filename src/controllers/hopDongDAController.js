@@ -329,141 +329,72 @@ const exportMultipleContracts = async (req, res) => {
 
     connection = await createPoolConnection();
     let query = `
-SELECT 
-  ed.CCCD,
-  ed.DienThoai,
-  ed.Email,
-  ed.MaSoThue,
-  ed.GiangVien as 'HoTen',
-  ed.NgaySinh,
-  ed.NgayCapCCCD,
-  ed.GioiTinh,
-  ed.STK,
-  ed.HocVi,
-  ed.ChucVu,
-  ed.HSL,
-  ed.NoiCapCCCD,
-  ed.DiaChi ,
-  ed.NganHang,
-  ed.NoiCongTac,
-  ed.Dot,
-  MAX(ed.KhoaDaoTao) AS KhoaDaoTao,
-  GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
-  GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
-  MIN(ed.NgayBatDau) AS NgayBatDau,
-  MAX(ed.NgayKetThuc) AS NgayKetThuc,
-  SUM(ed.SoTiet) AS SoTiet,
-  ed.NamHoc,
-  gv.MaPhongBan,
-  ed.SoHopDong,
-  ed.SoThanhLyHopDong,
-  ed.CoSoDaoTao
-FROM
-  gvmoi gv
-JOIN 
-  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
-WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
-GROUP BY 
-  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-  ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
-  ed.SoThanhLyHopDong, ed.CoSoDaoTao
-`;
+      SELECT 
+        ed.CCCD,
+        ed.DienThoai,
+        ed.Email,
+        ed.MaSoThue,
+        ed.GiangVien AS HoTen,
+        ed.NgaySinh,
+        ed.NgayCapCCCD,
+        ed.GioiTinh,
+        ed.STK,
+        ed.HocVi,
+        ed.ChucVu,
+        ed.HSL,
+        ed.NoiCapCCCD,
+        ed.DiaChi,
+        ed.NganHang,
+        ed.NoiCongTac,
+        ed.Dot,
+        MAX(ed.KhoaDaoTao) AS KhoaDaoTao,
+        GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+        GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
+        MIN(ed.NgayBatDau) AS NgayBatDau,
+        MAX(ed.NgayKetThuc) AS NgayKetThuc,
+        SUM(ed.SoTiet) AS SoTiet,
+        SUM(ed.ThanhTien) AS ThanhTien,
+        SUM(ed.TruThue) AS TruThue,
+        SUM(ed.ThucNhan) AS ThucNhan,
+        MAX(ed.TienMoiGiang) AS TienMoiGiang,
+        ed.NamHoc,
+        gv.MaPhongBan,
+        ed.SoHopDong,
+        ed.SoThanhLyHopDong,
+        ed.CoSoDaoTao
+      FROM gvmoi gv
+      JOIN exportdoantotnghiep ed 
+        ON gv.CCCD = ed.CCCD
+      WHERE 
+        ed.Dot = ?
+        AND ed.Ki = ?
+        AND ed.NamHoc = ?
+        AND ed.he_dao_tao = ?
+        AND gv.isQuanDoi != 1
+      `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
 
-    // Xử lý trường hợp có khoa
-    if (khoa && khoa !== "ALL") {
-      query = `
-  SELECT 
-    ed.CCCD,
-    ed.DienThoai,
-    ed.Email,
-    ed.MaSoThue,
-    ed.GiangVien as 'HoTen',
-    ed.NgaySinh,
-    ed.GioiTinh,
-    ed.HocVi,
-    ed.NgayCapCCCD,
-    ed.ChucVu,
-    ed.STK,
-    ed.HSL,
-    ed.NoiCapCCCD,
-    ed.DiaChi ,
-    ed.NganHang,
-    ed.NoiCongTac,
-    ed.Dot,
-    GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
-    GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
-    MIN(ed.NgayBatDau) AS NgayBatDau,
-    MAX(ed.NgayKetThuc) AS NgayKetThuc,
-    SUM(ed.SoTiet) AS SoTiet,
-    ed.NamHoc,
-    gv.MaPhongBan,
-    ed.SoHopDong,
-    ed.SoThanhLyHopDong,
-    ed.CoSoDaoTao
-  FROM 
-    gvmoi gv
-  JOIN 
-    exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
-  WHERE 
-    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
-  GROUP BY 
-    ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-    ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-    ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
-    ed.SoThanhLyHopDong, ed.CoSoDaoTao
-  `;
-      params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
+    if (khoa && khoa !== 'ALL') {
+      query += ` AND gv.MaPhongBan LIKE ?`;
+      params.push(`%${khoa}%`);
     }
 
-    // Xử lý trường hợp có teacherName
     if (teacherName) {
-      query = `
-  SELECT 
-    ed.CCCD,
-    ed.DienThoai,
-    ed.Email,
-    ed.MaSoThue,
-    ed.GiangVien as 'HoTen',
-    ed.NgaySinh,
-    ed.NgayCapCCCD,
-    ed.GioiTinh,
-    ed.HocVi,
-    ed.ChucVu,
-    ed.HSL,
-    ed.NoiCapCCCD,
-    ed.DiaChi ,
-    ed.STK,
-    ed.NganHang,
-    ed.NoiCongTac,
-    ed.Dot,
-    GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
-    GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
-    MIN(ed.NgayBatDau) AS NgayBatDau,
-    MAX(ed.NgayKetThuc) AS NgayKetThuc,
-    SUM(ed.SoTiet) AS SoTiet,
-    ed.NamHoc,
-    gv.MaPhongBan,
-    ed.SoHopDong,
-    ed.SoThanhLyHopDong,
-    ed.CoSoDaoTao
-  FROM 
-    gvmoi gv
-  JOIN 
-    exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
-  WHERE 
-    ed.Dot = ? AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
-  GROUP BY 
-    ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-    ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
-    ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
-    ed.SoThanhLyHopDong, ed.CoSoDaoTao
-  `;
-      params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
+      query += ` AND gv.HoTen LIKE ?`;
+      params.push(`%${teacherName}%`);
     }
+
+    query += `
+    GROUP BY 
+      ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien,
+      ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
+      ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD,
+      ed.DiaChi, ed.NganHang, ed.NoiCongTac,
+      ed.Dot, ed.NamHoc, gv.MaPhongBan,
+      ed.SoHopDong, ed.SoThanhLyHopDong, ed.CoSoDaoTao
+    `;
+
     const [teachers] = await connection.execute(query, params);
 
     if (!teachers || teachers.length === 0) {
@@ -505,15 +436,6 @@ GROUP BY
     for (const teacher of teachers) {
       const soTiet = teacher.SoTiet || 0;
 
-      if (teacher.HocVi === "Tiến sĩ") {
-        mucTien = 120000; // Mức tiền cho tiến sĩ
-      } else if (teacher.HocVi === "Thạc sĩ") {
-        mucTien = 60000; // Mức tiền cho thạc sĩ
-      } else if (teacher.HocVi === "Giáo sư") {
-        mucTien = 120000; // Mức tiền cho giáo sư
-      } else {
-        mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
-      }
       const gioiTinh = teacher.GioiTinh; // Đảm bảo rằng bạn đang lấy giá trị đúng
 
       let danhXung;
@@ -541,19 +463,16 @@ GROUP BY
       } else {
         tenNganh = "Không xác định";
       }
-      const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
+
+      const mucTien = teacher.TienMoiGiang || 0;
+      const tienText = teacher.ThanhTien || 0; // Sử dụng ThucNhan từ database
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
-      const tienThucNhanText = tienText - tienThueText;
+      const tienThueText = teacher.TruThue || 0;
+      const tienThucNhanText = teacher.ThucNhan || 0;
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
         teacher.NgayKetThuc
       );
-
-      const tienText1 = soTiet * mucTien; // Tính tổng tiền theo học vị (để tham khảo)
-      // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText1 = tienText1 < 2000000 ? 0 : Math.round(tienText1 * 0.1);
-      const tienThucNhanText1 = tienText1 - tienThueText1;
 
       let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim(); // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
@@ -564,6 +483,7 @@ GROUP BY
         NganHang: teacher.NganHang,
         ThucNhan: tienThucNhanText, // Sử dụng số tiền thực nhận cố định 100k/tiết (như trong hợp đồng)
         TongTien: tienText, // Lưu tổng tiền trước thuế để tính toán chính xác
+        TruThue: tienThueText,
         SoHopDong: teacher.SoHopDong,
       });
 
@@ -607,11 +527,11 @@ GROUP BY
         Năm_học: teacher.NamHoc, // Thêm trường NamHocs
         Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
         Mức_Tiền: mucTien.toLocaleString("vi-VN"), // Thêm mức tiền vào dữ liệu
-        Tiền_text1: tienText1.toLocaleString("vi-VN"),
-        Bằng_chữ_số_tiền1: numberToWords(tienText1),
-        Tiền_thuế_Text1: tienThueText1.toLocaleString("vi-VN"),
-        Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
-        Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
+        Tiền_text1: tienText.toLocaleString("vi-VN"),
+        Bằng_chữ_số_tiền1: numberToWords(tienText),
+        Tiền_thuế_Text1: tienThueText.toLocaleString("vi-VN"),
+        Tiền_thực_nhận_Text1: tienThucNhanText.toLocaleString("vi-VN"),
+        Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText),
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
         Khóa: teacher.KhoaSinhVien || teacher.KhoaDaoTao || "",
         Ngành: teacher.Nganh || tenNganh || "",
@@ -619,19 +539,21 @@ GROUP BY
       };
       // Chọn template dựa trên loại hình hệ đào tạo
       let templateFileName;
-      if (loaiHinh === "đồ án") {
-        templateFileName = "HopDongDA.docx";
-      } else if (tenHeDaoTao.includes("Mật mã")) {
-        templateFileName = "HopDongMM.docx";
-      } else if (tenHeDaoTao.includes("học phí") || tenHeDaoTao.includes("Học phí")) {
-        templateFileName = "HopDongHP.docx";
-      } else if (tenHeDaoTao.includes("Nghiên cứu sinh")) {
-        templateFileName = "HopDongNCS.docx";
-      } else if (tenHeDaoTao.includes("Cao học")) {
-        templateFileName = "HopDongCH.docx";
-      } else {
-        templateFileName = "HopDongDA.docx"; // Default cho đồ án
-      }
+      templateFileName = "HopDongDA.docx";
+
+      // if (loaiHinh === "đồ án") {
+      //   templateFileName = "HopDongDA.docx";
+      // } else if (tenHeDaoTao.includes("Mật mã")) {
+      //   templateFileName = "HopDongMM.docx";
+      // } else if (tenHeDaoTao.includes("học phí") || tenHeDaoTao.includes("Học phí")) {
+      //   templateFileName = "HopDongHP.docx";
+      // } else if (tenHeDaoTao.includes("Nghiên cứu sinh")) {
+      //   templateFileName = "HopDongNCS.docx";
+      // } else if (tenHeDaoTao.includes("Cao học")) {
+      //   templateFileName = "HopDongCH.docx";
+      // } else {
+      //   templateFileName = "HopDongDA.docx"; // Default cho đồ án
+      // }
       const templatePath = path.resolve(
         __dirname,
         "../templates",
@@ -687,9 +609,9 @@ GROUP BY
     // Tạo file Excel báo cáo thuế
     const taxReportData = summaryData.map((item, index) => {
       // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
-      const tienTruocThue = item.TongTien || (item.ThucNhan < 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
+      const tienTruocThue = item.TongTien || 0;
       // Nếu số tiền <= 2 triệu thì không có thuế
-      const thuePhaiTra = tienTruocThue < 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu < 2 triệu)
+      const thuePhaiTra = item.TruThue || 0;
 
       return {
         stt: index + 1,
@@ -702,9 +624,9 @@ GROUP BY
         idAddress: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DiaChi || '',
         phoneNumber: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DienThoai || '',
         taxCode: item.MaSoThue,
-        amount: tienTruocThue, // Tổng tiền trước thuế
-        taxDeducted: thuePhaiTra, // Thuế 10%
-        netAmount: item.ThucNhan // Tiền sau thuế
+        amount: Number(tienTruocThue), // Tổng tiền trước thuế
+        taxDeducted: Number(thuePhaiTra), // Thuế 10%
+        netAmount: Number(item.ThucNhan) // Tiền sau thuế
       };
     });
 
@@ -2328,7 +2250,7 @@ function createTransferDetailDocument(
 
   // Hàm định dạng số tiền theo VNĐ
   function formatVND(amount) {
-    return amount.toLocaleString("vi-VN");
+    return Number(amount).toLocaleString("vi-VN");
   }
 
   // Hàm tạo bảng chi tiết
