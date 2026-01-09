@@ -434,55 +434,21 @@ const exportMultipleContracts = async (req, res) => {
 
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
-      const soTiet = teacher.SoTiet || 0;
-
-      const gioiTinh = teacher.GioiTinh; // Đảm bảo rằng bạn đang lấy giá trị đúng
-
-      let danhXung;
-
-      // Giả sử bạn có biến gioiTinh chứa giá trị giới tính
-      if (gioiTinh === "Nam") {
-        danhXung = "Ông";
-      } else if (gioiTinh === "Nữ") {
-        danhXung = "Bà";
-      } else {
-        danhXung = ""; // Hoặc có thể gán một giá trị mặc định khác
-      }
-      const maPhongBan = teacher.MaPhongBan; // Đảm bảo rằng bạn đang lấy giá trị đúng
-
-      let tenNganh;
-
-      const phongBan = phongBanList.find(
-        (item) =>
-          item.MaPhongBan.trim().toUpperCase() ==
-          maPhongBan.trim().toUpperCase()
-      );
-
-      if (phongBan) {
-        tenNganh = phongBan.TenPhongBan; // Lấy từ object tìm được
-      } else {
-        tenNganh = "Không xác định";
-      }
-
-      const mucTien = teacher.TienMoiGiang || 0;
-      const tienText = teacher.ThanhTien || 0; // Sử dụng ThucNhan từ database
-      // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+      const tienText = teacher.ThanhTien || 0;
       const tienThueText = teacher.TruThue || 0;
       const tienThucNhanText = teacher.ThucNhan || 0;
-      const thoiGianThucHien = formatDateRange(
-        teacher.NgayBatDau,
-        teacher.NgayKetThuc
-      );
 
-      let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim(); // Ghi dữ liệu cho thống kê chuyển khoản
+      let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+      // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
         HoTen: hoTen,
         DienThoai: teacher.DienThoai,
         MaSoThue: teacher.MaSoThue,
         STK: teacher.STK,
         NganHang: teacher.NganHang,
-        ThucNhan: tienThucNhanText, // Sử dụng số tiền thực nhận cố định 100k/tiết (như trong hợp đồng)
-        TongTien: tienText, // Lưu tổng tiền trước thuế để tính toán chính xác
+        ThucNhan: tienThucNhanText,
+        TongTien: tienText,
         TruThue: tienThueText,
         SoHopDong: teacher.SoHopDong,
       });
@@ -493,92 +459,19 @@ const exportMultipleContracts = async (req, res) => {
         MaSoThue: teacher.MaSoThue,
         STK: teacher.STK,
         NganHang: teacher.NganHang,
-        ThucNhan: tienText, //
+        ThucNhan: tienText,
         SoHopDong: teacher.SoHopDong,
       });
 
-      const data = {
-        Số_hợp_đồng: teacher.SoHopDong || "    ",
-        Số_thanh_lý: teacher.SoThanhLyHopDong || "    ",
-        Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
-        Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
-        Danh_xưng: danhXung,
-        Họ_và_tên: hoTen,
-        CCCD: teacher.CCCD,
-        Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
-        Nơi_cấp: teacher.NoiCapCCCD,
-        Chức_vụ: teacher.ChucVu,
-        Cấp_bậc: teacher.HocVi,
-        Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace(".", ","),
-        Địa_chỉ_theo_CCCD: teacher.DiaChi,
-        Điện_thoại: teacher.DienThoai,
-        Mã_số_thuế: teacher.MaSoThue,
-        Số_tài_khoản: teacher.STK,
-        Email: teacher.Email,
-        Tại_ngân_hàng: teacher.NganHang,
-        Số_tiết: teacher.SoTiet.toString().replace(".", ","),
-        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
-        Tiền_text: tienText.toLocaleString("vi-VN"), // Sử dụng tienText (100k/tiết)
-        Bằng_chữ_số_tiền: numberToWords(tienText), // Sử dụng tienText (100k/tiết)
-        Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"), // Sử dụng tienThueText (từ 100k/tiết)
-        Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"), // Sử dụng tienThucNhanText (từ 100k/tiết)
-        Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText), // Sử dụng tienThucNhanText (từ 100k/tiết)
-        Đợt: teacher.Dot,
-        Năm_học: teacher.NamHoc, // Thêm trường NamHocs
-        Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
-        Mức_Tiền: mucTien.toLocaleString("vi-VN"), // Thêm mức tiền vào dữ liệu
-        Tiền_text1: tienText.toLocaleString("vi-VN"),
-        Bằng_chữ_số_tiền1: numberToWords(tienText),
-        Tiền_thuế_Text1: tienThueText.toLocaleString("vi-VN"),
-        Tiền_thực_nhận_Text1: tienThucNhanText.toLocaleString("vi-VN"),
-        Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText),
-        Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
-        Khóa: teacher.KhoaSinhVien || teacher.KhoaDaoTao || "",
-        Ngành: teacher.Nganh || tenNganh || "",
-        Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
-      };
-      // Chọn template dựa trên loại hình hệ đào tạo
-      let templateFileName;
-      templateFileName = "HopDongDA.docx";
-
-      // if (loaiHinh === "đồ án") {
-      //   templateFileName = "HopDongDA.docx";
-      // } else if (tenHeDaoTao.includes("Mật mã")) {
-      //   templateFileName = "HopDongMM.docx";
-      // } else if (tenHeDaoTao.includes("học phí") || tenHeDaoTao.includes("Học phí")) {
-      //   templateFileName = "HopDongHP.docx";
-      // } else if (tenHeDaoTao.includes("Nghiên cứu sinh")) {
-      //   templateFileName = "HopDongNCS.docx";
-      // } else if (tenHeDaoTao.includes("Cao học")) {
-      //   templateFileName = "HopDongCH.docx";
-      // } else {
-      //   templateFileName = "HopDongDA.docx"; // Default cho đồ án
-      // }
-      const templatePath = path.resolve(
-        __dirname,
-        "../templates",
-        templateFileName
-      );
-      const content = fs.readFileSync(templatePath, "binary");
-      const zip = new PizZip(content);
-
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-        delimiters: {
-          start: "«",
-          end: "»",
-        },
-      });
-
-      doc.render(data);
-
-      const buf = doc.getZip().generate({
-        type: "nodebuffer",
-        compression: "DEFLATE",
-      });
-      const fileName = `HopDong_${tenHeDaoTao}_${hoTen}_${teacher.CCCD}.docx`;
-      fs.writeFileSync(path.join(tempDir, fileName), buf);
+      // ✅ REFACTORED: Sử dụng generateDoAnContract thay vì duplicate code
+      try {
+        const filePath = await generateDoAnContract(teacher, tempDir, phongBanList);
+        if (!filePath) {
+          console.error(`Failed to generate contract for ${hoTen}`);
+        }
+      } catch (error) {
+        console.error(`Error generating contract for ${hoTen}:`, error);
+      }
     }
 
     // Tạo file thống kê chuyển khoản
@@ -1014,15 +907,7 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
   try {
     const soTiet = teacher.SoTiet || 0;
 
-    if (teacher.HocVi === "Tiến sĩ") {
-      mucTien = 120000; // Mức tiền cho tiến sĩ
-    } else if (teacher.HocVi === "Thạc sĩ") {
-      mucTien = 60000; // Mức tiền cho thạc sĩ
-    } else if (teacher.HocVi === "Giáo sư") {
-      mucTien = 120000; // Mức tiền cho giáo sư
-    } else {
-      mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
-    }
+    const mucTien = teacher.TienMoiGiang || 0;
     const gioiTinh = teacher.GioiTinh; // Đảm bảo rằng bạn đang lấy giá trị đúng
 
     let danhXung;
@@ -1050,23 +935,20 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
       tenNganh = "Không xác định";
     }
 
-    const tienText = soTiet * 100000;
+    const ThanhTien = teacher.ThanhTien || 0; // Tính tổng tiền
     // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-    const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
-    const tienThucNhanText = tienText - tienThueText;
+    const tienThueText = teacher.TruThue || 0;
+    const tienThucNhanText = teacher.ThucNhan || 0;
     const thoiGianThucHien = formatDateRange(
       teacher.NgayBatDau,
       teacher.NgayKetThuc
     );
 
-    const tienText1 = soTiet * mucTien; // Tính tổng tiền
-    // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-    const tienThueText1 = tienText1 < 2000000 ? 0 : Math.round(tienText1 * 0.1);
-    const tienThucNhanText1 = tienText1 - tienThueText1;
-
     let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
     const data = {
+      Số_hợp_đồng: teacher.SoHopDong || "",
+      Số_thanh_lý: teacher.SoThanhLyHopDong || "",
       Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
       Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
       Danh_xưng: danhXung,
@@ -1085,25 +967,25 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
       Tại_ngân_hàng: teacher.NganHang,
       Số_tiết: teacher.SoTiet.toString().replace(".", ","),
       Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
-      Tiền_text: tienText.toLocaleString("vi-VN"),
-      Bằng_chữ_số_tiền: numberToWords(tienText),
-      Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
-      Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
+      // ✅ Sử dụng giá trị từ database
+      Tiền_text: Number(ThanhTien).toLocaleString("vi-VN"),
+      Bằng_chữ_số_tiền: numberToWords(ThanhTien),
+      Tiền_thuế_Text: Number(tienThueText).toLocaleString("vi-VN"),
+      Tiền_thực_nhận_Text: Number(tienThucNhanText).toLocaleString("vi-VN"),
       Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
       Đợt: teacher.Dot,
-      Năm_học: teacher.NamHoc, // Thêm trường NamHocs
-      Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
-      Mức_Tiền: mucTien.toLocaleString("vi-VN"), // Thêm mức tiền vào dữ liệu
-      Tiền_text1: tienText1.toLocaleString("vi-VN"),
-      Bằng_chữ_số_tiền1: numberToWords(tienText1),
-      Tiền_thuế_Text1: tienThueText1.toLocaleString("vi-VN"),
-      Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
-      Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
-      Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
+      Năm_học: teacher.NamHoc,
+      Thời_gian_thực_hiện: thoiGianThucHien,
+      Mức_Tiền: Number(mucTien).toLocaleString("vi-VN"),
+      // ✅ Các field với suffix "1" cũng dùng giá trị từ DB
+      Tiền_text1: Number(ThanhTien).toLocaleString("vi-VN"),
+      Bằng_chữ_số_tiền1: numberToWords(ThanhTien),
+      Tiền_thuế_Text1: Number(tienThueText).toLocaleString("vi-VN"),
+      Tiền_thực_nhận_Text1: Number(tienThucNhanText).toLocaleString("vi-VN"),
+      Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText),
+      Nơi_công_tác: teacher.NoiCongTac,
       Khóa: teacher.KhoaSinhVien || teacher.KhoaDaoTao || "",
       Ngành: teacher.Nganh || tenNganh || "",
-      Số_hợp_đồng: teacher.SoHopDong || "",
-      Số_thanh_lý: teacher.SoThanhLyHopDong || "",
       Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
     };
     // Chọn template dựa trên loại hợp đồng
@@ -2244,8 +2126,15 @@ function createTransferDetailDocument(
   }
 
   // Hàm tính tổng tiền
+  // function calculateTotal(data) {
+  //   return data.reduce((sum, row) => sum + (row.ThucNhan || 0), 0);
+  // }
+
   function calculateTotal(data) {
-    return data.reduce((sum, row) => sum + (row.ThucNhan || 0), 0);
+    return data.reduce((sum, row) => {
+      const value = Number(row.ThucNhan || 0);
+      return sum + (isNaN(value) ? 0 : value);
+    }, 0);
   }
 
   // Hàm định dạng số tiền theo VNĐ
