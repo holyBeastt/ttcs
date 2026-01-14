@@ -1058,6 +1058,8 @@ const calculateDonGiaWithCache = (tienLuongCache, gvInfo, he_dao_tao) => {
   }
 };
 
+const hopDongDAController = require("./hopDongDAController");
+
 const saveToExportDoAn = async (req, res) => {
   const Dot = req.body.Dot;
   const ki = req.body.ki;
@@ -1229,8 +1231,8 @@ const saveToExportDoAn = async (req, res) => {
           // ✅ Calculate TienMoiGiang using CACHED data (NO database query!)
           const TienMoiGiang = calculateDonGiaWithCache(tienLuongCache, matchedItem1, item.he_dao_tao);
           const ThanhTien = SoTiet * TienMoiGiang;
-          const Thue = ThanhTien * 0.1;
-          const ThucNhan = ThanhTien * 0.9;
+          const Thue = 0;
+          const ThucNhan = ThanhTien;
 
 
           values.push([
@@ -1270,10 +1272,10 @@ const saveToExportDoAn = async (req, res) => {
             item.he_dao_tao,
             item.khoa_sinh_vien || null,
             item.nganh || null,
-            TienMoiGiang || null,     // ✅ NEW: Đơn giá
-            ThanhTien || null,        // ✅ NEW: Thành tiền
-            Thue || null,             // ✅ NEW: Thuế 10%
-            ThucNhan || null,         // ✅ NEW: Thực nhận 90%
+            TienMoiGiang || 0,     // ✅ NEW: Đơn giá
+            ThanhTien || 0,        // ✅ NEW: Thành tiền
+            Thue || 0,             // ✅ NEW: Thuế 10%
+            ThucNhan || 0,         // ✅ NEW: Thực nhận 90%
           ]);
           let matchedItem2;
           count++;
@@ -1335,8 +1337,8 @@ const saveToExportDoAn = async (req, res) => {
             // ✅ Calculate TienMoiGiang for GV2 using CACHED data (NO database query!)
             const TienMoiGiang2 = calculateDonGiaWithCache(tienLuongCache, matchedItem2, item.he_dao_tao);
             const ThanhTien2 = SoTiet * TienMoiGiang2;
-            const Thue2 = ThanhTien2 * 0.1;
-            const ThucNhan2 = ThanhTien2 * 0.9;
+            const Thue2 = 0;
+            const ThucNhan2 = ThanhTien2;
 
             values.push([
               item.SinhVien || null,
@@ -1375,10 +1377,10 @@ const saveToExportDoAn = async (req, res) => {
               item.he_dao_tao,
               item.khoa_sinh_vien || null,
               item.nganh || null,
-              TienMoiGiang2 || null,    // ✅ NEW: Đơn giá GV2
-              ThanhTien2 || null,       // ✅ NEW: Thành tiền GV2
-              Thue2 || null,            // ✅ NEW: Thuế 10% GV2
-              ThucNhan2 || null,        // ✅ NEW: Thực nhận 90% GV2
+              TienMoiGiang2 || 0,    // ✅ NEW: Đơn giá GV2
+              ThanhTien2 || 0,       // ✅ NEW: Thành tiền GV2
+              Thue2 || 0,            // ✅ NEW: Thuế 10% GV2
+              ThucNhan2 || 0,        // ✅ NEW: Thực nhận 90% GV2
             ]);
 
             count++;
@@ -1397,6 +1399,8 @@ const saveToExportDoAn = async (req, res) => {
     } else {
       const placeholders = daDuyetHetArray.map(() => "?").join(", ");
       const updateQuery = `UPDATE doantotnghiep SET DaLuu = 1 WHERE MaPhongBan IN (${placeholders});`;
+
+      // Cập nhật lại cờ DaLuu trong bảng doantotnghiep
       await connection.query(updateQuery, [...daDuyetHetArray]);
     }
 
@@ -1412,6 +1416,9 @@ const saveToExportDoAn = async (req, res) => {
     // Thực thi câu lệnh SQL với mảng values
     const [result] = await connection.query(sql, [values]);
 
+    // Tính lại thuế
+    await updateThueExportDoAn(Dot, ki, NamHoc, connection);
+
     // Gửi phản hồi thành công
     res.status(200).json({
       message: "Dữ liệu đã được lưu thành công vào cơ sở dữ liệu.",
@@ -1426,6 +1433,43 @@ const saveToExportDoAn = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối
   }
 };
+
+const updateThueExportDoAn = async (dot, ki, namHoc, connection) => {
+  try {
+    const query = `
+      UPDATE exportdoantotnghiep ed
+      JOIN (
+        SELECT 
+          ed2.CCCD,
+          SUM(ed2.ThanhTien) AS TongThanhTien
+        FROM exportdoantotnghiep ed2
+        JOIN gvmoi gv ON gv.CCCD = ed2.CCCD
+        WHERE 
+          ed2.Dot = ?
+          AND ed2.ki = ?
+          AND ed2.NamHoc = ?
+          AND gv.isQuanDoi != 1
+        GROUP BY ed2.CCCD
+        HAVING SUM(ed2.ThanhTien) > 2000000
+      ) t ON t.CCCD = ed.CCCD
+      SET 
+        ed.TruThue = ed.ThanhTien * 0.1,
+        ed.ThucNhan = ed.ThanhTien * 0.9
+      WHERE 
+        ed.Dot = ?
+        AND ed.ki = ?
+        AND ed.NamHoc = ?
+    `;
+
+    const params = [dot, ki, namHoc, dot, ki, namHoc];
+    await connection.execute(query, params);
+
+  } catch (error) {
+    console.error("Lỗi khi cập nhật thuế trong exportdoantotnghiep:", error);
+    throw error;
+  }
+};
+
 
 const unsaveAll = async (req, res) => {
   const { Dot, Ki, NamHoc } = req.body;
