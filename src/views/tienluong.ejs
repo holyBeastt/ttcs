@@ -264,6 +264,26 @@
 
 
       $(document).ready(function () {
+        // Restore active tab from localStorage
+        const savedTab = localStorage.getItem('tienluong_active_tab');
+        if (savedTab) {
+          console.log('Restoring tab:', savedTab);
+          // Use Bootstrap's Tab API to properly activate the saved tab
+          const tabTrigger = document.getElementById('tab-' + savedTab);
+          if (tabTrigger) {
+            const tab = new bootstrap.Tab(tabTrigger);
+            tab.show();
+          }
+          // Clear the saved tab
+          localStorage.removeItem('tienluong_active_tab');
+        }
+
+        // Save active tab when tab is clicked
+        $('#salaryTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+          const targetId = $(e.target).attr('id').replace('tab-', '');
+          localStorage.setItem('tienluong_last_tab', targetId);
+        });
+
         // Load for both tabs' dropdowns
         loadDoUuTienList('#do_uu_tien_mg');
         loadDoUuTienList('#do_uu_tien_da');
@@ -652,6 +672,11 @@
               loai_hinh
             }),
             success: function (response) {
+              // Save current tab before reload
+              const currentTab = loai_hinh === 'đồ án' ? 'do-an' : 'moi-giang';
+              console.log('Saving tab:', currentTab, 'from loai_hinh:', loai_hinh);
+              localStorage.setItem('tienluong_active_tab', currentTab);
+
               Swal.fire({
                 title: "Thông báo",
                 html: "Thêm mới thành công!",
