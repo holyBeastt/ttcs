@@ -1,205 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
-    <link rel="stylesheet" href="/css/table.css" />
-    <link rel="stylesheet" href="/css/admin.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-  </head>
 
-  <body>
-    <%- include('adminHeader') %>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/table.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <style>
+    /* Override global CSS - force remove blue background */
+    .nav-tabs .nav-link {
+      background-color: transparent !important;
+      border: 1px solid #dee2e6 !important;
+      color: #495057 !important;
+    }
+
+    .nav-tabs .nav-link:hover {
+      border-color: #dee2e6 !important;
+      background-color: #f8f9fa !important;
+    }
+
+    .nav-tabs .nav-link.active {
+      background-color: #fff !important;
+      border-color: #dee2e6 #dee2e6 #fff !important;
+      color: #007bff !important;
+      font-weight: 600 !important;
+    }
+
+    .tab-content {
+      background-color: transparent !important;
+    }
+
+    /* Override for form inside tabs */
+    .tab-pane.active {
+      background-color: transparent !important;
+    }
+  </style>
+</head>
+
+<body>
+  <%- include('adminHeader') %>
 
     <div class="container my-5 box">
-      <form id="tienluongForm" action="/tienluong" method="POST" class="row">
-        <div class="col-md-4">
-          <label for="he_dao_tao">Hệ Đào Tạo</label>
-          <select
-            name="he_dao_tao"
-            id="he_dao_tao"
-            class="form-control"
-            required
-          >
-            <option value="">-- Chọn hệ đào tạo --</option>
-          </select>
-        </div>
-        <div class="col-md-4" id="hocViContainer">
-          <label for="HocVi">Học Vị:</label>
-          <select name="HocVi" id="HocVi" class="form-control" required>
-            <option value="Cử nhân">Cử nhân</option>
-            <option value="Kỹ sư">Kỹ sư</option>
-            <option value="Thạc sĩ" selected>Thạc sĩ</option>
-            <option value="Tiến sĩ">Tiến sĩ</option>
-            <option value="Phó giáo sư">Phó giáo sư</option>
-            <option value="Giáo sư">Giáo sư</option>
-            <option value="Tiếng khơ-me">Tiếng khơ-me</option>
-            <option value="Võ sư">Võ sư</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label for="SoTien">Số Tiền:</label>
-          <input
-            type="number"
-            name="SoTien"
-            id="SoTien"
-            class="form-control"
-            required
-          />
-        </div>
-        <div style="margin-top: 15px;"></div>
-        <div class="col-md-4">
-          <label for="do_uu_tien">Độ ưu tiên</label>
-          <select
-            name="do_uu_tien"
-            id="do_uu_tien"
-            class="form-control"
-            required
-          >
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label for="chuc_danh">Chức danh</label>
-          <select
-            name="chuc_danh"
-            id="chuc_danh"
-            class="form-control"
-            required
-          >
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label for="hsl">Hệ số lương:</label>
-          <input
-            type="number"
-            name="hsl"
-            id="hsl"
-            class="form-control"
-            value="0"
-            required
-          />
-        </div>
-        <!-- <div class="col-md-12 mt-3">
-          <button type="button" class="btn btn-primary" id="addButton">
-            Thêm
+      <!-- Bootstrap Tabs Navigation -->
+      <ul class="nav nav-tabs mb-4" id="salaryTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-moi-giang" data-bs-toggle="tab" data-bs-target="#content-moi-giang"
+            type="button" role="tab" aria-controls="content-moi-giang" aria-selected="true">
+            <i class="bi bi-person-badge me-2"></i>Mời Giảng
           </button>
-        </div> -->
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-do-an" data-bs-toggle="tab" data-bs-target="#content-do-an" type="button"
+            role="tab" aria-controls="content-do-an" aria-selected="false">
+            <i class="bi bi-journal-text me-2"></i>Đồ Án
+          </button>
+        </li>
+      </ul>
 
-        <div class="col-md-12 mt-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <!-- Nút thêm bên trái -->
-            <button type="button" class="btn btn-primary" id="addButton">
-              Thêm
-            </button>
+      <!-- Tab Contents -->
+      <div class="tab-content" id="salaryTabContent">
 
-            <!-- Ghi chú bên phải -->
-            <span
-              class="text-muted small d-flex align-items-center"
-              style="cursor: pointer"
-              data-bs-toggle="tooltip"
-              data-bs-html="true"
-              title="
-                <b>Nguyên tắc xác định Số tiền:</b><br>
-                1️⃣ Ưu tiên theo <b>độ ưu tiên</b> (cao trước)<br>
-                2️⃣ Xét <b>Hệ đào tạo</b> & <b>Học vị</b><br>
-                3️⃣ <b>HSL giảng viên ≥ HSL cấu hình</b><br>
-                4️⃣ <b>Chức danh</b> tương ứng hoặc áp dụng chung<br>
-                5️⃣ Nếu có nhiều bản ghi phù hợp -> Chọn bản ghi có <b>Số tiền cao nhất</b><br>
-                ❗ Không có bản ghi phù hợp → Số tiền = 0
-              "
-            >
-              <i class="bi bi-info-circle me-1"></i>
-              Quy tắc áp dụng số tiền
-            </span>
+        <!-- ============ TAB MỜI GIẢNG ============ -->
+        <div class="tab-pane fade show active" id="content-moi-giang" role="tabpanel" aria-labelledby="tab-moi-giang">
+          <form id="formMoiGiang" class="row mb-4">
+            <input type="hidden" name="loai_hinh" value="mời giảng" />
+            <div class="col-md-4">
+              <label for="he_dao_tao_mg">Hệ Đào Tạo</label>
+              <select name="he_dao_tao" id="he_dao_tao_mg" class="form-control" required>
+                <option value="">-- Chọn hệ đào tạo --</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="HocVi_mg">Học Vị:</label>
+              <select name="HocVi" id="HocVi_mg" class="form-control" required>
+                <option value="Cử nhân">Cử nhân</option>
+                <option value="Kỹ sư">Kỹ sư</option>
+                <option value="Thạc sĩ" selected>Thạc sĩ</option>
+                <option value="Tiến sĩ">Tiến sĩ</option>
+                <option value="Phó giáo sư">Phó giáo sư</option>
+                <option value="Giáo sư">Giáo sư</option>
+                <option value="Tiếng khơ-me">Tiếng khơ-me</option>
+                <option value="Võ sư">Võ sư</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="SoTien_mg">Số Tiền:</label>
+              <input type="number" name="SoTien" id="SoTien_mg" class="form-control" required />
+            </div>
+            <div style="margin-top: 15px;"></div>
+            <div class="col-md-4">
+              <label for="do_uu_tien_mg">Độ ưu tiên</label>
+              <select name="do_uu_tien" id="do_uu_tien_mg" class="form-control" required></select>
+            </div>
+            <div class="col-md-4">
+              <label for="chuc_danh_mg">Chức danh</label>
+              <select name="chuc_danh" id="chuc_danh_mg" class="form-control" required></select>
+            </div>
+            <div class="col-md-4">
+              <label for="hsl_mg">Hệ số lương:</label>
+              <input type="number" name="hsl" id="hsl_mg" class="form-control" value="0" required />
+            </div>
+
+            <div class="col-md-12 mt-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-primary" id="addButtonMoiGiang">Thêm</button>
+                <span class="text-muted small d-flex align-items-center" style="cursor: pointer"
+                  data-bs-toggle="tooltip" data-bs-html="true"
+                  title="<b>Nguyên tắc xác định Số tiền:</b><br>1️⃣ Ưu tiên theo <b>độ ưu tiên</b> (cao trước)<br>2️⃣ Xét <b>Hệ đào tạo</b> & <b>Học vị</b><br>3️⃣ <b>HSL giảng viên ≥ HSL cấu hình</b><br>4️⃣ <b>Chức danh</b> tương ứng hoặc áp dụng chung<br>5️⃣ Nếu có nhiều bản ghi phù hợp -> Chọn bản ghi có <b>Số tiền cao nhất</b><br>❗ Không có bản ghi phù hợp → Số tiền = 0">
+                  <i class="bi bi-info-circle me-1"></i>Quy tắc áp dụng số tiền
+                </span>
+              </div>
+            </div>
+          </form>
+
+          <div class="pb-3">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Hệ Đào Tạo</th>
+                  <th>Học Vị</th>
+                  <th>Số Tiền</th>
+                  <th>Độ ưu tiên</th>
+                  <th>Hệ số lương</th>
+                  <th>Chức danh</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="tableMoiGiang">
+                <!-- Data will be populated by JavaScript -->
+              </tbody>
+            </table>
           </div>
         </div>
-      </form>
 
-      <div class="pb-3">
-        <table id="NamHocTable" class="table table-bordered">
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th id="sortHeDaoTao" style="cursor: pointer">
-                Hệ Đào Tạo <span id="sortIcon">⇅</span>
-              </th>
-              <th>Học Vị</th>
-              <th>Số Tiền</th>
-              <th>Độ ưu tiên</th>
-              <th>Hệ số lương</th>
-              <th>Chức danh</th>
-              <th>Thao Tác</th>
-            </tr>
-          </thead>
-          <tbody id="data-table-body">
-            <% if (tienluong && tienluong.length > 0) { %> <% for (var i = 0; i
-            < tienluong.length; i++) { %>
-            <tr data-id="<%= tienluong[i].STT %>" data-he-dao-tao-id="<%= tienluong[i].he_dao_tao %>" data-chuc-danh-id="<%= tienluong[i].chuc_danh_id %>">
-              <td><%= i + 1 %></td>
-              <td class="editable he_dao_tao-cell">
-                <%= tienluong[i].he_dao_tao_name || tienluong[i].he_dao_tao %>
-              </td>
-              <td class="editable HocVi-cell"><%= tienluong[i].HocVi %></td>
-              <td class="editable SoTien-cell">
-                <%= new Intl.NumberFormat('vi-VN', { style: 'currency',
-                currency: 'VND' }).format(tienluong[i].SoTien) %>
-              </td>
+        <!-- ============ TAB ĐỒ ÁN ============ -->
+        <div class="tab-pane fade" id="content-do-an" role="tabpanel" aria-labelledby="tab-do-an">
+          <form id="formDoAn" class="row mb-4">
+            <input type="hidden" name="loai_hinh" value="đồ án" />
+            <div class="col-md-4">
+              <label for="he_dao_tao_da">Hệ Đào Tạo</label>
+              <select name="he_dao_tao" id="he_dao_tao_da" class="form-control" required>
+                <option value="">-- Chọn hệ đào tạo --</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="HocVi_da">Học Vị:</label>
+              <select name="HocVi" id="HocVi_da" class="form-control" required>
+                <option value="Cử nhân">Cử nhân</option>
+                <option value="Kỹ sư">Kỹ sư</option>
+                <option value="Thạc sĩ" selected>Thạc sĩ</option>
+                <option value="Tiến sĩ">Tiến sĩ</option>
+                <option value="Phó giáo sư">Phó giáo sư</option>
+                <option value="Giáo sư">Giáo sư</option>
+                <option value="Tiếng khơ-me">Tiếng khơ-me</option>
+                <option value="Võ sư">Võ sư</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="SoTien_da">Số Tiền:</label>
+              <input type="number" name="SoTien" id="SoTien_da" class="form-control" required />
+            </div>
+            <div style="margin-top: 15px;"></div>
+            <div class="col-md-4">
+              <label for="do_uu_tien_da">Độ ưu tiên</label>
+              <select name="do_uu_tien" id="do_uu_tien_da" class="form-control" required></select>
+            </div>
+            <div class="col-md-4">
+              <label for="chuc_danh_da">Chức danh</label>
+              <select name="chuc_danh" id="chuc_danh_da" class="form-control" required></select>
+            </div>
+            <div class="col-md-4">
+              <label for="hsl_da">Hệ số lương:</label>
+              <input type="number" name="hsl" id="hsl_da" class="form-control" value="0" required />
+            </div>
 
-              <!-- Độ ưu tiên -->
-              <td class="editable do_uu_tien-cell">
-                <%= tienluong[i].do_uu_tien ?? 0 %>
-              </td>
+            <div class="col-md-12 mt-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-primary" id="addButtonDoAn">Thêm</button>
+                <span class="text-muted small d-flex align-items-center" style="cursor: pointer"
+                  data-bs-toggle="tooltip" data-bs-html="true"
+                  title="<b>Nguyên tắc xác định Số tiền:</b><br>1️⃣ Ưu tiên theo <b>độ ưu tiên</b> (cao trước)<br>2️⃣ Xét <b>Hệ đào tạo</b> & <b>Học vị</b><br>3️⃣ <b>HSL giảng viên ≥ HSL cấu hình</b><br>4️⃣ <b>Chức danh</b> tương ứng hoặc áp dụng chung<br>5️⃣ Nếu có nhiều bản ghi phù hợp -> Chọn bản ghi có <b>Số tiền cao nhất</b><br>❗ Không có bản ghi phù hợp → Số tiền = 0">
+                  <i class="bi bi-info-circle me-1"></i>Quy tắc áp dụng số tiền
+                </span>
+              </div>
+            </div>
+          </form>
 
-              <!-- HSL -->
-              <td class="editable HSL-cell">
-                <%= tienluong[i].HSL ?? 0 %>
-              </td>
+          <div class="pb-3">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Hệ Đào Tạo</th>
+                  <th>Học Vị</th>
+                  <th>Số Tiền</th>
+                  <th>Độ ưu tiên</th>
+                  <th>Hệ số lương</th>
+                  <th>Chức danh</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="tableDoAn">
+                <!-- Data will be populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-              <!-- Chức danh -->
-              <td class="editable chuc_danh-cell">
-                <%= tienluong[i].chuc_danh_text ?? '' %>
-              </td>
-
-              <td class="d-flex justify-content-center" style="border: none">
-                <button class="bi bi-pencil action-button edit-btn"></button>
-                <button
-                  class="bi bi-trash3 action-button me-2"
-                  onclick="deleteTienLuong(this, '<%= tienluong[i].STT %>')"
-                ></button>
-              </td>
-            </tr>
-            <% } %> <% } %>
-          </tbody>
-        </table>
       </div>
     </div>
 
     <script>
-      const loadDoUuTienList = () => {
-        const select = $('#do_uu_tien');
-        select.empty();
+      // ========== GLOBAL DATA ==========
+      let allTienLuongData = <%-JSON.stringify(tienluong) %>;
 
+      const loadDoUuTienList = (selectId) => {
+        const select = $(selectId);
+        select.empty();
         for (let i = 0; i <= 5; i++) {
-          select.append(
-            `<option value="${i}">${i}</option>`
-          );
+          select.append(`<option value="${i}">${i}</option>`);
         }
+      };
+
+      const populateTable = (tableId, data) => {
+        const tbody = $(tableId);
+        tbody.empty();
+        data.forEach((item, index) => {
+          const row = `
+            <tr data-id="${item.STT}" data-he-dao-tao-id="${item.he_dao_tao}" data-chuc-danh-id="${item.chuc_danh_id}">
+              <td>${index + 1}</td>
+              <td class="editable he_dao_tao-cell">${item.he_dao_tao_name || item.he_dao_tao}</td>
+              <td class="editable HocVi-cell">${item.HocVi}</td>
+              <td class="editable SoTien-cell">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.SoTien)}</td>
+              <td class="editable do_uu_tien-cell">${item.do_uu_tien ?? 0}</td>
+              <td class="editable HSL-cell">${item.HSL ?? 0}</td>
+              <td class="editable chuc_danh-cell">${item.chuc_danh_text ?? ''}</td>
+              <td class="d-flex justify-content-center" style="border: none">
+                <button class="bi bi-pencil action-button edit-btn"></button>
+                <button class="bi bi-trash3 action-button me-2" onclick="deleteTienLuong(this, '${item.STT}')"></button>
+              </td>
+            </tr>
+          `;
+          tbody.append(row);
+        });
       };
 
       document.addEventListener("DOMContentLoaded", function () {
@@ -208,57 +260,94 @@
           .forEach(el => new bootstrap.Tooltip(el));
       });
 
-      // Hàm load danh sách chức danh
-      $(document).ready(function() {
-        loadDoUuTienList();
 
+
+      $(document).ready(function () {
+        // Load for both tabs' dropdowns
+        loadDoUuTienList('#do_uu_tien_mg');
+        loadDoUuTienList('#do_uu_tien_da');
+
+        // Load chức danh for both tabs
         $.ajax({
           url: '/api/gvm/v1/chuc-danh-nghe-nghiep-admin',
           method: 'GET',
-          success: function(response) {
+          success: function (response) {
             if (response.success && response.data) {
-              const select = $('#chuc_danh');
-              select.empty(); // Xóa option "Đang tải..."
-                            
-              // Thêm các hệ đào tạo từ API
-              response.data.forEach(function(item) {
-                select.append(
-                  `<option value="${item.id}">${item.chuc_danh}</option>`
-                );
+              $('#chuc_danh_mg, #chuc_danh_da').each(function () {
+                const select = $(this);
+                select.empty();
+                response.data.forEach(function (item) {
+                  select.append(`<option value="${item.id}">${item.chuc_danh}</option>`);
+                });
               });
-            } else {
-              console.error('Không thể lấy danh sách hệ đào tạo');
-              $('#chuc_danh').html('<option value="">Lỗi tải dữ liệu</option>');
             }
-          },
-          error: function(error) {
-            console.error('Lỗi khi gọi API hệ đào tạo:', error);
-            $('#loaiHopDong').html('<option value="">Lỗi kết nối</option>');
           }
         });
-      });
 
-      $(document).ready(function () {
         // Load danh sách hệ đào tạo mời giảng từ API
         $.ajax({
           url: "/api/gvm/v1/he-moi-giang",
           method: "GET",
-          success: function(response) {
+          success: function (response) {
             if (response.success && response.data) {
-              const select = $("#he_dao_tao");
-              select.empty(); // Xóa các option cũ
-              // select.append('<option value="">-- Chọn hệ đào tạo --</option>');
-              
-              response.data.forEach(function(item) {
+              // Populate only Mời Giảng dropdown
+              const select = $('#he_dao_tao_mg');
+              select.empty();
+              response.data.forEach(function (item) {
                 select.append(`<option value="${item.id}">${item.he_dao_tao}</option>`);
               });
+
+              // Filter and populate Mời Giảng table
+              const moiGiangData = allTienLuongData.filter(item => {
+                const loaiHinh = (item.loai_hinh || '').toLowerCase().trim();
+                console.log('Mời Giảng - Item loai_hinh:', item.loai_hinh, '-> filtered:', loaiHinh);
+                return loaiHinh === 'mời giảng';
+              });
+              populateTable('#tableMoiGiang', moiGiangData);
             }
           },
-          error: function(error) {
-            console.error("Lỗi khi tải danh sách hệ đào tạo:", error);
+          error: function (error) {
+            console.error("Lỗi khi tải danh sách hệ đào tạo mời giảng:", error);
             Swal.fire({
               title: "Thông báo",
-              html: "Không thể tải danh sách hệ đào tạo",
+              html: "Không thể tải danh sách hệ đào tạo mời giảng",
+              icon: "error",
+              width: "auto",
+              padding: "20px",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
+            });
+          }
+        });
+
+        // Load danh sách hệ đào tạo đồ án từ API
+        $.ajax({
+          url: "/api/gvm/v1/he-do-an",
+          method: "GET",
+          success: function (response) {
+            if (response.success && response.data) {
+              // Populate only Đồ Án dropdown
+              const select = $('#he_dao_tao_da');
+              select.empty();
+              response.data.forEach(function (item) {
+                select.append(`<option value="${item.id}">${item.he_dao_tao}</option>`);
+              });
+
+              // Filter and populate Đồ Án table
+              const doAnData = allTienLuongData.filter(item => {
+                const loaiHinh = (item.loai_hinh || '').toLowerCase().trim();
+                console.log('Đồ Án - Item loai_hinh:', item.loai_hinh, '-> filtered:', loaiHinh);
+                return loaiHinh === 'đồ án';
+              });
+              populateTable('#tableDoAn', doAnData);
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi tải danh sách hệ đào tạo đồ án:", error);
+            Swal.fire({
+              title: "Thông báo",
+              html: "Không thể tải danh sách hệ đào tạo đồ án",
               icon: "error",
               width: "auto",
               padding: "20px",
@@ -275,6 +364,10 @@
         $(document).on("click", ".edit-btn", function () {
           const row = $(this).closest("tr");
           const STT = row.data("id");
+
+          // 🔍 Xác định tab hiện tại dựa vào tbody parent
+          const isDoAnTab = row.closest('tbody').attr('id') === 'tableDoAn';
+          const apiEndpoint = isDoAnTab ? '/api/gvm/v1/he-do-an' : '/api/gvm/v1/he-moi-giang';
 
           // Lưu giá trị gốc
           originalValues[STT] = {
@@ -294,21 +387,21 @@
           };
 
 
-          // Chuyển text thành combobox cho he_dao_tao
+          // Chuyển text thành combobox cho he_dao_tao với API phù hợp
           $.ajax({
-            url: "/api/gvm/v1/he-moi-giang",
+            url: apiEndpoint,
             method: "GET",
-            success: function(response) {
+            success: function (response) {
               if (response.success && response.data) {
                 let options = '';
-                response.data.forEach(function(item) {
+                response.data.forEach(function (item) {
                   const selected = item.id == originalValues[STT].he_dao_tao_id ? 'selected' : '';
                   options += `<option value="${item.id}" ${selected}>${item.he_dao_tao}</option>`;
                 });
                 row.find(".he_dao_tao-cell").html(`<select class="form-control">${options}</select>`);
               }
             },
-            error: function(error) {
+            error: function (error) {
               console.error("Lỗi khi tải danh sách hệ đào tạo:", error);
             }
           });
@@ -316,37 +409,29 @@
           // Chuyển text thành combobox cho HocVi
           row.find(".HocVi-cell").html(`
             <select class="form-control">
-              <option value="Cử nhân" ${
-                originalValues[STT].HocVi === "Cử nhân" ? "selected" : ""
-              }>Cử nhân</option>
+              <option value="Cử nhân" ${originalValues[STT].HocVi === "Cử nhân" ? "selected" : ""
+            }>Cử nhân</option>
 
-              <option value="Kỹ sư" ${
-                originalValues[STT].HocVi === "Kỹ sư" ? "selected" : ""
-              }>Kỹ sư</option>
+              <option value="Kỹ sư" ${originalValues[STT].HocVi === "Kỹ sư" ? "selected" : ""
+            }>Kỹ sư</option>
 
-              <option value="Thạc sĩ" ${
-                originalValues[STT].HocVi === "Thạc sĩ" ? "selected" : ""
-              }>Thạc sĩ</option>
+              <option value="Thạc sĩ" ${originalValues[STT].HocVi === "Thạc sĩ" ? "selected" : ""
+            }>Thạc sĩ</option>
 
-              <option value="Tiến sĩ" ${
-                originalValues[STT].HocVi === "Tiến sĩ" ? "selected" : ""
-              }>Tiến sĩ</option>
+              <option value="Tiến sĩ" ${originalValues[STT].HocVi === "Tiến sĩ" ? "selected" : ""
+            }>Tiến sĩ</option>
 
-              <option value="Phó giáo sư" ${
-                originalValues[STT].HocVi === "Phó giáo sư" ? "selected" : ""
-              }>Phó giáo sư</option>
+              <option value="Phó giáo sư" ${originalValues[STT].HocVi === "Phó giáo sư" ? "selected" : ""
+            }>Phó giáo sư</option>
 
-              <option value="Giáo sư" ${
-                originalValues[STT].HocVi === "Giáo sư" ? "selected" : ""
-              }>Giáo sư</option>
+              <option value="Giáo sư" ${originalValues[STT].HocVi === "Giáo sư" ? "selected" : ""
+            }>Giáo sư</option>
 
-              <option value="Tiếng khơ-me" ${
-                originalValues[STT].HocVi === "Tiếng khơ-me" ? "selected" : ""
-              }>Tiếng khơ-me</option>
+              <option value="Tiếng khơ-me" ${originalValues[STT].HocVi === "Tiếng khơ-me" ? "selected" : ""
+            }>Tiếng khơ-me</option>
 
-              <option value="Võ sư" ${
-                originalValues[STT].HocVi === "Võ sư" ? "selected" : ""
-              }>Võ sư</option>
+              <option value="Võ sư" ${originalValues[STT].HocVi === "Võ sư" ? "selected" : ""
+            }>Võ sư</option>
             </select>
           `);
 
@@ -354,8 +439,8 @@
           // Giữ nguyên input cho SoTien
           row.find(".SoTien-cell").html(`
                 <input type="number" class="form-control" value="${parseFloat(
-                  originalValues[STT].SoTien.replace(/[^0-9-]+/g, "")
-                )}">
+            originalValues[STT].SoTien.replace(/[^0-9-]+/g, "")
+          )}">
             `);
 
           // Chuyển text thành combobox cho Độ ưu tiên
@@ -444,7 +529,7 @@
 
           const chuc_danh_text =
             row.find(".chuc_danh-cell select option:selected").text();
-            
+
           $.ajax({
             url: `/tienluong/${STT}`,
             method: "PUT",
@@ -464,7 +549,7 @@
               row.find(".HSL-cell").text(updatedData.hsl);
               row.find(".chuc_danh-cell").text(chuc_danh_text);
 
-                // 👉 ĐẶT Ở ĐÂY
+              // 👉 ĐẶT Ở ĐÂY
               row.data("he-dao-tao-id", updatedData.he_dao_tao);
               row.data("chuc-danh-id", updatedData.chuc_danh_id);
 
@@ -525,69 +610,45 @@
             `);
         });
 
-        $("#addButton").click(function (event) {
-          event.preventDefault(); // Ngăn chặn hành động mặc định của nút
-
-          const he_dao_tao = $("#he_dao_tao").val();
-          const hocVi = $("#HocVi").val();
-          const soTien = $("#SoTien").val();
-          const hsl = $("#hsl").val();
-          // const khoa = $("#khoa").val();
-          const khoa = 'ALL';
-          const do_uu_tien = $("#do_uu_tien").val();
-          const chuc_danh_id = $("#chuc_danh").val();
-
-          // Kiểm tra sự tồn tại
-          $.ajax({
-            url: "/checkExistence",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ he_dao_tao: he_dao_tao, HocVi: hocVi, khoa, hsl, chuc_danh_id }),
-            success: function (response) {
-              // Nếu không tồn tại, tiếp tục thêm mới
-              addNewEntry(he_dao_tao, hocVi, soTien, do_uu_tien, khoa, hsl, chuc_danh_id);
-            },
-            error: function (xhr) {
-              if (xhr.status === 409) {
-                Swal.fire({
-                  title: "Thông báo",
-                  html: xhr.responseJSON.message,
-                  icon: "error",
-                  width: "auto",
-                  padding: "20px",
-                  timer: 2000,
-                  timerProgressBar: true,
-                  showConfirmButton: false,
-                });
-              } else {
-                Swal.fire({
-                  title: "Thông báo",
-                  html: "Có lỗi xảy ra khi kiểm tra sự tồn tại",
-                  icon: "error",
-                  width: "auto",
-                  padding: "20px",
-                  timer: 2000,
-                  timerProgressBar: true,
-                  showConfirmButton: false,
-                });
-              }
-            },
-          });
+        // Handler for Mời Giảng tab
+        $("#addButtonMoiGiang").click(function (event) {
+          event.preventDefault();
+          const he_dao_tao = $("#he_dao_tao_mg").val();
+          const hocVi = $("#HocVi_mg").val();
+          const soTien = $("#SoTien_mg").val();
+          const hsl = $("#hsl_mg").val();
+          const do_uu_tien = $("#do_uu_tien_mg").val();
+          const chuc_danh_id = $("#chuc_danh_mg").val();
+          addNewEntry(he_dao_tao, hocVi, soTien, do_uu_tien, hsl, chuc_danh_id, 'mời giảng');
         });
 
-        function addNewEntry(he_dao_tao, hocVi, soTien, do_uu_tien, khoa, hsl, chuc_danh_id) {
+        // Handler for Đồ Án tab
+        $("#addButtonDoAn").click(function (event) {
+          event.preventDefault();
+          const he_dao_tao = $("#he_dao_tao_da").val();
+          const hocVi = $("#HocVi_da").val();
+          const soTien = $("#SoTien_da").val();
+          const hsl = $("#hsl_da").val();
+          const do_uu_tien = $("#do_uu_tien_da").val();
+          const chuc_danh_id = $("#chuc_danh_da").val();
+          addNewEntry(he_dao_tao, hocVi, soTien, do_uu_tien, hsl, chuc_danh_id, 'đồ án');
+        });
+
+        function addNewEntry(he_dao_tao, hocVi, soTien, do_uu_tien, hsl, chuc_danh_id, loai_hinh) {
+          const khoa = 'ALL';
           $.ajax({
             url: "/tienluong",
             method: "POST",
             contentType: "application/json",
             data: JSON.stringify({
-              he_dao_tao: he_dao_tao,
+              he_dao_tao,
               HocVi: hocVi,
               SoTien: soTien,
               do_uu_tien,
               khoa,
               hsl,
-              chuc_danh_id
+              chuc_danh_id,
+              loai_hinh
             }),
             success: function (response) {
               Swal.fire({
@@ -702,5 +763,6 @@
         });
       }
     </script>
-  </body>
+</body>
+
 </html>
