@@ -205,6 +205,7 @@ const infoGvm = require("./routes/infoRoute");
 const tableQc = require("./routes/gvmRoute");
 const xoaQCDK = require("./routes/qcdkRoute");
 const nckhRoute = require("./routes/nckhRoute");
+const nckhV2Route = require("./routes/nckhV2Route");
 const { backupDatabase } = require("./controllers/backupController");
 
 app.use("/", importFile); // cấu hình import
@@ -212,5 +213,6 @@ app.use("/", infoGvm); // cấu hình import
 app.use("/", tableQc); // cấu hình import
 app.use("/", xoaQCDK);
 app.use("/", nckhRoute);
+app.use("/v2", nckhV2Route); // NCKH V2 routes
 
 // Thay đổi giới hạn kích thước payload (ví dụ: 10mb)
