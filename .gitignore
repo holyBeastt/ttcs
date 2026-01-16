@@ -2,3 +2,7 @@ Giang_Vien_Moi/
 logs/
 .env
 node_modules/
+migrations/
+PLAN.md
+README_NCKH_FLOW.md 
+README_NCKH_NEW_CHANGE.md
