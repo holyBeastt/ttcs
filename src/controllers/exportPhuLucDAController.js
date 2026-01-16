@@ -343,14 +343,10 @@ const getExportPhuLucDAPath = async (
 
       giangVienData.forEach((item, index) => {
         let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
-        const mucThanhToan = 100000;
-        const soTien = item.SoTiet * mucThanhToan;
-        const truThue = soTien * 0.1;
-        const thucNhan = soTien - truThue;
-
-        // DEBUG: Kiểm tra dữ liệu ngày trước khi format
-        console.log(`[Sheet1] ${hoTenTrim} - raw NgayBatDau:`, item.NgayBatDau, "| raw NgayKetThuc:", item.NgayKetThuc);
-        console.log(`[Sheet1] ${hoTenTrim} - formatted: ${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(item.NgayKetThuc)}`);
+        const mucThanhToan = Number(item.TienMoiGiang || 0);
+        const soTien = Number(item.ThanhTien || 0);
+        const truThue = Number(item.TruThue || 0);
+        const thucNhan = Number(item.ThucNhan || 0);
 
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
@@ -649,10 +645,10 @@ const getExportPhuLucDAPath = async (
 
       giangVienData.forEach((item, index) => {
         let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
-        const mucThanhToan = 100000;
-        const soTien = item.SoTiet * mucThanhToan;
-        const truThue = soTien * 0.1;
-        const thucNhan = soTien - truThue;
+        const mucThanhToan = Number(item.TienMoiGiang || 0);
+        const soTien = Number(item.ThanhTien || 0);
+        const truThue = Number(item.TruThue || 0);
+        const thucNhan = Number(item.ThucNhan || 0);
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
@@ -929,9 +925,10 @@ const getExportPhuLucDAPath = async (
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
         let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
-        const soTien = item.SoTiet * 100000; // Giả sử mức thanh toán là 100000
-        const truThue = soTien * 0.1; // Trừ thuế TNCN 10%
-        const conLai = soTien - truThue; // Còn lại
+        const mucThanhToan = Number(item.TienMoiGiang || 0);
+        const soTien = Number(item.ThanhTien || 0);
+        const truThue = Number(item.TruThue || 0);
+        const conLai = Number(item.ThucNhan || 0);
 
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
@@ -954,7 +951,7 @@ const getExportPhuLucDAPath = async (
           item.DiaChi,
           hocViVietTat,
           item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
-          (100000).toLocaleString("vi-VN"), // Mức thanh toán
+          (mucThanhToan).toLocaleString("vi-VN"), // Mức thanh toán
           soTien.toLocaleString("vi-VN"), // Định dạng số tiền
           truThue.toLocaleString("vi-VN"), // Định dạng số tiền
           conLai.toLocaleString("vi-VN"), // Định dạng số tiền
@@ -1131,6 +1128,8 @@ const getExportPhuLucDAPath = async (
   }
 };
 
+const doanServices = require("../services/doanServices");
+
 const exportPhuLucDA = async (req, res) => {
   let connection;
   try {
@@ -1139,65 +1138,28 @@ const exportPhuLucDA = async (req, res) => {
     let { dot, ki, namHoc, loaiHopDong, khoa, teacherName, he_dao_tao } =
       req.query;
 
-    console.log("he = ", he_dao_tao);
-
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
         success: false,
         message: "Thiếu thông tin đợt, kỳ hoặc năm học",
       });
     }
-    let query = `
-      SELECT DISTINCT
-          gv.HoTen AS GiangVien,
-          edt.TenDeTai,
-          edt.SinhVien,
-          edt.SoTiet,
-          MIN(edt.NgayBatDau) AS NgayBatDau,
-          MAX(edt.NgayKetThuc) AS NgayKetThuc,
-          gv.HocVi,
-          gv.HSL,
-          gv.DiaChi,
-          gv.CCCD,
-          edt.SoHopDong,
-          edt.SoThanhLyHopDong,
-          GROUP_CONCAT(DISTINCT edt.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
-          GROUP_CONCAT(DISTINCT edt.nganh SEPARATOR ', ') AS Nganh
-      FROM exportdoantotnghiep edt
-      JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND he_dao_tao = ? AND edt.isMoiGiang = 1
-    `;
 
-    let params = [dot, ki, namHoc, he_dao_tao];
-
-    if (khoa && khoa !== "ALL") {
-      query += `AND gv.MaPhongBan = ?`;
-      params.push(khoa);
-    }
-
-    if (teacherName) {
-      query += ` AND gv.HoTen LIKE ?`;
-      params.push(`%${teacherName}%`);
-    }
-
-    query += ` GROUP BY gv.HoTen, edt.TenDeTai, edt.SinhVien, edt.SoTiet, 
-               gv.HocVi, gv.HSL, gv.DiaChi, gv.CCCD, edt.SoHopDong, edt.SoThanhLyHopDong`;
-
-    const [data] = await connection.execute(query, params);
+    const data = await doanServices.getPhuLucDAData(dot, ki, namHoc, khoa, he_dao_tao, teacherName);
 
     // DEBUG: Kiểm tra dữ liệu ngày từ truy vấn
-    console.log("=== DEBUG PHỤ LỤC ĐỒ ÁN ===");
-    console.log("Query executed:", query);
-    console.log("Params:", params);
-    if (data.length > 0) {
-      console.log("First record NgayBatDau:", data[0].NgayBatDau);
-      console.log("First record NgayKetThuc:", data[0].NgayKetThuc);
-      console.log("All records dates:");
-      data.forEach((item, idx) => {
-        console.log(`  [${idx}] ${item.GiangVien}: NgayBatDau=${item.NgayBatDau}, NgayKetThuc=${item.NgayKetThuc}`);
-      });
-    }
-    console.log("=== END DEBUG ===");
+    // console.log("=== DEBUG PHỤ LỤC ĐỒ ÁN ===");
+    // console.log("Query executed:", query);
+    // console.log("Params:", params);
+    // if (data.length > 0) {
+    //   console.log("First record NgayBatDau:", data[0].NgayBatDau);
+    //   console.log("First record NgayKetThuc:", data[0].NgayKetThuc);
+    //   console.log("All records dates:");
+    //   data.forEach((item, idx) => {
+    //     console.log(`  [${idx}] ${item.GiangVien}: NgayBatDau=${item.NgayBatDau}, NgayKetThuc=${item.NgayKetThuc}`);
+    //   });
+    // }
+    // console.log("=== END DEBUG ===");
 
     if (data.length === 0) {
       return res.send(

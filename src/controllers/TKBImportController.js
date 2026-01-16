@@ -227,6 +227,7 @@ const importExcelTKB = async (req, res) => {
     }
 
     let preTT = 0;
+    let ll_tmp = 0;
 
     for (let i = 0; i < renamedData.length; i++) {
       const row = renamedData[i];
@@ -282,14 +283,12 @@ const importExcelTKB = async (req, res) => {
         bonusRules
       );
 
-      row.qc = row.ll_total * row.bonus_time * row.student_bonus;
-
-      // Gán lại tt phục vụ quy chuẩn
       if (i > 0) {
         // Chỉnh sửa tt phục vụ quy chuẩn
         if (row.tt !== preTT) {
           preTT = row.tt;
           row.tt = ++lastTTValue;
+          ll_tmp = row.ll_total || 0;
         } else {
           // Nếu tt giống với dòng trước, giữ nguyên giá trị
           row.tt = lastTTValue;
@@ -298,7 +297,28 @@ const importExcelTKB = async (req, res) => {
         // Dòng đầu tiên
         preTT = row.tt;
         row.tt = ++lastTTValue;
+        ll_tmp = row.ll_total || 0;
       }
+
+      row.ll_total = ll_tmp;
+      row.qc = row.ll_total * row.bonus_time * row.student_bonus;
+
+      // Gán lại tt phục vụ quy chuẩn
+      // if (i > 0) {
+      //   // Chỉnh sửa tt phục vụ quy chuẩn
+      //   if (row.tt !== preTT) {
+      //     preTT = row.tt;
+      //     row.tt = ++lastTTValue;
+      //     ll_tmp = row.ll_total || 0;
+      //   } else {
+      //     // Nếu tt giống với dòng trước, giữ nguyên giá trị
+      //     row.tt = lastTTValue;
+      //   }
+      // } else {
+      //   // Dòng đầu tiên
+      //   preTT = row.tt;
+      //   row.tt = ++lastTTValue;
+      // }
     }
 
     // Chuẩn bị values để insert

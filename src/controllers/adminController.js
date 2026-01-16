@@ -1414,6 +1414,7 @@ const AdminController = {
           t.STT,
           t.he_dao_tao,
           h.he_dao_tao AS he_dao_tao_name,
+          h.loai_hinh,
           t.HocVi,
           t.SoTien,
           t.do_uu_tien,
