@@ -1,5 +1,5 @@
 /**
- * NCKH V2 - Đề Tài Dự Án - Modal Module
+ * NCKH V2 - Sáng Kiến - Modal Module
  * Xử lý hiển thị modal chi tiết
  */
 
@@ -11,30 +11,30 @@
     // =====================================================
 
     function showDetailModal(data) {
-        const modal = document.getElementById('detailModal');
-        const modalBody = document.getElementById('detailModalBody');
+        const modal = document.getElementById('detailModalSK');
+        const modalBody = document.getElementById('detailModalBodySK');
 
         const detailHtml = `
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Cấp Đề Tài:</label>
-                <p class="form-control-plaintext">${data.CapDeTai || ''}</p>
+                <label class="form-label fw-bold">Loại Sáng Kiến:</label>
+                <p class="form-control-plaintext">${data.LoaiSangKien || ''}</p>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Năm Học:</label>
                 <p class="form-control-plaintext">${data.NamHoc || ''}</p>
             </div>
             <div class="col-12 mb-3">
-                <label class="form-label fw-bold">Tên Đề Tài:</label>
-                <p class="form-control-plaintext">${data.TenDeTai || ''}</p>
+                <label class="form-label fw-bold">Tên Sáng Kiến:</label>
+                <p class="form-control-plaintext">${data.TenSangKien || ''}</p>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Mã Số Đề Tài:</label>
-                <p class="form-control-plaintext">${data.MaSoDeTai || ''}</p>
+                <label class="form-label fw-bold">Mã Số Sáng Kiến:</label>
+                <p class="form-control-plaintext">${data.MaSoSangKien || ''}</p>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Chủ Nhiệm:</label>
-                <p class="form-control-plaintext">${data.ChuNhiem || ''}</p>
+                <label class="form-label fw-bold">Tác Giả Chính:</label>
+                <p class="form-control-plaintext">${data.TacGiaChinh || ''}</p>
             </div>
             <div class="col-12 mb-3">
                 <label class="form-label fw-bold">Danh Sách Thành Viên:</label>
@@ -47,10 +47,6 @@
             <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Kết Quả:</label>
                 <p class="form-control-plaintext">${data.KetQua || ''}</p>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Số Đồng Chủ Nhiệm:</label>
-                <p class="form-control-plaintext">${data.SoDongChuNhiem || ''}</p>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Số Năm Thực Hiện:</label>
@@ -72,40 +68,36 @@
     // CONFIRMATION MODAL
     // =====================================================
 
-    async function showConfirmationModal(formData, chuNhiemList) {
+    async function showConfirmationModal(formData, tacGiaList) {
         const thanhVienText = formData.thanhVien.length > 0
             ? formData.thanhVien.join(", ")
             : "<em style='color: #999;'>Không có</em>";
 
         const ngayNghiemThuText = formData.ngayNghiemThu || "<em style='color: #999;'>Chưa có</em>";
-        const maDeTaiText = formData.maDeTai || "<em style='color: #999;'>Chưa có</em>";
+        const maSoText = formData.maSoSangKien || "<em style='color: #999;'>Chưa có</em>";
 
         const htmlContent = `
         <div style="text-align: left; padding: 10px 20px; font-size: 15px;">
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="padding: 10px 0; font-weight: 600; width: 180px; color: #495057; font-size: 15px;">Cấp đề tài:</td>
-                    <td style="padding: 10px 0; color: #212529; font-size: 15px;">${formData.capDeTai}</td>
+                    <td style="padding: 10px 0; font-weight: 600; width: 180px; color: #495057; font-size: 15px;">Loại sáng kiến:</td>
+                    <td style="padding: 10px 0; color: #212529; font-size: 15px;">${formData.loaiSangKien}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Năm học:</td>
                     <td style="padding: 10px 0; color: #212529; font-size: 15px;">${formData.namHoc}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Tên đề tài:</td>
-                    <td style="padding: 10px 0; color: #212529; font-size: 15px;"><strong>${formData.tenDeTai}</strong></td>
+                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Tên sáng kiến:</td>
+                    <td style="padding: 10px 0; color: #212529; font-size: 15px;"><strong>${formData.tenSangKien}</strong></td>
                 </tr>
                 <tr>
-                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Mã số đề tài:</td>
-                    <td style="padding: 10px 0; color: #212529; font-size: 15px;">${maDeTaiText}</td>
+                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Mã số sáng kiến:</td>
+                    <td style="padding: 10px 0; color: #212529; font-size: 15px;">${maSoText}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Chủ nhiệm/Tác giả:</td>
-                    <td style="padding: 10px 0; color: #0d6efd; font-size: 15px;"><strong>${chuNhiemList.join(", ")}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Số đồng chủ nhiệm:</td>
-                    <td style="padding: 10px 0; color: #212529; font-size: 15px;">${formData.soDongChuNhiem}</td>
+                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Tác giả chính:</td>
+                    <td style="padding: 10px 0; color: #0d6efd; font-size: 15px;"><strong>${tacGiaList.join(", ")}</strong></td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Thành viên:</td>
@@ -128,7 +120,7 @@
     `;
 
         return await Swal.fire({
-            title: '<strong>Xác nhận thông tin đề tài</strong>',
+            title: '<strong>Xác nhận thông tin sáng kiến</strong>',
             html: htmlContent,
             icon: 'question',
             showCancelButton: true,
@@ -147,7 +139,7 @@
     // EXPORTS
     // =====================================================
 
-    window.DeTaiDuAn_Modal = {
+    window.SangKien_Modal = {
         showDetailModal,
         showConfirmationModal
     };

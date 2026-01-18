@@ -149,6 +149,70 @@ const formatMembersWithTiet = (members, tiet) => {
 };
 
 // =====================================================
+// GET KHOA BY NAME
+// =====================================================
+
+/**
+ * Lấy Khoa (MaPhongBan) từ bảng nhanvien dựa trên TenNhanVien
+ * @param {string} tenNhanVien - Tên nhân viên cần tìm
+ * @returns {string|null} Mã phòng ban (Khoa) hoặc null nếu không tìm thấy
+ */
+const getKhoaByName = async (tenNhanVien) => {
+    if (!tenNhanVien) return null;
+
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        const query = `SELECT MaPhongBan FROM nhanvien WHERE TenNhanVien = ? LIMIT 1`;
+        const [rows] = await connection.execute(query, [tenNhanVien.trim()]);
+
+        if (rows.length > 0 && rows[0].MaPhongBan) {
+            return rows[0].MaPhongBan;
+        }
+        return null;
+    } catch (error) {
+        console.error("Lỗi khi lấy Khoa từ tên nhân viên:", error);
+        return null;
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+// =====================================================
+// BUILD KHOA FILTER CLAUSE
+// =====================================================
+
+/**
+ * Build WHERE clause để lọc theo Khoa trong các cột Chủ nhiệm/Tác giả và Thành viên
+ * Format dữ liệu: "Tên (Khoa - Số tiết)" -> tìm pattern "(Khoa -"
+ * @param {string} khoa - Mã khoa cần lọc
+ * @param {string} chuNhiemColumn - Tên cột chủ nhiệm/tác giả chính (ChuNhiem, TacGia, TacGiaChinh, ThanhVienHoiDong)
+ * @param {string|null} thanhVienColumn - Tên cột danh sách thành viên (DanhSachThanhVien, DongChuBien, hoặc null)
+ * @returns {Object} { whereClause, params }
+ */
+const buildKhoaFilterClause = (khoa, chuNhiemColumn, thanhVienColumn = 'DanhSachThanhVien') => {
+    if (khoa === 'ALL') {
+        return { whereClause: '', params: [] };
+    }
+
+    // Tìm pattern "(Khoa -" trong các cột
+    const khoaPattern = `(${khoa} -`;
+
+    if (thanhVienColumn) {
+        return {
+            whereClause: ` AND (${chuNhiemColumn} LIKE ? OR ${thanhVienColumn} LIKE ?)`,
+            params: [`%${khoaPattern}%`, `%${khoaPattern}%`]
+        };
+    } else {
+        return {
+            whereClause: ` AND ${chuNhiemColumn} LIKE ?`,
+            params: [`%${khoaPattern}%`]
+        };
+    }
+};
+
+// =====================================================
 // EXPORTS
 // =====================================================
 
@@ -163,5 +227,7 @@ module.exports = {
     formatMembersWithTiet,
 
     // Database helpers
-    getSoTietChuan
+    getSoTietChuan,
+    getKhoaByName,
+    buildKhoaFilterClause
 };

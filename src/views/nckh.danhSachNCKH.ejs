@@ -43,13 +43,13 @@
             <!-- Main Tabs - 8 loại NCKH -->
             <div class="nckh-tabs">
                 <button class="nckh-tab-btn active" data-tab="detaiduan">Đề tài, Dự án</button>
-                <button class="nckh-tab-btn" data-tab="baibaokhoahoc" disabled>Bài báo KH</button>
-                <button class="nckh-tab-btn" data-tab="sangkien" disabled>Sáng kiến</button>
-                <button class="nckh-tab-btn" data-tab="giaithuong" disabled>Giải thưởng & Sáng chế</button>
-                <button class="nckh-tab-btn" data-tab="dexuat" disabled>Đề xuất NC</button>
-                <button class="nckh-tab-btn" data-tab="sachgiaotrinh" disabled>Sách, GT</button>
-                <button class="nckh-tab-btn" data-tab="huongdansv" disabled>Hướng dẫn SV</button>
-                <button class="nckh-tab-btn" data-tab="hoidong" disabled>Hội đồng KH</button>
+                <button class="nckh-tab-btn" data-tab="baibaokhoahoc">Bài báo KH</button>
+                <button class="nckh-tab-btn" data-tab="sangkien">Sáng kiến</button>
+                <button class="nckh-tab-btn" data-tab="giaithuong">Giải thưởng & Sáng chế</button>
+                <button class="nckh-tab-btn" data-tab="dexuat">Đề xuất NC</button>
+                <button class="nckh-tab-btn" data-tab="sachgiaotrinh">Sách, GT</button>
+                <button class="nckh-tab-btn" data-tab="huongdansvnckh">Hướng dẫn SV</button>
+                <button class="nckh-tab-btn" data-tab="hoidong">Hội đồng KH</button>
             </div>
 
             <!-- ======================================================
@@ -234,58 +234,1080 @@
          PLACEHOLDER TABS FOR PHASE 2
          ====================================================== -->
             <div id="tab-baibaokhoahoc" class="nckh-tab-content">
-                <div class="placeholder-message">
-                    <i class="fas fa-newspaper"></i>
-                    <h4>Bài báo Khoa học</h4>
-                    <p>Module này sẽ được triển khai trong Phase 2</p>
+                <!-- Sub-tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn" data-panel="form-panel-bb">Nhập dữ liệu</button>
+                    <button class="sub-tab-btn active" data-panel="view-panel-bb">Xem số tiết quy đổi</button>
+                </div>
+
+                <!-- Form Panel -->
+                <div id="form-panel-bb" class="tab-panel">
+                    <form id="baibaokhoahocForm">
+                        <!-- Section 1: Thông tin bài báo -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thông tin bài báo</div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Loại tạp chí <span class="required">*</span></label>
+                                    <select id="loaiTapChiBB" class="form-select" required>
+                                        <option value="">-- Chọn loại tạp chí --</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Chỉ số tạp chí</label>
+                                    <select id="chiSoTapChiBB" class="form-select">
+                                        <option value="">-- Chọn chỉ số --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Năm học <span class="required">*</span></label>
+                                    <select id="namHocFormBB" class="form-select namHoc" required></select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Số năm thực hiện</label>
+                                    <input type="number" id="soNamThucHienBB" class="form-control" value="1" min="1"
+                                        max="10" />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Tên bài báo <span class="required">*</span></label>
+                                    <input type="text" id="tenBaiBaoBB" class="form-control"
+                                        placeholder="Nhập tên bài báo" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Danh sách tham gia -->
+                        <div class="form-section">
+                            <div class="form-section-title">Danh sách tham gia</div>
+
+                            <!-- Tác giả chính -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Tác giả chính <span class="required">*</span>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="tacGiaNgoaiBB"
+                                                onchange="toggleTacGiaNgoaiBB()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="tacGiaChinhInputBB" class="form-control"
+                                        placeholder="Nhập tên tác giả chính" />
+                                    <button type="button" id="addTacGiaBtnBB" class="btn btn-secondary">Thêm</button>
+                                    <div id="tacGiaChinhBB-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="tacGiaDonViGroupBB">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="tacGiaDonViBB" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách Tác giả chính</label>
+                                    <div id="tacGiaTagsBB" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có tác giả chính</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr style="margin: 20px 0; border-color: #dee2e6;" />
+
+                            <!-- Thành viên -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Thêm thành viên
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="thanhVienNgoaiBB"
+                                                onchange="toggleThanhVienNgoaiBB()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="thanhVienInputBB" class="form-control"
+                                        placeholder="Nhập tên thành viên" />
+                                    <button type="button" id="addMemberBtnBB" class="btn btn-secondary">Thêm</button>
+                                    <div id="thanhVienBB-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="thanhVienDonViGroupBB">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="thanhVienDonViBB" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách thành viên</label>
+                                    <div id="memberTagsBB" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" id="resetFormBtnBB" class="btn btn-outline-secondary me-2">Làm
+                                mới</button>
+                            <button type="submit" class="btn btn-v2">Lưu bài báo</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Panel -->
+                <div id="view-panel-bb" class="tab-panel active">
+                    <div class="grid-toolbar">
+                        <select id="namHocXemBB" class="form-select namHoc"></select>
+                        <button id="renderBB" class="btn btn-primary">Hiển thị</button>
+                    </div>
+
+                    <div id="table-container-bb" class="ag-theme-alpine"></div>
+                </div>
+            </div>
+
+            <!-- Modal Chi Tiết Bài Báo -->
+            <div class="modal fade" id="detailModalBB" tabindex="-1" aria-labelledby="detailModalLabelBB"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabelBB">
+                                <i class="fas fa-info-circle"></i> Chi Tiết Bài Báo Khoa Học
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="detailModalBodyBB">
+                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-sangkien" class="nckh-tab-content">
-                <div class="placeholder-message">
-                    <i class="fas fa-lightbulb"></i>
-                    <h4>Sáng kiến</h4>
-                    <p>Module này sẽ được triển khai trong Phase 2</p>
+                <!-- Sub-tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn" data-panel="form-panel-sk">Nhập dữ liệu</button>
+                    <button class="sub-tab-btn active" data-panel="view-panel-sk">Xem số tiết quy đổi</button>
+                </div>
+
+                <!-- Form Panel -->
+                <div id="form-panel-sk" class="tab-panel">
+                    <form id="sangkienForm">
+                        <!-- Section 1: Thông tin Sáng kiến -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thông tin sáng kiến</div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Loại sáng kiến <span class="required">*</span></label>
+                                    <select id="loaiSangKien" class="form-select" required>
+                                        <option value="">-- Chọn loại sáng kiến --</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Năm học <span class="required">*</span></label>
+                                    <select id="namHocFormSK" class="form-select namHoc" required></select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Tên sáng kiến <span class="required">*</span></label>
+                                    <input type="text" id="tenSangKien" class="form-control"
+                                        placeholder="Nhập tên sáng kiến" required />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Mã số sáng kiến</label>
+                                    <input type="text" id="maSoSangKien" class="form-control"
+                                        placeholder="VD: SK01/2024" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Số năm thực hiện</label>
+                                    <input type="number" id="soNamThucHienSK" class="form-control" value="1" min="1"
+                                        max="10" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Kết quả</label>
+                                    <select id="ketQuaSK" class="form-select">
+                                        <option value="Đạt">Đạt</option>
+                                        <option value="Giỏi">Giỏi</option>
+                                        <option value="Xuất sắc">Xuất sắc</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Ngày nghiệm thu</label>
+                                    <input type="text" id="ngayNghiemThuSK" class="form-control flatpickr"
+                                        placeholder="dd/mm/yyyy" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Danh sách tham gia -->
+                        <div class="form-section">
+                            <div class="form-section-title">Danh sách tham gia</div>
+
+                            <!-- Tác giả chính -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Tác giả chính <span class="required">*</span>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="tacGiaNgoaiSK"
+                                                onchange="toggleTacGiaNgoaiSK()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="tacGiaChinhInput" class="form-control"
+                                        placeholder="Nhập tên tác giả chính" />
+                                    <button type="button" id="addTacGiaBtnSK" class="btn btn-secondary">Thêm</button>
+                                    <div id="tacGiaChinh-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="tacGiaDonViGroupSK">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="tacGiaDonViSK" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách Tác giả chính</label>
+                                    <div id="tacGiaTagsSK" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có tác giả chính</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr style="margin: 20px 0; border-color: #dee2e6;" />
+
+                            <!-- Thành viên -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Thêm thành viên
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="thanhVienNgoaiSK"
+                                                onchange="toggleThanhVienNgoaiSK()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="thanhVienInputSK" class="form-control"
+                                        placeholder="Nhập tên thành viên" />
+                                    <button type="button" id="addMemberBtnSK" class="btn btn-secondary">Thêm</button>
+                                    <div id="thanhVienSK-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="thanhVienDonViGroupSK">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="thanhVienDonViSK" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách thành viên</label>
+                                    <div id="memberTagsSK" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" id="resetFormBtnSK" class="btn btn-outline-secondary me-2">Làm
+                                mới</button>
+                            <button type="submit" class="btn btn-v2">Lưu sáng kiến</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Panel -->
+                <div id="view-panel-sk" class="tab-panel active">
+                    <div class="grid-toolbar">
+                        <select id="namHocXemSK" class="form-select namHoc"></select>
+                        <button id="loadDataBtnSK" class="btn btn-primary">Hiển thị</button>
+                    </div>
+
+                    <div id="table-container-sk" class="ag-theme-alpine"></div>
+                </div>
+            </div>
+
+            <!-- Modal Chi Tiết Sáng Kiến -->
+            <div class="modal fade" id="detailModalSK" tabindex="-1" aria-labelledby="detailModalLabelSK"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabelSK">
+                                <i class="fas fa-info-circle"></i> Chi Tiết Sáng Kiến
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="detailModalBodySK">
+                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-giaithuong" class="nckh-tab-content">
-                <div class="placeholder-message">
-                    <i class="fas fa-trophy"></i>
-                    <h4>Giải thưởng & Bằng sáng chế</h4>
-                    <p>Module này sẽ được triển khai trong Phase 2</p>
+                <!-- Sub-tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn" data-panel="form-panel-gt">Nhập dữ liệu</button>
+                    <button class="sub-tab-btn active" data-panel="view-panel-gt">Xem số tiết quy đổi</button>
+                </div>
+
+                <!-- Form Panel -->
+                <div id="form-panel-gt" class="tab-panel">
+                    <form id="giaithuongForm">
+                        <!-- Section 1: Thông tin giải thưởng -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thông tin giải thưởng/bằng sáng chế</div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Phân loại <span class="required">*</span></label>
+                                    <select id="loaiGiaiThuong" class="form-select" required>
+                                        <option value="">-- Chọn phân loại --</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Năm học <span class="required">*</span></label>
+                                    <select id="namHocFormGT" class="form-select namHoc" required></select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Tên giải thưởng/bằng sáng chế <span
+                                            class="required">*</span></label>
+                                    <input type="text" id="tenGiaiThuong" class="form-control"
+                                        placeholder="Nhập tên giải thưởng hoặc bằng sáng chế" required />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Số quyết định công nhận</label>
+                                    <input type="text" id="soQuyetDinh" class="form-control"
+                                        placeholder="VD: 1277/QĐ-HVM" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Ngày quyết định công nhận</label>
+                                    <input type="text" id="ngayQuyetDinh" class="form-control flatpickr"
+                                        placeholder="dd/mm/yyyy" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Số năm thực hiện</label>
+                                    <input type="number" id="soNamThucHienGT" class="form-control" value="1" min="1"
+                                        max="10" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Danh sách tham gia -->
+                        <div class="form-section">
+                            <div class="form-section-title">Danh sách tham gia</div>
+
+                            <!-- Tác giả chính -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Tác giả chính <span class="required">*</span>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="tacGiaNgoaiGT"
+                                                onchange="toggleTacGiaNgoaiGT()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="tacGiaChinhInputGT" class="form-control"
+                                        placeholder="Nhập tên tác giả chính" />
+                                    <button type="button" id="addTacGiaBtnGT" class="btn btn-secondary">Thêm</button>
+                                    <div id="tacGiaChinhGT-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="tacGiaDonViGroupGT">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="tacGiaDonViGT" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách Tác giả chính</label>
+                                    <div id="tacGiaTagsGT" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có tác giả chính</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr style="margin: 20px 0; border-color: #dee2e6;" />
+
+                            <!-- Thành viên -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Thêm thành viên
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="thanhVienNgoaiGT"
+                                                onchange="toggleThanhVienNgoaiGT()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="thanhVienInputGT" class="form-control"
+                                        placeholder="Nhập tên thành viên" />
+                                    <button type="button" id="addMemberBtnGT" class="btn btn-secondary">Thêm</button>
+                                    <div id="thanhVienGT-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="thanhVienDonViGroupGT">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="thanhVienDonViGT" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách thành viên</label>
+                                    <div id="memberTagsGT" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" id="resetFormBtnGT" class="btn btn-outline-secondary me-2">Làm
+                                mới</button>
+                            <button type="submit" class="btn btn-v2">Lưu giải thưởng</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Panel -->
+                <div id="view-panel-gt" class="tab-panel active">
+                    <div class="grid-toolbar">
+                        <select id="namHocXemGT" class="form-select namHoc"></select>
+                        <button id="renderGT" class="btn btn-primary">Hiển thị</button>
+                    </div>
+
+                    <div id="table-container-gt" class="ag-theme-alpine"></div>
+                </div>
+            </div>
+
+            <!-- Modal Chi Tiết Giải Thưởng -->
+            <div class="modal fade" id="detailModalGT" tabindex="-1" aria-labelledby="detailModalLabelGT"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabelGT">
+                                <i class="fas fa-info-circle"></i> Chi Tiết Giải Thưởng/Bằng Sáng Chế
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="detailModalBodyGT">
+                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-dexuat" class="nckh-tab-content">
-                <div class="placeholder-message">
-                    <i class="fas fa-file-alt"></i>
-                    <h4>Đề xuất nghiên cứu</h4>
-                    <p>Module này sẽ được triển khai trong Phase 2</p>
+                <!-- Sub-tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn" data-panel="form-panel-dx">Nhập dữ liệu</button>
+                    <button class="sub-tab-btn active" data-panel="view-panel-dx">Xem số tiết quy đổi</button>
+                </div>
+
+                <!-- Form Panel -->
+                <div id="form-panel-dx" class="tab-panel">
+                    <form id="dexuatForm">
+                        <!-- Section 1: Thông tin đề xuất -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thông tin đề xuất nghiên cứu</div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Cấp đề xuất <span class="required">*</span></label>
+                                    <select id="capDeXuat" class="form-select" required>
+                                        <option value="">-- Chọn cấp đề xuất --</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Năm học <span class="required">*</span></label>
+                                    <select id="namHocFormDX" class="form-select namHoc" required></select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Tên đề xuất nghiên cứu <span
+                                            class="required">*</span></label>
+                                    <input type="text" id="tenDeXuat" class="form-control"
+                                        placeholder="Nhập tên đề xuất nghiên cứu" required />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Mã số đề xuất</label>
+                                    <input type="text" id="maSoDeXuat" class="form-control"
+                                        placeholder="VD: DX01/2024" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Kết quả</label>
+                                    <select id="ketQuaDX" class="form-select">
+                                        <option value="Đạt">Đạt</option>
+                                        <option value="Giỏi">Giỏi</option>
+                                        <option value="Xuất sắc">Xuất sắc</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Ngày nghiệm thu</label>
+                                    <input type="text" id="ngayNghiemThuDX" class="form-control flatpickr"
+                                        placeholder="dd/mm/yyyy" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Thành viên tham gia -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thành viên tham gia</div>
+
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Thêm thành viên <span class="required">*</span>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="thanhVienNgoaiDX"
+                                                onchange="toggleThanhVienNgoaiDX()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="thanhVienInputDX" class="form-control"
+                                        placeholder="Nhập tên thành viên" />
+                                    <button type="button" id="addMemberBtnDX" class="btn btn-secondary"
+                                        style="display:none;">Thêm</button>
+                                    <div id="thanhVienDX-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="thanhVienDonViGroupDX">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="thanhVienDonViDX" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách thành viên</label>
+                                    <div id="memberTagsDX" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <div class="alert alert-info" style="margin-top: 10px; font-size: 14px;">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Lưu ý:</strong> Số tiết sẽ được chia đều cho tất cả thành viên tham gia.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" id="resetFormBtnDX" class="btn btn-outline-secondary me-2">Làm
+                                mới</button>
+                            <button type="submit" class="btn btn-v2">Lưu đề xuất</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Panel -->
+                <div id="view-panel-dx" class="tab-panel active">
+                    <div class="grid-toolbar">
+                        <select id="namHocXemDX" class="form-select namHoc"></select>
+                        <button id="loadDataBtnDX" class="btn btn-primary">Hiển thị</button>
+                    </div>
+
+                    <div id="table-container-dx" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Modal Chi Tiết Đề Xuất -->
+            <div class="modal fade" id="detailModalDX" tabindex="-1" aria-labelledby="detailModalLabelDX"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabelDX">
+                                <i class="fas fa-info-circle"></i> Chi Tiết Đề Xuất Nghiên Cứu
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="detailModalBodyDX">
+                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-sachgiaotrinh" class="nckh-tab-content">
-                <div class="placeholder-message">
-                    <i class="fas fa-book"></i>
-                    <h4>Sách, Giáo trình</h4>
-                    <p>Module này sẽ được triển khai trong Phase 2</p>
+                <!-- Sub-tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn" data-panel="form-panel-sgt">Nhập dữ liệu</button>
+                    <button class="sub-tab-btn active" data-panel="view-panel-sgt">Xem số tiết quy đổi</button>
+                </div>
+
+                <!-- Form Panel -->
+                <div id="form-panel-sgt" class="tab-panel">
+                    <form id="sachGiaoTrinhForm">
+                        <!-- Section 1: Thông tin cơ bản -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thông tin sách/giáo trình</div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Phân loại <span class="required">*</span></label>
+                                    <select id="phanLoaiSGT" class="form-select" required>
+                                        <option value="">-- Chọn phân loại --</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Năm học <span class="required">*</span></label>
+                                    <select id="namHocFormSGT" class="form-select namHoc" required></select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Tên sách/giáo trình <span
+                                            class="required">*</span></label>
+                                    <input type="text" id="tenSachGiaoTrinh" class="form-control"
+                                        placeholder="Nhập tên sách, giáo trình" required />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Số xuất bản</label>
+                                    <input type="text" id="soXuatBan" class="form-control"
+                                        placeholder="Nhập số xuất bản" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Số trang</label>
+                                    <input type="number" id="soTrang" class="form-control"
+                                        placeholder="Nhập số trang" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Kết quả</label>
+                                    <select id="ketQuaSGT" class="form-select">
+                                        <option value="Đạt">Đạt</option>
+                                        <option value="Giỏi">Giỏi</option>
+                                        <option value="Xuất sắc">Xuất sắc</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Số năm thực hiện</label>
+                                    <input type="number" id="soNamThucHienSGT" class="form-control" value="1" min="1"
+                                        max="10" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Danh sách tham gia -->
+                        <div class="form-section">
+                            <div class="form-section-title">Danh sách tham gia</div>
+
+                            <!-- Chủ biên -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Chủ biên/Tác giả chính <span class="required">*</span>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="tacGiaNgoaiSGT"
+                                                onchange="toggleTacGiaNgoaiSGT()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="tacGiaChinhInputSGT" class="form-control"
+                                        placeholder="Nhập tên chủ biên/tác giả chính" />
+                                    <button type="button" id="addTacGiaBtnSGT" class="btn btn-secondary"
+                                        style="display:none;">Thêm</button>
+                                    <div id="tacGiaChinhSGT-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="tacGiaDonViGroupSGT">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="tacGiaDonViSGT" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách Chủ biên/Tác giả chính</label>
+                                    <div id="tacGiaTagsSGT" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có chủ biên/tác giả
+                                            chính</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr style="margin: 20px 0; border-color: #dee2e6;" />
+
+                            <!-- Thành viên -->
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Thêm thành viên
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="thanhVienNgoaiSGT"
+                                                onchange="toggleThanhVienNgoaiSGT()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="thanhVienInputSGT" class="form-control"
+                                        placeholder="Nhập tên thành viên" />
+                                    <button type="button" id="addMemberBtnSGT" class="btn btn-secondary"
+                                        style="display:none;">Thêm</button>
+                                    <div id="thanhVienSGT-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="thanhVienDonViGroupSGT">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="thanhVienDonViSGT" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách thành viên</label>
+                                    <div id="memberTagsSGT" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" id="resetFormBtnSGT" class="btn btn-outline-secondary me-2">Làm
+                                mới</button>
+                            <button type="submit" class="btn btn-v2">Lưu sách/giáo trình</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Panel -->
+                <div id="view-panel-sgt" class="tab-panel active">
+                    <div class="grid-toolbar">
+                        <select id="namHocXemSGT" class="form-select namHoc"></select>
+                        <button id="renderSGT" class="btn btn-primary">Hiển thị</button>
+                    </div>
+
+                    <div id="table-container-sgt" class="ag-theme-alpine" style="height: 550px;"></div>
                 </div>
             </div>
 
-            <div id="tab-huongdansv" class="nckh-tab-content">
-                <div class="placeholder-message">
-                    <i class="fas fa-user-graduate"></i>
-                    <h4>Hướng dẫn SV NCKH</h4>
-                    <p>Module này sẽ được triển khai trong Phase 2</p>
+            <!-- Modal Chi Tiết Sách/Giáo Trình -->
+            <div class="modal fade" id="detailModalSGT" tabindex="-1" aria-labelledby="detailModalLabelSGT"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabelSGT">
+                                <i class="fas fa-info-circle"></i> Chi Tiết Sách/Giáo Trình
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="detailModalBodySGT">
+                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-huongdansvnckh" class="nckh-tab-content">
+                <!-- Sub-tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn" data-panel="form-panel-hd">Nhập dữ liệu</button>
+                    <button class="sub-tab-btn active" data-panel="view-panel-hd">Xem số tiết quy đổi</button>
+                </div>
+
+                <!-- Form Panel -->
+                <div id="form-panel-hd" class="tab-panel">
+                    <form id="huongdansvnckhForm">
+                        <!-- Section 1: Thông tin hướng dẫn -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thông tin hướng dẫn học viên, sinh viên NCKH</div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Loại hướng dẫn <span class="required">*</span></label>
+                                    <select id="loaiHuongDanHD" class="form-select" required>
+                                        <option value="">-- Chọn loại hướng dẫn --</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Năm học <span class="required">*</span></label>
+                                    <select id="namHocFormHD" class="form-select namHoc" required></select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Tên đề tài <span class="required">*</span></label>
+                                    <input type="text" id="tenDeTaiHD" class="form-control"
+                                        placeholder="Nhập tên đề tài NCKH SV" required />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Mã số đề tài</label>
+                                    <input type="text" id="maSoDeTaiHD" class="form-control"
+                                        placeholder="VD: SV01/2024" />
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Kết quả</label>
+                                    <select id="ketQuaHD" class="form-select">
+                                        <option value="Đạt">Đạt</option>
+                                        <option value="Giỏi">Giỏi</option>
+                                        <option value="Xuất sắc">Xuất sắc</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Ngày nghiệm thu</label>
+                                    <input type="text" id="ngayNghiemThuHD" class="form-control flatpickr"
+                                        placeholder="dd/mm/yyyy" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Danh sách tham gia hướng dẫn -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thành viên tham gia hướng dẫn</div>
+
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Thêm thành viên tham gia hướng dẫn <span class="required">*</span>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="thanhVienNgoaiHD"
+                                                onchange="toggleThanhVienNgoaiHD()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="thanhVienInputHD" class="form-control"
+                                        placeholder="Nhập tên người tham gia hướng dẫn" />
+                                    <button type="button" id="addMemberBtnHD" class="btn btn-secondary">Thêm</button>
+                                    <div id="thanhVienHD-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="thanhVienDonViGroupHD">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="thanhVienDonViHD" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách thành viên tham gia hướng dẫn</label>
+                                    <div id="memberTagsHD" class="member-tags">
+                                        <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <div class="alert alert-info" style="margin-top: 10px; font-size: 14px;">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Lưu ý:</strong> Số tiết sẽ được chia đều cho tất cả thành viên tham gia
+                                        hướng dẫn.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" id="resetFormBtnHD" class="btn btn-outline-secondary me-2">Làm
+                                mới</button>
+                            <button type="submit" class="btn btn-v2">Lưu hướng dẫn SV NCKH</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Panel -->
+                <div id="view-panel-hd" class="tab-panel active">
+                    <div class="grid-toolbar">
+                        <select id="namHocXemHD" class="form-select namHoc"></select>
+                        <button id="loadDataBtnHD" class="btn btn-primary">Hiển thị</button>
+                    </div>
+
+                    <div id="table-container-hd" class="ag-theme-alpine" style="height: 550px;"></div>
+                </div>
+            </div>
+
+            <!-- Modal Chi Tiết Hướng dẫn SV NCKH -->
+            <div class="modal fade" id="detailModalHD" tabindex="-1" aria-labelledby="detailModalLabelHD"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabelHD">
+                                <i class="fas fa-info-circle"></i> Chi Tiết Hướng Dẫn SV NCKH
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="detailModalBodyHD">
+                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-hoidong" class="nckh-tab-content">
-                <div class="placeholder-message">
-                    <i class="fas fa-users"></i>
-                    <h4>Thành viên Hội đồng KH</h4>
-                    <p>Module này sẽ được triển khai trong Phase 2</p>
+                <!-- Sub-tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn" data-panel="form-panel-hoidong">Nhập dữ liệu</button>
+                    <button class="sub-tab-btn active" data-panel="view-panel-hoidong">Xem số tiết quy đổi</button>
+                </div>
+
+                <!-- Form Panel -->
+                <div id="form-panel-hoidong" class="tab-panel">
+                    <form id="hoiDongForm">
+                        <!-- Section 1: Thông tin hội đồng -->
+                        <div class="form-section">
+                            <div class="form-section-title">Thông tin Thành viên Hội đồng khoa học</div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label">Loại hội đồng <span class="required">*</span></label>
+                                    <select id="loaiHoiDongHD" class="form-select" required>
+                                        <option value="">-- Chọn loại hội đồng --</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label">Năm học <span class="required">*</span></label>
+                                    <select id="namHocFormHoiDong" class="form-select namHoc" required></select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Tên đề tài/chương trình được xét</label>
+                                    <input type="text" id="tenDeTaiHoiDong" class="form-control"
+                                        placeholder="Nhập tên đề tài hoặc chương trình" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Thành viên -->
+                        <div class="form-section">
+                            <div class="form-section-title">Danh sách thành viên tham gia</div>
+
+                            <div class="form-row">
+                                <div class="form-col autocomplete-wrapper">
+                                    <label class="form-label">
+                                        Thêm thành viên <span class="required">*</span>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="thanhVienNgoaiHoiDong"
+                                                onchange="toggleThanhVienNgoaiHoiDong()" /> Ngoài học viện
+                                        </label>
+                                    </label>
+                                    <input type="text" id="thanhVienInputHoiDong" class="form-control"
+                                        placeholder="Nhập tên thành viên" />
+                                    <div id="thanhVienHoiDong-suggestions" class="suggestions-list"></div>
+                                </div>
+                                <div class="form-col" id="thanhVienDonViGroupHoiDong">
+                                    <label class="form-label">Đơn vị công tác</label>
+                                    <input type="text" id="thanhVienDonViHoiDong" class="form-control"
+                                        placeholder="Nhập đơn vị công tác" disabled />
+                                    <button type="button" id="addMemberBtnHoiDong" class="btn btn-success btn-sm mt-2"
+                                        style="display: none;">
+                                        <i class="fas fa-plus"></i> Thêm
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Danh sách thành viên đã thêm:</label>
+                                    <div id="memberTagsHoiDong" class="member-tags-container">
+                                        <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <div class="alert alert-info" style="margin-top: 10px; font-size: 14px;">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Lưu ý:</strong> Mỗi thành viên hội đồng sẽ được tính đủ số tiết theo
+                                        loại hội đồng (không chia tiết).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" id="resetFormBtnHoiDong" class="btn btn-outline-secondary me-2">Làm
+                                mới</button>
+                            <button type="submit" class="btn btn-v2">Lưu thành viên hội đồng</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Panel -->
+                <div id="view-panel-hoidong" class="tab-panel active">
+                    <div class="grid-toolbar">
+                        <select id="namHocXemHoiDong" class="form-select namHoc"></select>
+                        <button id="loadDataBtnHoiDong" class="btn btn-primary">Hiển thị</button>
+                    </div>
+
+                    <div id="table-container-hoidong" class="ag-theme-alpine" style="height: 550px;"></div>
+                </div>
+            </div>
+
+            <!-- Modal Chi Tiết Hội đồng -->
+            <div class="modal fade" id="detailModalHoiDong" tabindex="-1" aria-labelledby="detailModalLabelHoiDong"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabelHoiDong">
+                                <i class="fas fa-info-circle"></i> Chi Tiết Thành Viên Hội Đồng
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="detailModalBodyHoiDong">
+                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -306,6 +1328,48 @@
         <script src="/js/nckh_v2/detaiduan/grid.js"></script>
         <script src="/js/nckh_v2/detaiduan/form.js"></script>
         <script src="/js/nckh_v2/detaiduan/index.js"></script>
+        <!-- Sáng kiến modules -->
+        <script src="/js/nckh_v2/sangkien/modal.js"></script>
+        <script src="/js/nckh_v2/sangkien/autocomplete.js"></script>
+        <script src="/js/nckh_v2/sangkien/grid.js"></script>
+        <script src="/js/nckh_v2/sangkien/form.js"></script>
+        <script src="/js/nckh_v2/sangkien/index.js"></script>
+        <!-- Giải thưởng modules -->
+        <script src="/js/nckh_v2/giaithuong/modal.js"></script>
+        <script src="/js/nckh_v2/giaithuong/autocomplete.js"></script>
+        <script src="/js/nckh_v2/giaithuong/grid.js"></script>
+        <script src="/js/nckh_v2/giaithuong/form.js"></script>
+        <script src="/js/nckh_v2/giaithuong/index.js"></script>
+        <!-- Đề xuất nghiên cứu modules -->
+        <script src="/js/nckh_v2/dexuat/modal.js"></script>
+        <script src="/js/nckh_v2/dexuat/autocomplete.js"></script>
+        <script src="/js/nckh_v2/dexuat/grid.js"></script>
+        <script src="/js/nckh_v2/dexuat/form.js"></script>
+        <script src="/js/nckh_v2/dexuat/index.js"></script>
+        <!-- Sách giáo trình modules -->
+        <script src="/js/nckh_v2/sachgiaotrinh/modal.js"></script>
+        <script src="/js/nckh_v2/sachgiaotrinh/autocomplete.js"></script>
+        <script src="/js/nckh_v2/sachgiaotrinh/grid.js"></script>
+        <script src="/js/nckh_v2/sachgiaotrinh/form.js"></script>
+        <script src="/js/nckh_v2/sachgiaotrinh/index.js"></script>
+        <!-- Bài báo khoa học modules -->
+        <script src="/js/nckh_v2/baibaokhoahoc/modal.js"></script>
+        <script src="/js/nckh_v2/baibaokhoahoc/autocomplete.js"></script>
+        <script src="/js/nckh_v2/baibaokhoahoc/grid.js"></script>
+        <script src="/js/nckh_v2/baibaokhoahoc/form.js"></script>
+        <script src="/js/nckh_v2/baibaokhoahoc/index.js"></script>
+        <!-- Hướng dẫn SV NCKH modules -->
+        <script src="/js/nckh_v2/huongdansvnckh/modal.js"></script>
+        <script src="/js/nckh_v2/huongdansvnckh/autocomplete.js"></script>
+        <script src="/js/nckh_v2/huongdansvnckh/grid.js"></script>
+        <script src="/js/nckh_v2/huongdansvnckh/form.js"></script>
+        <script src="/js/nckh_v2/huongdansvnckh/index.js"></script>
+        <!-- Thành viên Hội đồng modules -->
+        <script src="/js/nckh_v2/hoidong/modal.js"></script>
+        <script src="/js/nckh_v2/hoidong/autocomplete.js"></script>
+        <script src="/js/nckh_v2/hoidong/grid.js"></script>
+        <script src="/js/nckh_v2/hoidong/form.js"></script>
+        <script src="/js/nckh_v2/hoidong/index.js"></script>
 
         <script>
             // Load năm học từ API hệ thống
@@ -365,6 +1429,41 @@
                     // Update content
                     document.querySelectorAll('.nckh-tab-content').forEach(c => c.classList.remove('active'));
                     document.getElementById('tab-' + tabId).classList.add('active');
+
+                    // Tự động chuyển sang tab "Xem số tiết quy đổi" và click "Hiển thị"
+                    setTimeout(() => {
+                        // Map tabId với view-panel và button ID tương ứng
+                        const tabViewMap = {
+                            'detaiduan': { panelId: 'view-panel', buttonId: 'loadDataBtn' },
+                            'baibaokhoahoc': { panelId: 'view-panel-bb', buttonId: 'renderBB' },
+                            'sangkien': { panelId: 'view-panel-sk', buttonId: 'loadDataBtnSK' },
+                            'giaithuong': { panelId: 'view-panel-gt', buttonId: 'renderGT' },
+                            'dexuat': { panelId: 'view-panel-dx', buttonId: 'loadDataBtnDX' },
+                            'sachgiaotrinh': { panelId: 'view-panel-sgt', buttonId: 'renderSGT' },
+                            'huongdansvnckh': { panelId: 'view-panel-hd', buttonId: 'loadDataBtnHD' },
+                            'hoidong': { panelId: 'view-panel-hoidong', buttonId: 'loadDataBtnHoiDong' }
+                        };
+
+                        const viewConfig = tabViewMap[tabId];
+                        if (viewConfig) {
+                            // Tìm và click vào sub-tab "Xem số tiết quy đổi" trong tab hiện tại
+                            const currentTab = document.getElementById('tab-' + tabId);
+                            if (currentTab) {
+                                const viewPanelBtn = currentTab.querySelector(`[data-panel="${viewConfig.panelId}"]`);
+                                if (viewPanelBtn && !viewPanelBtn.classList.contains('active')) {
+                                    viewPanelBtn.click();
+                                }
+
+                                // Tự động click nút "Hiển thị"
+                                setTimeout(() => {
+                                    const displayButton = document.getElementById(viewConfig.buttonId);
+                                    if (displayButton) {
+                                        displayButton.click();
+                                    }
+                                }, 100);
+                            }
+                        }
+                    }, 50);
                 });
             });
 
@@ -493,6 +1592,616 @@
                     }
                 }
             });
+
+            // =====================================================
+            // SÁNG KIẾN - Checkbox "Ngoài học viện" handlers
+            // =====================================================
+            function toggleTacGiaNgoaiSK() {
+                const checkbox = document.getElementById('tacGiaNgoaiSK');
+                const donViInput = document.getElementById('tacGiaDonViSK');
+                const suggestionsDiv = document.getElementById('tacGiaChinh-suggestions');
+                const addBtn = document.getElementById('addTacGiaBtnSK');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            function toggleThanhVienNgoaiSK() {
+                const checkbox = document.getElementById('thanhVienNgoaiSK');
+                const donViInput = document.getElementById('thanhVienDonViSK');
+                const suggestionsDiv = document.getElementById('thanhVienSK-suggestions');
+                const addBtn = document.getElementById('addMemberBtnSK');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            // =====================================================
+            // SÁNG KIẾN - Quản lý danh sách Tác giả chính
+            // =====================================================
+            window.tacGiaListSK = [];
+
+            function updateTacGiaDisplaySK() {
+                const container = document.getElementById('tacGiaTagsSK');
+                if (window.tacGiaListSK.length === 0) {
+                    container.innerHTML = '<span style="color: #999; font-style: italic;">Chưa có tác giả chính</span>';
+                } else {
+                    container.innerHTML = window.tacGiaListSK.map((item, index) => `
+                        <span class="member-tag">
+                            ${item}
+                            <button type="button" class="member-tag-remove" onclick="removeTacGiaSK(${index})">&times;</button>
+                        </span>
+                    `).join('');
+                }
+            }
+
+            window.updateTacGiaDisplaySK = updateTacGiaDisplaySK;
+
+            function removeTacGiaSK(index) {
+                window.tacGiaListSK.splice(index, 1);
+                updateTacGiaDisplaySK();
+            }
+
+            // Xử lý nút Thêm tác giả
+            const addTacGiaBtnSK = document.getElementById('addTacGiaBtnSK');
+            if (addTacGiaBtnSK) {
+                addTacGiaBtnSK.style.display = 'none'; // Ẩn mặc định
+                addTacGiaBtnSK.addEventListener('click', function () {
+                    const input = document.getElementById('tacGiaChinhInput');
+                    const donViInput = document.getElementById('tacGiaDonViSK');
+                    const isNgoai = document.getElementById('tacGiaNgoaiSK').checked;
+
+                    const name = input.value.trim();
+                    if (!name) return;
+
+                    let displayText = name;
+                    if (isNgoai && donViInput.value.trim()) {
+                        displayText = `${name} - ${donViInput.value.trim()}`;
+                    }
+                    window.tacGiaListSK.push(displayText);
+                    updateTacGiaDisplaySK();
+                    input.value = '';
+                    donViInput.value = '';
+                });
+            }
+
+            // Ẩn nút thêm thành viên cho Sáng kiến mặc định
+            const addMemberBtnSK = document.getElementById('addMemberBtnSK');
+            if (addMemberBtnSK) {
+                addMemberBtnSK.style.display = 'none';
+            }
+
+            // Enter key to add tác giả SK
+            const tacGiaChinhInput = document.getElementById('tacGiaChinhInput');
+            if (tacGiaChinhInput) {
+                tacGiaChinhInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('tacGiaNgoaiSK')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addTacGiaBtnSK')?.click();
+                        }
+                    }
+                });
+            }
+
+            // Enter key to add thành viên SK
+            const thanhVienInputSK = document.getElementById('thanhVienInputSK');
+            if (thanhVienInputSK) {
+                thanhVienInputSK.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('thanhVienNgoaiSK')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addMemberBtnSK')?.click();
+                        }
+                    }
+                });
+            }
+
+            // =====================================================
+            // GIẢI THƯỞNG - Checkbox "Ngoài học viện" handlers
+            // =====================================================
+            function toggleTacGiaNgoaiGT() {
+                const checkbox = document.getElementById('tacGiaNgoaiGT');
+                const donViInput = document.getElementById('tacGiaDonViGT');
+                const suggestionsDiv = document.getElementById('tacGiaChinhGT-suggestions');
+                const addBtn = document.getElementById('addTacGiaBtnGT');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            function toggleThanhVienNgoaiGT() {
+                const checkbox = document.getElementById('thanhVienNgoaiGT');
+                const donViInput = document.getElementById('thanhVienDonViGT');
+                const suggestionsDiv = document.getElementById('thanhVienGT-suggestions');
+                const addBtn = document.getElementById('addMemberBtnGT');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            // =====================================================
+            // GIẢI THƯỞNG - Quản lý danh sách Tác giả chính
+            // =====================================================
+            window.tacGiaListGT = [];
+
+            function updateTacGiaDisplayGT() {
+                const container = document.getElementById('tacGiaTagsGT');
+                if (window.tacGiaListGT.length === 0) {
+                    container.innerHTML = '<span style="color: #999; font-style: italic;">Chưa có tác giả chính</span>';
+                } else {
+                    container.innerHTML = window.tacGiaListGT.map((item, index) => `
+                        <span class="member-tag">
+                            ${item}
+                            <button type="button" class="member-tag-remove" onclick="removeTacGiaGT(${index})">&times;</button>
+                        </span>
+                    `).join('');
+                }
+            }
+
+            window.updateTacGiaDisplayGT = updateTacGiaDisplayGT;
+
+            function removeTacGiaGT(index) {
+                window.tacGiaListGT.splice(index, 1);
+                updateTacGiaDisplayGT();
+            }
+
+            // Xử lý nút Thêm tác giả GT
+            const addTacGiaBtnGT = document.getElementById('addTacGiaBtnGT');
+            if (addTacGiaBtnGT) {
+                addTacGiaBtnGT.style.display = 'none'; // Ẩn mặc định
+                addTacGiaBtnGT.addEventListener('click', function () {
+                    const input = document.getElementById('tacGiaChinhInputGT');
+                    const donViInput = document.getElementById('tacGiaDonViGT');
+                    const isNgoai = document.getElementById('tacGiaNgoaiGT').checked;
+
+                    const name = input.value.trim();
+                    if (!name) return;
+
+                    let displayText = name;
+                    if (isNgoai && donViInput.value.trim()) {
+                        displayText = `${name} - ${donViInput.value.trim()}`;
+                    }
+                    window.tacGiaListGT.push(displayText);
+                    updateTacGiaDisplayGT();
+                    input.value = '';
+                    donViInput.value = '';
+                });
+            }
+
+            // Ẩn nút thêm thành viên cho Giải thưởng mặc định
+            const addMemberBtnGT = document.getElementById('addMemberBtnGT');
+            if (addMemberBtnGT) {
+                addMemberBtnGT.style.display = 'none';
+            }
+
+            // Enter key to add tác giả GT
+            const tacGiaChinhInputGT = document.getElementById('tacGiaChinhInputGT');
+            if (tacGiaChinhInputGT) {
+                tacGiaChinhInputGT.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('tacGiaNgoaiGT')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addTacGiaBtnGT')?.click();
+                        }
+                    }
+                });
+            }
+
+            // Enter key to add thành viên GT
+            const thanhVienInputGT = document.getElementById('thanhVienInputGT');
+            if (thanhVienInputGT) {
+                thanhVienInputGT.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('thanhVienNgoaiGT')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addMemberBtnGT')?.click();
+                        }
+                    }
+                });
+            }
+
+            // =====================================================
+            // SÁCH GIÁO TRÌNH - Checkbox "Ngoài học viện" handlers
+            // =====================================================
+            function toggleTacGiaNgoaiSGT() {
+                const checkbox = document.getElementById('tacGiaNgoaiSGT');
+                const donViInput = document.getElementById('tacGiaDonViSGT');
+                const suggestionsDiv = document.getElementById('tacGiaChinhSGT-suggestions');
+                const addBtn = document.getElementById('addTacGiaBtnSGT');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            function toggleThanhVienNgoaiSGT() {
+                const checkbox = document.getElementById('thanhVienNgoaiSGT');
+                const donViInput = document.getElementById('thanhVienDonViSGT');
+                const suggestionsDiv = document.getElementById('thanhVienSGT-suggestions');
+                const addBtn = document.getElementById('addMemberBtnSGT');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            // =====================================================
+            // SÁCH GIÁO TRÌNH - Quản lý danh sách Chủ biên/Tác giả
+            // =====================================================
+            window.tacGiaListSGT = [];
+
+            function updateTacGiaDisplaySGT() {
+                const container = document.getElementById('tacGiaTagsSGT');
+                if (window.tacGiaListSGT.length === 0) {
+                    container.innerHTML = '<span style="color: #999; font-style: italic;">Chưa có chủ biên/tác giả chính</span>';
+                } else {
+                    container.innerHTML = window.tacGiaListSGT.map((item, index) => `
+                        <span class="member-tag">
+                            ${item}
+                            <button type="button" class="member-tag-remove" onclick="removeTacGiaSGT(${index})">&times;</button>
+                        </span>
+                    `).join('');
+                }
+            }
+
+            window.updateTacGiaDisplaySGT = updateTacGiaDisplaySGT;
+
+            function removeTacGiaSGT(index) {
+                window.tacGiaListSGT.splice(index, 1);
+                updateTacGiaDisplaySGT();
+            }
+
+            // Xử lý nút Thêm chủ biên SGT
+            const addTacGiaBtnSGT = document.getElementById('addTacGiaBtnSGT');
+            if (addTacGiaBtnSGT) {
+                addTacGiaBtnSGT.style.display = 'none'; // Ẩn mặc định
+                addTacGiaBtnSGT.addEventListener('click', function () {
+                    const input = document.getElementById('tacGiaChinhInputSGT');
+                    const donViInput = document.getElementById('tacGiaDonViSGT');
+                    const isNgoai = document.getElementById('tacGiaNgoaiSGT').checked;
+
+                    const name = input.value.trim();
+                    if (!name) return;
+
+                    let displayText = name;
+                    if (isNgoai && donViInput.value.trim()) {
+                        displayText = `${name} - ${donViInput.value.trim()}`;
+                    }
+                    window.tacGiaListSGT.push(displayText);
+                    updateTacGiaDisplaySGT();
+                    input.value = '';
+                    donViInput.value = '';
+                });
+            }
+
+            // Ẩn nút thêm thành viên cho Sách Giáo Trình mặc định
+            const addMemberBtnSGT = document.getElementById('addMemberBtnSGT');
+            if (addMemberBtnSGT) {
+                addMemberBtnSGT.style.display = 'none';
+            }
+
+            // Enter key to add chủ biên SGT
+            const tacGiaChinhInputSGT = document.getElementById('tacGiaChinhInputSGT');
+            if (tacGiaChinhInputSGT) {
+                tacGiaChinhInputSGT.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('tacGiaNgoaiSGT')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addTacGiaBtnSGT')?.click();
+                        }
+                    }
+                });
+            }
+
+            // Enter key to add thành viên SGT
+            const thanhVienInputSGT = document.getElementById('thanhVienInputSGT');
+            if (thanhVienInputSGT) {
+                thanhVienInputSGT.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('thanhVienNgoaiSGT')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addMemberBtnSGT')?.click();
+                        }
+                    }
+                });
+            }
+
+            // =====================================================
+            // BÀI BÁO KHOA HỌC - Checkbox "Ngoài học viện" handlers
+            // =====================================================
+            function toggleTacGiaNgoaiBB() {
+                const checkbox = document.getElementById('tacGiaNgoaiBB');
+                const donViInput = document.getElementById('tacGiaDonViBB');
+                const suggestionsDiv = document.getElementById('tacGiaChinhBB-suggestions');
+                const addBtn = document.getElementById('addTacGiaBtnBB');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            function toggleThanhVienNgoaiBB() {
+                const checkbox = document.getElementById('thanhVienNgoaiBB');
+                const donViInput = document.getElementById('thanhVienDonViBB');
+                const suggestionsDiv = document.getElementById('thanhVienBB-suggestions');
+                const addBtn = document.getElementById('addMemberBtnBB');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            // =====================================================
+            // BÀI BÁO KHOA HỌC - Quản lý danh sách Tác giả chính
+            // =====================================================
+            window.tacGiaListBB = [];
+
+            function updateTacGiaDisplayBB() {
+                const container = document.getElementById('tacGiaTagsBB');
+                if (window.tacGiaListBB.length === 0) {
+                    container.innerHTML = '<span style="color: #999; font-style: italic;">Chưa có tác giả chính</span>';
+                } else {
+                    container.innerHTML = window.tacGiaListBB.map((item, index) => `
+                        <span class="member-tag">
+                            ${item}
+                            <button type="button" class="member-tag-remove" onclick="removeTacGiaBB(${index})">&times;</button>
+                        </span>
+                    `).join('');
+                }
+            }
+
+            window.updateTacGiaDisplayBB = updateTacGiaDisplayBB;
+
+            function removeTacGiaBB(index) {
+                window.tacGiaListBB.splice(index, 1);
+                updateTacGiaDisplayBB();
+            }
+
+            // Xử lý nút Thêm tác giả BB
+            const addTacGiaBtnBB = document.getElementById('addTacGiaBtnBB');
+            if (addTacGiaBtnBB) {
+                addTacGiaBtnBB.style.display = 'none'; // Ẩn mặc định
+                addTacGiaBtnBB.addEventListener('click', function () {
+                    const input = document.getElementById('tacGiaChinhInputBB');
+                    const donViInput = document.getElementById('tacGiaDonViBB');
+                    const isNgoai = document.getElementById('tacGiaNgoaiBB').checked;
+
+                    const name = input.value.trim();
+                    if (!name) return;
+
+                    let displayText = name;
+                    if (isNgoai && donViInput.value.trim()) {
+                        displayText = `${name} - ${donViInput.value.trim()}`;
+                    }
+                    window.tacGiaListBB.push(displayText);
+                    updateTacGiaDisplayBB();
+                    input.value = '';
+                    donViInput.value = '';
+                });
+            }
+
+            // Ẩn nút thêm thành viên cho Bài Báo mặc định
+            const addMemberBtnBB = document.getElementById('addMemberBtnBB');
+            if (addMemberBtnBB) {
+                addMemberBtnBB.style.display = 'none';
+            }
+
+            // Enter key to add tác giả BB
+            const tacGiaChinhInputBB = document.getElementById('tacGiaChinhInputBB');
+            if (tacGiaChinhInputBB) {
+                tacGiaChinhInputBB.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('tacGiaNgoaiBB')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addTacGiaBtnBB')?.click();
+                        }
+                    }
+                });
+            }
+
+            // Enter key to add thành viên BB
+            const thanhVienInputBB = document.getElementById('thanhVienInputBB');
+            if (thanhVienInputBB) {
+                thanhVienInputBB.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('thanhVienNgoaiBB')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addMemberBtnBB')?.click();
+                        }
+                    }
+                });
+            }
+
+            // =====================================================
+            // HƯỚNG DẪN SV NCKH - Checkbox "Ngoài học viện" handlers
+            // =====================================================
+            function toggleHuongDanNgoaiHD() {
+                const checkbox = document.getElementById('huongDanNgoaiHD');
+                const donViInput = document.getElementById('huongDanDonViHD');
+                const suggestionsDiv = document.getElementById('huongDanChinh-suggestions');
+                const addBtn = document.getElementById('addHuongDanBtnHD');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            function toggleThanhVienNgoaiHD() {
+                const checkbox = document.getElementById('thanhVienNgoaiHD');
+                const donViInput = document.getElementById('thanhVienDonViHD');
+                const suggestionsDiv = document.getElementById('thanhVienHD-suggestions');
+                const addBtn = document.getElementById('addMemberBtnHD');
+
+                if (checkbox.checked) {
+                    donViInput.disabled = false;
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.classList.remove('show');
+                    addBtn.style.display = 'block';
+                } else {
+                    donViInput.disabled = true;
+                    donViInput.value = '';
+                    addBtn.style.display = 'none';
+                }
+            }
+
+            // =====================================================
+            // HƯỚNG DẪN SV NCKH - Quản lý danh sách Người hướng dẫn
+            // =====================================================
+            window.huongDanListHD = [];
+
+            function updateHuongDanDisplayHD() {
+                const container = document.getElementById('huongDanTagsHD');
+                if (window.huongDanListHD.length === 0) {
+                    container.innerHTML = '<span style="color: #999; font-style: italic;">Chưa có người hướng dẫn</span>';
+                } else {
+                    container.innerHTML = window.huongDanListHD.map((item, index) => `
+                        <span class="member-tag">
+                            ${item}
+                            <button type="button" class="member-tag-remove" onclick="removeHuongDanHD(${index})">&times;</button>
+                        </span>
+                    `).join('');
+                }
+            }
+
+            window.updateHuongDanDisplayHD = updateHuongDanDisplayHD;
+
+            function removeHuongDanHD(index) {
+                window.huongDanListHD.splice(index, 1);
+                updateHuongDanDisplayHD();
+            }
+
+            // Xử lý nút Thêm người hướng dẫn HD
+            const addHuongDanBtnHD = document.getElementById('addHuongDanBtnHD');
+            if (addHuongDanBtnHD) {
+                addHuongDanBtnHD.style.display = 'none'; // Ẩn mặc định
+                addHuongDanBtnHD.addEventListener('click', function () {
+                    const input = document.getElementById('huongDanChinhInputHD');
+                    const donViInput = document.getElementById('huongDanDonViHD');
+                    const isNgoai = document.getElementById('huongDanNgoaiHD').checked;
+
+                    const name = input.value.trim();
+                    if (!name) return;
+
+                    let displayText = name;
+                    if (isNgoai && donViInput.value.trim()) {
+                        displayText = `${name} - ${donViInput.value.trim()}`;
+                    }
+                    window.huongDanListHD.push(displayText);
+                    updateHuongDanDisplayHD();
+                    input.value = '';
+                    donViInput.value = '';
+                });
+            }
+
+            // Ẩn nút thêm thành viên cho Hướng dẫn SV mặc định
+            const addMemberBtnHD = document.getElementById('addMemberBtnHD');
+            if (addMemberBtnHD) {
+                addMemberBtnHD.style.display = 'none';
+            }
+
+            // Enter key to add người hướng dẫn HD
+            const huongDanChinhInputHD = document.getElementById('huongDanChinhInputHD');
+            if (huongDanChinhInputHD) {
+                huongDanChinhInputHD.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('huongDanNgoaiHD')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addHuongDanBtnHD')?.click();
+                        }
+                    }
+                });
+            }
+
+            // Enter key to add thành viên HD
+            const thanhVienInputHD = document.getElementById('thanhVienInputHD');
+            if (thanhVienInputHD) {
+                thanhVienInputHD.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const isNgoai = document.getElementById('thanhVienNgoaiHD')?.checked;
+                        if (isNgoai) {
+                            document.getElementById('addMemberBtnHD')?.click();
+                        }
+                    }
+                });
+            }
         </script>
 </body>
 

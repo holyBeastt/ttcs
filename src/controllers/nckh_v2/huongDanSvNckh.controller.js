@@ -1,7 +1,7 @@
 /**
- * NCKH V2 - Đề Tài Dự Án Controller
- * Logic riêng cho loại NCKH: Đề tài, Dự án
- * Date: 2026-01-16
+ * NCKH V2 - Hướng dẫn học viên, sinh viên NCKH Controller
+ * Logic riêng cho loại NCKH: Hướng dẫn SV NCKH
+ * Date: 2026-01-17
  */
 
 const createPoolConnection = require("../../config/databasePool");
@@ -13,100 +13,78 @@ const nckhService = require("../../services/nckhV2Service");
 // =====================================================
 
 /**
- * Quy đổi số tiết cho Đề tài Dự án theo công thức V2
+ * Quy đổi số tiết cho Hướng dẫn SV NCKH - Chia đều cho tất cả thành viên
+ * Công thức: soTietMoiNguoi = T / tongSoThanhVien
  */
-const quyDoiSoGioDeTaiDuAnV2 = async (body, MaBang) => {
+const quyDoiSoGioHuongDanV2 = async (body, MaBang) => {
     const {
-        capDeTai,
-        chuNhiem,
+        loaiHuongDan,
         thanhVien,
-        tongSoTacGia,
-        soDongChuNhiem = 1,
-        soNamThucHien = 1
+        tongSoTacGia
     } = body;
 
     // Lấy số tiết chuẩn từ DB
-    const T = await nckhService.getSoTietChuan("CapDeTaiDuAn", capDeTai, MaBang);
+    const T = await nckhService.getSoTietChuan("LoaiHuongDan", loaiHuongDan, MaBang);
 
     // Sử dụng TongSoTacGia từ body
-    const finalTongSoTacGia = parseInt(tongSoTacGia) || 0;
+    const finalTongSoThanhVien = parseInt(tongSoTacGia) || 0;
 
-    if (finalTongSoTacGia === 0) {
-        throw new Error("Phải có ít nhất 1 tác giả.");
+    if (finalTongSoThanhVien === 0) {
+        throw new Error("Phải có ít nhất 1 thành viên tham gia hướng dẫn.");
     }
 
-    // Tính tiết theo công thức V2
-    const { chuNhiem: tietChuNhiem, thanhVien: tietThanhVien } = nckhService.quyDoiSoTietV2(
-        T,
-        finalTongSoTacGia,
-        parseInt(soDongChuNhiem) || 1,
-        parseInt(soNamThucHien) || 1
-    );
+    // Tính tiết chia đều: T / tongSoThanhVien
+    const soTietMoiNguoi = Math.round((T / finalTongSoThanhVien) * 100) / 100;
 
-    // Format kết quả cho Chủ nhiệm
-    if (chuNhiem) {
-        const { name, unit } = nckhService.extractNameAndUnit(chuNhiem);
-        if (unit) {
-            body.chuNhiem = `${name} (${unit} - ${nckhService.formatHours(tietChuNhiem)})`;
-        } else {
-            // Lookup Khoa cho giảng viên nội bộ
-            const khoa = await nckhService.getKhoaByName(name);
-            body.chuNhiem = khoa
-                ? `${name} (${khoa} - ${nckhService.formatHours(tietChuNhiem)})`
-                : `${name} (${nckhService.formatHours(tietChuNhiem)})`;
-        }
-    }
-
-    // Format kết quả cho Thành viên
+    // Format kết quả cho tất cả Thành viên (chia đều)
     if (thanhVien && Array.isArray(thanhVien)) {
         const formattedMembers = [];
         for (const member of thanhVien) {
             const { name, unit } = nckhService.extractNameAndUnit(member);
             if (unit) {
-                formattedMembers.push(`${name} (${unit} - ${nckhService.formatHours(tietThanhVien)})`);
+                formattedMembers.push(`${name} (${unit} - ${nckhService.formatHours(soTietMoiNguoi)})`);
             } else {
                 // Lookup Khoa cho giảng viên nội bộ
                 const khoa = await nckhService.getKhoaByName(name);
                 formattedMembers.push(khoa
-                    ? `${name} (${khoa} - ${nckhService.formatHours(tietThanhVien)})`
-                    : `${name} (${nckhService.formatHours(tietThanhVien)})`);
+                    ? `${name} (${khoa} - ${nckhService.formatHours(soTietMoiNguoi)})`
+                    : `${name} (${nckhService.formatHours(soTietMoiNguoi)})`);
             }
         }
         body.thanhVien = formattedMembers.join(", ");
     }
 
+
     return body;
 };
+
 
 // =====================================================
 // SAVE
 // =====================================================
 
 /**
- * Lưu đề tài dự án mới (V2)
+ * Lưu Hướng dẫn SV NCKH mới (V2)
  */
-const saveDeTaiDuAnV2 = async (req, res) => {
+const saveHuongDanV2 = async (req, res) => {
     const userId = req.session?.userId || 1;
     const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN';
 
     let connection;
 
     try {
-        // Quy đổi số tiết theo công thức V2
-        const data = await quyDoiSoGioDeTaiDuAnV2(req.body, "detaiduan");
+        // Quy đổi số tiết - chia đều cho thành viên
+        const data = await quyDoiSoGioHuongDanV2(req.body, "huongdansvnckh");
 
         const {
-            capDeTai,
+            loaiHuongDan,
             namHoc,
             tenDeTai,
-            maDeTai,
-            chuNhiem,
+            maSoDeTai,
             ngayNghiemThu,
             khoa,
             thanhVien,
-            ketQua,
-            soDongChuNhiem = 1,
-            soNamThucHien = 1
+            ketQua
         } = data;
 
         // Convert array thành string nếu cần
@@ -114,27 +92,23 @@ const saveDeTaiDuAnV2 = async (req, res) => {
 
         connection = await createPoolConnection();
 
-        // Chèn dữ liệu
+        // Chèn dữ liệu (không có HuongDanChinh và SoNamThucHien)
         await connection.execute(
-            `INSERT INTO detaiduan (
-                CapDeTai, NamHoc, TenDeTai, MaSoDeTai, ChuNhiem, 
+            `INSERT INTO huongdansvnckh (
+                LoaiHuongDan, NamHoc, TenDeTai, MaSoDeTai, 
                 NgayNghiemThu, Khoa, DanhSachThanhVien, KetQua,
-                SoDongChuNhiem, SoNamThucHien, TongSoTacGia, TongSoThanhVien
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                TongSoTacGia
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                capDeTai,
+                loaiHuongDan,
                 namHoc,
                 tenDeTai,
-                maDeTai,
-                chuNhiem,
+                maSoDeTai,
                 nckhService.convertDateFormat(ngayNghiemThu),
                 khoa,
                 thanhVienString,
                 ketQua,
-                soDongChuNhiem,
-                soNamThucHien,
-                data.tongSoTacGia || 0,
-                data.tongSoThanhVien || 0
+                data.tongSoTacGia || 0
             ]
         );
 
@@ -144,7 +118,7 @@ const saveDeTaiDuAnV2 = async (req, res) => {
                 userId,
                 userName,
                 'Thêm thông tin NCKH V2',
-                `Thêm đề tài dự án "${tenDeTai}"`
+                `Thêm hướng dẫn SV NCKH "${tenDeTai}"`
             );
         } catch (logError) {
             console.error("Lỗi khi ghi log:", logError);
@@ -152,13 +126,13 @@ const saveDeTaiDuAnV2 = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Thêm đề tài, dự án thành công!",
+            message: "Thêm hướng dẫn SV NCKH thành công!",
         });
     } catch (error) {
-        console.error("Lỗi khi lưu đề tài dự án V2:", error);
+        console.error("Lỗi khi lưu hướng dẫn SV NCKH V2:", error);
         res.status(500).json({
             success: false,
-            message: "Có lỗi xảy ra khi thêm đề tài, dự án.",
+            message: "Có lỗi xảy ra khi thêm hướng dẫn SV NCKH.",
             error: error.message,
         });
     } finally {
@@ -171,21 +145,21 @@ const saveDeTaiDuAnV2 = async (req, res) => {
 // =====================================================
 
 /**
- * Lấy danh sách đề tài dự án (V2)
+ * Lấy danh sách Hướng dẫn SV NCKH (V2)
  */
-const getTableDeTaiDuAnV2 = async (req, res) => {
+const getTableHuongDanV2 = async (req, res) => {
     const { NamHoc, Khoa } = req.params;
-    console.log(`[V2] Lấy dữ liệu bảng detaiduan Năm: ${NamHoc} Khoa: ${Khoa}`);
+    console.log(`[V2] Lấy dữ liệu bảng huongdansvnckh Năm: ${NamHoc} Khoa: ${Khoa}`);
 
     let connection;
     try {
         connection = await createPoolConnection();
 
-        let query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+        let query = `SELECT * FROM huongdansvnckh WHERE NamHoc = ?`;
         let params = [NamHoc];
 
-        // Build filter clause dựa trên Khoa (lọc trong ChuNhiem và DanhSachThanhVien)
-        const { whereClause, params: khoaParams } = nckhService.buildKhoaFilterClause(Khoa, 'ChuNhiem', 'DanhSachThanhVien');
+        // Build filter clause dựa trên Khoa (chỉ có DanhSachThanhVien, không có TacGiaChinh)
+        const { whereClause, params: khoaParams } = nckhService.buildKhoaFilterClause(Khoa, 'DanhSachThanhVien', null);
         query += whereClause;
         params = params.concat(khoaParams);
 
@@ -196,7 +170,7 @@ const getTableDeTaiDuAnV2 = async (req, res) => {
 
         res.json(results);
     } catch (error) {
-        console.error("Lỗi trong hàm getTableDeTaiDuAnV2:", error);
+        console.error("Lỗi trong hàm getTableHuongDanV2:", error);
         res.status(500).json({ message: "Không thể truy xuất dữ liệu." });
     } finally {
         if (connection) connection.release();
@@ -208,9 +182,9 @@ const getTableDeTaiDuAnV2 = async (req, res) => {
 // =====================================================
 
 /**
- * Sửa thông tin Đề tài Dự án (V2)
+ * Sửa thông tin Hướng dẫn SV NCKH (V2)
  */
-const editDeTaiDuAnV2 = async (req, res) => {
+const editHuongDanV2 = async (req, res) => {
     const { ID } = req.params;
     const userId = req.session?.userId || 1;
     const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN';
@@ -228,49 +202,41 @@ const editDeTaiDuAnV2 = async (req, res) => {
         connection = await createPoolConnection();
 
         // Lấy dữ liệu cũ
-        const [oldRows] = await connection.execute(`SELECT * FROM detaiduan WHERE ID = ?`, [ID]);
+        const [oldRows] = await connection.execute(`SELECT * FROM huongdansvnckh WHERE ID = ?`, [ID]);
         if (oldRows.length === 0) {
             return res.status(404).json({ message: "Không tìm thấy bản ghi để cập nhật." });
         }
         const oldData = oldRows[0];
 
         const data = {
-            CapDeTai: req.body.CapDeTai,
+            LoaiHuongDan: req.body.LoaiHuongDan,
             TenDeTai: req.body.TenDeTai,
             MaSoDeTai: req.body.MaSoDeTai,
-            ChuNhiem: req.body.ChuNhiem,
             DanhSachThanhVien: req.body.DanhSachThanhVien,
             NgayNghiemThu: nckhService.convertDateFormat(req.body.NgayNghiemThu),
             DaoTaoDuyet: req.body.DaoTaoDuyet,
             Khoa: req.body.Khoa,
             KetQua: req.body.KetQua,
-            SoDongChuNhiem: req.body.SoDongChuNhiem || 1,
-            SoNamThucHien: req.body.SoNamThucHien || 1,
-            TongSoTacGia: req.body.TongSoTacGia || 0,
-            TongSoThanhVien: req.body.TongSoThanhVien || 0
+            TongSoTacGia: req.body.TongSoTacGia || 0
         };
 
         const updateQuery = `
-            UPDATE detaiduan 
-            SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, 
+            UPDATE huongdansvnckh 
+            SET LoaiHuongDan = ?, TenDeTai = ?, MaSoDeTai = ?, 
                 DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?,
-                SoDongChuNhiem = ?, SoNamThucHien = ?, TongSoTacGia = ?, TongSoThanhVien = ?
+                TongSoTacGia = ?
             WHERE ID = ?`;
 
         const queryParams = [
-            data.CapDeTai,
+            data.LoaiHuongDan,
             data.TenDeTai,
             data.MaSoDeTai,
-            data.ChuNhiem,
             data.DanhSachThanhVien,
             data.NgayNghiemThu,
             data.DaoTaoDuyet,
             data.Khoa,
             data.KetQua,
-            data.SoDongChuNhiem,
-            data.SoNamThucHien,
             data.TongSoTacGia,
-            data.TongSoThanhVien,
             ID
         ];
 
@@ -297,7 +263,7 @@ const editDeTaiDuAnV2 = async (req, res) => {
             message: "Cập nhật thành công!",
         });
     } catch (error) {
-        console.error("Lỗi khi cập nhật Đề tài Dự án V2:", error);
+        console.error("Lỗi khi cập nhật Hướng dẫn SV NCKH V2:", error);
         res.status(500).json({
             message: "Có lỗi xảy ra khi cập nhật.",
             error: error.message,
@@ -312,8 +278,8 @@ const editDeTaiDuAnV2 = async (req, res) => {
 // =====================================================
 
 module.exports = {
-    quyDoiSoGioDeTaiDuAnV2,
-    saveDeTaiDuAnV2,
-    getTableDeTaiDuAnV2,
-    editDeTaiDuAnV2
+    quyDoiSoGioHuongDanV2,
+    saveHuongDanV2,
+    getTableHuongDanV2,
+    editHuongDanV2
 };

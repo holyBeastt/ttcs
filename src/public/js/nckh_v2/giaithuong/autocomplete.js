@@ -1,5 +1,5 @@
 /**
- * NCKH V2 - Đề Tài Dự Án - Autocomplete Module
+ * NCKH V2 - Giải Thưởng KHCN - Autocomplete Module
  * Xử lý autocomplete và quản lý danh sách thành viên
  */
 
@@ -10,40 +10,40 @@
 // MEMBER LIST MANAGEMENT
 // =====================================================
 
-let memberList = [];
+let memberListGT = [];
 
 function getMemberList() {
-    return memberList;
+    return memberListGT;
 }
 
 function clearMemberList() {
-    memberList = [];
+    memberListGT = [];
     updateMemberListDisplay();
 }
 
 function updateMemberListDisplay() {
-    const display = document.getElementById("memberTags");
+    const display = document.getElementById("memberTagsGT");
     if (!display) return;
 
-    if (memberList.length === 0) {
+    if (memberListGT.length === 0) {
         display.innerHTML = '<span style="color: #999; font-style: italic;">Chưa có thành viên</span>';
     } else {
-        display.innerHTML = memberList.map((member, index) => `
+        display.innerHTML = memberListGT.map((member, index) => `
             <span class="member-tag">
                 ${member}
-                <button type="button" onclick="DeTaiDuAn_Autocomplete.removeMember(${index})" class="member-tag-remove">&times;</button>
+                <button type="button" onclick="GiaiThuong_Autocomplete.removeMember(${index})" class="member-tag-remove">&times;</button>
             </span>
         `).join("");
     }
 }
 
 function removeMember(index) {
-    memberList.splice(index, 1);
+    memberListGT.splice(index, 1);
     updateMemberListDisplay();
 }
 
 function addMember(member) {
-    memberList.push(member);
+    memberListGT.push(member);
     updateMemberListDisplay();
 }
 
@@ -51,37 +51,36 @@ function addMember(member) {
 // AUTOCOMPLETE SETUP
 // =====================================================
 
+function initAutocomplete() {
+    console.log("Setting up GiaiThuong autocomplete...");
+
+    setupFormAutocomplete();
+    setupMemberList();
+    setupTacGiaList();
+
+    console.log("GiaiThuong Autocomplete setup complete");
+}
+
 function setupFormAutocomplete() {
-    console.log("Setting up autocomplete...");
-    console.log("giangVienCoHuu from window:", window.giangVienCoHuu?.length || 0, "records");
+    // Tác giả chính
+    const tacGiaInput = document.getElementById("tacGiaChinhInputGT");
+    const tacGiaSuggestions = document.getElementById("tacGiaChinhGT-suggestions");
 
-    // Chủ nhiệm/Tác giả chính
-    const chuNhiemInput = document.getElementById("chuNhiemInput");
-    const chuNhiemSuggestions = document.getElementById("chuNhiem-suggestions");
-    console.log("chuNhiemInput found:", !!chuNhiemInput);
-    console.log("chuNhiemSuggestions found:", !!chuNhiemSuggestions);
-
-    if (chuNhiemInput && chuNhiemSuggestions) {
-        setupAutocompleteWithNgoai(chuNhiemInput, chuNhiemSuggestions, "chuNhiemNgoai");
+    if (tacGiaInput && tacGiaSuggestions) {
+        setupAutocompleteWithNgoai(tacGiaInput, tacGiaSuggestions, "tacGiaNgoaiGT");
     }
 
     // Thành viên
-    const thanhVienInput = document.getElementById("thanhVienInput");
-    const thanhVienSuggestions = document.getElementById("thanhVien-suggestions");
-    console.log("thanhVienInput found:", !!thanhVienInput);
-    console.log("thanhVienSuggestions found:", !!thanhVienSuggestions);
+    const thanhVienInput = document.getElementById("thanhVienInputGT");
+    const thanhVienSuggestions = document.getElementById("thanhVienGT-suggestions");
 
     if (thanhVienInput && thanhVienSuggestions) {
-        setupAutocompleteWithNgoai(thanhVienInput, thanhVienSuggestions, "thanhVienNgoai");
+        setupAutocompleteWithNgoai(thanhVienInput, thanhVienSuggestions, "thanhVienNgoaiGT");
     }
-
-    console.log("Autocomplete setup complete");
 }
 
-// Autocomplete với kiểm tra checkbox "Ngoài học viện"
 function setupAutocompleteWithNgoai(inputElement, suggestionContainer, checkboxId) {
     inputElement.addEventListener("input", () => {
-        // Kiểm tra nếu check "Ngoài học viện" thì không hiện gợi ý
         const checkbox = document.getElementById(checkboxId);
         if (checkbox && checkbox.checked) {
             suggestionContainer.innerHTML = "";
@@ -112,16 +111,15 @@ function setupAutocompleteWithNgoai(inputElement, suggestionContainer, checkboxI
             suggestionItem.className = "suggestion-item";
             suggestionItem.textContent = item.HoTen;
             suggestionItem.addEventListener("click", () => {
-                // Khi không check "Ngoài học viện", click = thêm vào danh sách luôn
-                if (checkboxId === "chuNhiemNgoai") {
-                    // Thêm vào danh sách Chủ nhiệm
-                    if (window.chuNhiemList) {
-                        window.chuNhiemList.push(item.HoTen);
-                        if (typeof updateChuNhiemDisplay === 'function') {
-                            updateChuNhiemDisplay();
+                if (checkboxId === "tacGiaNgoaiGT") {
+                    // Thêm vào danh sách Tác giả chính
+                    if (window.tacGiaListGT) {
+                        window.tacGiaListGT.push(item.HoTen);
+                        if (typeof updateTacGiaDisplayGT === 'function') {
+                            updateTacGiaDisplayGT();
                         }
                     }
-                } else if (checkboxId === "thanhVienNgoai") {
+                } else if (checkboxId === "thanhVienNgoaiGT") {
                     // Thêm vào danh sách Thành viên
                     addMember(item.HoTen);
                 }
@@ -150,10 +148,10 @@ function setupAutocompleteWithNgoai(inputElement, suggestionContainer, checkboxI
 // =====================================================
 
 function setupMemberList() {
-    const addMemberBtn = document.getElementById("addMemberBtn");
-    const thanhVienInput = document.getElementById("thanhVienInput");
-    const thanhVienDonVi = document.getElementById("thanhVienDonVi");
-    const thanhVienNgoai = document.getElementById("thanhVienNgoai");
+    const addMemberBtn = document.getElementById("addMemberBtnGT");
+    const thanhVienInput = document.getElementById("thanhVienInputGT");
+    const thanhVienDonVi = document.getElementById("thanhVienDonViGT");
+    const thanhVienNgoai = document.getElementById("thanhVienNgoaiGT");
 
     if (addMemberBtn) {
         addMemberBtn.addEventListener("click", () => {
@@ -163,7 +161,6 @@ function setupMemberList() {
 
             if (!name) return;
 
-            // Chỉ xử lý khi check "Ngoài học viện" (nút này chỉ hiện khi check)
             const member = unit ? `${name} - ${unit}` : name;
             addMember(member);
             thanhVienInput.value = "";
@@ -171,14 +168,59 @@ function setupMemberList() {
         });
     }
 
-    // Enter key to add member - chỉ cho phép khi check "Ngoài học viện"
+    // Enter key to add member
     if (thanhVienInput) {
         thanhVienInput.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
-                const isNgoai = document.getElementById("thanhVienNgoai")?.checked;
+                const isNgoai = document.getElementById("thanhVienNgoaiGT")?.checked;
                 if (isNgoai) {
-                    const addBtn = document.getElementById("addMemberBtn");
+                    const addBtn = document.getElementById("addMemberBtnGT");
+                    if (addBtn) addBtn.click();
+                }
+            }
+        });
+    }
+}
+
+// =====================================================
+// TÁC GIẢ CHÍNH LIST SETUP
+// =====================================================
+
+function setupTacGiaList() {
+    const addTacGiaBtn = document.getElementById("addTacGiaBtnGT");
+    const tacGiaInput = document.getElementById("tacGiaChinhInputGT");
+    const tacGiaDonVi = document.getElementById("tacGiaDonViGT");
+    const tacGiaNgoai = document.getElementById("tacGiaNgoaiGT");
+
+    if (addTacGiaBtn) {
+        addTacGiaBtn.addEventListener("click", () => {
+            const name = tacGiaInput.value.trim();
+            const isNgoai = tacGiaNgoai && tacGiaNgoai.checked;
+            const unit = isNgoai ? tacGiaDonVi.value.trim() : "";
+
+            if (!name) return;
+
+            const tacGia = unit ? `${name} - ${unit}` : name;
+            if (window.tacGiaListGT) {
+                window.tacGiaListGT.push(tacGia);
+                if (typeof updateTacGiaDisplayGT === 'function') {
+                    updateTacGiaDisplayGT();
+                }
+            }
+            tacGiaInput.value = "";
+            if (tacGiaDonVi) tacGiaDonVi.value = "";
+        });
+    }
+
+    // Enter key to add tác giả
+    if (tacGiaInput) {
+        tacGiaInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                const isNgoai = document.getElementById("tacGiaNgoaiGT")?.checked;
+                if (isNgoai) {
+                    const addBtn = document.getElementById("addTacGiaBtnGT");
                     if (addBtn) addBtn.click();
                 }
             }
@@ -190,9 +232,11 @@ function setupMemberList() {
 // EXPORTS
 // =====================================================
 
-window.DeTaiDuAn_Autocomplete = {
+window.GiaiThuong_Autocomplete = {
+    initAutocomplete,
     setupFormAutocomplete,
     setupMemberList,
+    setupTacGiaList,
     getMemberList,
     clearMemberList,
     addMember,

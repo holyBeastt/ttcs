@@ -3,6 +3,9 @@
  * Xử lý form nhập liệu và submit
  */
 
+(function() {
+    'use strict';
+
 // =====================================================
 // LOAD CAP DE TAI OPTIONS
 // =====================================================
@@ -141,3 +144,5 @@ window.DeTaiDuAn_Form = {
     setupFormSubmit,
     submitForm
 };
+
+})(); // End of IIFE

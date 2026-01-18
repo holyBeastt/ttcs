@@ -204,6 +204,12 @@ const getDataV2 = async (req, res) => {
             case "bangsangchevagiaithuong":
                 query = `SELECT DISTINCT BangSangCheGiaiThuong, SoGio FROM quydinhsogionckh WHERE MaBang = ? AND BangSangCheGiaiThuong IS NOT NULL`;
                 break;
+            case "dexuatnghiencuu":
+                query = `SELECT DISTINCT CapDeXuat, SoGio FROM quydinhsogionckh WHERE MaBang = ? AND CapDeXuat IS NOT NULL`;
+                break;
+            case "thanhvienhoidong":
+                query = `SELECT DISTINCT CapDeTaiDuAn, SoGio FROM quydinhsogionckh WHERE MaBang = ? AND CapDeTaiDuAn IS NOT NULL`;
+                break;
             default:
                 query = `SELECT * FROM quydinhsogionckh WHERE MaBang = ?`;
         }
@@ -242,10 +248,19 @@ module.exports = {
 
         // Import dynamic để tránh circular dependency
         const deTaiDuAnController = require('./deTaiDuAn.controller');
+        const sangKienController = require('./sangKien.controller');
+        const deXuatController = require('./deXuatNghienCuu.controller');
+        const thanhVienHoiDongController = require('./thanhVienHoiDong.controller');
 
         switch (MaBang) {
             case 'detaiduan':
                 return deTaiDuAnController.editDeTaiDuAnV2(req, res);
+            case 'sangkien':
+                return sangKienController.editSangKienV2(req, res);
+            case 'dexuatnghiencuu':
+                return deXuatController.editDeXuatV2(req, res);
+            case 'thanhvienhoidong':
+                return thanhVienHoiDongController.editThanhVienHoiDongV2(req, res);
             default:
                 return res.status(400).json({
                     success: false,

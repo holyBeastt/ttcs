@@ -1,5 +1,5 @@
 /**
- * NCKH V2 - Đề Tài Dự Án - Autocomplete Module
+ * NCKH V2 - Sáng Kiến - Autocomplete Module
  * Xử lý autocomplete và quản lý danh sách thành viên
  */
 
@@ -10,40 +10,40 @@
 // MEMBER LIST MANAGEMENT
 // =====================================================
 
-let memberList = [];
+let memberListSK = [];
 
 function getMemberList() {
-    return memberList;
+    return memberListSK;
 }
 
 function clearMemberList() {
-    memberList = [];
+    memberListSK = [];
     updateMemberListDisplay();
 }
 
 function updateMemberListDisplay() {
-    const display = document.getElementById("memberTags");
+    const display = document.getElementById("memberTagsSK");
     if (!display) return;
 
-    if (memberList.length === 0) {
+    if (memberListSK.length === 0) {
         display.innerHTML = '<span style="color: #999; font-style: italic;">Chưa có thành viên</span>';
     } else {
-        display.innerHTML = memberList.map((member, index) => `
+        display.innerHTML = memberListSK.map((member, index) => `
             <span class="member-tag">
                 ${member}
-                <button type="button" onclick="DeTaiDuAn_Autocomplete.removeMember(${index})" class="member-tag-remove">&times;</button>
+                <button type="button" onclick="SangKien_Autocomplete.removeMember(${index})" class="member-tag-remove">&times;</button>
             </span>
         `).join("");
     }
 }
 
 function removeMember(index) {
-    memberList.splice(index, 1);
+    memberListSK.splice(index, 1);
     updateMemberListDisplay();
 }
 
 function addMember(member) {
-    memberList.push(member);
+    memberListSK.push(member);
     updateMemberListDisplay();
 }
 
@@ -52,36 +52,29 @@ function addMember(member) {
 // =====================================================
 
 function setupFormAutocomplete() {
-    console.log("Setting up autocomplete...");
-    console.log("giangVienCoHuu from window:", window.giangVienCoHuu?.length || 0, "records");
+    console.log("Setting up SangKien autocomplete...");
 
-    // Chủ nhiệm/Tác giả chính
-    const chuNhiemInput = document.getElementById("chuNhiemInput");
-    const chuNhiemSuggestions = document.getElementById("chuNhiem-suggestions");
-    console.log("chuNhiemInput found:", !!chuNhiemInput);
-    console.log("chuNhiemSuggestions found:", !!chuNhiemSuggestions);
+    // Tác giả chính
+    const tacGiaInput = document.getElementById("tacGiaChinhInput");
+    const tacGiaSuggestions = document.getElementById("tacGiaChinh-suggestions");
 
-    if (chuNhiemInput && chuNhiemSuggestions) {
-        setupAutocompleteWithNgoai(chuNhiemInput, chuNhiemSuggestions, "chuNhiemNgoai");
+    if (tacGiaInput && tacGiaSuggestions) {
+        setupAutocompleteWithNgoai(tacGiaInput, tacGiaSuggestions, "tacGiaNgoaiSK");
     }
 
     // Thành viên
-    const thanhVienInput = document.getElementById("thanhVienInput");
-    const thanhVienSuggestions = document.getElementById("thanhVien-suggestions");
-    console.log("thanhVienInput found:", !!thanhVienInput);
-    console.log("thanhVienSuggestions found:", !!thanhVienSuggestions);
+    const thanhVienInput = document.getElementById("thanhVienInputSK");
+    const thanhVienSuggestions = document.getElementById("thanhVienSK-suggestions");
 
     if (thanhVienInput && thanhVienSuggestions) {
-        setupAutocompleteWithNgoai(thanhVienInput, thanhVienSuggestions, "thanhVienNgoai");
+        setupAutocompleteWithNgoai(thanhVienInput, thanhVienSuggestions, "thanhVienNgoaiSK");
     }
 
-    console.log("Autocomplete setup complete");
+    console.log("SangKien Autocomplete setup complete");
 }
 
-// Autocomplete với kiểm tra checkbox "Ngoài học viện"
 function setupAutocompleteWithNgoai(inputElement, suggestionContainer, checkboxId) {
     inputElement.addEventListener("input", () => {
-        // Kiểm tra nếu check "Ngoài học viện" thì không hiện gợi ý
         const checkbox = document.getElementById(checkboxId);
         if (checkbox && checkbox.checked) {
             suggestionContainer.innerHTML = "";
@@ -112,16 +105,15 @@ function setupAutocompleteWithNgoai(inputElement, suggestionContainer, checkboxI
             suggestionItem.className = "suggestion-item";
             suggestionItem.textContent = item.HoTen;
             suggestionItem.addEventListener("click", () => {
-                // Khi không check "Ngoài học viện", click = thêm vào danh sách luôn
-                if (checkboxId === "chuNhiemNgoai") {
-                    // Thêm vào danh sách Chủ nhiệm
-                    if (window.chuNhiemList) {
-                        window.chuNhiemList.push(item.HoTen);
-                        if (typeof updateChuNhiemDisplay === 'function') {
-                            updateChuNhiemDisplay();
+                if (checkboxId === "tacGiaNgoaiSK") {
+                    // Thêm vào danh sách Tác giả chính
+                    if (window.tacGiaListSK) {
+                        window.tacGiaListSK.push(item.HoTen);
+                        if (typeof updateTacGiaDisplaySK === 'function') {
+                            updateTacGiaDisplaySK();
                         }
                     }
-                } else if (checkboxId === "thanhVienNgoai") {
+                } else if (checkboxId === "thanhVienNgoaiSK") {
                     // Thêm vào danh sách Thành viên
                     addMember(item.HoTen);
                 }
@@ -150,10 +142,10 @@ function setupAutocompleteWithNgoai(inputElement, suggestionContainer, checkboxI
 // =====================================================
 
 function setupMemberList() {
-    const addMemberBtn = document.getElementById("addMemberBtn");
-    const thanhVienInput = document.getElementById("thanhVienInput");
-    const thanhVienDonVi = document.getElementById("thanhVienDonVi");
-    const thanhVienNgoai = document.getElementById("thanhVienNgoai");
+    const addMemberBtn = document.getElementById("addMemberBtnSK");
+    const thanhVienInput = document.getElementById("thanhVienInputSK");
+    const thanhVienDonVi = document.getElementById("thanhVienDonViSK");
+    const thanhVienNgoai = document.getElementById("thanhVienNgoaiSK");
 
     if (addMemberBtn) {
         addMemberBtn.addEventListener("click", () => {
@@ -163,7 +155,6 @@ function setupMemberList() {
 
             if (!name) return;
 
-            // Chỉ xử lý khi check "Ngoài học viện" (nút này chỉ hiện khi check)
             const member = unit ? `${name} - ${unit}` : name;
             addMember(member);
             thanhVienInput.value = "";
@@ -171,14 +162,14 @@ function setupMemberList() {
         });
     }
 
-    // Enter key to add member - chỉ cho phép khi check "Ngoài học viện"
+    // Enter key to add member
     if (thanhVienInput) {
         thanhVienInput.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
-                const isNgoai = document.getElementById("thanhVienNgoai")?.checked;
+                const isNgoai = document.getElementById("thanhVienNgoaiSK")?.checked;
                 if (isNgoai) {
-                    const addBtn = document.getElementById("addMemberBtn");
+                    const addBtn = document.getElementById("addMemberBtnSK");
                     if (addBtn) addBtn.click();
                 }
             }
@@ -190,7 +181,7 @@ function setupMemberList() {
 // EXPORTS
 // =====================================================
 
-window.DeTaiDuAn_Autocomplete = {
+window.SangKien_Autocomplete = {
     setupFormAutocomplete,
     setupMemberList,
     getMemberList,

@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Setup member list
     DeTaiDuAn_Autocomplete.setupMemberList();
 
+    // Ẩn tab "Nhập dữ liệu" nếu không có quyền
+    NCKH_V2_Utils.hideFormTabIfViewOnly("form-panel");
+
     // Setup load data button
     const loadDataBtn = document.getElementById("loadDataBtn");
     if (loadDataBtn) {

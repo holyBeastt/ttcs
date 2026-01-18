@@ -1,5 +1,5 @@
 /**
- * NCKH V2 - Đề Tài Dự Án - Grid Module
+ * NCKH V2 - Đề Xuất Nghiên Cứu - Grid Module
  * Xử lý AG-Grid table rendering và các thao tác trên grid
  */
 
@@ -9,24 +9,29 @@
     // =====================================================
     // MODULE VARIABLES
     // =====================================================
-    let gridApi = null;
-    let gridOptions = null;
-    let localData = [];
-    let currentYear = "";
+    let gridApiDX = null;
+    let gridOptionsDX = null;
+    let localDataDX = [];
+    let currentYearDX = "";
 
     // =====================================================
     // LOAD TABLE DATA
     // =====================================================
 
     async function loadTableData() {
-        const namHoc = document.getElementById("namHocXem").value;
-        currentYear = namHoc;
+        const namHocSelect = document.getElementById("namHocXemDX");
+        if (!namHocSelect) {
+            console.error("namHocXemDX not found");
+            return;
+        }
+
+        const namHoc = namHocSelect.value;
+        currentYearDX = namHoc;
 
         // Xác định khoa dựa trên quyền
         const MaPhongBan = localStorage.getItem("MaPhongBan");
         let khoa = "ALL";
 
-        // Kiểm tra APP_DEPARTMENTS có tồn tại không
         const APP_DEPARTMENTS = window.APP_DEPARTMENTS || {};
         const daoTaoCode = APP_DEPARTMENTS.daoTao || "DT";
         const ncHtptCode = APP_DEPARTMENTS.ncHtpt || "NCKHHTQT";
@@ -35,39 +40,33 @@
             khoa = MaPhongBan;
         }
 
-        // Encode URL parameters to handle spaces and special characters
         const encodedNamHoc = encodeURIComponent(namHoc);
         const encodedKhoa = encodeURIComponent(khoa);
 
-        console.log("Loading table data...");
-        console.log("Năm học:", namHoc);
-        console.log("Khoa:", khoa);
-        console.log("API URL:", `/v2/de-tai-du-an/${encodedNamHoc}/${encodedKhoa}`);
+        console.log("Loading DeXuat table data...");
+        console.log("API URL:", `/v2/de-xuat-nghien-cuu/${encodedNamHoc}/${encodedKhoa}`);
 
         try {
-            if (gridApi) gridApi.showLoadingOverlay();
+            if (gridApiDX) gridApiDX.showLoadingOverlay();
 
-            const response = await fetch(`/v2/de-tai-du-an/${encodedNamHoc}/${encodedKhoa}`);
-            console.log("Response status:", response.status);
-
+            const response = await fetch(`/v2/de-xuat-nghien-cuu/${encodedNamHoc}/${encodedKhoa}`);
             const data = await response.json();
-            console.log("Data received:", data);
-            console.log("Number of records:", data.length);
+            console.log("DeXuat data received:", data.length, "records");
 
-            localData = data;
+            localDataDX = data;
 
-            if (gridApi) {
-                gridApi.setRowData(localData);
-                if (localData.length === 0) {
-                    gridApi.showNoRowsOverlay();
+            if (gridApiDX) {
+                gridApiDX.setRowData(localDataDX);
+                if (localDataDX.length === 0) {
+                    gridApiDX.showNoRowsOverlay();
                 } else {
-                    gridApi.hideOverlay();
+                    gridApiDX.hideOverlay();
                 }
             } else {
                 renderTable();
             }
         } catch (error) {
-            console.error("Error loading table data:", error);
+            console.error("Error loading DeXuat table data:", error);
             NCKH_V2_Utils.showErrorToast("Lỗi khi tải dữ liệu");
         }
     }
@@ -80,15 +79,8 @@
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-        // Kiểm tra APP_DEPARTMENTS và APP_ROLES có tồn tại không
         const APP_DEPARTMENTS = window.APP_DEPARTMENTS || {};
         const APP_ROLES = window.APP_ROLES || {};
-
-        console.log("=== DEBUG PERMISSIONS ===");
-        console.log("User Role:", role);
-        console.log("MaPhongBan:", MaPhongBan);
-        console.log("APP_DEPARTMENTS:", APP_DEPARTMENTS);
-        console.log("APP_ROLES:", APP_ROLES);
 
         const ncHtptCode = APP_DEPARTMENTS.ncHtpt || "NCKHHTQT";
         const daoTaoCode = APP_DEPARTMENTS.daoTao || "DT";
@@ -96,15 +88,6 @@
         const lanhDaoPhongRole = APP_ROLES.lanhDao_phong || "lanh_dao_phong";
         const gvCnbmKhoaRole = APP_ROLES.gv_cnbm_khoa || "gv_cnbm_khoa";
         const lanhDaoKhoaRole = APP_ROLES.lanhDao_khoa || "lanh_dao_khoa";
-        const gvRole = APP_ROLES.gv || "gv";
-        const thuongRole = APP_ROLES.thuong || "thuong";
-
-        console.log("ncHtptCode:", ncHtptCode);
-        console.log("daoTaoCode:", daoTaoCode);
-        console.log("lanhDaoPhongRole:", lanhDaoPhongRole);
-        console.log("role === lanhDaoPhongRole:", role === lanhDaoPhongRole);
-        console.log("MaPhongBan === ncHtptCode:", MaPhongBan === ncHtptCode);
-        console.log("MaPhongBan === daoTaoCode:", MaPhongBan === daoTaoCode);
 
         // Quyền duyệt: troLy_phong hoặc lanhDao_phong thuộc phòng NC&HTPT hoặc Đào Tạo
         const canApprove = (role === troLyPhongRole || role === lanhDaoPhongRole) &&
@@ -118,16 +101,6 @@
         // Quyền xóa: giống canEdit
         const canDelete = canEdit;
 
-        // User chỉ xem
-        const isViewOnly = !canEdit;
-
-        console.log("=== PERMISSIONS RESULT ===");
-        console.log("canApprove:", canApprove);
-        console.log("canEdit:", canEdit);
-        console.log("canDelete:", canDelete);
-        console.log("isViewOnly:", isViewOnly);
-        console.log("========================");
-
         const columnDefs = [
             {
                 headerName: "STT",
@@ -137,31 +110,30 @@
                 cellStyle: { textAlign: "center", fontWeight: "bold" }
             },
             {
-                field: "CapDeTai",
-                headerName: "Cấp Đề Tài",
+                field: "CapDeXuat",
+                headerName: "Cấp Đề Xuất",
                 flex: 1,
                 minWidth: 150,
                 editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
             },
             {
-                field: "TenDeTai",
-                headerName: "Tên Đề Tài",
+                field: "TenDeXuat",
+                headerName: "Tên Đề Xuất",
                 flex: 2,
                 minWidth: 250,
                 editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
             },
             {
-                field: "ChuNhiem",
-                headerName: "Chủ Nhiệm",
-                flex: 1.2,
-                minWidth: 150,
+                field: "MaSoDeXuat",
+                headerName: "Mã Số",
+                width: 120,
                 editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
             },
             {
                 field: "DanhSachThanhVien",
                 headerName: "Thành Viên",
-                flex: 1.5,
-                minWidth: 200,
+                flex: 2,
+                minWidth: 300,
                 editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
             },
             {
@@ -175,21 +147,20 @@
                     icon.style.color = "#0dcaf0";
                     icon.style.fontSize = "16px";
                     icon.title = "Xem chi tiết";
-                    icon.onclick = () => DeTaiDuAn_Modal.showDetailModal(params.data);
+                    icon.onclick = () => DeXuat_Modal.showDetailModal(params.data);
                     return icon;
                 },
                 cellStyle: { textAlign: "center" }
             }
         ];
 
-        // Cột Xóa - chỉ hiện nếu có quyền xóa
+        // Cột Xóa
         if (canDelete) {
             columnDefs.push({
                 headerName: "Xóa",
                 width: 60,
                 editable: false,
                 cellRenderer: (params) => {
-                    // Không hiện icon xóa nếu đã duyệt
                     if (params.data.DaoTaoDuyet === 1) return "";
 
                     const icon = document.createElement("i");
@@ -205,7 +176,7 @@
             });
         }
 
-        // Cột Duyệt - chỉ hiện nếu có quyền duyệt
+        // Cột Duyệt
         if (canApprove) {
             columnDefs.push({
                 field: "DaoTaoDuyet",
@@ -235,9 +206,9 @@
             });
         }
 
-        gridOptions = {
+        gridOptionsDX = {
             columnDefs: columnDefs,
-            rowData: localData,
+            rowData: localDataDX,
             defaultColDef: {
                 resizable: true,
                 sortable: true,
@@ -257,9 +228,9 @@
             }
         };
 
-        const gridDiv = document.getElementById("table-container");
+        const gridDiv = document.getElementById("table-container-dx");
         if (!gridDiv) {
-            console.error("table-container not found!");
+            console.error("table-container-dx not found!");
             return;
         }
 
@@ -267,25 +238,16 @@
         gridDiv.className = "ag-theme-alpine";
         gridDiv.style.height = "550px";
 
-        console.log("Creating AG-Grid with", localData.length, "rows");
-
-        // AG-Grid Community v31+ uses createGrid instead of new agGrid.Grid
         if (typeof agGrid.createGrid === 'function') {
-            gridApi = agGrid.createGrid(gridDiv, gridOptions);
-            console.log("Grid created using createGrid()");
+            gridApiDX = agGrid.createGrid(gridDiv, gridOptionsDX);
         } else {
-            new agGrid.Grid(gridDiv, gridOptions);
-            gridApi = gridOptions.api;
-            console.log("Grid created using new agGrid.Grid()");
+            new agGrid.Grid(gridDiv, gridOptionsDX);
+            gridApiDX = gridOptionsDX.api;
         }
 
-        if (localData.length === 0) {
-            if (gridApi && gridApi.showNoRowsOverlay) {
-                gridApi.showNoRowsOverlay();
-            }
+        if (localDataDX.length === 0 && gridApiDX?.showNoRowsOverlay) {
+            gridApiDX.showNoRowsOverlay();
         }
-
-        console.log("Grid rendering complete. gridApi:", !!gridApi);
     }
 
     // =====================================================
@@ -298,12 +260,12 @@
         if (newValue === oldValue) return;
 
         try {
-            const response = await fetch(`/v2/nckh/edit/${data.ID}/detaiduan`, {
+            const response = await fetch(`/v2/de-xuat-nghien-cuu/edit/${data.ID}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...data,
-                    namHoc: currentYear
+                    namHoc: currentYearDX
                 })
             });
 
@@ -311,7 +273,6 @@
 
             if (result.success) {
                 NCKH_V2_Utils.showSuccessToast(result.message);
-                // Refresh data
                 loadTableData();
             } else {
                 NCKH_V2_Utils.showErrorToast(result.message);
@@ -337,7 +298,7 @@
         if (!result.isConfirmed) return;
 
         try {
-            const response = await fetch(`/v2/nckh/delete/${id}/${currentYear}/detaiduan`, {
+            const response = await fetch(`/v2/nckh/delete/${id}/${currentYearDX}/dexuatnghiencuu`, {
                 method: "POST"
             });
 
@@ -357,11 +318,9 @@
 
     async function toggleApproval(id, newStatus, api, node) {
         try {
-            const response = await fetch(`/v2/nckh/update/${id}/${currentYear}/detaiduan`, {
+            const response = await fetch(`/v2/nckh/update/${id}/${currentYearDX}/dexuatnghiencuu`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     field: "DaoTaoDuyet",
                     value: newStatus ? 1 : 0
@@ -372,7 +331,6 @@
 
             if (data.success) {
                 NCKH_V2_Utils.showSuccessToast(newStatus ? "Đã duyệt" : "Đã bỏ duyệt");
-                // Update node data and refresh row
                 node.data.DaoTaoDuyet = newStatus ? 1 : 0;
                 api.refreshCells({ rowNodes: [node], force: true });
             } else {
@@ -388,12 +346,12 @@
     // EXPORTS
     // =====================================================
 
-    window.DeTaiDuAn_Grid = {
+    window.DeXuat_Grid = {
         loadTableData,
         renderTable,
         deleteRow,
         toggleApproval,
-        getCurrentYear: () => currentYear
+        getCurrentYear: () => currentYearDX
     };
 
 })(); // End of IIFE

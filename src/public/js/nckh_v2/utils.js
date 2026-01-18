@@ -245,6 +245,59 @@ function validateForm(formData, requiredFields) {
     };
 }
 
+// =====================================================
+// PERMISSION HELPERS
+// =====================================================
+
+/**
+ * Kiểm tra xem user có quyền nhập dữ liệu hay không
+ * @returns {boolean} true nếu có quyền nhập liệu
+ */
+function checkCanInputData() {
+    const role = localStorage.getItem("userRole");
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+    const APP_DEPARTMENTS = window.APP_DEPARTMENTS || {};
+    const APP_ROLES = window.APP_ROLES || {};
+
+    const ncHtptCode = APP_DEPARTMENTS.ncHtpt || "NCKHHTQT";
+    const daoTaoCode = APP_DEPARTMENTS.daoTao || "DT";
+    const troLyPhongRole = APP_ROLES.troLy_phong || "tro_ly_phong";
+    const lanhDaoPhongRole = APP_ROLES.lanhDao_phong || "lanh_dao_phong";
+    const gvCnbmKhoaRole = APP_ROLES.gv_cnbm_khoa || "gv_cnbm_khoa";
+    const lanhDaoKhoaRole = APP_ROLES.lanhDao_khoa || "lanh_dao_khoa";
+
+    // Quyền nhập liệu: 
+    // 1. troLy_phong hoặc lanhDao_phong thuộc DAOTAO hoặc NC&HTPT
+    // 2. gv_cnbm_khoa (bất kỳ khoa)
+    // 3. lanhDao_khoa (bất kỳ khoa)
+    const canApprove = (role === troLyPhongRole || role === lanhDaoPhongRole) &&
+        (MaPhongBan === ncHtptCode || MaPhongBan === daoTaoCode);
+
+    const canInputData = canApprove ||
+        role === gvCnbmKhoaRole ||
+        role === lanhDaoKhoaRole;
+
+    return canInputData;
+}
+
+/**
+ * Ẩn tab "Nhập dữ liệu" nếu user là view-only
+ * @param {string} formPanelId - ID của form panel (e.g., "form-panel", "form-panel-bb")
+ */
+function hideFormTabIfViewOnly(formPanelId) {
+    const canInputData = checkCanInputData();
+
+    if (!canInputData) {
+        // Tìm button sub-tab-btn có data-panel tương ứng
+        const formTabBtn = document.querySelector(`.sub-tab-btn[data-panel="${formPanelId}"]`);
+        if (formTabBtn) {
+            formTabBtn.style.display = 'none';
+            console.log(`[Permission] Hidden form tab for panel: ${formPanelId}`);
+        }
+    }
+}
+
 // Export for use in other files
 window.NCKH_V2_Utils = {
     quyDoiSoTietV2,
@@ -256,5 +309,7 @@ window.NCKH_V2_Utils = {
     setupAutocomplete,
     showSuccessToast,
     showErrorToast,
-    validateForm
+    validateForm,
+    checkCanInputData,
+    hideFormTabIfViewOnly
 };
