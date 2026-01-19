@@ -115,14 +115,13 @@
 
         <div class="col-md-4">
           <label for="khoa" class="form-label">Khoa *</label>
+          <select class="form-select" id="khoa" name="khoa" required>
+            <option value="">-- Chọn khoa --</option>
+          </select>
         </div>
 
         <div class="col-md-2 d-flex align-items-end">
-          <button
-            type="submit"
-            class="btn w-100"
-            style="margin-bottom: 0 !important;"
-          >
+          <button type="submit" class="btn w-100" style="margin-bottom: 0 !important;">
             Thêm mới
           </button>
         </div>
@@ -149,6 +148,33 @@
 
     <script>
       let gridApi;
+      let khoaList = []; // Danh sách khoa từ API
+      let khoaMap = {}; // Map ID -> Tên khoa
+
+      // Load danh sách khoa từ API
+      async function loadKhoaList() {
+        try {
+          const response = await fetch('/api/shared/phong-ban-info');
+          const data = await response.json();
+          khoaList = data;
+
+          // Tạo map để tra cứu nhanh
+          khoaList.forEach(khoa => {
+            khoaMap[khoa.id] = khoa.TenPhongBan;
+          });
+
+          // Populate select dropdown
+          const khoaSelect = document.getElementById('khoa');
+          khoaList.forEach(khoa => {
+            const option = document.createElement('option');
+            option.value = khoa.MaPhongBan;
+            option.textContent = khoa.TenPhongBan;
+            khoaSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error('Error loading khoa list:', error);
+        }
+      }
 
       // Column Definitions
       const columnDefs = [
@@ -188,11 +214,20 @@
         },
         {
           field: "khoa",
-          headerName: "Mã Khoa",
+          headerName: "Khoa",
           flex: 1,
-          minWidth: 150,
+          minWidth: 200,
           editable: true,
-          cellEditor: "agTextCellEditor",
+          cellEditor: "agSelectCellEditor",
+          cellEditorParams: {
+            values: [] // Sẽ được populate sau khi load data
+          },
+          valueFormatter: (params) => {
+            // Hiển thị tên khoa thay vì mã
+            console.log(params.value);
+            console.log(khoaMap);
+            return khoaMap[params.value] || params.value;
+          },
           cellStyle: {
             display: "flex",
             alignItems: "center",
@@ -255,7 +290,16 @@
       };
 
       // Initialize Grid on page load
-      document.addEventListener('DOMContentLoaded', function () {
+      document.addEventListener('DOMContentLoaded', async function () {
+        // Load khoa list first
+        await loadKhoaList();
+
+        // Update column editor params with khoa list
+        const khoaColumn = columnDefs.find(col => col.field === 'khoa');
+        if (khoaColumn) {
+          khoaColumn.cellEditorParams.values = khoaList.map(k => k.MaPhongBan);
+        }
+
         const gridDiv = document.getElementById('grid-container');
         new agGrid.Grid(gridDiv, gridOptions);
 
@@ -326,7 +370,7 @@
         e.preventDefault();
 
         const vietTat = document.getElementById('viet_tat').value.toUpperCase().trim();
-        const khoa = parseInt(document.getElementById('khoa').value);
+        const khoa = document.getElementById('khoa').value;
 
         if (!vietTat || !khoa) {
           Swal.fire('Lỗi', 'Vui lòng điền đầy đủ thông tin', 'warning');
