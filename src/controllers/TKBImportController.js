@@ -33,6 +33,38 @@ function getHeDaoTao(classType, heDaoTaoArr) {
   };
 }
 
+/**
+ * Tự động tìm dòng header trong Excel sheet
+ * @param {Object} sheet - XLSX sheet object
+ * @returns {number} Index của dòng header (0-indexed)
+ */
+function findHeaderRow(sheet) {
+  const range = XLSX.utils.decode_range(sheet['!ref']);
+  const requiredColumns = ['TT', 'Số TC', 'Lớp học phần', 'Giáo Viên'];
+
+  // Chỉ tìm trong 10 dòng đầu tiên
+  for (let row = 0; row <= Math.min(range.e.r, 10); row++) {
+    const rowData = XLSX.utils.sheet_to_json(sheet, {
+      header: 1,
+      range: row
+    })[0] || [];
+
+    const rowText = rowData.map(cell => (cell || '').toString().trim());
+
+    // Kiểm tra có chứa ít nhất 3/4 cột bắt buộc
+    const matchCount = requiredColumns.filter(col =>
+      rowText.some(cell => cell.includes(col))
+    ).length;
+
+    if (matchCount >= 3) {
+      console.log(`✅ Tìm thấy header tại dòng ${row + 1} (Sheet: ${sheet['!ref']})`);
+      return row;
+    }
+  }
+
+  console.warn('⚠️ Không tìm thấy header, sử dụng mặc định dòng 4');
+  return 3; // Mặc định dòng 4 (0-indexed = 3)
+}
 
 const importExcelTKB = async (req, res) => {
   const semester = JSON.parse(req.body.semester);
@@ -72,18 +104,22 @@ const importExcelTKB = async (req, res) => {
     workbook.SheetNames.forEach((sheetName) => {
       const sheet = workbook.Sheets[sheetName];
 
-      // Lấy hàng tiêu đề (row 4 trong file Excel)
+      // 🔥 Tự động phát hiện dòng header
+      const headerRowIndex = findHeaderRow(sheet);
+      const dataStartIndex = headerRowIndex + 1;
+
+      // Lấy hàng tiêu đề động
       const headerRow = XLSX.utils.sheet_to_json(sheet, {
         header: 1,
-        range: 3,
+        range: headerRowIndex,
       })[0] || [];
 
       const validHeaders = headerRow.map((h) => (h || "").toString().trim());
 
-      // Đọc dữ liệu, luôn đọc TEXT
+      // Đọc dữ liệu từ dòng sau header, luôn đọc TEXT
       const rawRows = XLSX.utils.sheet_to_json(sheet, {
         header: validHeaders,
-        range: 4,
+        range: dataStartIndex,
         defval: "",
         raw: false,          // GIỮ TEXT, KHÔNG CHO LẤY SERIAL
         cellText: true,      // LUÔN LẤY `.w` thay vì `.v`
@@ -93,7 +129,8 @@ const importExcelTKB = async (req, res) => {
       const range = XLSX.utils.decode_range(sheet["!ref"]);
 
       rawRows.forEach((row, rowIndex) => {
-        let realRowNumber = rowIndex + 5;  // vì bắt đầu đọc từ dòng 5
+        // Tính số dòng thực tế dựa trên vị trí header động
+        let realRowNumber = dataStartIndex + rowIndex + 1;  // +1 vì 1-indexed trong Excel
         for (let col = 0; col < validHeaders.length; col++) {
           const colLetter = XLSX.utils.encode_col(col);
           const cellAddress = `${colLetter}${realRowNumber}`;
@@ -179,6 +216,7 @@ const importExcelTKB = async (req, res) => {
         // Nếu là Học viện Kỹ thuật mật mã (hvktmm), map theo course_code
         const courseCode = (newRow.course_code || "").trim().toUpperCase();
         const firstChar = courseCode.charAt(0);
+
         newRow.major = majorMap[firstChar] || "unknown";
       }
 
