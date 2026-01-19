@@ -1193,6 +1193,16 @@
                     width: "auto", // Tự động điều chỉnh chiều rộng
                     padding: "20px", // Giữ khoảng cách cho nội dung
                   });
+
+                  // Nếu xóa thành công, reset status daluu tkb
+                  await fetch("api/v1/moi-giang/reset-publish-status-tkb", {
+                    // Đường dẫn tới API của bạn
+                    method: "POST", // Phương thức HTTP
+                    headers: {
+                      "Content-Type": "application/json", // Định dạng dữ liệu
+                    },
+                    body: JSON.stringify(body), // Gửi Khoa trong body
+                  });
                   // location.reload();
                 } else {
                   const errorData = await response.json(); // Lấy thông tin lỗi

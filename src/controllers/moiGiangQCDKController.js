@@ -30,7 +30,7 @@ const formatDateForDB = (dateValue) => {
 
   try {
     let date;
-    
+
     // Nếu là ISO string (có chứa T hoặc Z)
     if (typeof dateValue === 'string' && (dateValue.includes('T') || dateValue.includes('Z'))) {
       date = new Date(dateValue);
@@ -59,7 +59,7 @@ const formatDateForDB = (dateValue) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -121,15 +121,18 @@ const getTableTam = async (req, res) => {
   }
 };
 
-const updateDaLuuTKB = async (khoa, dot, ki, nam) => {
+const resetPublishStatusTKB = async (req, res) => {
+  const { Khoa, Dot, Ki, Nam } = req.body;
   try {
-    if (khoa !== "ALL") {
+    if (Khoa !== "ALL") {
       const updateQuery = `UPDATE course_schedule_details SET da_luu = 0 WHERE major = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
-      await pool.query(updateQuery, [khoa, dot, ki, nam]);
+      await pool.query(updateQuery, [Khoa, Dot, Ki, Nam]);
     } else {
       const updateQuery = `UPDATE course_schedule_details SET da_luu = 0 WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
-      await pool.query(updateQuery, [dot, ki, nam]);
+      await pool.query(updateQuery, [Dot, Ki, Nam]);
     }
+
+    console.log("Đã cập nhật trạng thái đã lưu TKB thành công.");
   } catch (error) {
     console.error("Lỗi khi cập nhật trạng thái đã lưu TKB:", error);
   }
@@ -166,7 +169,6 @@ const deleteTableTam = async (req, res) => {
 
       // Kiểm tra xem có bản ghi nào bị xóa không
       if (results.affectedRows > 0) {
-        updateDaLuuTKB(Khoa, Dot, Ki, Nam);
 
         return res.json({ message: "Xóa thành công dữ liệu." });
       } else {
@@ -181,7 +183,6 @@ const deleteTableTam = async (req, res) => {
 
       // Kiểm tra xem có bản ghi nào bị xóa không
       if (results.affectedRows > 0) {
-        updateDaLuuTKB(Khoa, Dot, Ki, Nam);
 
         return res.json({
           success: "true",
@@ -2775,4 +2776,5 @@ module.exports = {
   editStudentQuanity,
   exportToExcel_HDDK,
   exportToExcelQC,
+  resetPublishStatusTKB,
 };
