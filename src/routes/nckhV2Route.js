@@ -7,6 +7,7 @@
 const express = require("express");
 const router = express.Router();
 const nckhV2 = require("../controllers/nckh_v2");
+const tongHopController = require("../controllers/nckh_v2/tongHop.controller");
 
 // =====================================================
 // RENDER VIEWS
@@ -104,5 +105,11 @@ router.post("/nckh/delete/:ID/:namHoc/:MaBang", nckhV2.deleteNckhV2);
 // =====================================================
 router.get("/giang-vien-co-huu", nckhV2.getTeacherV2);
 router.get("/data/:MaBang", nckhV2.getDataV2);
+
+// =====================================================
+// TỔNG HỢP SỐ TIẾT DỰ KIẾN
+// =====================================================
+router.get("/tonghopsotiet/dukien", tongHopController.getTongHopSoTietDuKienV2);
+router.post("/tonghopsotiet/dukien/:NamHoc", tongHopController.tongHopSoTietDuKienV2);
 
 module.exports = router;
