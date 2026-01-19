@@ -1,7 +1,7 @@
 <script>
   // gắn roles, departments từ server
-  window.APP_ROLES = <%- JSON.stringify(APP_ROLES) %>;
-  window.APP_DEPARTMENTS = <%- JSON.stringify(APP_DEPARTMENTS) %>;
+  window.APP_ROLES = <% - JSON.stringify(APP_ROLES) %>;
+  window.APP_DEPARTMENTS = <% - JSON.stringify(APP_DEPARTMENTS) %>;
 
   var APP_ROLES = window.APP_ROLES;
   var APP_DEPARTMENTS = window.APP_DEPARTMENTS;
@@ -224,9 +224,9 @@
                 aria-expanded="false">
                 Nghiên Cứu Khoa Học
               </a>
-              <div id="nckhNav" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
-                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+              <div id="nckhNav2" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <!-- <a class="nav-link" href="/detaiduan">Đề tài và dự án</a> -->
+                <!-- <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a> -->
                 <!-- <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a> -->
                 <!-- <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a> -->
 
@@ -236,7 +236,8 @@
                 <!-- <a class="nav-link" id="" href="/nhiemvukhoahoccongnghe">Nhiệm vụ khoa học công nghệ</a> -->
                 <!-- <a class="nav-link" id="" href="/sotietnckhbaoluusangnam">Số tiết NCKH bảo lưu sang năm</a> -->
                 <!-- <a class="nav-link" id="" href="/tonghopsotietnckh/dukien">Dự kiến số tiết NCKH trong năm</a> -->
-                <a class="nav-link" id="" href="v2/danh-sach-nckh">Danh sách NCKH</a>
+                <a class="nav-link" id="" href="/v2/danh-sach-nckh">Danh sách NCKH</a>
+                <a class="nav-link" id="" href="/v2/tonghopsotiet/dukien">Dự kiến số tiết NCKH</a>
               </div>
             </div>
           </div>

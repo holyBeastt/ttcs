@@ -80,6 +80,14 @@ const formatHours = (num) => num.toFixed(2).replace(/,/g, ".");
 const convertDateFormat = (dateStr) => {
     if (!dateStr) return null;
 
+    // Nếu là Date object, chuyển sang ISO string
+    if (dateStr instanceof Date) {
+        return dateStr.toISOString().split("T")[0];
+    }
+
+    // Chuyển sang string nếu chưa phải string
+    dateStr = String(dateStr);
+
     // Nếu là định dạng ISO (từ DB)
     if (dateStr.includes("T")) {
         return dateStr.split("T")[0];
