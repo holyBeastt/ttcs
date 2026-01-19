@@ -68,6 +68,7 @@ const hopDongDARoute = require("./routes/hopDongDARoute");
 
 const phongHocRoute = require("./routes/phongHocRoute");
 const uyNhiemChiRoute = require("./routes/uyNhiemChiRoute");
+const kytubatdauKhoaRoute = require("./routes/kytubatdauKhoaRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -191,6 +192,7 @@ app.use("/", hopDongDARoute);
 // Thêm route mới
 app.use("/", phongHocRoute);
 app.use("/uy-nhiem-chi", uyNhiemChiRoute);
+app.use("/", kytubatdauKhoaRoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);
