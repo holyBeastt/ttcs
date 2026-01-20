@@ -59,6 +59,9 @@ router.put('/api/kytubatdau/:id', async (req, res) => {
     const { id } = req.params;
     const { viet_tat, khoa } = req.body;
 
+    console.log('Update request body:', req.body);
+    console.log('Update request id:', id);
+
     try {
         const [result] = await pool.query(
             'UPDATE kitubatdau_khoa SET viet_tat = ?, khoa = ? WHERE id = ?',
