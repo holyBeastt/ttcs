@@ -84,7 +84,9 @@ module.exports = {
         type: 'employee',
         description: 'Nhân viên - synced với taikhoannguoidung',
         exportQuery: `
-            SELECT n.*
+            SELECT n.*, 
+                   t.TenDangNhap as tendangnhap,
+                   t.MatKhau as matkhau
             FROM nhanvien n
             LEFT JOIN taikhoannguoidung t ON n.id_User = t.id_User
             WHERE n.id_User IS NOT NULL
@@ -119,11 +121,11 @@ module.exports = {
     // BUSINESS - Nghiệp vụ giảng dạy chính
     // ============================================
 
-    course_schedule_details: {
-        type: 'business',
-        description: 'Thời khóa biểu chi tiết',
-        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'course_name'],
-    },
+    // course_schedule_details: {
+    //     type: 'business',
+    //     description: 'Thời khóa biểu chi tiết',
+    //     uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'tt', 'course_name'],
+    // },
 
     giangday: {
         type: 'business',
@@ -158,7 +160,7 @@ module.exports = {
     doantotnghiep: {
         type: 'business',
         description: 'Đồ án tốt nghiệp',
-        uniqueKey: ['Dot', 'Ki', 'NamHoc', 'TenDeTai', 'KhoaDaoTao'],
+        uniqueKey: ['Dot', 'Ki', 'NamHoc', 'TenDeTai', 'KhoaDaoTao', 'SinhVien'],
     },
 
     phonghoc: {
@@ -177,89 +179,89 @@ module.exports = {
     // RESEARCH - Nghiên cứu khoa học (NCKH)
     // ============================================
 
-    baibaokhoahoc: {
-        type: 'research',
-        description: 'Bài báo khoa học',
-        uniqueKey: ['NamHoc', 'TenBaiBao'],
-    },
+    // baibaokhoahoc: {
+    //     type: 'research',
+    //     description: 'Bài báo khoa học',
+    //     uniqueKey: ['NamHoc', 'TenBaiBao'],
+    // },
 
-    bangsangchevagiaithuong: {
-        type: 'research',
-        description: 'Bằng sáng chế và giải thưởng',
-        uniqueKey: ['NamHoc', 'TenBangSangCheVaGiaiThuong'],
-    },
+    // bangsangchevagiaithuong: {
+    //     type: 'research',
+    //     description: 'Bằng sáng chế và giải thưởng',
+    //     uniqueKey: ['NamHoc', 'TenBangSangCheVaGiaiThuong'],
+    // },
 
-    biensoangiaotrinhbaigiang: {
-        type: 'research',
-        description: 'Biên soạn giáo trình bài giảng',
-        uniqueKey: ['NamHoc', 'TenGiaoTrinhVaBaiGiang'],
-    },
+    // biensoangiaotrinhbaigiang: {
+    //     type: 'research',
+    //     description: 'Biên soạn giáo trình bài giảng',
+    //     uniqueKey: ['NamHoc', 'TenGiaoTrinhVaBaiGiang'],
+    // },
 
-    detaiduan: {
-        type: 'research',
-        description: 'Đề tài dự án nghiên cứu',
-        uniqueKey: ['NamHoc', 'TenDeTai', 'MaSoDeTai'],
-    },
+    // detaiduan: {
+    //     type: 'research',
+    //     description: 'Đề tài dự án nghiên cứu',
+    //     uniqueKey: ['NamHoc', 'TenDeTai', 'MaSoDeTai'],
+    // },
 
-    dexuatnghiencuu: {
-        type: 'research',
-        description: 'Đề xuất nghiên cứu',
-        uniqueKey: ['NamHoc', 'TenDeXuat', 'MaSoDeXuat'],
-    },
+    // dexuatnghiencuu: {
+    //     type: 'research',
+    //     description: 'Đề xuất nghiên cứu',
+    //     uniqueKey: ['NamHoc', 'TenDeXuat', 'MaSoDeXuat'],
+    // },
 
-    huongdansvnckh: {
-        type: 'research',
-        description: 'Hướng dẫn sinh viên NCKH',
-        uniqueKey: ['NamHoc', 'LoaiHuongDan', 'TenDeTai', 'MaSoDeTai'],
-    },
+    // huongdansvnckh: {
+    //     type: 'research',
+    //     description: 'Hướng dẫn sinh viên NCKH',
+    //     uniqueKey: ['NamHoc', 'LoaiHuongDan', 'TenDeTai', 'MaSoDeTai'],
+    // },
 
-    nckhvahuanluyendoituyen: {
-        type: 'research',
-        description: 'NCKH và huấn luyện đội tuyển',
-        uniqueKey: ['NamHoc', 'TenDeTai'],
-    },
+    // nckhvahuanluyendoituyen: {
+    //     type: 'research',
+    //     description: 'NCKH và huấn luyện đội tuyển',
+    //     uniqueKey: ['NamHoc', 'TenDeTai'],
+    // },
 
-    nhiemvukhoahoccongnghe: {
-        type: 'research',
-        description: 'Nhiệm vụ khoa học công nghệ',
-        uniqueKey: ['NamHoc', 'TenNhiemVu', 'MaNhiemVu'],
-    },
+    // nhiemvukhoahoccongnghe: {
+    //     type: 'research',
+    //     description: 'Nhiệm vụ khoa học công nghệ',
+    //     uniqueKey: ['NamHoc', 'TenNhiemVu', 'MaNhiemVu'],
+    // },
 
-    sachvagiaotrinh: {
-        type: 'research',
-        description: 'Sách và giáo trình',
-        uniqueKey: ['NamHoc', 'TenSachVaGiaoTrinh', 'TacGia'],
-    },
+    // sachvagiaotrinh: {
+    //     type: 'research',
+    //     description: 'Sách và giáo trình',
+    //     uniqueKey: ['NamHoc', 'TenSachVaGiaoTrinh', 'TacGia'],
+    // },
 
-    sangkien: {
-        type: 'research',
-        description: 'Sáng kiến cải tiến',
-        uniqueKey: ['NamHoc', 'TenSangKien', 'MaSoSangKien'],
-    },
+    // sangkien: {
+    //     type: 'research',
+    //     description: 'Sáng kiến cải tiến',
+    //     uniqueKey: ['NamHoc', 'TenSangKien', 'MaSoSangKien'],
+    // },
 
-    thanhvienhoidong: {
-        type: 'research',
-        description: 'Thành viên hội đồng',
-        uniqueKey: ['NamHoc', 'TenDeTai', 'ThanhVien'],
-    },
+    // thanhvienhoidong: {
+    //     type: 'research',
+    //     description: 'Thành viên hội đồng',
+    //     uniqueKey: ['NamHoc', 'TenDeTai', 'ThanhVien'],
+    // },
 
-    uncngoai: {
-        type: 'research',
-        description: 'Ủy nhiệm chi ngoài',
-        uniqueKey: ['NamHoc', 'TenUNCNgoai', 'MaSoUNCNgoai'],
-    },
+    // uncngoai: {
+    //     type: 'research',
+    //     description: 'Ủy nhiệm chi ngoài',
+    //     uniqueKey: ['stk'],
+    // },
 
-    xaydungctdt: {
-        type: 'research',
-        description: 'Xây dựng chương trình đào tạo',
-        uniqueKey: ['NamHoc', 'TenChuongTrinh'],
-    },
+    // xaydungctdt: {
+    //     type: 'research',
+    //     description: 'Xây dựng chương trình đào tạo',
+    //     uniqueKey: ['NamHoc', 'TenChuongTrinh'],
+    // },
 
-    sotietnckhbaoluusangnam: {
-        type: 'research',
-        description: 'Số tiết NCKH bảo lưu sang năm',
-        uniqueKey: ['NamHoc', 'Khoa', 'GiangVien'],
-    },
+    // sotietnckhbaoluusangnam: {
+    //     type: 'research',
+    //     description: 'Số tiết NCKH bảo lưu sang năm',
+    //     uniqueKey: ['NamHoc', 'Khoa', 'GiangVien'],
+    // },
 
     // ============================================
     // SALARY - Tiền lương và miễn giảm
@@ -268,7 +270,7 @@ module.exports = {
     tienluong: {
         type: 'salary',
         description: 'Tiền lương giảng viên',
-        uniqueKey: ['he_dao_tao', 'MaNhanVien', 'Thang', 'Nam'],
+        uniqueKey: ['he_dao_tao', 'HocVi', 'SoTien', 'Khoa', 'HSL', 'chuc_danh_id', 'loai_hinh'],
     },
 
     phantrammiengiam: {
