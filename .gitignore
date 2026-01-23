@@ -3,6 +3,7 @@ logs/
 .env
 node_modules/
 migrations/
+docs_private/
 PLAN.md
 README_NCKH_FLOW.md 
 README_NCKH_NEW_CHANGE.md
