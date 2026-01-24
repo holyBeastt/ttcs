@@ -104,6 +104,7 @@ router.delete("/nckh/:ID", unifiedController.deleteRecordUnified);
 
 // Cập nhật trạng thái duyệt
 router.post("/nckh/approve/:ID", unifiedController.updateApprovalUnified);
+router.post("/nckh/approve-khoa/:ID", unifiedController.updateKhoaApprovalUnified);
 
 // =====================================================
 // API QUY ĐỊNH SỐ GIỜ (Mới - dùng bảng nckh_quydinhsogio)

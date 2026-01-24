@@ -465,7 +465,8 @@ const deleteRecord = async (id) => {
 };
 
 /**
- * Cập nhật trạng thái duyệt
+ * Cập nhật trạng thái duyệt Đào Tạo
+ * Khi bỏ duyệt (daoTaoDuyet=0), cascade bỏ duyệt Khoa
  * @param {number} id - ID bản ghi
  * @param {number} daoTaoDuyet - Trạng thái (0 hoặc 1)
  * @returns {Object} { success }
@@ -475,9 +476,33 @@ const updateApprovalStatus = async (id, daoTaoDuyet) => {
     try {
         connection = await createPoolConnection();
 
-        const query = `UPDATE nckh_chung SET DaoTaoDuyet = ? WHERE ID = ?`;
-        await connection.execute(query, [daoTaoDuyet, id]);
+        // Nếu bỏ duyệt Đào Tạo, cascade bỏ duyệt Khoa
+        if (daoTaoDuyet === 0) {
+            const query = `UPDATE nckh_chung SET DaoTaoDuyet = 0, KhoaDuyet = 0 WHERE ID = ?`;
+            await connection.execute(query, [id]);
+        } else {
+            const query = `UPDATE nckh_chung SET DaoTaoDuyet = ? WHERE ID = ?`;
+            await connection.execute(query, [daoTaoDuyet, id]);
+        }
 
+        return { success: true };
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+/**
+ * Cập nhật trạng thái duyệt Khoa
+ * @param {number} id - ID bản ghi
+ * @param {number} khoaDuyet - Trạng thái (0 hoặc 1)
+ * @returns {Object} { success }
+ */
+const updateKhoaApprovalStatus = async (id, khoaDuyet) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+        const query = `UPDATE nckh_chung SET KhoaDuyet = ? WHERE ID = ?`;
+        await connection.execute(query, [khoaDuyet, id]);
         return { success: true };
     } finally {
         if (connection) connection.release();
@@ -596,5 +621,6 @@ module.exports = {
     getRecordById,
     updateRecord,
     deleteRecord,
-    updateApprovalStatus
+    updateApprovalStatus,
+    updateKhoaApprovalStatus
 };

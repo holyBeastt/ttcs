@@ -15,6 +15,23 @@
     let currentYearSK = "";
 
     // =====================================================
+    // HELPER FUNCTIONS
+    // =====================================================
+
+    function formatMemberList(value) {
+        if (!value) return '';
+        const container = document.createElement('div');
+        const names = value.split(/[,;]/).map(name => name.trim()).filter(name => name);
+        names.forEach(name => {
+            const div = document.createElement('div');
+            div.textContent = name;
+            div.style.marginBottom = '2px';
+            container.appendChild(div);
+        });
+        return container;
+    }
+
+    // =====================================================
     // LOAD TABLE DATA
     // =====================================================
 
@@ -83,14 +100,16 @@
         const gvCnbmKhoaRole = APP_ROLES.gv_cnbm_khoa || "gv_cnbm_khoa";
         const lanhDaoKhoaRole = APP_ROLES.lanhDao_khoa || "lanh_dao_khoa";
 
-        // Quyền duyệt: troLy_phong hoặc lanhDao_phong thuộc phòng NC&HTPT hoặc Đào Tạo
+        // Quyền duyệt Đào Tạo: troLy_phong hoặc lanhDao_phong thuộc phòng NC&HTPT hoặc Đào Tạo
         const canApprove = (role === troLyPhongRole || role === lanhDaoPhongRole) &&
             (MaPhongBan === ncHtptCode || MaPhongBan === daoTaoCode);
 
-        // Quyền sửa: canApprove HOẶC gv_cnbm_khoa HOẶC lanhDao_khoa (không cần check phòng ban)
-        const canEdit = canApprove ||
-            role === gvCnbmKhoaRole ||
-            role === lanhDaoKhoaRole;
+        // Quyền duyệt Khoa: lãnh đạo khoa (không thuộc DT/NCKH)
+        const canApproveKhoa = role === lanhDaoKhoaRole &&
+            MaPhongBan !== daoTaoCode && MaPhongBan !== ncHtptCode;
+
+        // Quyền sửa: canApprove HOẶC canApproveKhoa HOẶC gv_cnbm_khoa
+        const canEdit = canApprove || canApproveKhoa || role === gvCnbmKhoaRole;
 
         // Quyền xóa: giống canEdit
         const canDelete = canEdit;
@@ -104,36 +123,31 @@
                 cellStyle: { textAlign: "center", fontWeight: "bold" }
             },
             {
-                field: "LoaiSangKien",
-                headerName: "Loại Sáng Kiến",
-                flex: 1,
-                minWidth: 150,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
-            },
-            {
                 field: "TenSangKien",
                 headerName: "Tên Sáng Kiến",
                 flex: 2,
                 minWidth: 250,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1
             },
             {
                 field: "TacGiaChinh",
                 headerName: "Tác Giả Chính",
                 flex: 1.2,
-                minWidth: 150,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                minWidth: 180,
+                editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1,
+                cellRenderer: (params) => formatMemberList(params.value)
             },
             {
                 field: "DanhSachThanhVien",
                 headerName: "Thành Viên",
                 flex: 1.5,
-                minWidth: 200,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                minWidth: 220,
+                editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1,
+                cellRenderer: (params) => formatMemberList(params.value)
             },
             {
                 headerName: "Chi Tiết",
-                width: 60,
+                width: 100,
                 editable: false,
                 cellRenderer: (params) => {
                     const icon = document.createElement("i");
@@ -153,10 +167,10 @@
         if (canDelete) {
             columnDefs.push({
                 headerName: "Xóa",
-                width: 60,
+                width: 90,
                 editable: false,
                 cellRenderer: (params) => {
-                    if (params.data.DaoTaoDuyet === 1) return "";
+                    if (params.data.KhoaDuyet === 1 || params.data.DaoTaoDuyet === 1) return "";
 
                     const icon = document.createElement("i");
                     icon.className = "fas fa-trash-alt";
@@ -171,12 +185,50 @@
             });
         }
 
+        // Cột Khoa Duyệt
+        if (canApproveKhoa) {
+            columnDefs.push({
+                field: "KhoaDuyet",
+                headerName: "Khoa",
+                width: 90,
+                editable: false,
+                cellRenderer: (params) => {
+                    const icon = document.createElement("i");
+                    const isApproved = params.data.KhoaDuyet === 1;
+                    const isDaoTaoDuyet = params.data.DaoTaoDuyet === 1;
+
+                    if (isDaoTaoDuyet) {
+                        icon.className = "fas fa-lock";
+                        icon.style.color = "#6c757d";
+                        icon.title = "Không thể thay đổi - Đào tạo đã duyệt";
+                        icon.style.cursor = "not-allowed";
+                    } else if (isApproved) {
+                        icon.className = "fas fa-check";
+                        icon.style.color = "#198754";
+                        icon.title = "Khoa đã duyệt - Click để bỏ duyệt";
+                        icon.style.cursor = "pointer";
+                        icon.onclick = () => toggleKhoaApproval(params.data.ID, false, params.api, params.node);
+                    } else {
+                        icon.className = "fas fa-times";
+                        icon.style.color = "#6c757d";
+                        icon.title = "Khoa chưa duyệt - Click để duyệt";
+                        icon.style.cursor = "pointer";
+                        icon.onclick = () => toggleKhoaApproval(params.data.ID, true, params.api, params.node);
+                    }
+
+                    icon.style.fontSize = "16px";
+                    return icon;
+                },
+                cellStyle: { textAlign: "center" }
+            });
+        }
+
         // Cột Duyệt
         if (canApprove) {
             columnDefs.push({
                 field: "DaoTaoDuyet",
-                headerName: "Duyệt",
-                width: 60,
+                headerName: "Viện NC&HTPT",
+                width: 120,
                 editable: false,
                 cellRenderer: (params) => {
                     const icon = document.createElement("i");
@@ -208,6 +260,7 @@
                 resizable: true,
                 sortable: true,
                 filter: true,
+                suppressMenu: true,
                 wrapText: true,
                 autoHeight: true,
                 cellStyle: {
@@ -326,6 +379,9 @@
             if (data.success) {
                 NCKH_V2_Utils.showSuccessToast(newStatus ? "Đã duyệt" : "Đã bỏ duyệt");
                 node.data.DaoTaoDuyet = newStatus ? 1 : 0;
+                if (!newStatus) {
+                    node.data.KhoaDuyet = 0;
+                }
                 api.refreshCells({ rowNodes: [node], force: true });
             } else {
                 NCKH_V2_Utils.showErrorToast(data.message);
@@ -333,6 +389,29 @@
         } catch (error) {
             console.error("Error toggling approval:", error);
             NCKH_V2_Utils.showErrorToast("Lỗi khi cập nhật trạng thái duyệt");
+        }
+    }
+
+    async function toggleKhoaApproval(id, newStatus, api, node) {
+        try {
+            const response = await fetch(`/v2/nckh/approve-khoa/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ KhoaDuyet: newStatus ? 1 : 0 })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                NCKH_V2_Utils.showSuccessToast(newStatus ? "Khoa đã duyệt" : "Khoa đã bỏ duyệt");
+                node.data.KhoaDuyet = newStatus ? 1 : 0;
+                api.refreshCells({ rowNodes: [node], force: true });
+            } else {
+                NCKH_V2_Utils.showErrorToast(data.message);
+            }
+        } catch (error) {
+            console.error("Error toggling Khoa approval:", error);
+            NCKH_V2_Utils.showErrorToast("Lỗi khi cập nhật duyệt Khoa");
         }
     }
 
@@ -345,6 +424,7 @@
         renderTable,
         deleteRow,
         toggleApproval,
+        toggleKhoaApproval,
         getCurrentYear: () => currentYearSK
     };
 

@@ -226,8 +226,8 @@ const createController = (loaiNCKH) => {
                     return res.status(404).json({ message: "Không tìm thấy bản ghi." });
                 }
 
-                // Không cho xóa nếu đã duyệt
-                if (oldData.DaoTaoDuyet === 1) {
+                // Không cho xóa nếu đã duyệt (Khoa hoặc Đào Tạo)
+                if (oldData.KhoaDuyet === 1 || oldData.DaoTaoDuyet === 1) {
                     return res.status(403).json({
                         success: false,
                         message: "Không thể xóa bản ghi đã được duyệt."
@@ -319,8 +319,8 @@ const deleteRecordUnified = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy bản ghi." });
         }
 
-        // Không cho xóa nếu đã duyệt
-        if (oldData.DaoTaoDuyet === 1) {
+        // Không cho xóa nếu đã duyệt (Khoa hoặc Đào Tạo)
+        if (oldData.KhoaDuyet === 1 || oldData.DaoTaoDuyet === 1) {
             return res.status(403).json({
                 success: false,
                 message: "Không thể xóa bản ghi đã được duyệt."
@@ -418,6 +418,71 @@ const updateApprovalUnified = async (req, res) => {
     }
 };
 
+/**
+ * Cập nhật trạng thái duyệt Khoa (route chung)
+ */
+const updateKhoaApprovalUnified = async (req, res) => {
+    const { ID } = req.params;
+    const { KhoaDuyet, khoaDuyet } = req.body;
+    const userId = req.session?.userId || 1;
+    const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN';
+
+    if (!ID) {
+        return res.status(400).json({ message: "Thiếu ID." });
+    }
+
+    let approvalValue = KhoaDuyet ?? khoaDuyet;
+    if (approvalValue === undefined) {
+        return res.status(400).json({ message: "Thiếu trạng thái duyệt Khoa." });
+    }
+
+    approvalValue = parseInt(approvalValue) || 0;
+
+    try {
+        const oldData = await nckhService.getRecordById(ID);
+        if (!oldData) {
+            return res.status(404).json({ message: "Không tìm thấy bản ghi." });
+        }
+
+        // Không cho Khoa bỏ duyệt nếu Đào Tạo đã duyệt
+        if (approvalValue === 0 && oldData.DaoTaoDuyet === 1) {
+            return res.status(403).json({
+                success: false,
+                message: "Không thể bỏ duyệt Khoa khi Đào Tạo đã duyệt."
+            });
+        }
+
+        await nckhService.updateKhoaApprovalStatus(ID, approvalValue);
+
+        // Ghi log
+        if (oldData.KhoaDuyet !== approvalValue) {
+            try {
+                const action = approvalValue === 1 ? 'Khoa duyệt' : 'Khoa bỏ duyệt';
+                const displayName = nckhService.NCKH_DISPLAY_NAMES[oldData.LoaiNCKH] || oldData.LoaiNCKH;
+                await LogService.logChange(
+                    userId,
+                    userName,
+                    `${action} NCKH V2`,
+                    `${action} ${displayName}: "${oldData.TenCongTrinh}" (ID: ${ID})`
+                );
+            } catch (logError) {
+                console.error("Lỗi khi ghi log:", logError);
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Cập nhật duyệt Khoa thành công!"
+        });
+    } catch (error) {
+        console.error(`Lỗi khi cập nhật duyệt Khoa ID ${ID}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Có lỗi xảy ra."
+        });
+    }
+};
+
 // =====================================================
 // EXPORTS
 // =====================================================
@@ -442,5 +507,6 @@ module.exports = {
     // API chung
     getQuyDinhSoGio,
     deleteRecordUnified,
-    updateApprovalUnified
+    updateApprovalUnified,
+    updateKhoaApprovalUnified
 };

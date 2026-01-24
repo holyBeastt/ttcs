@@ -111,6 +111,29 @@
         }
 
         // =====================================================
+        // HELPER FUNCTIONS
+        // =====================================================
+
+        /**
+         * Format danh sách tên thành từng dòng riêng biệt
+         * @param {string} value - Chuỗi chứa danh sách tên phân cách bởi dấu phẩy hoặc chấm phẩy
+         * @returns {HTMLElement} - Container chứa các div cho mỗi tên
+         */
+        function formatMemberList(value) {
+            if (!value) return '';
+            const container = document.createElement('div');
+            // Split by comma or semicolon, trim each name
+            const names = value.split(/[,;]/).map(name => name.trim()).filter(name => name);
+            names.forEach(name => {
+                const div = document.createElement('div');
+                div.textContent = name;
+                div.style.marginBottom = '2px';
+                container.appendChild(div);
+            });
+            return container;
+        }
+
+        // =====================================================
         // BUILD COLUMNS
         // =====================================================
 
@@ -128,13 +151,6 @@
                     cellStyle: { textAlign: "center", fontWeight: "bold" }
                 },
                 {
-                    field: nckhConfig.phanLoaiField || "PhanLoai",
-                    headerName: "Phân loại",
-                    flex: 1,
-                    minWidth: 150,
-                    editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
-                },
-                {
                     field: nckhConfig.tenField || "TenCongTrinh",
                     headerName: "Tên công trình",
                     flex: 2,
@@ -145,15 +161,17 @@
                     field: nckhConfig.tacGiaField || "TacGiaChinh",
                     headerName: "Tác giả chính",
                     flex: 1.2,
-                    minWidth: 150,
-                    editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                    minWidth: 180,
+                    editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1,
+                    cellRenderer: (params) => formatMemberList(params.value)
                 },
                 {
                     field: "DanhSachThanhVien",
                     headerName: "Thành viên",
                     flex: 1.5,
-                    minWidth: 200,
-                    editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                    minWidth: 220,
+                    editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1,
+                    cellRenderer: (params) => formatMemberList(params.value)
                 }
             ];
 
@@ -168,7 +186,7 @@
             // Detail icon column
             columnDefs.push({
                 headerName: "Chi tiết",
-                width: 60,
+                width: 100,
                 editable: false,
                 cellRenderer: (params) => {
                     const icon = document.createElement("i");
@@ -191,7 +209,7 @@
             if (canDelete) {
                 columnDefs.push({
                     headerName: "Xóa",
-                    width: 60,
+                    width: 90,
                     editable: false,
                     cellRenderer: (params) => {
                         if (params.data.DaoTaoDuyet === 1) return "";
@@ -213,8 +231,8 @@
             if (canApprove) {
                 columnDefs.push({
                     field: "DaoTaoDuyet",
-                    headerName: "Duyệt",
-                    width: 60,
+                    headerName: "Viện NC&HTPT",
+                    width: 120,
                     editable: false,
                     cellRenderer: (params) => {
                         const icon = document.createElement("i");
@@ -254,6 +272,7 @@
                     resizable: true,
                     sortable: true,
                     filter: true,
+                    suppressMenu: true,
                     wrapText: true,
                     autoHeight: true,
                     cellStyle: {
