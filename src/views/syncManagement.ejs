@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đồng Bộ Dữ Liệu - Học Viện Kỹ Thuật Mật Mã</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/table.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --info-color: #2196f3;
+            --dark-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sync-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), #357abd);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .page-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+
+        .sync-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .sync-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sync-card h4 {
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sync-card h4 i {
+            font-size: 1.5rem;
+        }
+
+        .table-select {
+            position: relative;
+        }
+
+        .table-select select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background-color: white;
+        }
+
+        .table-select select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            outline: none;
+        }
+
+        .table-info {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .table-info.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .table-info p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+
+        .btn-action {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, var(--success-color), #45a049);
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-import {
+            background: linear-gradient(135deg, var(--info-color), #1976d2);
+            color: white;
+        }
+
+        .btn-import:hover {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+
+        .file-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background-color: #f8f9fa;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: #e3f2fd;
+        }
+
+        .file-upload-area.dragover {
+            border-color: var(--success-color);
+            background-color: #e8f5e9;
+        }
+
+        .file-info {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #e8f5e9;
+            border-radius: 8px;
+        }
+
+        .file-info.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card.success {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+
+        .stat-card.info {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .stat-card p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15rem;
+        }
+
+        .result-area {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .result-area.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .badge-custom {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('adminHeader') %>
+
+        <div class="sync-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h2><i class="bi bi-arrow-repeat"></i> Đồng Bộ Dữ Liệu</h2>
+                <p>Quản lý xuất/nhập dữ liệu giữa cơ sở dữ liệu PUBLIC và PRIVATE</p>
+            </div>
+
+            <!-- Export Section -->
+            <div class="sync-card">
+                <h4><i class="bi bi-download text-success"></i> Xuất Dữ Liệu (Export)</h4>
+
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="export-table" class="form-label">Chọn bảng để xuất</label>
+                        <div class="table-select">
+                            <select id="export-table" class="form-select">
+                                <option value="">-- Chọn bảng --</option>
+                            </select>
+                        </div>
+
+                        <div id="export-table-info" class="table-info">
+                            <p><strong>Loại:</strong> <span id="export-type"></span></p>
+                            <p><strong>Khóa tự nhiên:</strong> <span id="export-keys"></span></p>
+                            <p><strong>Mô tả:</strong> <span id="export-desc"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <button id="btn-export" class="btn btn-export btn-action w-100" disabled>
+                            <i class="bi bi-download"></i>
+                            <span>Xuất dữ liệu</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="export-result" class="result-area">
+                    <h5>Kết quả xuất:</h5>
+                    <div class="stats-row">
+                        <div class="stat-card success">
+                            <h3 id="export-count">0</h3>
+                            <p>Bản ghi đã xuất</p>
+                        </div>
+                        <div class="stat-card info">
+                            <h3 id="export-table-name">-</h3>
+                            <p>Bảng</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Section -->
+            <div class="sync-card">
+                <h4><i class="bi bi-upload text-info"></i> Nhập Dữ Liệu (Import)</h4>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="import-table" class="form-label">Chọn bảng để nhập</label>
+                        <div class="table-select">
+                            <select id="import-table" class="form-select">
+                                <option value="">-- Chọn bảng --</option>
+                            </select>
+                        </div>
+
+                        <div id="import-table-info" class="table-info">
+                            <p><strong>Loại:</strong> <span id="import-type"></span></p>
+                            <p><strong>Khóa tự nhiên:</strong> <span id="import-keys"></span></p>
+                            <p><strong>Mô tả:</strong> <span id="import-desc"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Tải file JSON</label>
+                        <div class="file-upload-area" id="file-upload-area">
+                            <i class="bi bi-cloud-upload" style="font-size: 3rem; color: var(--primary-color);"></i>
+                            <p class="mt-2 mb-0">Kéo thả file JSON vào đây hoặc click để chọn</p>
+                            <input type="file" id="file-input" accept=".json" style="display: none;" />
+                        </div>
+
+                        <div id="file-info" class="file-info">
+                            <p><strong>File:</strong> <span id="file-name"></span></p>
+                            <p><strong>Kích thước:</strong> <span id="file-size"></span></p>
+                            <p><strong>Số bản ghi:</strong> <span id="file-records"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 text-end">
+                    <button id="btn-import" class="btn btn-import btn-action" disabled>
+                        <i class="bi bi-upload"></i>
+                        <span>Nhập dữ liệu</span>
+                    </button>
+                </div>
+
+                <div id="import-result" class="result-area">
+                    <h5>Kết quả nhập:</h5>
+                    <div class="stats-row">
+                        <div class="stat-card success">
+                            <h3 id="import-inserted">0</h3>
+                            <p>Bản ghi mới (INSERT)</p>
+                        </div>
+                        <div class="stat-card info">
+                            <h3 id="import-updated">0</h3>
+                            <p>Bản ghi cập nhật (UPDATE)</p>
+                        </div>
+                        <div class="stat-card warning">
+                            <h3 id="import-total">0</h3>
+                            <p>Tổng số đã xử lý</p>
+                        </div>
+                    </div>
+
+                    <div id="import-errors" style="display: none; margin-top: 1rem;">
+                        <h6 class="text-danger">Lỗi:</h6>
+                        <div class="code-block" id="error-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- jQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- SweetAlert2 JS -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+        <!-- Toastify JS -->
+        <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+        <script>
+            let tables = [];
+            let selectedFile = null;
+            let fileData = null;
+
+            // Load available tables on page load
+            $(document).ready(async function () {
+                await loadTableInfo();
+                setupEventListeners();
+            });
+
+            // Load table information from API
+            async function loadTableInfo() {
+                try {
+                    const response = await fetch('/sync/info');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        tables = data.tables;
+                        populateTableSelects();
+                    } else {
+                        Swal.fire('Lỗi', 'Không thể tải danh sách bảng', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error loading tables:', error);
+                    Swal.fire('Lỗi', 'Không thể kết nối đến server', 'error');
+                }
+            }
+
+            // Populate table select dropdowns
+            function populateTableSelects() {
+                const exportSelect = $('#export-table');
+                const importSelect = $('#import-table');
+
+                // Add "All Tables" option
+                const allOption = '<option value="*ALL*">🔄 Tất cả các bảng (' + tables.length + ' bảng)</option>';
+                exportSelect.append(allOption);
+                importSelect.append(allOption);
+
+                tables.forEach(table => {
+                    const option = `<option value="${table.table}">${table.table} - ${table.description}</option>`;
+                    exportSelect.append(option);
+                    importSelect.append(option);
+                });
+            }
+
+            // Setup all event listeners
+            function setupEventListeners() {
+                // Export table selection
+                $('#export-table').change(function () {
+                    const tableName = $(this).val();
+                    if (tableName) {
+                        if (tableName === '*ALL*') {
+                            $('#export-type').text('Tất cả');
+                            $('#export-keys').text(`${tables.length} bảng`);
+                            $('#export-desc').text('Xuất tất cả các bảng cùng một lúc');
+                            $('#export-table-info').addClass('show');
+                        } else {
+                            showTableInfo(tableName, 'export');
+                        }
+                        $('#btn-export').prop('disabled', false);
+                    } else {
+                        $('#export-table-info').removeClass('show');
+                        $('#btn-export').prop('disabled', true);
+                    }
+                });
+
+                // Import table selection
+                $('#import-table').change(function () {
+                    const tableName = $(this).val();
+                    if (tableName) {
+                        if (tableName === '*ALL*') {
+                            $('#import-type').text('Tất cả');
+                            $('#import-keys').text(`${tables.length} bảng`);
+                            $('#import-desc').text('Nhập tất cả các bảng cùng một lúc');
+                            $('#import-table-info').addClass('show');
+                        } else {
+                            showTableInfo(tableName, 'import');
+                        }
+                        checkImportReady();
+                    } else {
+                        $('#import-table-info').removeClass('show');
+                        $('#btn-import').prop('disabled', true);
+                    }
+                });
+
+                // Export button
+                $('#btn-export').click(handleExport);
+
+                // Import button
+                $('#btn-import').click(handleImport);
+
+                // File upload area click
+                $('#file-upload-area').click(function () {
+                    $('#file-input').click();
+                });
+
+                // File input change
+                $('#file-input').change(function (e) {
+                    handleFileSelect(e.target.files[0]);
+                });
+
+                // Drag and drop
+                const uploadArea = document.getElementById('file-upload-area');
+
+                uploadArea.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    $(this).addClass('dragover');
+                });
+
+                uploadArea.addEventListener('dragleave', function (e) {
+                    e.preventDefault();
+                    $(this).removeClass('dragover');
+                });
+
+                uploadArea.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    $(this).removeClass('dragover');
+
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type === 'application/json') {
+                        handleFileSelect(file);
+                    } else {
+                        Swal.fire('Lỗi', 'Vui lòng chọn file JSON', 'warning');
+                    }
+                });
+            }
+
+            // Show table information
+            function showTableInfo(tableName, type) {
+                const table = tables.find(t => t.table === tableName);
+                if (!table) return;
+
+                const prefix = type === 'export' ? 'export' : 'import';
+                $(`#${prefix}-type`).text(table.type);
+                $(`#${prefix}-keys`).text(table.uniqueKey.join(', '));
+                $(`#${prefix}-desc`).text(table.description);
+                $(`#${prefix}-table-info`).addClass('show');
+            }
+
+            // Handle file selection
+            function handleFileSelect(file) {
+                if (!file) return;
+
+                selectedFile = file;
+
+                // Read file
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const content = JSON.parse(e.target.result);
+
+                        // Check format: export-all format, single table export, or raw array
+                        if (content.tables && typeof content.tables === 'object') {
+                            // Export-all format
+                            fileData = content;
+                            let totalRecords = 0;
+                            Object.values(content.tables).forEach(t => totalRecords += (t.count || 0));
+
+                            $('#file-name').text(file.name);
+                            $('#file-size').text((file.size / 1024).toFixed(2) + ' KB');
+                            $('#file-records').text(totalRecords + ' bản ghi (' + Object.keys(content.tables).length + ' bảng)');
+                            $('#file-info').addClass('show');
+                        } else if (content.data && Array.isArray(content.data)) {
+                            // Single table export format
+                            fileData = content.data;
+                            $('#file-name').text(file.name);
+                            $('#file-size').text((file.size / 1024).toFixed(2) + ' KB');
+                            $('#file-records').text(fileData.length);
+                            $('#file-info').addClass('show');
+                        } else if (Array.isArray(content)) {
+                            // Raw array
+                            fileData = content;
+                            $('#file-name').text(file.name);
+                            $('#file-size').text((file.size / 1024).toFixed(2) + ' KB');
+                            $('#file-records').text(fileData.length);
+                            $('#file-info').addClass('show');
+                        } else {
+                            throw new Error('Invalid JSON format');
+                        }
+
+                        checkImportReady();
+                    } catch (error) {
+                        Swal.fire('Lỗi', 'File JSON không hợp lệ', 'error');
+                        clearFileSelection();
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            // Clear file selection
+            function clearFileSelection() {
+                selectedFile = null;
+                fileData = null;
+                $('#file-input').val('');
+                $('#file-info').removeClass('show');
+                checkImportReady();
+            }
+
+            // Check if import is ready
+            function checkImportReady() {
+                const tableSelected = $('#import-table').val() !== '';
+                const fileSelected = fileData !== null;
+                $('#btn-import').prop('disabled', !(tableSelected && fileSelected));
+            }
+
+            // Handle export
+            async function handleExport() {
+                const tableName = $('#export-table').val();
+                if (!tableName) return;
+
+                // Show loading
+                const btn = $('#btn-export');
+                const originalHtml = btn.html();
+                btn.html('<span class="spinner-border spinner-border-sm"></span> Đang xuất...');
+                btn.prop('disabled', true);
+
+                try {
+                    let response, data;
+
+                    // Check if exporting all tables
+                    if (tableName === '*ALL*') {
+                        response = await fetch('/sync/export-all');
+                        data = await response.json();
+
+                        if (data.success) {
+                            // Create file and download
+                            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `all_tables_export_${new Date().getTime()}.json`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+
+                            // Show result
+                            $('#export-count').text(data.totalRecords);
+                            $('#export-table-name').text(`${data.totalTables} bảng`);
+                            $('#export-result').addClass('show');
+
+                            Toastify({
+                                text: `✅ Xuất thành công ${data.totalRecords} bản ghi từ ${data.totalTables} bảng!`,
+                                duration: 3000,
+                                gravity: "top",
+                                position: "right",
+                                backgroundColor: "#4CAF50"
+                            }).showToast();
+                        }
+                    } else {
+                        // Export single table
+                        response = await fetch(`/sync/export?table=${tableName}`);
+                        data = await response.json();
+
+                        if (data.success) {
+                            // Create file and download
+                            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${tableName}_export_${new Date().getTime()}.json`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+
+                            // Show result
+                            $('#export-count').text(data.count);
+                            $('#export-table-name').text(tableName);
+                            $('#export-result').addClass('show');
+
+                            Toastify({
+                                text: `✅ Xuất thành công ${data.count} bản ghi!`,
+                                duration: 3000,
+                                gravity: "top",
+                                position: "right",
+                                backgroundColor: "#4CAF50"
+                            }).showToast();
+                        }
+                    }
+
+                    if (!data.success) {
+                        throw new Error(data.message || 'Export failed');
+                    }
+                } catch (error) {
+                    console.error('Export error:', error);
+                    Swal.fire('Lỗi', error.message || 'Không thể xuất dữ liệu', 'error');
+                } finally {
+                    btn.html(originalHtml);
+                    btn.prop('disabled', false);
+                }
+            }
+
+            // Handle import
+            async function handleImport() {
+                const tableName = $('#import-table').val();
+                if (!tableName || !fileData) return;
+
+                // Determine if import all or single table
+                const isImportAll = tableName === '*ALL*' || (fileData.tables && typeof fileData.tables === 'object');
+
+                let recordCount = 0;
+                if (isImportAll && fileData.tables) {
+                    Object.values(fileData.tables).forEach(t => recordCount += (t.data?.length || 0));
+                } else if (Array.isArray(fileData)) {
+                    recordCount = fileData.length;
+                }
+
+                // Confirm import
+                const confirmText = isImportAll
+                    ? `Bạn sắp nhập <strong>${recordCount}</strong> bản ghi vào <strong>TẤT CẢ các bảng</strong>.<br><br>Thao tác này sẽ thêm mới hoặc cập nhật dữ liệu.`
+                    : `Bạn sắp nhập <strong>${recordCount}</strong> bản ghi vào bảng <strong>${tableName}</strong>.<br><br>Thao tác này sẽ thêm mới hoặc cập nhật dữ liệu.`;
+
+                const result = await Swal.fire({
+                    title: 'Xác nhận nhập dữ liệu',
+                    html: confirmText,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2196f3',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Nhập dữ liệu',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (!result.isConfirmed) return;
+
+                // Show loading
+                const btn = $('#btn-import');
+                const originalHtml = btn.html();
+                btn.html('<span class="spinner-border spinner-border-sm"></span> Đang nhập...');
+                btn.prop('disabled', true);
+
+                try {
+                    let response, data;
+
+                    if (isImportAll && fileData.tables) {
+                        // Import all tables
+                        response = await fetch('/sync/import-all', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(fileData)
+                        });
+                        data = await response.json();
+
+                        if (data.success) {
+                            // Show results
+                            $('#import-inserted').text(data.totalInserted);
+                            $('#import-updated').text(data.totalUpdated);
+                            $('#import-total').text(data.totalInserted + data.totalUpdated);
+                            $('#import-errors').hide();
+                            $('#import-result').addClass('show');
+
+                            // Build detailed results
+                            let detailsHtml = '<ul style="text-align: left; max-height: 300px; overflow-y: auto;">';
+                            for (const [table, result] of Object.entries(data.results)) {
+                                if (result.success) {
+                                    detailsHtml += `<li><strong>${table}:</strong> ${result.inserted} mới, ${result.updated} cập nhật</li>`;
+                                } else if (result.skipped) {
+                                    detailsHtml += `<li><strong>${table}:</strong> <i>Bỏ qua</i></li>`;
+                                } else {
+                                    detailsHtml += `<li><strong>${table}:</strong> <span class="text-danger">Lỗi</span></li>`;
+                                }
+                            }
+                            detailsHtml += '</ul>';
+
+                            Swal.fire({
+                                title: 'Thành công!',
+                                html: `<p>Đã nhập tất cả các bảng!</p>
+                                       <p>Tổng: ${data.totalInserted} mới, ${data.totalUpdated} cập nhật</p>
+                                       ${detailsHtml}`,
+                                icon: 'success',
+                                width: '600px'
+                            });
+
+                            clearFileSelection();
+                        }
+                    } else {
+                        // Import single table
+                        response = await fetch('/sync/import', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                table: tableName,
+                                data: Array.isArray(fileData) ? fileData : fileData.data
+                            })
+                        });
+                        data = await response.json();
+
+                        if (data.success) {
+                            $('#import-inserted').text(data.inserted);
+                            $('#import-updated').text(data.updated);
+                            $('#import-total').text(data.total);
+
+                            if (data.errors && data.errors.length > 0) {
+                                $('#error-list').text(JSON.stringify(data.errors, null, 2));
+                                $('#import-errors').show();
+                            } else {
+                                $('#import-errors').hide();
+                            }
+
+                            $('#import-result').addClass('show');
+
+                            Swal.fire({
+                                title: 'Thành công!',
+                                html: `<p>Đã nhập thành công!</p>
+                                       <ul style="text-align: left;">
+                                         <li>Mới: ${data.inserted} bản ghi</li>
+                                         <li>Cập nhật: ${data.updated} bản ghi</li>
+                                         <li>Lỗi: ${data.errors.length} bản ghi</li>
+                                       </ul>`,
+                                icon: 'success'
+                            });
+
+                            clearFileSelection();
+                        }
+                    }
+
+                    if (!data.success) {
+                        throw new Error(data.message || 'Import failed');
+                    }
+                } catch (error) {
+                    console.error('Import error:', error);
+                    Swal.fire('Lỗi', error.message || 'Không thể nhập dữ liệu', 'error');
+                } finally {
+                    btn.html(originalHtml);
+                    $('#btn-import').prop('disabled', true);
+                }
+            }
+        </script>
+</body>
+
+</html>

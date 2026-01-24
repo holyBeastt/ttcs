@@ -161,7 +161,8 @@ function processWordData(content) {
     // Tạo bản copy chữ thường để so sánh logic (giữ nguyên line gốc để lưu dữ liệu)
     const lineLower = line.toLowerCase();
 
-    // --- XỬ LÝ TIÊU ĐỀ (MỀM HƠN) ---
+    // --- XỬ LÝ TIÊU ĐỀ ---
+    // Chỉ bỏ qua 5 dòng tiêu đề đầu tiên (STT, Sinh viên, Mã SV, Tên đề tài, Họ tên CBGV)
     const isHeaderLine = headerKeywords.some((keyword) => lineLower.includes(keyword));
 
     if (headerCount < 5 && isHeaderLine) {
@@ -169,9 +170,8 @@ function processWordData(content) {
       return;
     }
 
-    if (isHeaderLine) {
-      return;
-    }
+    // SAU KHI ĐỦ 5 DÒNG TIÊU ĐỀ → XỬ LÝ TOÀN BỘ DỮ LIỆU
+    // KHÔNG BỎ QUA bất kỳ dòng nào nữa (kể cả có chứa từ "sinh viên", "đề tài"...)
 
     // --- XỬ LÝ NỘI DUNG ---
     if (headerCount >= 5) {
@@ -249,6 +249,11 @@ function processWordData(content) {
   // console.log(invalidIndexes);
 
   const result = tableData.map((row) => {
+    // Đảm bảo GiangVien luôn là một array
+    if (!Array.isArray(row.GiangVien)) {
+      row.GiangVien = [];
+    }
+
     let [GiangVien1, GiangVien2] = row.GiangVien.join(", ")
       .split(",")
       .map((gv) => gv.trim()); // Loại bỏ khoảng trắng đầu cuối
@@ -287,9 +292,9 @@ function processWordData(content) {
 
     return {
       TT: row.TT,
-      SinhVien: row.SinhVien.trim(),
-      MaSV: row.MaSV.trim(),
-      TenDeTai: row.TenDeTai.trim(),
+      SinhVien: (row.SinhVien || "").trim(),
+      MaSV: (row.MaSV || "").trim(),
+      TenDeTai: (row.TenDeTai || "").trim(),
       GiangVien1: normalizeString(GiangVien1) || null, // Gán giá trị null nếu không có
       GiangVien2: normalizeString(GiangVien2),
       GiangVien: row.GiangVien.join(", ").trim(), // Loại bỏ khoảng trắng đầu cuối trong chuỗi
@@ -297,8 +302,12 @@ function processWordData(content) {
       GiangVien2Real: gv2Real,
       NgayBatDau: null,
       NgayKetThuc: null,
-      GiangVienDefault: row.GiangVienDefault,
+      GiangVienDefault: row.GiangVienDefault || "",
     };
+  }).filter(row => {
+    // Loại bỏ các dòng không hợp lệ (dòng tiêu đề hoặc dòng rác)
+    // Một dòng hợp lệ PHẢI có SinhVien VÀ MaSV
+    return row.SinhVien && row.MaSV;
   });
 
   return result;
