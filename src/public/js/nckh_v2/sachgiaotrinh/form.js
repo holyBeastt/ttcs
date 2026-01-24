@@ -12,7 +12,7 @@
 
     async function loadPhanLoaiOptions() {
         try {
-            const response = await fetch("/v2/data/sachvagiaotrinh");
+            const response = await fetch("/v2/quydinh/SACHGIAOTRINH");
             const data = await response.json();
 
             const select = document.getElementById("phanLoaiSGT");
@@ -20,8 +20,8 @@
                 select.innerHTML = '<option value="">-- Chọn phân loại --</option>';
                 data.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.SachGiaoTrinh;
-                    option.textContent = `${item.SachGiaoTrinh} (${item.SoGio} tiết)`;
+                    option.value = item.PhanLoai;
+                    option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                     select.appendChild(option);
                 });
             }

@@ -12,7 +12,7 @@
 
     async function loadCapDeXuatOptions() {
         try {
-            const response = await fetch("/v2/data/dexuatnghiencuu");
+            const response = await fetch("/v2/quydinh/DEXUAT");
             const data = await response.json();
 
             const select = document.getElementById("capDeXuat");
@@ -20,8 +20,8 @@
                 select.innerHTML = '<option value="">-- Chọn cấp đề xuất --</option>';
                 data.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.CapDeXuat;
-                    option.textContent = `${item.CapDeXuat} (${item.SoGio} tiết)`;
+                    option.value = item.PhanLoai;
+                    option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                     select.appendChild(option);
                 });
             }

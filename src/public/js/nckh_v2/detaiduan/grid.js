@@ -298,7 +298,7 @@
         if (newValue === oldValue) return;
 
         try {
-            const response = await fetch(`/v2/nckh/edit/${data.ID}/detaiduan`, {
+            const response = await fetch(`/v2/de-tai-du-an/edit/${data.ID}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -337,8 +337,8 @@
         if (!result.isConfirmed) return;
 
         try {
-            const response = await fetch(`/v2/nckh/delete/${id}/${currentYear}/detaiduan`, {
-                method: "POST"
+            const response = await fetch(`/v2/de-tai-du-an/${id}`, {
+                method: "DELETE"
             });
 
             const data = await response.json();
@@ -357,14 +357,13 @@
 
     async function toggleApproval(id, newStatus, api, node) {
         try {
-            const response = await fetch(`/v2/nckh/update/${id}/${currentYear}/detaiduan`, {
+            const response = await fetch(`/v2/nckh/approve/${id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    field: "DaoTaoDuyet",
-                    value: newStatus ? 1 : 0
+                    DaoTaoDuyet: newStatus ? 1 : 0
                 })
             });
 

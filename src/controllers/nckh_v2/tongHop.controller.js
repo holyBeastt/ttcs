@@ -1,7 +1,8 @@
 /**
  * NCKH V2 - Tổng Hợp Số Tiết Dự Kiến Controller
  * Logic tổng hợp số tiết nghiên cứu khoa học dự kiến cho giảng viên
- * Date: 2026-01-19
+ * Date: 2026-01-20
+ * Refactored for unified database schema (nckh_chung)
  */
 
 const createPoolConnection = require("../../config/databasePool");
@@ -13,7 +14,7 @@ const nckhService = require("../../services/nckhV2Service");
 
 /**
  * Trích xuất số tiết từ chuỗi định dạng "Tên (Đơn vị - Số tiết)" hoặc "Tên (Số tiết)"
- * @param {string} str - Chuỗi cần trích xuất (ví dụ: "Nguyễn Văn A (CNTT - 15.5 tiết)")
+ * @param {string} str - Chuỗi cần trích xuất (ví dụ: "Nguyễn Văn A (CNTT - 15.50)")
  * @param {string} teacherName - Tên giảng viên cần tìm
  * @returns {number} Số tiết tìm thấy (0 nếu không tìm thấy)
  */
@@ -22,10 +23,6 @@ const extractHoursForTeacher = (str, teacherName) => {
 
     // Normalization
     const normalizedTeacherName = teacherName.trim().toLowerCase();
-
-    // Split chuỗi (nếu có dấu thập phân , thì replace bằng .)
-    // Regex matches: Name (Unit - Hours) or Name (Hours)
-    // Ví dụ: "Nguyễn Văn A (CNTT - 10.5 tiết)" hoặc "Nguyễn Văn B (10.5)"
 
     // Tách các thành viên bằng dấu phẩy
     const members = str.split(',').map(m => m.trim());
@@ -39,7 +36,7 @@ const extractHoursForTeacher = (str, teacherName) => {
             if (currentName === normalizedTeacherName) {
                 // Nếu đúng tên, trích xuất số tiết
                 // Tìm số trong dấu ngoặc đơn, có thể có hoặc không có đơn vị
-                // Các trường hợp: "(CNTT - 10.5 tiết)", "(10.5)"
+                // Các trường hợp: "(CNTT - 10.50)", "(10.50)"
 
                 // Regex tìm số cuối cùng trong ngoặc
                 const hoursMatch = member.match(/([\d.]+)\s*(?:tiết|h|giờ)?\s*\)/i);
@@ -51,6 +48,53 @@ const extractHoursForTeacher = (str, teacherName) => {
     }
 
     return 0;
+};
+
+/**
+ * Xác định vai trò của giảng viên trong bản ghi
+ * @param {Object} record - Bản ghi từ nckh_chung
+ * @param {string} teacherName - Tên giảng viên
+ * @returns {Array} Danh sách vai trò
+ */
+const getRolesForTeacher = (record, teacherName) => {
+    const roles = [];
+    const normalizedName = teacherName.trim().toLowerCase();
+
+    // Kiểm tra trong TacGiaChinh
+    if (record.TacGiaChinh) {
+        const tacGiaName = record.TacGiaChinh.split('(')[0].trim().toLowerCase();
+        if (tacGiaName === normalizedName || record.TacGiaChinh.toLowerCase().includes(normalizedName)) {
+            // Xác định tên vai trò dựa vào loại NCKH
+            switch (record.LoaiNCKH) {
+                case 'DETAI_DUAN':
+                    roles.push('Chủ nhiệm');
+                    break;
+                case 'HOIDONG':
+                    roles.push('Thành viên');
+                    break;
+                case 'HUONGDAN':
+                case 'DEXUAT':
+                    roles.push('Thành viên');
+                    break;
+                default:
+                    roles.push('Tác giả chính');
+            }
+        }
+    }
+
+    // Kiểm tra trong DanhSachThanhVien
+    if (record.DanhSachThanhVien) {
+        const members = record.DanhSachThanhVien.split(',');
+        for (const member of members) {
+            const memberName = member.split('(')[0].trim().toLowerCase();
+            if (memberName === normalizedName || member.toLowerCase().includes(normalizedName)) {
+                roles.push('Thành viên');
+                break;
+            }
+        }
+    }
+
+    return [...new Set(roles)]; // Remove duplicates
 };
 
 // =====================================================
@@ -65,7 +109,8 @@ const getTongHopSoTietDuKienV2 = (req, res) => {
 };
 
 /**
- * API Tổng hợp số tiết dự kiến cho giảng viên (V2)
+ * API Tổng hợp số tiết dự kiến cho giảng viên (V2 - Unified)
+ * Query từ bảng nckh_chung thay vì 8 bảng riêng
  */
 const tongHopSoTietDuKienV2 = async (req, res) => {
     const { NamHoc } = req.params;
@@ -78,148 +123,82 @@ const tongHopSoTietDuKienV2 = async (req, res) => {
         });
     }
 
-    console.log(`[V2] Tổng hợp số tiết dự kiến cho: ${TenGiangVien} - Năm: ${NamHoc}`);
+    console.log(`[V2 Unified] Tổng hợp số tiết dự kiến cho: ${TenGiangVien} - Năm: ${NamHoc}`);
 
     let connection;
     try {
         connection = await createPoolConnection();
 
-        // Danh sách các bảng NCKH V2 cần query
-        // Mỗi bảng cần định nghĩa: tên bảng, tên hiển thị, các cột chứa thông tin giảng viên (vai trò)
-        const tables = [
-            {
-                name: "detaiduan",
-                displayName: "Đề tài, dự án",
-                roleColumns: [
-                    { col: "ChuNhiem", role: "Chủ nhiệm" },
-                    { col: "DanhSachThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenDeTai"
-            },
-            {
-                name: "baibaokhoahoc",
-                displayName: "Bài báo khoa học",
-                roleColumns: [
-                    { col: "TacGia", role: "Tác giả" },
-                    { col: "TacGiaChiuTrachNhiem", role: "Tác giả chịu trách nhiệm" },
-                    { col: "DanhSachThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenBaiBao"
-            },
-            {
-                name: "bangsangchevagiaithuong",
-                displayName: "Bằng sáng chế, giải thưởng",
-                roleColumns: [
-                    { col: "TacGia", role: "Tác giả" },
-                    { col: "DanhSachThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenBangSangCheVaGiaiThuong"
-            },
-            {
-                name: "sachvagiaotrinh",
-                displayName: "Sách và giáo trình",
-                roleColumns: [
-                    { col: "TacGia", role: "Tác giả" },
-                    { col: "DongChuBien", role: "Đồng chủ biên" },
-                    { col: "DanhSachThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenSachVaGiaoTrinh"
-            },
-            {
-                name: "sangkien",
-                displayName: "Sáng kiến",
-                roleColumns: [
-                    { col: "TacGiaChinh", role: "Tác giả chính" },
-                    { col: "DanhSachThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenSangKien"
-            },
-            {
-                name: "dexuatnghiencuu",
-                displayName: "Đề xuất nghiên cứu",
-                roleColumns: [
-                    // { col: "TacGiaChinh", role: "Chủ nhiệm / Tác giả chính" }, // Đề xuất nghiên cứu V2 refactor chỉ còn thành viên
-                    { col: "DanhSachThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenDeXuat"
-            },
-            {
-                name: "huongdansvnckh",
-                displayName: "Hướng dẫn SV NCKH",
-                roleColumns: [
-                    // { col: "HuongDanChinh", role: "Hướng dẫn chính" }, // Hướng dẫn SV NCKH V2 refactor chỉ còn thành viên
-                    { col: "DanhSachThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenDeTai"
-            },
-            {
-                name: "thanhVienHoiDong",
-                displayName: "Thành viên hội đồng",
-                roleColumns: [
-                    { col: "ThanhVien", role: "Thành viên" }
-                ],
-                nameColumn: "TenDeTai" // Hoặc LoaiHoiDong tuỳ dữ liệu
-            }
-        ];
+        // Query tất cả records đã duyệt từ bảng nckh_chung
+        const query = `
+            SELECT * FROM nckh_chung 
+            WHERE NamHoc = ? 
+            AND DaoTaoDuyet = 1
+            AND (TacGiaChinh LIKE ? OR DanhSachThanhVien LIKE ?)
+        `;
 
-        let totalHoursAll = 0;
+        const searchPattern = `%${TenGiangVien}%`;
+        const [allRecords] = await connection.execute(query, [NamHoc, searchPattern, searchPattern]);
+
+        console.log(`[V2 Unified] Found ${allRecords.length} records for ${TenGiangVien}`);
+
+        // Nhóm kết quả theo loại NCKH
         const resultTables = {};
+        let totalHoursAll = 0;
 
-        // Duyệt qua từng bảng
-        for (const table of tables) {
-            let totalHoursTable = 0;
-            const records = [];
+        // Duyệt qua từng bản ghi
+        for (const record of allRecords) {
+            const loaiNCKH = record.LoaiNCKH;
+            const displayName = nckhService.NCKH_DISPLAY_NAMES[loaiNCKH] || loaiNCKH;
 
-            // Query lấy dữ liệu của năm học và ĐÃ ĐƯỢC DUYỆT (DaoTaoDuyet = 1)
-            // Lưu ý: kiểm tra tên cột DaoTaoDuyet trong DB, thường là DaoTaoDuyet
-            const query = `SELECT * FROM ${table.name} WHERE NamHoc = ? AND DaoTaoDuyet = 1`;
-            const [rows] = await connection.execute(query, [NamHoc]);
+            // Tính số tiết cho giảng viên này
+            let hoursForRecord = 0;
 
-            // Duyệt qua từng bản ghi trong bảng
-            for (const row of rows) {
-                let hoursForRecord = 0;
-                let rolesFound = [];
+            // Kiểm tra trong TacGiaChinh
+            hoursForRecord += extractHoursForTeacher(record.TacGiaChinh, TenGiangVien);
 
-                // Kiểm tra từng cột vai trò xem giảng viên có tham gia không
-                for (const roleConfig of table.roleColumns) {
-                    const columnContent = row[roleConfig.col];
-                    if (columnContent) {
-                        const hours = extractHoursForTeacher(columnContent, TenGiangVien);
-                        if (hours > 0) {
-                            hoursForRecord += hours;
-                            rolesFound.push(roleConfig.role);
-                        }
-                    }
+            // Kiểm tra trong DanhSachThanhVien
+            hoursForRecord += extractHoursForTeacher(record.DanhSachThanhVien, TenGiangVien);
+
+            if (hoursForRecord > 0) {
+                // Khởi tạo nhóm nếu chưa có
+                if (!resultTables[displayName]) {
+                    resultTables[displayName] = {
+                        totalHours: 0,
+                        records: []
+                    };
                 }
 
-                // Nếu tìm thấy số tiết > 0 thì ghi nhận
-                if (hoursForRecord > 0) {
-                    totalHoursTable += hoursForRecord;
+                // Xác định vai trò
+                const roles = getRolesForTeacher(record, TenGiangVien);
 
-                    // Thêm vào danh sách chi tiết
-                    // Ưu tiên hiển thị tên đề tài, nếu không có thì lấy loại hội đồng (cho bảng hoidong)
-                    const recordName = row[table.nameColumn] || row['LoaiHoiDong'] || `ID: ${row.ID}`;
+                // Thêm vào kết quả
+                resultTables[displayName].records.push({
+                    ID: record.ID,
+                    LoaiNCKH: record.LoaiNCKH,
+                    PhanLoai: record.PhanLoai,
+                    ten: record.TenCongTrinh,
+                    vaiTro: roles.join(", "),
+                    soTiet: hoursForRecord,
+                    ngayNghiemThu: record.NgayNghiemThu
+                        ? nckhService.convertDateFormat(record.NgayNghiemThu)
+                        : "",
+                    // Thêm các field để hiển thị chi tiết
+                    TacGiaChinh: record.TacGiaChinh,
+                    DanhSachThanhVien: record.DanhSachThanhVien,
+                    Khoa: record.Khoa,
+                    KetQua: record.KetQua
+                });
 
-                    records.push({
-                        ...row, // Trả về toàn bộ dữ liệu của hàng
-                        ten: recordName,
-                        vaiTro: rolesFound.join(", "),
-                        soTiet: hoursForRecord,
-                        ngayNghiemThu: row.NgayNghiemThu ? nckhService.convertDateFormat(row.NgayNghiemThu) : "",
-                        tableName: table.name // Lưu lại tên bảng để frontend xử lý chi tiết
-                    });
-                }
-            }
-
-            // Nếu bảng này có dữ liệu của giảng viên thì thêm vào kết quả trả về
-            if (totalHoursTable > 0 || records.length > 0) {
-                resultTables[table.displayName] = {
-                    totalHours: parseFloat(totalHoursTable.toFixed(2)),
-                    records: records
-                };
-                totalHoursAll += totalHoursTable;
+                resultTables[displayName].totalHours += hoursForRecord;
+                totalHoursAll += hoursForRecord;
             }
         }
+
+        // Round các giá trị
+        Object.keys(resultTables).forEach(key => {
+            resultTables[key].totalHours = parseFloat(resultTables[key].totalHours.toFixed(2));
+        });
 
         const responseData = {
             name: TenGiangVien,
@@ -243,6 +222,10 @@ const tongHopSoTietDuKienV2 = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
+// =====================================================
+// EXPORTS
+// =====================================================
 
 module.exports = {
     getTongHopSoTietDuKienV2,

@@ -12,7 +12,7 @@
 
     async function loadLoaiBaiBaoOptions() {
         try {
-            const response = await fetch("/v2/data/baibaokhoahoc");
+            const response = await fetch("/v2/quydinh/BAIBAO");
             const data = await response.json();
 
             const select = document.getElementById("loaiTapChiBB");
@@ -22,8 +22,8 @@
                 select.innerHTML = '<option value="">-- Chọn loại tạp chí --</option>';
                 data.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.LoaiTapChi;
-                    option.textContent = `${item.LoaiTapChi} (${item.SoGio} tiết)`;
+                    option.value = item.PhanLoai;
+                    option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                     select.appendChild(option);
                 });
             }
@@ -32,8 +32,8 @@
                 selectChiSo.innerHTML = '<option value="">-- Chọn chỉ số --</option>';
                 data.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.LoaiTapChi;
-                    option.textContent = item.LoaiTapChi;
+                    option.value = item.PhanLoai;
+                    option.textContent = item.PhanLoai;
                     selectChiSo.appendChild(option);
                 });
             }

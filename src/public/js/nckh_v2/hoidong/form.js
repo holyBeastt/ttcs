@@ -14,7 +14,7 @@
 
     async function loadLoaiHoiDongOptions() {
         try {
-            const response = await fetch("/v2/data/thanhvienhoidong");
+            const response = await fetch("/v2/quydinh/HOIDONG");
             const data = await response.json();
 
             const select = document.getElementById("loaiHoiDongHD");
@@ -22,8 +22,8 @@
                 select.innerHTML = '<option value="">-- Chọn loại hội đồng --</option>';
                 data.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.CapDeTaiDuAn;
-                    option.textContent = `${item.CapDeTaiDuAn} (${item.SoGio} tiết/người)`;
+                    option.value = item.PhanLoai;
+                    option.textContent = `${item.PhanLoai} (${item.SoGio} tiết/người)`;
                     select.appendChild(option);
                 });
             }

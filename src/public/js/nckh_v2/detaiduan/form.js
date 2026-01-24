@@ -12,7 +12,7 @@
 
 async function loadCapDeTaiOptions() {
     try {
-        const response = await fetch("/v2/data/detaiduan");
+        const response = await fetch("/v2/quydinh/DETAI_DUAN");
         const data = await response.json();
 
         const select = document.getElementById("capDeTai");
@@ -20,8 +20,8 @@ async function loadCapDeTaiOptions() {
             select.innerHTML = '<option value="">-- Chọn cấp đề tài --</option>';
             data.forEach(item => {
                 const option = document.createElement("option");
-                option.value = item.CapDeTaiDuAn;
-                option.textContent = `${item.CapDeTaiDuAn} (${item.SoGio} tiết)`;
+                option.value = item.PhanLoai;
+                option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                 select.appendChild(option);
             });
         }
