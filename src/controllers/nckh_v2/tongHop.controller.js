@@ -224,10 +224,187 @@ const tongHopSoTietDuKienV2 = async (req, res) => {
 };
 
 // =====================================================
+// TỔNG HỢP THEO KHOA
+// =====================================================
+
+/**
+ * Render view tổng hợp số tiết theo Khoa
+ */
+const getTongHopSoTietTheoKhoa = (req, res) => {
+    res.render("nckh.tongHopNCKH_Khoa.ejs");
+};
+
+/**
+ * Trích xuất tên giảng viên từ chuỗi "Tên (Khoa - Số tiết)" hoặc "Tên (Số tiết)"
+ * @param {string} str - Chuỗi chứa thông tin thành viên
+ * @returns {Array} Danh sách tên giảng viên
+ */
+const extractTeacherNames = (str) => {
+    if (!str || typeof str !== 'string') return [];
+    
+    const names = [];
+    const members = str.split(',').map(m => m.trim());
+    
+    for (const member of members) {
+        const nameMatch = member.match(/^([^(]+)/);
+        if (nameMatch) {
+            const name = nameMatch[1].trim();
+            if (name) names.push(name);
+        }
+    }
+    
+    return names;
+};
+
+/**
+ * API Tổng hợp số tiết theo Khoa
+ * @param {Object} req - Request với params.NamHoc và body.Khoa
+ * @param {Object} res - Response
+ */
+const tongHopSoTietTheoKhoa = async (req, res) => {
+    const { NamHoc } = req.params;
+    const { Khoa } = req.body;
+
+    if (!NamHoc || !Khoa) {
+        return res.status(400).json({
+            success: false,
+            message: "Thiếu thông tin Năm học hoặc Khoa"
+        });
+    }
+
+    console.log(`[V2] Tổng hợp số tiết theo Khoa: ${Khoa} - Năm: ${NamHoc}`);
+
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        // Query tất cả records đã duyệt của Khoa từ bảng nckh_chung
+        const query = `
+            SELECT * FROM nckh_chung 
+            WHERE NamHoc = ? 
+            AND DaoTaoDuyet = 1
+            AND Khoa = ?
+        `;
+
+        const [allRecords] = await connection.execute(query, [NamHoc, Khoa]);
+
+        console.log(`[V2] Found ${allRecords.length} records for Khoa ${Khoa}`);
+
+        // Trích xuất danh sách giảng viên unique
+        const teacherSet = new Set();
+        
+        for (const record of allRecords) {
+            // Lấy tên từ TacGiaChinh
+            const tacGiaNames = extractTeacherNames(record.TacGiaChinh);
+            tacGiaNames.forEach(name => teacherSet.add(name));
+            
+            // Lấy tên từ DanhSachThanhVien
+            const thanhVienNames = extractTeacherNames(record.DanhSachThanhVien);
+            thanhVienNames.forEach(name => teacherSet.add(name));
+        }
+
+        const teacherList = Array.from(teacherSet);
+        console.log(`[V2] Found ${teacherList.length} unique teachers in Khoa ${Khoa}`);
+
+        // Tính số tiết cho từng giảng viên
+        const teachers = [];
+        let grandTotal = 0;
+
+        for (const teacherName of teacherList) {
+            // Nhóm kết quả theo loại NCKH cho từng GV
+            const resultTables = {};
+            let totalHoursForTeacher = 0;
+
+            for (const record of allRecords) {
+                const loaiNCKH = record.LoaiNCKH;
+                const displayName = nckhService.NCKH_DISPLAY_NAMES[loaiNCKH] || loaiNCKH;
+
+                // Tính số tiết cho giảng viên này từ record này
+                let hoursForRecord = 0;
+                hoursForRecord += extractHoursForTeacher(record.TacGiaChinh, teacherName);
+                hoursForRecord += extractHoursForTeacher(record.DanhSachThanhVien, teacherName);
+
+                if (hoursForRecord > 0) {
+                    if (!resultTables[displayName]) {
+                        resultTables[displayName] = {
+                            totalHours: 0,
+                            records: []
+                        };
+                    }
+
+                    const roles = getRolesForTeacher(record, teacherName);
+
+                    resultTables[displayName].records.push({
+                        ID: record.ID,
+                        LoaiNCKH: record.LoaiNCKH,
+                        PhanLoai: record.PhanLoai,
+                        ten: record.TenCongTrinh,
+                        vaiTro: roles.join(", "),
+                        soTiet: hoursForRecord,
+                        ngayNghiemThu: record.NgayNghiemThu
+                            ? nckhService.convertDateFormat(record.NgayNghiemThu)
+                            : "",
+                        TacGiaChinh: record.TacGiaChinh,
+                        DanhSachThanhVien: record.DanhSachThanhVien,
+                        Khoa: record.Khoa,
+                        KetQua: record.KetQua
+                    });
+
+                    resultTables[displayName].totalHours += hoursForRecord;
+                    totalHoursForTeacher += hoursForRecord;
+                }
+            }
+
+            // Round các giá trị
+            Object.keys(resultTables).forEach(key => {
+                resultTables[key].totalHours = parseFloat(resultTables[key].totalHours.toFixed(2));
+            });
+
+            if (totalHoursForTeacher > 0) {
+                teachers.push({
+                    name: teacherName,
+                    totalHours: parseFloat(totalHoursForTeacher.toFixed(2)),
+                    tables: resultTables
+                });
+                grandTotal += totalHoursForTeacher;
+            }
+        }
+
+        // Sắp xếp theo tổng số tiết giảm dần
+        teachers.sort((a, b) => b.totalHours - a.totalHours);
+
+        const responseData = {
+            khoa: Khoa,
+            namHoc: NamHoc,
+            grandTotal: parseFloat(grandTotal.toFixed(2)),
+            teacherCount: teachers.length,
+            teachers: teachers
+        };
+
+        res.json({
+            success: true,
+            data: responseData
+        });
+
+    } catch (error) {
+        console.error(`Lỗi khi tổng hợp số tiết theo Khoa ${Khoa}:`, error);
+        res.status(500).json({
+            success: false,
+            message: "Có lỗi xảy ra khi tổng hợp dữ liệu.",
+            error: error.message
+        });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+// =====================================================
 // EXPORTS
 // =====================================================
 
 module.exports = {
     getTongHopSoTietDuKienV2,
-    tongHopSoTietDuKienV2
+    tongHopSoTietDuKienV2,
+    getTongHopSoTietTheoKhoa,
+    tongHopSoTietTheoKhoa
 };

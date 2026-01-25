@@ -125,6 +125,10 @@ router.get("/giang-vien-co-huu", nckhV2Base.getTeacherV2);
 router.get("/tonghopsotiet/dukien", tongHopController.getTongHopSoTietDuKienV2);
 router.post("/tonghopsotiet/dukien/:NamHoc", tongHopController.tongHopSoTietDuKienV2);
 
+// Tổng hợp theo Khoa
+router.get("/tonghopsotiet/khoa", tongHopController.getTongHopSoTietTheoKhoa);
+router.post("/tonghopsotiet/khoa/:NamHoc", tongHopController.tongHopSoTietTheoKhoa);
+
 // =====================================================
 // EXPORTS
 // =====================================================
