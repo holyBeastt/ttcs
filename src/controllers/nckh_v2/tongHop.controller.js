@@ -105,7 +105,7 @@ const getRolesForTeacher = (record, teacherName) => {
  * Render view tổng hợp số tiết dự kiến V2
  */
 const getTongHopSoTietDuKienV2 = (req, res) => {
-    res.render("nckhTongHopSoTietDuKienV2.ejs");
+    res.render("nckh.tongHopNCKH_GV.ejs");
 };
 
 /**
