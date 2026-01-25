@@ -234,6 +234,34 @@ async function populateDepartmentSelect(selectElement) {
 }
 
 // =====================================================
+// KHOA SELECT HELPERS
+// =====================================================
+
+/**
+ * Load danh sách Khoa vào select element
+ * @param {string} selectId - ID của select element
+ */
+async function loadKhoaOptions(selectId) {
+    try {
+        const response = await fetch("/api/get-khoa-list");
+        const data = await response.json();
+        
+        const select = document.getElementById(selectId);
+        if (select) {
+            select.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+            data.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.MaPhongBan;
+                option.textContent = item.TenPhongBan;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error("Error loading Khoa list:", error);
+    }
+}
+
+// =====================================================
 // TEACHER AUTOCOMPLETE
 // =====================================================
 
@@ -547,6 +575,7 @@ window.NCKH_V2_Utils = {
     populateYearSelect,
     populateDepartmentSelect,
     populatePhanLoaiSelectV2,
+    loadKhoaOptions,
 
     // Teacher autocomplete
     loadGiangVienCoHuu,

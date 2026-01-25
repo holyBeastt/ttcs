@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load loại bài báo options
     await BaiBao_Form.loadLoaiBaiBaoOptions();
 
+    // Load Khoa options
+    await BaiBao_Form.loadKhoaOptions();
+
     // Setup autocomplete
     BaiBao_Autocomplete.initAutocomplete();
 

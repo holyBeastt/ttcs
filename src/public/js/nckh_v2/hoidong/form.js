@@ -73,13 +73,13 @@
             tenDeTai: document.getElementById("tenDeTaiHoiDong")?.value.trim() || "",
             thanhVien: memberList, // Array of members
             tongSoThanhVien: memberList.length,
-            khoa: localStorage.getItem("MaPhongBan")
+            khoa: document.getElementById("khoaSelectHDKH").value
         };
 
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["loaiHoiDong", "namHoc"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["loaiHoiDong", "namHoc", "khoa"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {
@@ -126,6 +126,7 @@
 
     window.HoiDong_Form = {
         loadLoaiHoiDongOptions,
+        loadKhoaOptions: () => NCKH_V2_Utils.loadKhoaOptions("khoaSelectHDKH"),
         setupFormSubmit,
         submitForm
     };

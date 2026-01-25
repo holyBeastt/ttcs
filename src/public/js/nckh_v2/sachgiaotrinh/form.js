@@ -80,13 +80,13 @@
             soNamThucHien: document.getElementById("soNamThucHienSGT")?.value || 1,
             tongSoTacGia: tacGiaListFromView.length + memberList.length,
             tongSoThanhVien: memberList.length,
-            khoa: localStorage.getItem("MaPhongBan")
+            khoa: document.getElementById("khoaSelectSGT").value
         };
 
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["phanLoai", "namHoc", "tenSachGiaoTrinh"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["phanLoai", "namHoc", "tenSachGiaoTrinh", "khoa"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {
@@ -140,6 +140,7 @@
 
     window.SachGiaoTrinh_Form = {
         loadPhanLoaiOptions,
+        loadKhoaOptions: () => NCKH_V2_Utils.loadKhoaOptions("khoaSelectSGT"),
         setupFormSubmit,
         submitForm
     };

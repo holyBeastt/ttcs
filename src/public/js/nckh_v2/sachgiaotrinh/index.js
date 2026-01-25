@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load phân loại options
     await SachGiaoTrinh_Form.loadPhanLoaiOptions();
 
+    // Load Khoa options
+    await SachGiaoTrinh_Form.loadKhoaOptions();
+
     // Setup autocomplete
     SachGiaoTrinh_Autocomplete.initAutocomplete();
 

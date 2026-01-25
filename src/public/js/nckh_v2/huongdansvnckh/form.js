@@ -74,13 +74,13 @@
             ketQua: document.getElementById("ketQuaHD")?.value || "",
             thanhVien: memberList,
             tongSoTacGia: memberList.length,
-            khoa: localStorage.getItem("MaPhongBan")
+            khoa: document.getElementById("khoaSelectHD").value
         };
 
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["loaiHuongDan", "namHoc", "tenDeTai"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["loaiHuongDan", "namHoc", "tenDeTai", "khoa"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {
@@ -127,6 +127,7 @@
 
     window.HuongDanSvNckh_Form = {
         loadLoaiHuongDanOptions,
+        loadKhoaOptions: () => NCKH_V2_Utils.loadKhoaOptions("khoaSelectHD"),
         setupFormSubmit,
         submitForm
     };

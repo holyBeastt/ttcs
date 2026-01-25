@@ -24,6 +24,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load loại hội đồng options
     await HoiDong_Form.loadLoaiHoiDongOptions();
 
+    // Load Khoa options
+    await HoiDong_Form.loadKhoaOptions();
+
     // Setup autocomplete
     HoiDong_Autocomplete.initAutocomplete();
 

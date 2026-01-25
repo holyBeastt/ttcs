@@ -28,6 +28,10 @@
                 <label class="form-label fw-bold">Năm Học:</label>
                 <p class="form-control-plaintext">${data.NamHoc || ''}</p>
             </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Khoa:</label>
+                <p class="form-control-plaintext">${data.Khoa || ''}</p>
+            </div>
             <div class="col-12 mb-3">
                 <label class="form-label fw-bold">Tên Bài Báo:</label>
                 <p class="form-control-plaintext">${data.TenBaiBao || ''}</p>
