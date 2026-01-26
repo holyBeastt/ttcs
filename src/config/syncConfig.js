@@ -185,89 +185,35 @@ module.exports = {
     // RESEARCH - Nghiên cứu khoa học (NCKH)
     // ============================================
 
-    // baibaokhoahoc: {
-    //     type: 'research',
-    //     description: 'Bài báo khoa học',
-    //     uniqueKey: ['NamHoc', 'TenBaiBao'],
-    // },
-
-    // bangsangchevagiaithuong: {
-    //     type: 'research',
-    //     description: 'Bằng sáng chế và giải thưởng',
-    //     uniqueKey: ['NamHoc', 'TenBangSangCheVaGiaiThuong'],
-    // },
-
-    // biensoangiaotrinhbaigiang: {
-    //     type: 'research',
-    //     description: 'Biên soạn giáo trình bài giảng',
-    //     uniqueKey: ['NamHoc', 'TenGiaoTrinhVaBaiGiang'],
-    // },
-
-    // detaiduan: {
-    //     type: 'research',
-    //     description: 'Đề tài dự án nghiên cứu',
-    //     uniqueKey: ['NamHoc', 'TenDeTai', 'MaSoDeTai'],
-    // },
-
-    // dexuatnghiencuu: {
-    //     type: 'research',
-    //     description: 'Đề xuất nghiên cứu',
-    //     uniqueKey: ['NamHoc', 'TenDeXuat', 'MaSoDeXuat'],
-    // },
-
-    // huongdansvnckh: {
-    //     type: 'research',
-    //     description: 'Hướng dẫn sinh viên NCKH',
-    //     uniqueKey: ['NamHoc', 'LoaiHuongDan', 'TenDeTai', 'MaSoDeTai'],
-    // },
-
-    // nckhvahuanluyendoituyen: {
-    //     type: 'research',
-    //     description: 'NCKH và huấn luyện đội tuyển',
-    //     uniqueKey: ['NamHoc', 'TenDeTai'],
-    // },
-
-    // nhiemvukhoahoccongnghe: {
-    //     type: 'research',
-    //     description: 'Nhiệm vụ khoa học công nghệ',
-    //     uniqueKey: ['NamHoc', 'TenNhiemVu', 'MaNhiemVu'],
-    // },
-
-    // sachvagiaotrinh: {
-    //     type: 'research',
-    //     description: 'Sách và giáo trình',
-    //     uniqueKey: ['NamHoc', 'TenSachVaGiaoTrinh', 'TacGia'],
-    // },
-
-    // sangkien: {
-    //     type: 'research',
-    //     description: 'Sáng kiến cải tiến',
-    //     uniqueKey: ['NamHoc', 'TenSangKien', 'MaSoSangKien'],
-    // },
-
-    // thanhvienhoidong: {
-    //     type: 'research',
-    //     description: 'Thành viên hội đồng',
-    //     uniqueKey: ['NamHoc', 'TenDeTai', 'ThanhVien'],
-    // },
-
     // uncngoai: {
-    //     type: 'research',
+    //     type: 'business',
     //     description: 'Ủy nhiệm chi ngoài',
     //     uniqueKey: ['stk'],
     // },
 
-    // xaydungctdt: {
-    //     type: 'research',
-    //     description: 'Xây dựng chương trình đào tạo',
-    //     uniqueKey: ['NamHoc', 'TenChuongTrinh'],
+    // uncngoaidetail: {
+    //     type: 'business',
+    //     description: 'Chi tiết ủy nhiệm chi ngoài',
+    //     uniqueKey: ['stk'],
     // },
 
-    // sotietnckhbaoluusangnam: {
-    //     type: 'research',
-    //     description: 'Số tiết NCKH bảo lưu sang năm',
-    //     uniqueKey: ['NamHoc', 'Khoa', 'GiangVien'],
-    // },
+    nckh_chung: {
+        type: 'research',
+        description: 'NCKH chung',
+        uniqueKey: ['LoaiNCKH'],
+    },
+
+    nckh_quydinhsogio: {
+        type: 'research',
+        description: 'NCKH quy định số giờ',
+        uniqueKey: ['LoaiNCKH', 'PhanLoai'],
+    },
+
+    sotietnckhbaoluusangnam: {
+        type: 'research',
+        description: 'Số tiết NCKH bảo lưu sang năm',
+        uniqueKey: ['NamHoc', 'GiangVien'],
+    },
 
     // ============================================
     // SALARY - Tiền lương và miễn giảm
