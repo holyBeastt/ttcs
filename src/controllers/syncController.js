@@ -69,15 +69,17 @@ exports.exportTable = async (req, res) => {
             query = config.exportQuery;
             [data] = await connection.query(query);
         } else {
-            // Default: SELECT * FROM table (excluding id column)
+            // Default: SELECT * FROM table
             query = `SELECT * FROM ${table}`;
             [data] = await connection.query(query);
 
-            // Remove id column from results if it exists
-            data = data.map((row) => {
-                const { id, ...rest } = row;
-                return rest;
-            });
+            // Only remove id column if NOT preserveId
+            if (!config.preserveId) {
+                data = data.map((row) => {
+                    const { id, ...rest } = row;
+                    return rest;
+                });
+            }
         }
 
         return res.status(200).json({
@@ -124,11 +126,13 @@ exports.exportAll = async (req, res) => {
                     query = `SELECT * FROM ${tableName}`;
                     [data] = await connection.query(query);
 
-                    // Remove id column
-                    data = data.map((row) => {
-                        const { id, ...rest } = row;
-                        return rest;
-                    });
+                    // Only remove id column if NOT preserveId
+                    if (!config.preserveId) {
+                        data = data.map((row) => {
+                            const { id, ...rest } = row;
+                            return rest;
+                        });
+                    }
                 }
 
                 allData[tableName] = {
@@ -464,10 +468,19 @@ async function importGenericTable(connection, tableName, records, config) {
                 continue;
             }
 
-            // Build field list (excluding id if present)
-            const { id, ...dataWithoutId } = record;
-            const fields = Object.keys(dataWithoutId);
-            const values = Object.values(dataWithoutId);
+            // Build field list - keep id if preserveId, otherwise remove it
+            let fields, values;
+            if (config.preserveId && record.id !== undefined) {
+                // Keep id for master tables
+                fields = Object.keys(record);
+                values = Object.values(record);
+                console.log(`[SYNC DEBUG] 🔑 Preserving ID: ${record.id}`);
+            } else {
+                // Remove id for other tables
+                const { id, ...dataWithoutId } = record;
+                fields = Object.keys(dataWithoutId);
+                values = Object.values(dataWithoutId);
+            }
 
             // Build UPDATE clause for ON DUPLICATE KEY
             const updateClauses = fields
@@ -626,3 +639,64 @@ exports.importAll = async (req, res) => {
     }
 };
 
+/**
+ * Clear Master Tables - One-Time Setup
+ * POST /sync/clear-master-tables
+ */
+exports.clearMasterTables = async (req, res) => {
+    let connection;
+    try {
+        connection = await createConnection();
+
+        // Master tables to clear (reverse dependency order)
+        // const masterTables = [
+        //     'khoa_sinh_vien',
+        //     'he_dao_tao',
+        //     'chuc_danh_nghe_nghiep',
+        //     'bomon',
+        //     'phongban',
+        //     'namhoc'
+        // ];
+        const masterTables = [
+            'he_dao_tao',
+            'chuc_danh_nghe_nghiep'
+        ];
+
+        // Disable foreign key checks
+        await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+
+        // Clear each master table
+        const clearedTables = [];
+        for (const table of masterTables) {
+            try {
+                await connection.query(`TRUNCATE TABLE ${table}`);
+                clearedTables.push(table);
+                console.log(`[SYNC] Cleared master table: ${table}`);
+            } catch (error) {
+                console.error(`[SYNC] Error clearing ${table}:`, error.message);
+                // Continue with next table
+            }
+        }
+
+        // Re-enable foreign key checks
+        await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+
+        return res.status(200).json({
+            success: true,
+            message: `Đã xóa ${clearedTables.length} master tables`,
+            clearedCount: clearedTables.length,
+            tables: clearedTables,
+            nextStep: 'Import master tables từ PUBLIC ngay!'
+        });
+
+    } catch (error) {
+        console.error('[SYNC] Clear master tables error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Lỗi khi xóa master tables',
+            error: error.message
+        });
+    } finally {
+        if (connection) connection.release();
+    }
+};

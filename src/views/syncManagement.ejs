@@ -399,6 +399,55 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Clear Master Tables Section (One-Time Setup) -->
+            <div class="sync-card" style="border-left: 4px solid #ff9800;">
+                <h4><i class="bi bi-trash text-warning"></i> Xóa Master Tables (One-Time Setup)</h4>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>Chú ý:</strong> Chức năng này chỉ dùng 1 lần khi thiết lập đồng bộ ID lần đầu.
+                    Sau khi clear, bạn cần import master tables từ PUBLIC ngay lập tức.
+                </div>
+
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <p class="mb-2"><strong>Master tables sẽ bị xóa:</strong></p>
+                        <ul class="list-unstyled mb-0">
+                            <!-- <li><i class="bi bi-check-circle text-muted"></i> phongban</li>
+                            <li><i class="bi bi-check-circle text-muted"></i> bomon</li>
+                            <li><i class="bi bi-check-circle text-muted"></i> namhoc</li> -->
+                            <li><i class="bi bi-check-circle text-muted"></i> he_dao_tao</li>
+                            <li><i class="bi bi-check-circle text-muted"></i> chuc_danh_nghe_nghiep</li>
+                            <!-- <li><i class="bi bi-check-circle text-muted"></i> khoa_sinh_vien</li> -->
+                        </ul>
+                        <p class="mt-2 text-muted"><small><i class="bi bi-info-circle"></i> Business tables (giangday,
+                                quychuan...)
+                                sẽ KHÔNG bị xóa</small></p>
+                    </div>
+
+                    <div class="col-md-4">
+                        <button id="btn-clear-master" class="btn btn-warning btn-action w-100"
+                            style="background: #ff9800;">
+                            <i class="bi bi-trash"></i>
+                            <span>Xóa Master Tables</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="clear-result" class="result-area" style="display: none;">
+                    <h5>Kết quả xóa:</h5>
+                    <div class="stats-row">
+                        <div class="stat-card warning" style="background: #fff3e0; border-color: #ff9800;">
+                            <h3 id="clear-count">0</h3>
+                            <p>Bảng đã xóa</p>
+                        </div>
+                    </div>
+                    <div id="clear-details" style="margin-top: 1rem;">
+                        <p><strong>Chi tiết:</strong></p>
+                        <ul id="clear-list" class="list-unstyled"></ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- jQuery -->
@@ -838,6 +887,85 @@
                     $('#btn-import').prop('disabled', true);
                 }
             }
+
+            // ============================================
+            // CLEAR MASTER TABLES Handler
+            // ============================================
+            $('#btn-clear-master').click(async function () {
+                // Confirm dialog
+                const result = await Swal.fire({
+                    title: '⚠️ Xác nhận xóa Master Tables',
+                    html: `
+                        <div style="text-align: left;">
+                            <p><strong>Các bảng sẽ bị xóa:</strong></p>
+                            <ul>
+                                <li>he_dao_tao</li>
+                                <li>chuc_danh_nghe_nghiep</li>
+                            </ul>
+                            <p class="text-danger"><strong>Cảnh báo:</strong> Sau khi xóa, bạn PHẢI import master tables từ PUBLIC ngay!</p>
+                            <p class="text-muted">Business tables (giangday, quychuan...) sẽ KHÔNG bị xóa.</p>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ff9800',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Xác nhận xóa',
+                    cancelButtonText: 'Hủy',
+                    width: '600px'
+                });
+
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                try {
+                    // Show loading
+                    $(this).prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Đang xóa...');
+
+                    // Call API
+                    const response = await $.ajax({
+                        url: '/sync/clear-master-tables',
+                        method: 'POST',
+                        contentType: 'application/json'
+                    });
+
+                    if (response.success) {
+                        // Show success
+                        Swal.fire({
+                            title: '✅ Xóa thành công!',
+                            html: `
+                                <p><strong>${response.clearedCount}</strong> bảng đã được xóa</p>
+                                <p class="text-warning mt-2">⚠️ Bước tiếp theo: Import master tables từ PUBLIC ngay!</p>
+                            `,
+                            icon: 'success',
+                            confirmButtonColor: '#4a90e2'
+                        });
+
+                        // Show result
+                        $('#clear-result').show();
+                        $('#clear-count').text(response.clearedCount);
+
+                        const $list = $('#clear-list').empty();
+                        response.tables.forEach(table => {
+                            $list.append(`<li><i class="bi bi-check-circle text-success"></i> ${table}</li>`);
+                        });
+                    } else {
+                        throw new Error(response.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    console.error('Clear error:', error);
+                    Swal.fire({
+                        title: '❌ Lỗi!',
+                        text: error.responseJSON?.error || error.message || 'Không thể xóa master tables',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                } finally {
+                    // Reset button
+                    $(this).prop('disabled', false).html('<i class="bi bi-trash"></i> <span>Xóa Master Tables</span>');
+                }
+            });
         </script>
 </body>
 

@@ -20,18 +20,21 @@ module.exports = {
         type: 'master',
         description: 'Phòng ban/Khoa',
         uniqueKey: ['MaPhongBan'],
+        preserveId: true, // Cần preserve ID vì có FK references
     },
 
     bomon: {
         type: 'master',
         description: 'Bộ môn',
         uniqueKey: ['MaPhongBan', 'MaBoMon'],
+        preserveId: true, // Cần preserve ID vì có FK references
     },
 
     namhoc: {
         type: 'master',
         description: 'Năm học',
         uniqueKey: ['NamHoc'],
+        preserveId: true, // Cần preserve ID vì có FK references
     },
 
     kitubatdau: {
@@ -50,12 +53,14 @@ module.exports = {
         type: 'master',
         description: 'Danh mục chức danh nghề nghiệp',
         uniqueKey: ['chuc_danh'],
+        preserveId: true, // Referenced by tienluong.chuc_danh_id
     },
 
     he_dao_tao: {
         type: 'master',
         description: 'Hệ đào tạo',
         uniqueKey: ['he_dao_tao', 'loai_hinh'],
+        preserveId: true, // Cần preserve ID vì có FK references
     },
 
     he_so_lop_dong: {
@@ -68,6 +73,7 @@ module.exports = {
         type: 'master',
         description: 'Khóa sinh viên',
         uniqueKey: ['phongban_id'],
+        preserveId: true, // Cần preserve ID vì có FK references
     },
 
     sotietdoan: {

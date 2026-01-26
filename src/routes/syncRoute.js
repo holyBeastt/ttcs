@@ -115,5 +115,8 @@ router.get("/", requireAdmin, (req, res) => {
     });
 });
 
+// POST: Clear master tables (one-time setup)
+router.post("/clear-master-tables", requireAdmin, syncController.clearMasterTables);
+
 module.exports = router;
 
