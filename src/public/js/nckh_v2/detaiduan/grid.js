@@ -122,7 +122,9 @@
         console.log("ncHtptCode:", ncHtptCode);
         console.log("daoTaoCode:", daoTaoCode);
         console.log("lanhDaoPhongRole:", lanhDaoPhongRole);
+        console.log("lanhDaoKhoaRole:", lanhDaoKhoaRole);
         console.log("role === lanhDaoPhongRole:", role === lanhDaoPhongRole);
+        console.log("role === lanhDaoKhoaRole:", role === lanhDaoKhoaRole);
         console.log("MaPhongBan === ncHtptCode:", MaPhongBan === ncHtptCode);
         console.log("MaPhongBan === daoTaoCode:", MaPhongBan === daoTaoCode);
 
@@ -133,6 +135,14 @@
         // Quyền duyệt Khoa: lãnh đạo khoa (không thuộc DT/NCKH)
         const canApproveKhoa = role === lanhDaoKhoaRole &&
             MaPhongBan !== daoTaoCode && MaPhongBan !== ncHtptCode;
+        
+        console.log("=== KHOA APPROVAL CHECK ===");
+        console.log("role:", role);
+        console.log("lanhDaoKhoaRole:", lanhDaoKhoaRole);
+        console.log("role === lanhDaoKhoaRole:", role === lanhDaoKhoaRole);
+        console.log("MaPhongBan !== daoTaoCode:", MaPhongBan !== daoTaoCode);
+        console.log("MaPhongBan !== ncHtptCode:", MaPhongBan !== ncHtptCode);
+        console.log("canApproveKhoa:", canApproveKhoa);
 
         // Quyền sửa: canApprove HOẶC canApproveKhoa HOẶC gv_cnbm_khoa
         const canEdit = canApprove || canApproveKhoa || role === gvCnbmKhoaRole;
@@ -272,20 +282,30 @@
                 cellRenderer: (params) => {
                     const icon = document.createElement("i");
                     const isApproved = params.data.DaoTaoDuyet === 1;
+                    const isKhoaDuyet = params.data.KhoaDuyet === 1;
 
                     if (isApproved) {
                         icon.className = "fas fa-check";
                         icon.style.color = "#198754";
                         icon.title = "Đã duyệt - Click để bỏ duyệt";
+                        icon.style.cursor = "pointer";
+                        icon.onclick = () => toggleApproval(params.data.ID, false, params.api, params.node);
+                    } else if (!isKhoaDuyet) {
+                        // Khoa chưa duyệt => không cho Viện NC duyệt
+                        icon.className = "fas fa-ban";
+                        icon.style.color = "#dc3545";
+                        icon.title = "Khoa chưa duyệt - Không thể duyệt";
+                        icon.style.cursor = "not-allowed";
                     } else {
+                        // Khoa đã duyệt => cho phép Viện NC duyệt
                         icon.className = "fas fa-times";
                         icon.style.color = "#6c757d";
                         icon.title = "Chưa duyệt - Click để duyệt";
+                        icon.style.cursor = "pointer";
+                        icon.onclick = () => toggleApproval(params.data.ID, true, params.api, params.node);
                     }
 
-                    icon.style.cursor = "pointer";
                     icon.style.fontSize = "16px";
-                    icon.onclick = () => toggleApproval(params.data.ID, !isApproved, params.api, params.node);
                     return icon;
                 },
                 cellStyle: { textAlign: "center" }
@@ -312,6 +332,17 @@
             onCellValueChanged: onCellValueChanged,
             localeText: {
                 noRowsToShow: "Không có dữ liệu"
+            },
+            // Row styling based on approval status
+            getRowStyle: (params) => {
+                if (params.data.DaoTaoDuyet === 1) {
+                    // Viện NC đã duyệt - màu xanh lá nhạt
+                    return { backgroundColor: '#d4edda', opacity: '0.9' };
+                } else if (params.data.KhoaDuyet === 1) {
+                    // Chỉ Khoa duyệt - màu vàng nhạt
+                    return { backgroundColor: '#fff3cd' };
+                }
+                return null;
             }
         };
 

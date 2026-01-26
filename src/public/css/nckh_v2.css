@@ -90,6 +90,7 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    padding: 20px;
 }
 
 .nckh-tab-content.active {
@@ -141,6 +142,10 @@
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
+}
+
+.form-section:last-of-type {
+    margin-bottom: 0;
 }
 
 .form-section-title {

@@ -265,121 +265,227 @@ const tongHopSoTietTheoKhoa = async (req, res) => {
     const { NamHoc } = req.params;
     const { Khoa } = req.body;
 
-    if (!NamHoc || !Khoa) {
+    if (!NamHoc) {
         return res.status(400).json({
             success: false,
-            message: "Thiếu thông tin Năm học hoặc Khoa"
+            message: "Thiếu thông tin Năm học"
         });
     }
 
-    console.log(`[V2] Tổng hợp số tiết theo Khoa: ${Khoa} - Năm: ${NamHoc}`);
+    // Khoa có thể rỗng (trường hợp "Tất cả Khoa")
+    const isAllKhoa = !Khoa || Khoa === '' || Khoa === 'ALL';
+    console.log(`[V2] Tổng hợp số tiết theo Khoa: ${isAllKhoa ? 'TẤT CẢ' : Khoa} - Năm: ${NamHoc}`);
 
     let connection;
     try {
         connection = await createPoolConnection();
 
-        // Query tất cả records đã duyệt của Khoa từ bảng nckh_chung
-        const query = `
-            SELECT * FROM nckh_chung 
-            WHERE NamHoc = ? 
-            AND DaoTaoDuyet = 1
-            AND Khoa = ?
-        `;
-
-        const [allRecords] = await connection.execute(query, [NamHoc, Khoa]);
-
-        console.log(`[V2] Found ${allRecords.length} records for Khoa ${Khoa}`);
-
-        // Trích xuất danh sách giảng viên unique
-        const teacherSet = new Set();
+        // Query danh sách nhân viên thuộc học viện để lọc
+        // Chỉ hiển thị những người có trong bảng nhanvien
+        let nhanVienQuery;
+        let nhanVienParams;
         
-        for (const record of allRecords) {
-            // Lấy tên từ TacGiaChinh
-            const tacGiaNames = extractTeacherNames(record.TacGiaChinh);
-            tacGiaNames.forEach(name => teacherSet.add(name));
-            
-            // Lấy tên từ DanhSachThanhVien
-            const thanhVienNames = extractTeacherNames(record.DanhSachThanhVien);
-            thanhVienNames.forEach(name => teacherSet.add(name));
+        if (isAllKhoa) {
+            // Lấy tất cả nhân viên
+            nhanVienQuery = `SELECT TenNhanVien FROM nhanvien`;
+            nhanVienParams = [];
+        } else {
+            // Lấy nhân viên theo Khoa cụ thể
+            nhanVienQuery = `SELECT TenNhanVien FROM nhanvien WHERE MaPhongBan = ?`;
+            nhanVienParams = [Khoa];
+        }
+        
+        const [nhanVienRows] = await connection.execute(nhanVienQuery, nhanVienParams);
+        
+        // Tạo Set chứa tên nhân viên (chuẩn hóa lowercase để so sánh)
+        const nhanVienSet = new Set(
+            nhanVienRows.map(row => row.TenNhanVien?.trim().toLowerCase()).filter(Boolean)
+        );
+        
+        console.log(`[V2] Loaded ${nhanVienSet.size} nhân viên từ bảng nhanvien`);
+
+        // Query tất cả records đã duyệt từ bảng nckh_chung
+        // Nếu Khoa rỗng thì lấy tất cả, ngược lại filter theo Khoa
+        let query;
+        let params;
+        
+        if (isAllKhoa) {
+            query = `
+                SELECT * FROM nckh_chung 
+                WHERE NamHoc = ? 
+                AND DaoTaoDuyet = 1
+            `;
+            params = [NamHoc];
+        } else {
+            query = `
+                SELECT * FROM nckh_chung 
+                WHERE NamHoc = ? 
+                AND DaoTaoDuyet = 1
+                AND Khoa = ?
+            `;
+            params = [NamHoc, Khoa];
         }
 
-        const teacherList = Array.from(teacherSet);
-        console.log(`[V2] Found ${teacherList.length} unique teachers in Khoa ${Khoa}`);
+        const [allRecords] = await connection.execute(query, params);
 
-        // Tính số tiết cho từng giảng viên
-        const teachers = [];
-        let grandTotal = 0;
+        console.log(`[V2] Found ${allRecords.length} records for ${isAllKhoa ? 'TẤT CẢ KHOA' : 'Khoa ' + Khoa}`);
 
-        for (const teacherName of teacherList) {
-            // Nhóm kết quả theo loại NCKH cho từng GV
-            const resultTables = {};
-            let totalHoursForTeacher = 0;
+        /**
+         * Kiểm tra tên có phải là nhân viên thuộc học viện không
+         * @param {string} name - Tên cần kiểm tra
+         * @param {Set} nhanVienSet - Set chứa tên nhân viên (đã lowercase)
+         * @returns {boolean}
+         */
+        const isNhanVienHocVien = (name, nhanVienSet) => {
+            if (!name) return false;
+            const normalizedName = name.trim().toLowerCase();
+            return nhanVienSet.has(normalizedName);
+        };
 
-            for (const record of allRecords) {
-                const loaiNCKH = record.LoaiNCKH;
-                const displayName = nckhService.NCKH_DISPLAY_NAMES[loaiNCKH] || loaiNCKH;
-
-                // Tính số tiết cho giảng viên này từ record này
-                let hoursForRecord = 0;
-                hoursForRecord += extractHoursForTeacher(record.TacGiaChinh, teacherName);
-                hoursForRecord += extractHoursForTeacher(record.DanhSachThanhVien, teacherName);
-
-                if (hoursForRecord > 0) {
-                    if (!resultTables[displayName]) {
-                        resultTables[displayName] = {
-                            totalHours: 0,
-                            records: []
-                        };
+        // Hàm tính toán dữ liệu cho một Khoa
+        // Tham số nhanVienSetForKhoa: Set nhân viên để lọc (có thể là của Khoa cụ thể hoặc tất cả)
+        const calculateKhoaData = (records, khoaName, nhanVienSetForKhoa) => {
+            const teacherSet = new Set();
+            
+            for (const record of records) {
+                const tacGiaNames = extractTeacherNames(record.TacGiaChinh);
+                // Chỉ thêm nếu là nhân viên thuộc học viện
+                tacGiaNames.forEach(name => {
+                    if (isNhanVienHocVien(name, nhanVienSetForKhoa)) {
+                        teacherSet.add(name);
                     }
+                });
+                
+                const thanhVienNames = extractTeacherNames(record.DanhSachThanhVien);
+                // Chỉ thêm nếu là nhân viên thuộc học viện
+                thanhVienNames.forEach(name => {
+                    if (isNhanVienHocVien(name, nhanVienSetForKhoa)) {
+                        teacherSet.add(name);
+                    }
+                });
+            }
 
-                    const roles = getRolesForTeacher(record, teacherName);
+            const teacherList = Array.from(teacherSet);
+            const teachers = [];
+            let grandTotal = 0;
 
-                    resultTables[displayName].records.push({
-                        ID: record.ID,
-                        LoaiNCKH: record.LoaiNCKH,
-                        PhanLoai: record.PhanLoai,
-                        ten: record.TenCongTrinh,
-                        vaiTro: roles.join(", "),
-                        soTiet: hoursForRecord,
-                        ngayNghiemThu: record.NgayNghiemThu
-                            ? nckhService.convertDateFormat(record.NgayNghiemThu)
-                            : "",
-                        TacGiaChinh: record.TacGiaChinh,
-                        DanhSachThanhVien: record.DanhSachThanhVien,
-                        Khoa: record.Khoa,
-                        KetQua: record.KetQua
+            for (const teacherName of teacherList) {
+                const resultTables = {};
+                let totalHoursForTeacher = 0;
+
+                for (const record of records) {
+                    const loaiNCKH = record.LoaiNCKH;
+                    const displayName = nckhService.NCKH_DISPLAY_NAMES[loaiNCKH] || loaiNCKH;
+
+                    let hoursForRecord = 0;
+                    hoursForRecord += extractHoursForTeacher(record.TacGiaChinh, teacherName);
+                    hoursForRecord += extractHoursForTeacher(record.DanhSachThanhVien, teacherName);
+
+                    if (hoursForRecord > 0) {
+                        if (!resultTables[displayName]) {
+                            resultTables[displayName] = {
+                                totalHours: 0,
+                                records: []
+                            };
+                        }
+
+                        const roles = getRolesForTeacher(record, teacherName);
+
+                        resultTables[displayName].records.push({
+                            ID: record.ID,
+                            LoaiNCKH: record.LoaiNCKH,
+                            PhanLoai: record.PhanLoai,
+                            ten: record.TenCongTrinh,
+                            vaiTro: roles.join(", "),
+                            soTiet: hoursForRecord,
+                            ngayNghiemThu: record.NgayNghiemThu
+                                ? nckhService.convertDateFormat(record.NgayNghiemThu)
+                                : "",
+                            TacGiaChinh: record.TacGiaChinh,
+                            DanhSachThanhVien: record.DanhSachThanhVien,
+                            Khoa: record.Khoa,
+                            KetQua: record.KetQua
+                        });
+
+                        resultTables[displayName].totalHours += hoursForRecord;
+                        totalHoursForTeacher += hoursForRecord;
+                    }
+                }
+
+                Object.keys(resultTables).forEach(key => {
+                    resultTables[key].totalHours = parseFloat(resultTables[key].totalHours.toFixed(2));
+                });
+
+                if (totalHoursForTeacher > 0) {
+                    teachers.push({
+                        name: teacherName,
+                        totalHours: parseFloat(totalHoursForTeacher.toFixed(2)),
+                        tables: resultTables
                     });
-
-                    resultTables[displayName].totalHours += hoursForRecord;
-                    totalHoursForTeacher += hoursForRecord;
+                    grandTotal += totalHoursForTeacher;
                 }
             }
 
-            // Round các giá trị
-            Object.keys(resultTables).forEach(key => {
-                resultTables[key].totalHours = parseFloat(resultTables[key].totalHours.toFixed(2));
-            });
+            teachers.sort((a, b) => b.totalHours - a.totalHours);
 
-            if (totalHoursForTeacher > 0) {
-                teachers.push({
-                    name: teacherName,
-                    totalHours: parseFloat(totalHoursForTeacher.toFixed(2)),
-                    tables: resultTables
-                });
-                grandTotal += totalHoursForTeacher;
-            }
-        }
-
-        // Sắp xếp theo tổng số tiết giảm dần
-        teachers.sort((a, b) => b.totalHours - a.totalHours);
-
-        const responseData = {
-            khoa: Khoa,
-            namHoc: NamHoc,
-            grandTotal: parseFloat(grandTotal.toFixed(2)),
-            teacherCount: teachers.length,
-            teachers: teachers
+            return {
+                khoa: khoaName,
+                grandTotal: parseFloat(grandTotal.toFixed(2)),
+                teacherCount: teachers.length,
+                teachers: teachers
+            };
         };
+
+        let responseData;
+
+        if (isAllKhoa) {
+            // Nhóm records theo Khoa
+            const recordsByKhoa = {};
+            for (const record of allRecords) {
+                const khoaKey = record.Khoa || 'Không xác định';
+                if (!recordsByKhoa[khoaKey]) {
+                    recordsByKhoa[khoaKey] = [];
+                }
+                recordsByKhoa[khoaKey].push(record);
+            }
+
+            // Tính toán cho từng Khoa
+            const khoaList = Object.keys(recordsByKhoa).sort();
+            const khoaDataList = [];
+            let allKhoaGrandTotal = 0;
+            let allKhoaTeacherCount = 0;
+
+            for (const khoaName of khoaList) {
+                // Sử dụng toàn bộ Set nhân viên vì đã query tất cả nhân viên ở trên
+                const khoaData = calculateKhoaData(recordsByKhoa[khoaName], khoaName, nhanVienSet);
+                khoaDataList.push(khoaData);
+                allKhoaGrandTotal += khoaData.grandTotal;
+                allKhoaTeacherCount += khoaData.teacherCount;
+            }
+
+            console.log(`[V2] Tổng hợp ${khoaList.length} khoa, ${allKhoaTeacherCount} giảng viên, ${allKhoaGrandTotal} tiết`);
+
+            responseData = {
+                isAllKhoa: true,
+                namHoc: NamHoc,
+                grandTotal: parseFloat(allKhoaGrandTotal.toFixed(2)),
+                khoaCount: khoaList.length,
+                khoaList: khoaDataList
+            };
+        } else {
+            // Tính toán cho một Khoa cụ thể
+            const khoaData = calculateKhoaData(allRecords, Khoa, nhanVienSet);
+            console.log(`[V2] Found ${khoaData.teacherCount} unique teachers in Khoa ${Khoa}`);
+
+            responseData = {
+                isAllKhoa: false,
+                khoa: Khoa,
+                namHoc: NamHoc,
+                grandTotal: khoaData.grandTotal,
+                teacherCount: khoaData.teacherCount,
+                teachers: khoaData.teachers
+            };
+        }
 
         res.json({
             success: true,
@@ -387,7 +493,7 @@ const tongHopSoTietTheoKhoa = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(`Lỗi khi tổng hợp số tiết theo Khoa ${Khoa}:`, error);
+        console.error(`Lỗi khi tổng hợp số tiết ${isAllKhoa ? 'tất cả Khoa' : 'theo Khoa ' + Khoa}:`, error);
         res.status(500).json({
             success: false,
             message: "Có lỗi xảy ra khi tổng hợp dữ liệu.",

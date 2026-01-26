@@ -502,8 +502,13 @@ const updateKhoaApprovalStatus = async (id, khoaDuyet) => {
     try {
         connection = await createPoolConnection();
         const query = `UPDATE nckh_chung SET KhoaDuyet = ? WHERE ID = ?`;
-        await connection.execute(query, [khoaDuyet, id]);
-        return { success: true };
+        console.log(`[updateKhoaApprovalStatus] Executing: ${query} with values [${khoaDuyet}, ${id}]`);
+        const [result] = await connection.execute(query, [khoaDuyet, id]);
+        console.log(`[updateKhoaApprovalStatus] Result:`, result);
+        return { success: true, affectedRows: result.affectedRows };
+    } catch (error) {
+        console.error(`[updateKhoaApprovalStatus] Error:`, error);
+        throw error;
     } finally {
         if (connection) connection.release();
     }

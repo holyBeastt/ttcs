@@ -16,6 +16,10 @@ const getDanhSachNCKHV2 = (req, res) => {
     res.render("nckh.danhSachNCKH.ejs");
 };
 
+const getThemMoiNCKHV2 = (req, res) => {
+    res.render("nckh.themMoiNCKH.ejs");
+};
+
 // =====================================================
 // API CHUNG
 // =====================================================
@@ -46,6 +50,7 @@ const getTeacherV2 = async (req, res) => {
 module.exports = {
     // Base controller
     getDanhSachNCKHV2,
+    getThemMoiNCKHV2,
     getTeacherV2,
 
     // Tổng hợp số tiết

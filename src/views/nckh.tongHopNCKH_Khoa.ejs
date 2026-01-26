@@ -301,7 +301,14 @@
                     const data = await response.json();
                     if (data.success && data.MaPhongBan) {
                         const select = document.getElementById('khoaSelect');
-                        select.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+                        select.innerHTML = '';
+                        // Thêm option "Tất cả khoa" làm mặc định
+                        const allOption = document.createElement('option');
+                        allOption.value = 'ALL';
+                        allOption.textContent = '-- Tất cả Khoa --';
+                        allOption.selected = true;
+                        select.appendChild(allOption);
+                        // Thêm các khoa từ API
                         data.MaPhongBan.forEach(item => {
                             const option = document.createElement('option');
                             option.value = item.MaPhongBan;
@@ -327,10 +334,12 @@
                 Swal.fire({ title: 'Đang tải...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
                 try {
+                    // Nếu chọn "Tất cả" thì gửi Khoa rỗng
+                    const khoaParam = khoa === 'ALL' ? '' : khoa;
                     const response = await fetch(`/v2/tonghopsotiet/khoa/${year}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ Khoa: khoa })
+                        body: JSON.stringify({ Khoa: khoaParam })
                     });
                     const rs = await response.json();
                     Swal.close();
@@ -340,69 +349,166 @@
                         return;
                     }
 
-                    const { khoa: khoaName, grandTotal, teacherCount, teachers } = rs.data;
-                    currentTeachersData = teachers;
+                    const data = rs.data;
+                    
+                    let html = '';
 
-                    let html = `
-                        <div class="khoa-header">
-                            <h4><i class="fas fa-university"></i> Khoa: ${khoaName}</h4>
-                            <div class="khoa-stats">
-                                <div class="stat-item">
-                                    <div class="stat-value">${teacherCount}</div>
-                                    <div class="stat-label">Giảng viên</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${grandTotal}</div>
-                                    <div class="stat-label">Tổng số tiết</div>
+                    if (data.isAllKhoa) {
+                        // Hiển thị tổng quan tất cả các Khoa
+                        currentTeachersData = {}; // Lưu theo từng khoa
+                        
+                        html += `
+                            <div class="khoa-header" style="background: linear-gradient(135deg, #007bff, #0056b3); color: white;">
+                                <h4 style="color: white;"><i class="fas fa-university"></i> TỔNG HỢP TẤT CẢ KHOA</h4>
+                                <div class="khoa-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value" style="color: #fff;">${data.khoaCount}</div>
+                                        <div class="stat-label" style="color: #ddd;">Khoa</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value" style="color: #fff;">${data.grandTotal}</div>
+                                        <div class="stat-label" style="color: #ddd;">Tổng số tiết</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-
-                    if (teachers.length > 0) {
-                        html += `
-                            <table class="table table-bordered table-striped w-100">
-                                <thead class="table-primary text-center">
-                                    <tr>
-                                        <th style="width: 60px;">STT</th>
-                                        <th>Họ tên giảng viên</th>
-                                        <th style="width: 150px;">Tổng số tiết</th>
-                                        <th style="width: 100px;">Chi tiết</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
                         `;
 
-                        teachers.forEach((teacher, index) => {
+                        // Hiển thị từng Khoa một bảng riêng
+                        data.khoaList.forEach((khoaData, khoaIndex) => {
+                            currentTeachersData[khoaIndex] = khoaData.teachers;
+                            
                             html += `
-                                <tr>
-                                    <td class="text-center">${index + 1}</td>
-                                    <td>${teacher.name}</td>
-                                    <td class="text-center fw-bold">${teacher.totalHours}</td>
-                                    <td class="text-center">
-                                        <button class="btn-view-detail" onclick="viewTeacherDetail(${index})">
-                                            <i class="fa fa-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                <div class="khoa-section mb-4" style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden;">
+                                    <div class="khoa-header" style="border-radius: 0;">
+                                        <h4><i class="fas fa-building"></i> Khoa: ${khoaData.khoa}</h4>
+                                        <div class="khoa-stats">
+                                            <div class="stat-item">
+                                                <div class="stat-value">${khoaData.teacherCount}</div>
+                                                <div class="stat-label">Giảng viên</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value">${khoaData.grandTotal}</div>
+                                                <div class="stat-label">Số tiết</div>
+                                            </div>
+                                        </div>
+                                    </div>
                             `;
+
+                            if (khoaData.teachers.length > 0) {
+                                html += `
+                                    <table class="table table-bordered table-striped mb-0">
+                                        <thead class="table-secondary text-center">
+                                            <tr>
+                                                <th style="width: 60px;">STT</th>
+                                                <th>Họ tên giảng viên</th>
+                                                <th style="width: 150px;">Tổng số tiết</th>
+                                                <th style="width: 100px;">Chi tiết</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                `;
+
+                                khoaData.teachers.forEach((teacher, index) => {
+                                    html += `
+                                        <tr>
+                                            <td class="text-center">${index + 1}</td>
+                                            <td>${teacher.name}</td>
+                                            <td class="text-center fw-bold">${teacher.totalHours}</td>
+                                            <td class="text-center">
+                                                <button class="btn-view-detail" onclick="viewTeacherDetailByKhoa(${khoaIndex}, ${index})">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                });
+
+                                html += `
+                                            <tr class="summary-row">
+                                                <td colspan="2" class="text-end">Tổng cộng Khoa ${khoaData.khoa}:</td>
+                                                <td class="text-center text-danger fw-bold">${khoaData.grandTotal}</td>
+                                                <td></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                `;
+                            } else {
+                                html += `
+                                    <div class="alert alert-info text-center m-3">
+                                        <i class="fas fa-info-circle"></i> Không có dữ liệu NCKH.
+                                    </div>
+                                `;
+                            }
+
+                            html += `</div>`; // Đóng khoa-section
                         });
 
-                        html += `
-                                    <tr class="summary-row">
-                                        <td colspan="2" class="text-end">TỔNG CỘNG:</td>
-                                        <td class="text-center text-danger fs-5">${grandTotal}</td>
-                                        <td></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        `;
                     } else {
+                        // Hiển thị một Khoa cụ thể (giữ nguyên logic cũ)
+                        const { khoa: khoaName, grandTotal, teacherCount, teachers } = data;
+                        currentTeachersData = teachers; // Lưu dạng array cho 1 khoa
+
                         html += `
-                            <div class="alert alert-info text-center">
-                                <i class="fas fa-info-circle"></i> Không có dữ liệu NCKH cho Khoa này trong năm học đã chọn.
+                            <div class="khoa-header">
+                                <h4><i class="fas fa-university"></i> Khoa: ${khoaName}</h4>
+                                <div class="khoa-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">${teacherCount}</div>
+                                        <div class="stat-label">Giảng viên</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">${grandTotal}</div>
+                                        <div class="stat-label">Tổng số tiết</div>
+                                    </div>
+                                </div>
                             </div>
                         `;
+
+                        if (teachers.length > 0) {
+                            html += `
+                                <table class="table table-bordered table-striped w-100">
+                                    <thead class="table-primary text-center">
+                                        <tr>
+                                            <th style="width: 60px;">STT</th>
+                                            <th>Họ tên giảng viên</th>
+                                            <th style="width: 150px;">Tổng số tiết</th>
+                                            <th style="width: 100px;">Chi tiết</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+
+                            teachers.forEach((teacher, index) => {
+                                html += `
+                                    <tr>
+                                        <td class="text-center">${index + 1}</td>
+                                        <td>${teacher.name}</td>
+                                        <td class="text-center fw-bold">${teacher.totalHours}</td>
+                                        <td class="text-center">
+                                            <button class="btn-view-detail" onclick="viewTeacherDetail(${index})">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            html += `
+                                        <tr class="summary-row">
+                                            <td colspan="2" class="text-end">TỔNG CỘNG:</td>
+                                            <td class="text-center text-danger fs-5">${grandTotal}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            `;
+                        } else {
+                            html += `
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-info-circle"></i> Không có dữ liệu NCKH cho Khoa này trong năm học đã chọn.
+                                </div>
+                            `;
+                        }
                     }
 
                     document.getElementById("table-container").innerHTML = html;
@@ -413,10 +519,24 @@
                 }
             });
 
-            // Xem chi tiết NCKH của giảng viên
+            // Xem chi tiết NCKH của giảng viên (khi chọn tất cả khoa)
+            function viewTeacherDetailByKhoa(khoaIndex, teacherIndex) {
+                const teachers = currentTeachersData[khoaIndex];
+                if (!teachers) return;
+                const teacher = teachers[teacherIndex];
+                if (!teacher) return;
+                showTeacherDetailModal(teacher);
+            }
+
+            // Xem chi tiết NCKH của giảng viên (khi chọn 1 khoa)
             function viewTeacherDetail(teacherIndex) {
                 const teacher = currentTeachersData[teacherIndex];
                 if (!teacher) return;
+                showTeacherDetailModal(teacher);
+            }
+
+            // Hàm hiển thị modal chi tiết
+            function showTeacherDetailModal(teacher) {
 
                 document.getElementById('modalTeacherName').textContent = teacher.name;
 

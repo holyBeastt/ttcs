@@ -64,6 +64,7 @@ const typeHandlers = {
             SoDongChuNhiem: record.SoDongTacGia,
             TongSoTacGia: record.TongSoTacGia,
             TongSoThanhVien: record.TongSoThanhVien,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt
@@ -117,6 +118,7 @@ const typeHandlers = {
             SoNamThucHien: record.SoNamThucHien,
             TongSoTacGia: record.TongSoTacGia,
             TongSoThanhVien: record.TongSoThanhVien,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt
@@ -172,6 +174,7 @@ const typeHandlers = {
             SoNamThucHien: record.SoNamThucHien,
             TongSoTacGia: record.TongSoTacGia,
             TongSoThanhVien: record.TongSoThanhVien,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt
@@ -224,6 +227,7 @@ const typeHandlers = {
             SoNamThucHien: record.SoNamThucHien,
             TongSoTacGia: record.TongSoTacGia,
             TongSoThanhVien: record.TongSoThanhVien,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt
@@ -279,6 +283,7 @@ const typeHandlers = {
             SoNamThucHien: record.SoNamThucHien,
             TongSoTacGia: record.TongSoTacGia,
             TongSoThanhVien: record.TongSoThanhVien,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt
@@ -330,6 +335,7 @@ const typeHandlers = {
             Khoa: record.Khoa,
             TongSoTacGia: record.TongSoTacGia,
             TongSoThanhVien: record.TongSoThanhVien,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt
@@ -381,6 +387,7 @@ const typeHandlers = {
             Khoa: record.Khoa,
             TongSoTacGia: record.TongSoTacGia,
             TongSoThanhVien: record.TongSoThanhVien,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt
@@ -427,6 +434,7 @@ const typeHandlers = {
             ThanhVien: record.TacGiaChinh,
             Khoa: record.Khoa,
             SoTiet: record.SoDongTacGia,
+            KhoaDuyet: record.KhoaDuyet,
             DaoTaoDuyet: record.DaoTaoDuyet,
             NamHoc: record.NamHoc,
             CreatedAt: record.CreatedAt

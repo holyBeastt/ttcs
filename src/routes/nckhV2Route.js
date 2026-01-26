@@ -74,6 +74,7 @@ const routeConfig = [
 // =====================================================
 
 router.get("/danh-sach-nckh", nckhV2Base.getDanhSachNCKHV2);
+router.get("/them-moi-nckh", nckhV2Base.getThemMoiNCKHV2);
 
 // =====================================================
 // GENERATE ROUTES TỰ ĐỘNG TỪ CONFIG
