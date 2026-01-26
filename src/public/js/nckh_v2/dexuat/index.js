@@ -23,6 +23,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load cấp đề xuất options
     await DeXuat_Form.loadCapDeXuatOptions();
 
+    // Load Khoa options
+    await DeXuat_Form.loadKhoaOptions();
+
     // Setup autocomplete
     DeXuat_Autocomplete.initAutocomplete();
 

@@ -12,7 +12,7 @@
 
     async function loadCapDeXuatOptions() {
         try {
-            const response = await fetch("/v2/data/dexuatnghiencuu");
+            const response = await fetch("/v2/quydinh/DEXUAT");
             const data = await response.json();
 
             const select = document.getElementById("capDeXuat");
@@ -20,8 +20,8 @@
                 select.innerHTML = '<option value="">-- Chọn cấp đề xuất --</option>';
                 data.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.CapDeXuat;
-                    option.textContent = `${item.CapDeXuat} (${item.SoGio} tiết)`;
+                    option.value = item.PhanLoai;
+                    option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                     select.appendChild(option);
                 });
             }
@@ -73,13 +73,13 @@
             ketQua: document.getElementById("ketQuaDX").value,
             thanhVien: memberList,
             tongSoTacGia: memberList.length, // Tổng số thành viên (chia đều)
-            khoa: localStorage.getItem("MaPhongBan")
+            khoa: document.getElementById("khoaSelectDX").value
         };
 
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["capDeXuat", "namHoc", "tenDeXuat"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["capDeXuat", "namHoc", "tenDeXuat", "khoa"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {
@@ -126,6 +126,7 @@
 
     window.DeXuat_Form = {
         loadCapDeXuatOptions,
+        loadKhoaOptions: () => NCKH_V2_Utils.loadKhoaOptions("khoaSelectDX"),
         setupFormSubmit,
         submitForm
     };

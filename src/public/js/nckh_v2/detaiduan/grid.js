@@ -15,6 +15,26 @@
     let currentYear = "";
 
     // =====================================================
+    // HELPER FUNCTIONS
+    // =====================================================
+
+    /**
+     * Format danh sách tên thành từng dòng riêng biệt
+     */
+    function formatMemberList(value) {
+        if (!value) return '';
+        const container = document.createElement('div');
+        const names = value.split(/[,;]/).map(name => name.trim()).filter(name => name);
+        names.forEach(name => {
+            const div = document.createElement('div');
+            div.textContent = name;
+            div.style.marginBottom = '2px';
+            container.appendChild(div);
+        });
+        return container;
+    }
+
+    // =====================================================
     // LOAD TABLE DATA
     // =====================================================
 
@@ -106,14 +126,16 @@
         console.log("MaPhongBan === ncHtptCode:", MaPhongBan === ncHtptCode);
         console.log("MaPhongBan === daoTaoCode:", MaPhongBan === daoTaoCode);
 
-        // Quyền duyệt: troLy_phong hoặc lanhDao_phong thuộc phòng NC&HTPT hoặc Đào Tạo
+        // Quyền duyệt Đào Tạo: troLy_phong hoặc lanhDao_phong thuộc phòng NC&HTPT hoặc Đào Tạo
         const canApprove = (role === troLyPhongRole || role === lanhDaoPhongRole) &&
             (MaPhongBan === ncHtptCode || MaPhongBan === daoTaoCode);
 
-        // Quyền sửa: canApprove HOẶC gv_cnbm_khoa HOẶC lanhDao_khoa (không cần check phòng ban)
-        const canEdit = canApprove ||
-            role === gvCnbmKhoaRole ||
-            role === lanhDaoKhoaRole;
+        // Quyền duyệt Khoa: lãnh đạo khoa (không thuộc DT/NCKH)
+        const canApproveKhoa = role === lanhDaoKhoaRole &&
+            MaPhongBan !== daoTaoCode && MaPhongBan !== ncHtptCode;
+
+        // Quyền sửa: canApprove HOẶC canApproveKhoa HOẶC gv_cnbm_khoa
+        const canEdit = canApprove || canApproveKhoa || role === gvCnbmKhoaRole;
 
         // Quyền xóa: giống canEdit
         const canDelete = canEdit;
@@ -123,6 +145,7 @@
 
         console.log("=== PERMISSIONS RESULT ===");
         console.log("canApprove:", canApprove);
+        console.log("canApproveKhoa:", canApproveKhoa);
         console.log("canEdit:", canEdit);
         console.log("canDelete:", canDelete);
         console.log("isViewOnly:", isViewOnly);
@@ -137,36 +160,31 @@
                 cellStyle: { textAlign: "center", fontWeight: "bold" }
             },
             {
-                field: "CapDeTai",
-                headerName: "Cấp Đề Tài",
-                flex: 1,
-                minWidth: 150,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
-            },
-            {
                 field: "TenDeTai",
                 headerName: "Tên Đề Tài",
                 flex: 2,
                 minWidth: 250,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1
             },
             {
                 field: "ChuNhiem",
                 headerName: "Chủ Nhiệm",
                 flex: 1.2,
-                minWidth: 150,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                minWidth: 180,
+                editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1,
+                cellRenderer: (params) => formatMemberList(params.value)
             },
             {
                 field: "DanhSachThanhVien",
                 headerName: "Thành Viên",
                 flex: 1.5,
-                minWidth: 200,
-                editable: (params) => canEdit && params.data.DaoTaoDuyet !== 1
+                minWidth: 220,
+                editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1,
+                cellRenderer: (params) => formatMemberList(params.value)
             },
             {
                 headerName: "Chi Tiết",
-                width: 60,
+                width: 100,
                 editable: false,
                 cellRenderer: (params) => {
                     const icon = document.createElement("i");
@@ -186,11 +204,11 @@
         if (canDelete) {
             columnDefs.push({
                 headerName: "Xóa",
-                width: 60,
+                width: 90,
                 editable: false,
                 cellRenderer: (params) => {
-                    // Không hiện icon xóa nếu đã duyệt
-                    if (params.data.DaoTaoDuyet === 1) return "";
+                    // Không hiện icon xóa nếu đã duyệt (Khoa hoặc Đào Tạo)
+                    if (params.data.KhoaDuyet === 1 || params.data.DaoTaoDuyet === 1) return "";
 
                     const icon = document.createElement("i");
                     icon.className = "fas fa-trash-alt";
@@ -205,12 +223,51 @@
             });
         }
 
+        // Cột Khoa Duyệt - chỉ hiện nếu có quyền duyệt Khoa
+        if (canApproveKhoa) {
+            columnDefs.push({
+                field: "KhoaDuyet",
+                headerName: "Khoa",
+                width: 90,
+                editable: false,
+                cellRenderer: (params) => {
+                    const icon = document.createElement("i");
+                    const isApproved = params.data.KhoaDuyet === 1;
+                    const isDaoTaoDuyet = params.data.DaoTaoDuyet === 1;
+
+                    // Không cho thay đổi nếu Đào Tạo đã duyệt
+                    if (isDaoTaoDuyet) {
+                        icon.className = "fas fa-lock";
+                        icon.style.color = "#6c757d";
+                        icon.title = "Không thể thay đổi - Đào tạo đã duyệt";
+                        icon.style.cursor = "not-allowed";
+                    } else if (isApproved) {
+                        icon.className = "fas fa-check";
+                        icon.style.color = "#198754";
+                        icon.title = "Khoa đã duyệt - Click để bỏ duyệt";
+                        icon.style.cursor = "pointer";
+                        icon.onclick = () => toggleKhoaApproval(params.data.ID, false, params.api, params.node);
+                    } else {
+                        icon.className = "fas fa-times";
+                        icon.style.color = "#6c757d";
+                        icon.title = "Khoa chưa duyệt - Click để duyệt";
+                        icon.style.cursor = "pointer";
+                        icon.onclick = () => toggleKhoaApproval(params.data.ID, true, params.api, params.node);
+                    }
+
+                    icon.style.fontSize = "16px";
+                    return icon;
+                },
+                cellStyle: { textAlign: "center" }
+            });
+        }
+
         // Cột Duyệt - chỉ hiện nếu có quyền duyệt
         if (canApprove) {
             columnDefs.push({
                 field: "DaoTaoDuyet",
-                headerName: "Duyệt",
-                width: 60,
+                headerName: "Viện NC&HTPT",
+                width: 120,
                 editable: false,
                 cellRenderer: (params) => {
                     const icon = document.createElement("i");
@@ -242,6 +299,7 @@
                 resizable: true,
                 sortable: true,
                 filter: true,
+                suppressMenu: true,
                 wrapText: true,
                 autoHeight: true,
                 cellStyle: {
@@ -298,7 +356,7 @@
         if (newValue === oldValue) return;
 
         try {
-            const response = await fetch(`/v2/nckh/edit/${data.ID}/detaiduan`, {
+            const response = await fetch(`/v2/de-tai-du-an/edit/${data.ID}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -337,8 +395,8 @@
         if (!result.isConfirmed) return;
 
         try {
-            const response = await fetch(`/v2/nckh/delete/${id}/${currentYear}/detaiduan`, {
-                method: "POST"
+            const response = await fetch(`/v2/de-tai-du-an/${id}`, {
+                method: "DELETE"
             });
 
             const data = await response.json();
@@ -357,14 +415,13 @@
 
     async function toggleApproval(id, newStatus, api, node) {
         try {
-            const response = await fetch(`/v2/nckh/update/${id}/${currentYear}/detaiduan`, {
+            const response = await fetch(`/v2/nckh/approve/${id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    field: "DaoTaoDuyet",
-                    value: newStatus ? 1 : 0
+                    DaoTaoDuyet: newStatus ? 1 : 0
                 })
             });
 
@@ -373,7 +430,11 @@
             if (data.success) {
                 NCKH_V2_Utils.showSuccessToast(newStatus ? "Đã duyệt" : "Đã bỏ duyệt");
                 // Update node data and refresh row
+                // Khi Đào Tạo bỏ duyệt, cascade bỏ Khoa duyệt
                 node.data.DaoTaoDuyet = newStatus ? 1 : 0;
+                if (!newStatus) {
+                    node.data.KhoaDuyet = 0;
+                }
                 api.refreshCells({ rowNodes: [node], force: true });
             } else {
                 NCKH_V2_Utils.showErrorToast(data.message);
@@ -381,6 +442,29 @@
         } catch (error) {
             console.error("Error toggling approval:", error);
             NCKH_V2_Utils.showErrorToast("Lỗi khi cập nhật trạng thái duyệt");
+        }
+    }
+
+    async function toggleKhoaApproval(id, newStatus, api, node) {
+        try {
+            const response = await fetch(`/v2/nckh/approve-khoa/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ KhoaDuyet: newStatus ? 1 : 0 })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                NCKH_V2_Utils.showSuccessToast(newStatus ? "Khoa đã duyệt" : "Khoa đã bỏ duyệt");
+                node.data.KhoaDuyet = newStatus ? 1 : 0;
+                api.refreshCells({ rowNodes: [node], force: true });
+            } else {
+                NCKH_V2_Utils.showErrorToast(data.message);
+            }
+        } catch (error) {
+            console.error("Error toggling Khoa approval:", error);
+            NCKH_V2_Utils.showErrorToast("Lỗi khi cập nhật duyệt Khoa");
         }
     }
 
@@ -393,6 +477,7 @@
         renderTable,
         deleteRow,
         toggleApproval,
+        toggleKhoaApproval,
         getCurrentYear: () => currentYear
     };
 

@@ -1,18 +1,99 @@
 /**
- * NCKH V2 Utils
+ * NCKH V2 Utils - Unified Version
  * Các hàm tiện ích dùng chung cho tất cả loại NCKH
+ * Date: 2026-01-20
+ * Refactored for unified database schema
  */
+
+// =====================================================
+// CONSTANTS - NCKH TYPES (Match backend)
+// =====================================================
+
+const NCKH_TYPES = {
+    DETAI_DUAN: 'DETAI_DUAN',
+    BAIBAO: 'BAIBAO',
+    SACHGIAOTRINH: 'SACHGIAOTRINH',
+    GIAITHUONG: 'GIAITHUONG',
+    SANGKIEN: 'SANGKIEN',
+    DEXUAT: 'DEXUAT',
+    HUONGDAN: 'HUONGDAN',
+    HOIDONG: 'HOIDONG'
+};
+
+// Mapping từ tab name sang NCKH type và API path
+const NCKH_CONFIG = {
+    'detaiduan': {
+        type: 'DETAI_DUAN',
+        apiPath: 'de-tai-du-an',
+        displayName: 'Đề tài, dự án',
+        phanLoaiField: 'CapDeTai',
+        tenField: 'TenDeTai',
+        tacGiaField: 'ChuNhiem'
+    },
+    'baibaokhoahoc': {
+        type: 'BAIBAO',
+        apiPath: 'bai-bao-khoa-hoc',
+        displayName: 'Bài báo khoa học',
+        phanLoaiField: 'LoaiTapChi',
+        tenField: 'TenBaiBao',
+        tacGiaField: 'TacGia'
+    },
+    'sangkien': {
+        type: 'SANGKIEN',
+        apiPath: 'sang-kien',
+        displayName: 'Sáng kiến',
+        phanLoaiField: 'LoaiSangKien',
+        tenField: 'TenSangKien',
+        tacGiaField: 'TacGiaChinh'
+    },
+    'giaithuong': {
+        type: 'GIAITHUONG',
+        apiPath: 'giai-thuong',
+        displayName: 'Giải thưởng, bằng sáng chế',
+        phanLoaiField: 'LoaiBangSangCheVaGiaiThuong',
+        tenField: 'TenBangSangCheVaGiaiThuong',
+        tacGiaField: 'TacGia'
+    },
+    'dexuat': {
+        type: 'DEXUAT',
+        apiPath: 'de-xuat-nghien-cuu',
+        displayName: 'Đề xuất nghiên cứu',
+        phanLoaiField: 'CapDeXuat',
+        tenField: 'TenDeXuat',
+        tacGiaField: 'TacGiaChinh'
+    },
+    'sachgiaotrinh': {
+        type: 'SACHGIAOTRINH',
+        apiPath: 'sach-giao-trinh',
+        displayName: 'Sách, giáo trình',
+        phanLoaiField: 'LoaiTapChi',
+        tenField: 'TenSachVaGiaoTrinh',
+        tacGiaField: 'TacGia'
+    },
+    'huongdansvnckh': {
+        type: 'HUONGDAN',
+        apiPath: 'huong-dan-sv-nckh',
+        displayName: 'Hướng dẫn SV NCKH',
+        phanLoaiField: 'LoaiHuongDan',
+        tenField: 'TenDeTai',
+        tacGiaField: 'HuongDanChinh'
+    },
+    'hoidong': {
+        type: 'HOIDONG',
+        apiPath: 'thanh-vien-hoi-dong',
+        displayName: 'Thành viên hội đồng',
+        phanLoaiField: 'LoaiHoiDong',
+        tenField: 'TenDeTai',
+        tacGiaField: 'ThanhVien'
+    }
+};
 
 // =====================================================
 // CÔNG THỨC TÍNH TIẾT V2 (Client-side)
 // =====================================================
 
 /**
- * Quy đổi số tiết theo công thức v2
- * @param {number} T - Tổng số tiết chuẩn
- * @param {number} tongSoTacGia - Số người tham gia
- * @param {number} soDongChuNhiem - Số đồng chủ nhiệm (default: 1)
- * @param {number} soNamThucHien - Số năm thực hiện (default: 1)
+ * Quy đổi số tiết theo công thức v2 (Standard)
  */
 function quyDoiSoTietV2(T, tongSoTacGia, soDongChuNhiem = 1, soNamThucHien = 1) {
     let chuNhiem = 0;
@@ -44,6 +125,15 @@ function quyDoiSoTietV2(T, tongSoTacGia, soDongChuNhiem = 1, soNamThucHien = 1) 
         chuNhiem: Math.round(chuNhiem * 100) / 100,
         thanhVien: Math.round(thanhVien * 100) / 100
     };
+}
+
+/**
+ * Quy đổi số tiết chia đều (Equal)
+ */
+function quyDoiSoTietChiaDeu(T, tongSoNguoi, soNamThucHien = 1) {
+    if (tongSoNguoi <= 0) return 0;
+    const tietMoiNguoi = T / tongSoNguoi / soNamThucHien;
+    return Math.round(tietMoiNguoi * 100) / 100;
 }
 
 // =====================================================
@@ -140,6 +230,34 @@ async function populateDepartmentSelect(selectElement) {
         });
     } catch (error) {
         console.error("Error loading departments:", error);
+    }
+}
+
+// =====================================================
+// KHOA SELECT HELPERS
+// =====================================================
+
+/**
+ * Load danh sách Khoa vào select element
+ * @param {string} selectId - ID của select element
+ */
+async function loadKhoaOptions(selectId) {
+    try {
+        const response = await fetch("/api/get-khoa-list");
+        const data = await response.json();
+        
+        const select = document.getElementById(selectId);
+        if (select) {
+            select.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+            data.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.MaPhongBan;
+                option.textContent = item.TenPhongBan;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error("Error loading Khoa list:", error);
     }
 }
 
@@ -251,7 +369,6 @@ function validateForm(formData, requiredFields) {
 
 /**
  * Kiểm tra xem user có quyền nhập dữ liệu hay không
- * @returns {boolean} true nếu có quyền nhập liệu
  */
 function checkCanInputData() {
     const role = localStorage.getItem("userRole");
@@ -267,10 +384,6 @@ function checkCanInputData() {
     const gvCnbmKhoaRole = APP_ROLES.gv_cnbm_khoa || "gv_cnbm_khoa";
     const lanhDaoKhoaRole = APP_ROLES.lanhDao_khoa || "lanh_dao_khoa";
 
-    // Quyền nhập liệu: 
-    // 1. troLy_phong hoặc lanhDao_phong thuộc DAOTAO hoặc NC&HTPT
-    // 2. gv_cnbm_khoa (bất kỳ khoa)
-    // 3. lanhDao_khoa (bất kỳ khoa)
     const canApprove = (role === troLyPhongRole || role === lanhDaoPhongRole) &&
         (MaPhongBan === ncHtptCode || MaPhongBan === daoTaoCode);
 
@@ -283,13 +396,11 @@ function checkCanInputData() {
 
 /**
  * Ẩn tab "Nhập dữ liệu" nếu user là view-only
- * @param {string} formPanelId - ID của form panel (e.g., "form-panel", "form-panel-bb")
  */
 function hideFormTabIfViewOnly(formPanelId) {
     const canInputData = checkCanInputData();
 
     if (!canInputData) {
-        // Tìm button sub-tab-btn có data-panel tương ứng
         const formTabBtn = document.querySelector(`.sub-tab-btn[data-panel="${formPanelId}"]`);
         if (formTabBtn) {
             formTabBtn.style.display = 'none';
@@ -298,18 +409,194 @@ function hideFormTabIfViewOnly(formPanelId) {
     }
 }
 
-// Export for use in other files
+// =====================================================
+// API HELPERS (NEW - for unified table)
+// =====================================================
+
+/**
+ * Lấy quy định số giờ từ API mới
+ * @param {string} loaiNCKH - Loại NCKH (DETAI_DUAN, BAIBAO, ...)
+ */
+async function loadQuyDinhSoGio(loaiNCKH) {
+    try {
+        const response = await fetch(`/v2/quydinh/${loaiNCKH}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`Error loading quy dinh for ${loaiNCKH}:`, error);
+        return [];
+    }
+}
+
+/**
+ * Populate select box với quy định số giờ (NEW API)
+ * @param {HTMLElement} selectElement - Select element
+ * @param {string} loaiNCKH - Loại NCKH
+ */
+async function populatePhanLoaiSelectV2(selectElement, loaiNCKH) {
+    try {
+        const quyDinh = await loadQuyDinhSoGio(loaiNCKH);
+
+        selectElement.innerHTML = '<option value="">-- Chọn phân loại --</option>';
+
+        quyDinh.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item.PhanLoai;
+            option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
+            option.dataset.soGio = item.SoGio;
+            selectElement.appendChild(option);
+        });
+    } catch (error) {
+        console.error(`Error populating select for ${loaiNCKH}:`, error);
+    }
+}
+
+/**
+ * Lấy dữ liệu bảng từ API mới
+ * @param {string} tabName - Tab name (detaiduan, baibaokhoahoc, ...)
+ * @param {string} namHoc - Năm học
+ * @param {string} khoa - Khoa (hoặc 'ALL')
+ */
+async function loadTableDataV2(tabName, namHoc, khoa = 'ALL') {
+    const config = NCKH_CONFIG[tabName];
+    if (!config) {
+        console.error(`Unknown tab: ${tabName}`);
+        return [];
+    }
+
+    const encodedNamHoc = encodeURIComponent(namHoc);
+    const encodedKhoa = encodeURIComponent(khoa);
+
+    try {
+        const response = await fetch(`/v2/${config.apiPath}/${encodedNamHoc}/${encodedKhoa}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`Error loading data for ${tabName}:`, error);
+        return [];
+    }
+}
+
+/**
+ * Submit form đến API mới
+ * @param {string} tabName - Tab name
+ * @param {Object} formData - Dữ liệu form
+ */
+async function submitFormV2(tabName, formData) {
+    const config = NCKH_CONFIG[tabName];
+    if (!config) {
+        throw new Error(`Unknown tab: ${tabName}`);
+    }
+
+    const response = await fetch(`/v2/${config.apiPath}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+    });
+
+    return response.json();
+}
+
+/**
+ * Cập nhật bản ghi
+ * @param {string} tabName - Tab name
+ * @param {number} id - ID bản ghi
+ * @param {Object} data - Dữ liệu cập nhật
+ */
+async function updateRecordV2(tabName, id, data) {
+    const config = NCKH_CONFIG[tabName];
+    if (!config) {
+        throw new Error(`Unknown tab: ${tabName}`);
+    }
+
+    const response = await fetch(`/v2/${config.apiPath}/edit/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    return response.json();
+}
+
+/**
+ * Xóa bản ghi
+ * @param {number} id - ID bản ghi
+ */
+async function deleteRecordV2(id) {
+    const response = await fetch(`/v2/nckh/delete/${id}`, {
+        method: "POST"
+    });
+
+    return response.json();
+}
+
+/**
+ * Cập nhật trạng thái duyệt
+ * @param {number} id - ID bản ghi
+ * @param {number} status - 0 hoặc 1
+ */
+async function updateApprovalV2(id, status) {
+    const response = await fetch(`/v2/nckh/approve/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ DaoTaoDuyet: status })
+    });
+
+    return response.json();
+}
+
+/**
+ * Lấy config cho một tab
+ * @param {string} tabName - Tab name
+ */
+function getNCKHConfig(tabName) {
+    return NCKH_CONFIG[tabName] || null;
+}
+
+// =====================================================
+// EXPORTS
+// =====================================================
+
 window.NCKH_V2_Utils = {
+    // Constants
+    NCKH_TYPES,
+    NCKH_CONFIG,
+    getNCKHConfig,
+
+    // Công thức tính tiết
     quyDoiSoTietV2,
+    quyDoiSoTietChiaDeu,
+
+    // Format functions
     formatDate,
     formatHours,
+
+    // Select helpers
     populateYearSelect,
     populateDepartmentSelect,
+    populatePhanLoaiSelectV2,
+    loadKhoaOptions,
+
+    // Teacher autocomplete
     loadGiangVienCoHuu,
     setupAutocomplete,
+
+    // Toasts
     showSuccessToast,
     showErrorToast,
+
+    // Validation
     validateForm,
+
+    // Permissions
     checkCanInputData,
-    hideFormTabIfViewOnly
+    hideFormTabIfViewOnly,
+
+    // API helpers (NEW)
+    loadQuyDinhSoGio,
+    loadTableDataV2,
+    submitFormV2,
+    updateRecordV2,
+    deleteRecordV2,
+    updateApprovalV2
 };

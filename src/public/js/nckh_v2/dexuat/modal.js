@@ -98,13 +98,17 @@
         modalBody.innerHTML = `
         <div class="detail-content">
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <strong>Cấp đề xuất:</strong>
                     <p>${data.CapDeXuat || '-'}</p>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <strong>Năm học:</strong>
                     <p>${data.NamHoc || '-'}</p>
+                </div>
+                <div class="col-md-4">
+                    <strong>Khoa:</strong>
+                    <p>${data.Khoa || '-'}</p>
                 </div>
             </div>
 

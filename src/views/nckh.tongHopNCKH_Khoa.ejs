@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã - Tổng Hợp Số Tiết NCKH Theo Khoa</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/nckh.css" />
+    <!-- AG-Grid CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-grid.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-theme-alpine.css" />
+    <style>
+        /* Custom Modal Styles (No Bootstrap) */
+        .custom-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-modal-overlay.show {
+            display: flex;
+        }
+
+        .custom-modal {
+            background: #fff;
+            border-radius: 8px;
+            width: 95%;
+            max-width: 1400px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .custom-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+
+        .custom-modal-header h5 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .custom-modal-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            opacity: 0.9;
+            transition: all 0.2s;
+        }
+
+        .custom-modal-close:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .custom-modal-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .custom-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .custom-btn {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            min-width: 80px;
+        }
+
+        .custom-btn-secondary {
+            background: #6c757d;
+            color: #fff;
+        }
+
+        .custom-btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        #detailGridContainer {
+            height: 60vh;
+            width: 100%;
+        }
+
+        /* AG-Grid custom styles */
+        .ag-theme-alpine .ag-header-cell-label {
+            font-weight: 600;
+        }
+
+        .ag-theme-alpine .ag-row:hover {
+            background-color: #e8f4fd !important;
+        }
+
+        .ag-theme-alpine .ag-header-cell {
+            border-right: 1px solid #babfc7 !important;
+        }
+
+        .ag-theme-alpine .ag-cell {
+            border-right: 1px solid #dde2eb !important;
+        }
+
+        .ag-theme-alpine .ag-row {
+            border-bottom: 1px solid #dde2eb !important;
+        }
+
+        .ag-theme-alpine .ag-header {
+            border-bottom: 2px solid #babfc7 !important;
+        }
+
+        .ag-theme-alpine .ag-root-wrapper {
+            border: 1px solid #babfc7 !important;
+        }
+
+        .cell-wrap-text {
+            white-space: normal !important;
+            line-height: 1.4;
+        }
+
+        .summary-row {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .summary-row td {
+            font-weight: 600;
+        }
+
+        .btn-view-detail {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-view-detail:hover {
+            background: #138496;
+        }
+
+        .khoa-header {
+            background: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            padding: 12px 20px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .khoa-header h4 {
+            margin: 0;
+            color: #333;
+        }
+
+        .khoa-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Phần header -->
+    <%- include('header') %>
+
+        <div class="my-3 box formNckh">
+            <h2 class="titleNckh">Tổng Hợp Số Tiết NCKH Theo Khoa</h2>
+
+            <!-- view tab  -->
+            <div id="viewTab" class="tab-content py-4">
+                <div class="flex-container-view">
+                    <div class="flex-item">
+                        <label for="namHocXem">Chọn Năm Học:</label>
+                        <select id="namHocXem" class="namHoc"></select>
+                    </div>
+                    <div class="flex-item">
+                        <label for="khoaSelect">Chọn Khoa:</label>
+                        <select id="khoaSelect" class="MaPhongBan" style="width: 200px; height: 35px;"></select>
+                    </div>
+                    <div class="flex-item-view">
+                        <button class="btn text-nowrap" id="render">Hiển thị</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div id="table-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Modal: Chi tiết NCKH của giảng viên -->
+        <div class="custom-modal-overlay" id="detailModal">
+            <div class="custom-modal">
+                <div class="custom-modal-header">
+                    <h5><i class="fas fa-list-ul"></i> Chi tiết NCKH: <span id="modalTeacherName"></span></h5>
+                    <button class="custom-modal-close" onclick="closeDetailModal()">&times;</button>
+                </div>
+                <div class="custom-modal-body">
+                    <div id="detailContent"></div>
+                </div>
+                <div class="custom-modal-footer">
+                    <button class="custom-btn custom-btn-secondary" onclick="closeDetailModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SweetAlert2 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+        <!-- SweetAlert2 JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <!-- AG-Grid JS -->
+        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/dist/ag-grid-community.min.js"></script>
+
+        <script src="/js/nckh_v2/utils.js"></script>
+
+        <script>
+            let currentTeachersData = [];
+
+            // Load danh sách Khoa
+            async function loadKhoaList() {
+                try {
+                    const response = await fetch('/api/TKB/getKhoaList');
+                    const data = await response.json();
+                    if (data.success && data.MaPhongBan) {
+                        const select = document.getElementById('khoaSelect');
+                        select.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+                        data.MaPhongBan.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.MaPhongBan;
+                            option.textContent = item.MaPhongBan;
+                            select.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi load danh sách Khoa:', error);
+                }
+            }
+
+            // Event listener cho nút hiển thị
+            document.getElementById("render").addEventListener("click", async function () {
+                const year = document.getElementById("namHocXem").value;
+                const khoa = document.getElementById("khoaSelect").value;
+                
+                if (!khoa) {
+                    Swal.fire({ icon: 'warning', title: 'Cảnh báo', text: 'Vui lòng chọn Khoa' });
+                    return;
+                }
+
+                Swal.fire({ title: 'Đang tải...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+                try {
+                    const response = await fetch(`/v2/tonghopsotiet/khoa/${year}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ Khoa: khoa })
+                    });
+                    const rs = await response.json();
+                    Swal.close();
+
+                    if (!rs.success) {
+                        Swal.fire({ icon: 'error', title: 'Lỗi', text: rs.message });
+                        return;
+                    }
+
+                    const { khoa: khoaName, grandTotal, teacherCount, teachers } = rs.data;
+                    currentTeachersData = teachers;
+
+                    let html = `
+                        <div class="khoa-header">
+                            <h4><i class="fas fa-university"></i> Khoa: ${khoaName}</h4>
+                            <div class="khoa-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">${teacherCount}</div>
+                                    <div class="stat-label">Giảng viên</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${grandTotal}</div>
+                                    <div class="stat-label">Tổng số tiết</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    if (teachers.length > 0) {
+                        html += `
+                            <table class="table table-bordered table-striped w-100">
+                                <thead class="table-primary text-center">
+                                    <tr>
+                                        <th style="width: 60px;">STT</th>
+                                        <th>Họ tên giảng viên</th>
+                                        <th style="width: 150px;">Tổng số tiết</th>
+                                        <th style="width: 100px;">Chi tiết</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+                        teachers.forEach((teacher, index) => {
+                            html += `
+                                <tr>
+                                    <td class="text-center">${index + 1}</td>
+                                    <td>${teacher.name}</td>
+                                    <td class="text-center fw-bold">${teacher.totalHours}</td>
+                                    <td class="text-center">
+                                        <button class="btn-view-detail" onclick="viewTeacherDetail(${index})">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        html += `
+                                    <tr class="summary-row">
+                                        <td colspan="2" class="text-end">TỔNG CỘNG:</td>
+                                        <td class="text-center text-danger fs-5">${grandTotal}</td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        `;
+                    } else {
+                        html += `
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle"></i> Không có dữ liệu NCKH cho Khoa này trong năm học đã chọn.
+                            </div>
+                        `;
+                    }
+
+                    document.getElementById("table-container").innerHTML = html;
+
+                } catch (e) {
+                    console.error(e);
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể tải dữ liệu' });
+                }
+            });
+
+            // Xem chi tiết NCKH của giảng viên
+            function viewTeacherDetail(teacherIndex) {
+                const teacher = currentTeachersData[teacherIndex];
+                if (!teacher) return;
+
+                document.getElementById('modalTeacherName').textContent = teacher.name;
+
+                // Tạo nội dung chi tiết theo từng hạng mục
+                let detailHtml = '';
+                const categories = Object.keys(teacher.tables);
+
+                if (categories.length === 0) {
+                    detailHtml = '<div class="alert alert-info">Không có dữ liệu chi tiết.</div>';
+                } else {
+                    // Tạo bảng tổng quan
+                    detailHtml += `
+                        <table class="table table-bordered table-striped mb-4">
+                            <thead class="table-primary text-center">
+                                <tr>
+                                    <th>Hạng mục</th>
+                                    <th style="width: 150px;">Số tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    categories.forEach(category => {
+                        detailHtml += `
+                            <tr>
+                                <td>${category}</td>
+                                <td class="text-center">${teacher.tables[category].totalHours}</td>
+                            </tr>
+                        `;
+                    });
+
+                    detailHtml += `
+                                <tr class="summary-row">
+                                    <td class="text-end">TỔNG CỘNG:</td>
+                                    <td class="text-center text-danger fw-bold">${teacher.totalHours}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    `;
+
+                    // Chi tiết từng hạng mục
+                    detailHtml += '<h6 class="mt-4 mb-3"><i class="fas fa-list"></i> Chi tiết từng hạng mục:</h6>';
+
+                    categories.forEach(category => {
+                        const records = teacher.tables[category].records;
+                        detailHtml += `
+                            <div class="card mb-3">
+                                <div class="card-header bg-secondary text-white py-2">
+                                    <strong>${category}</strong> (${records.length} bản ghi - ${teacher.tables[category].totalHours} tiết)
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-sm table-bordered mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 50px;">STT</th>
+                                                <th>Tên công trình</th>
+                                                <th style="width: 120px;">Vai trò</th>
+                                                <th style="width: 100px;">Số tiết</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                        `;
+
+                        records.forEach((record, idx) => {
+                            detailHtml += `
+                                <tr>
+                                    <td class="text-center">${idx + 1}</td>
+                                    <td>${record.ten || ''}</td>
+                                    <td class="text-center">${record.vaiTro || ''}</td>
+                                    <td class="text-center">${record.soTiet}</td>
+                                </tr>
+                            `;
+                        });
+
+                        detailHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                document.getElementById('detailContent').innerHTML = detailHtml;
+                openDetailModal();
+            }
+
+            // Hàm mở modal
+            function openDetailModal() {
+                document.getElementById('detailModal').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            // Hàm đóng modal
+            function closeDetailModal() {
+                document.getElementById('detailModal').classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            // Đóng modal khi click overlay
+            document.getElementById('detailModal').addEventListener('click', function(e) {
+                if (e.target === this) closeDetailModal();
+            });
+
+            // Đóng modal khi nhấn ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeDetailModal();
+            });
+
+            // Load data on page load
+            window.addEventListener('DOMContentLoaded', function() {
+                loadKhoaList();
+            });
+        </script>
+
+        <!-- link href -->
+        <script src="/js/nckh/href.js"></script>
+        <!-- script năm học -->
+        <script src="/js/nckh/getdata.js"></script>
+
+</body>
+
+</html>

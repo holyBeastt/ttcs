@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load loai huong dan options
     await HuongDanSvNckh_Form.loadLoaiHuongDanOptions();
 
+    // Load Khoa options
+    await HuongDanSvNckh_Form.loadKhoaOptions();
+
     // Setup autocomplete
     HuongDanSvNckh_Autocomplete.setupFormAutocomplete();
 

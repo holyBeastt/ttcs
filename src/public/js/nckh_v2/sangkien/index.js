@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load loai sang kien options
     await SangKien_Form.loadLoaiSangKienOptions();
 
+    // Load Khoa options
+    await SangKien_Form.loadKhoaOptions();
+
     // Setup autocomplete
     SangKien_Autocomplete.setupFormAutocomplete();
 

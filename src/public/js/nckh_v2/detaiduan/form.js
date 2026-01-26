@@ -12,7 +12,7 @@
 
 async function loadCapDeTaiOptions() {
     try {
-        const response = await fetch("/v2/data/detaiduan");
+        const response = await fetch("/v2/quydinh/DETAI_DUAN");
         const data = await response.json();
 
         const select = document.getElementById("capDeTai");
@@ -20,8 +20,8 @@ async function loadCapDeTaiOptions() {
             select.innerHTML = '<option value="">-- Chọn cấp đề tài --</option>';
             data.forEach(item => {
                 const option = document.createElement("option");
-                option.value = item.CapDeTaiDuAn;
-                option.textContent = `${item.CapDeTaiDuAn} (${item.SoGio} tiết)`;
+                option.value = item.PhanLoai;
+                option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                 select.appendChild(option);
             });
         }
@@ -81,13 +81,13 @@ async function submitForm() {
         soNamThucHien: document.getElementById("soNamThucHien")?.value || 1,
         tongSoTacGia: chuNhiemListFromView.length + memberList.length, // Tổng số tác giả
         tongSoThanhVien: memberList.length, // Tổng số thành viên
-        khoa: localStorage.getItem("MaPhongBan")
+        khoa: document.getElementById("khoaSelect").value
     };
 
     console.log("Form data:", formData);
 
     // Validate
-    const validation = NCKH_V2_Utils.validateForm(formData, ["capDeTai", "namHoc", "tenDeTai"]);
+    const validation = NCKH_V2_Utils.validateForm(formData, ["capDeTai", "namHoc", "tenDeTai", "khoa"]);
     console.log("Validation result:", validation);
 
     if (!validation.isValid) {
@@ -141,6 +141,7 @@ async function submitForm() {
 
 window.DeTaiDuAn_Form = {
     loadCapDeTaiOptions,
+    loadKhoaOptions: () => NCKH_V2_Utils.loadKhoaOptions("khoaSelect"),
     setupFormSubmit,
     submitForm
 };

@@ -12,7 +12,7 @@
 
 async function loadLoaiGiaiThuongOptions() {
     try {
-        const response = await fetch("/v2/data/bangsangchevagiaithuong");
+        const response = await fetch("/v2/quydinh/GIAITHUONG");
         const data = await response.json();
 
         const select = document.getElementById("loaiGiaiThuong");
@@ -20,8 +20,8 @@ async function loadLoaiGiaiThuongOptions() {
             select.innerHTML = '<option value="">-- Chọn phân loại --</option>';
             data.forEach(item => {
                 const option = document.createElement("option");
-                option.value = item.BangSangCheGiaiThuong;
-                option.textContent = `${item.BangSangCheGiaiThuong} (${item.SoGio} tiết)`;
+                option.value = item.PhanLoai;
+                option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                 select.appendChild(option);
             });
         }
@@ -79,13 +79,13 @@ async function submitForm() {
         soNamThucHien: document.getElementById("soNamThucHienGT")?.value || 1,
         tongSoTacGia: tacGiaListFromView.length + memberList.length,
         tongSoThanhVien: memberList.length,
-        khoa: localStorage.getItem("MaPhongBan")
+        khoa: document.getElementById("khoaSelectGT").value
     };
 
     console.log("Form data:", formData);
 
     // Validate
-    const validation = NCKH_V2_Utils.validateForm(formData, ["loaiGiaiThuong", "namHoc", "tenGiaiThuong"]);
+    const validation = NCKH_V2_Utils.validateForm(formData, ["loaiGiaiThuong", "namHoc", "tenGiaiThuong", "khoa"]);
     console.log("Validation result:", validation);
 
     if (!validation.isValid) {
@@ -139,6 +139,7 @@ async function submitForm() {
 
 window.GiaiThuong_Form = {
     loadLoaiGiaiThuongOptions,
+    loadKhoaOptions: () => NCKH_V2_Utils.loadKhoaOptions("khoaSelectGT"),
     setupFormSubmit,
     submitForm
 };

@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load loại giải thưởng options
     await GiaiThuong_Form.loadLoaiGiaiThuongOptions();
 
+    // Load Khoa options
+    await GiaiThuong_Form.loadKhoaOptions();
+
     // Setup autocomplete
     GiaiThuong_Autocomplete.initAutocomplete();
 

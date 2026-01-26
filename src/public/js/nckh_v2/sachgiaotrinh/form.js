@@ -12,7 +12,7 @@
 
     async function loadPhanLoaiOptions() {
         try {
-            const response = await fetch("/v2/data/sachvagiaotrinh");
+            const response = await fetch("/v2/quydinh/SACHGIAOTRINH");
             const data = await response.json();
 
             const select = document.getElementById("phanLoaiSGT");
@@ -20,8 +20,8 @@
                 select.innerHTML = '<option value="">-- Chọn phân loại --</option>';
                 data.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.SachGiaoTrinh;
-                    option.textContent = `${item.SachGiaoTrinh} (${item.SoGio} tiết)`;
+                    option.value = item.PhanLoai;
+                    option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
                     select.appendChild(option);
                 });
             }
@@ -80,13 +80,13 @@
             soNamThucHien: document.getElementById("soNamThucHienSGT")?.value || 1,
             tongSoTacGia: tacGiaListFromView.length + memberList.length,
             tongSoThanhVien: memberList.length,
-            khoa: localStorage.getItem("MaPhongBan")
+            khoa: document.getElementById("khoaSelectSGT").value
         };
 
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["phanLoai", "namHoc", "tenSachGiaoTrinh"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["phanLoai", "namHoc", "tenSachGiaoTrinh", "khoa"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {
@@ -140,6 +140,7 @@
 
     window.SachGiaoTrinh_Form = {
         loadPhanLoaiOptions,
+        loadKhoaOptions: () => NCKH_V2_Utils.loadKhoaOptions("khoaSelectSGT"),
         setupFormSubmit,
         submitForm
     };

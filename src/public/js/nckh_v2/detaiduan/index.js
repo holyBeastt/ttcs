@@ -22,6 +22,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Load cap de tai options
     await DeTaiDuAn_Form.loadCapDeTaiOptions();
 
+    // Load Khoa options
+    await DeTaiDuAn_Form.loadKhoaOptions();
+
     // Setup autocomplete
     DeTaiDuAn_Autocomplete.setupFormAutocomplete();
 
