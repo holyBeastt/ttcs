@@ -1,6 +1,6 @@
 <script>
-  window.APP_ROLES = <% - JSON.stringify(APP_ROLES) %>;
-  window.APP_DEPARTMENTS = <% - JSON.stringify(APP_DEPARTMENTS) %>;
+  window.APP_ROLES = <%- JSON.stringify(APP_ROLES) %>;
+  window.APP_DEPARTMENTS = <%- JSON.stringify(APP_DEPARTMENTS) %>;
   var APP_ROLES = window.APP_ROLES;
   var APP_DEPARTMENTS = window.APP_DEPARTMENTS;
 </script>
@@ -81,7 +81,7 @@
               </div>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="" href="/quydinhsogionckh">Số tiết NCKH</a>
+              <a class="nav-link" id="" href="/v2/admin/quy-dinh">Số tiết NCKH</a>
             </li>
             <!-- <li class="nav-item">
               <a class="nav-link" id="" href="/dotdoan">Đợt đồ án</a>
@@ -106,7 +106,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"
               style="right: 0; left: auto; z-index: 1000;">
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-              <a class="dropdown-item" href="/sync">🔄 Đồng bộ dữ liệu</a>
+              <a class="dropdown-item" href="/sync">Đồng bộ dữ liệu</a>
               <a class="dropdown-item" id="backup-btn" href="/backup">Backup dữ liệu</a>
               <a class="dropdown-item" id="backup-btn" href="/uploadBackup">Tải lên csdl</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>

@@ -267,13 +267,85 @@ const getQuyDinhSoGioByLoai = async (loaiNCKH) => {
         connection = await createPoolConnection();
 
         const query = `
-            SELECT PhanLoai, SoGio, MoTa 
+            SELECT ID, PhanLoai, SoGio, MoTa, IsActive 
             FROM nckh_quydinhsogio 
-            WHERE LoaiNCKH = ? AND IsActive = 1
+            WHERE LoaiNCKH = ?
             ORDER BY SoGio DESC
         `;
         const [rows] = await connection.execute(query, [loaiNCKH]);
         return rows;
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+/**
+ * Lấy toàn bộ quy định (dành cho Admin)
+ * @returns {Array} Danh sách tất cả quy định
+ */
+const getAllQuyDinhSoGio = async () => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        const query = `
+            SELECT * FROM nckh_quydinhsogio 
+            ORDER BY LoaiNCKH, SoGio DESC
+        `;
+        const [rows] = await connection.execute(query);
+        return rows;
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+/**
+ * Lưu mới hoặc cập nhật quy định
+ * @param {Object} data - Dữ liệu quy định
+ * @returns {Object} { success, id }
+ */
+const manageQuyDinhSoGio = async (data) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+        const { id, loaiNCKH, phanLoai, soGio, moTa } = data;
+
+        if (id) {
+            // Update
+            const query = `
+                UPDATE nckh_quydinhsogio 
+                SET LoaiNCKH = ?, PhanLoai = ?, SoGio = ?, MoTa = ?
+                WHERE ID = ?
+            `;
+            await connection.execute(query, [loaiNCKH, phanLoai, soGio, moTa, id]);
+            return { success: true, id };
+        } else {
+            // Insert
+            const query = `
+                INSERT INTO nckh_quydinhsogio (LoaiNCKH, PhanLoai, SoGio, MoTa, IsActive)
+                VALUES (?, ?, ?, ?, 1)
+            `;
+            const [result] = await connection.execute(query, [loaiNCKH, phanLoai, soGio, moTa]);
+            return { success: true, id: result.insertId };
+        }
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+/**
+ * Bật/Tắt trạng thái hoạt động của quy định
+ * @param {number} id - ID quy định
+ * @param {number} isActive - Trạng thái mới (0 hoặc 1)
+ * @returns {Object} { success }
+ */
+const toggleQuyDinhStatus = async (id, isActive) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+        const query = `UPDATE nckh_quydinhsogio SET IsActive = ? WHERE ID = ?`;
+        await connection.execute(query, [isActive, id]);
+        return { success: true };
     } finally {
         if (connection) connection.release();
     }
@@ -618,6 +690,9 @@ module.exports = {
     // Database - Quy định số giờ
     getSoTietChuanV2,
     getQuyDinhSoGioByLoai,
+    getAllQuyDinhSoGio,
+    manageQuyDinhSoGio,
+    toggleQuyDinhStatus,
     getSoTietChuan, // Backward compatibility
 
     // CRUD Operations

@@ -114,6 +114,16 @@ router.post("/nckh/approve-khoa/:ID", unifiedController.updateKhoaApprovalUnifie
 router.get("/quydinh/:loaiNCKH", unifiedController.getQuyDinhSoGio);
 
 // =====================================================
+// QUẢN LÝ QUY ĐỊNH (ADMIN)
+// =====================================================
+
+const adminController = require("../controllers/nckh_v2/admin.controller");
+
+router.get("/admin/quy-dinh", adminController.getAdminQuyDinhPage);
+router.post("/admin/quy-dinh", adminController.saveQuyDinhSoGio);
+router.patch("/admin/quy-dinh/toggle/:id", adminController.toggleQuyDinhStatus);
+
+// =====================================================
 // API GIẢNG VIÊN (Giữ nguyên)
 // =====================================================
 
