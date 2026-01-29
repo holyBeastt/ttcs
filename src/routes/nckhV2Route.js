@@ -99,6 +99,9 @@ routeConfig.forEach(({ path, type, tab }) => {
 // CRUD CHUNG (Unified routes)
 // =====================================================
 
+// Lấy tất cả loại NCKH
+router.get("/nckh/all/:NamHoc/:Khoa", unifiedController.getAllRecords);
+
 // Xóa bản ghi (không cần biết loại)
 router.post("/nckh/delete/:ID", unifiedController.deleteRecordUnified);
 router.delete("/nckh/:ID", unifiedController.deleteRecordUnified);

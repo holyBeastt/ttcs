@@ -129,22 +129,52 @@ const quyDoiSoTietCoDinh = (T) => {
 // =====================================================
 
 /**
- * Tách tên và đơn vị từ chuỗi "Nguyễn Văn A - Khoa CNTT"
+ * Tách tên và đơn vị từ chuỗi
+ * Hỗ trợ các format:
+ * 1. "Nguyễn Văn A - Đơn vị" (Legacy)
+ * 2. "Nguyễn Văn A (Đơn vị - 10.00)" (NCKH V2)
+ * 3. "Nguyễn Văn A (10.00)" (NCKH V2)
  */
 const extractNameAndUnit = (fullName) => {
-    // Đảm bảo fullName là string
-    if (fullName === null || fullName === undefined) {
-        return { name: "", unit: "" };
+    if (!fullName) return { name: "", unit: "" };
+    const str = String(fullName).trim();
+
+    // Case 2 & 3: "Name (Unit - Hours)" hoặc "Name (Hours)"
+    const nckhMatch = str.match(/^(.+?)\s*\((.+?)\)$/);
+    if (nckhMatch) {
+        const name = nckhMatch[1].trim();
+        const content = nckhMatch[2].trim();
+
+        if (content.includes(" - ")) {
+            // "Unit - Hours"
+            const parts = content.split(" - ");
+            // Phần cuối cùng thường là số tiết, phần còn lại là đơn vị
+            const hours = parts.pop();
+            const unit = parts.join(" - ").trim();
+            
+            // Kiểm tra xem phần cuối có phải format số tiết không (x.xx)
+            if (/^\d+(\.\d+)?$/.test(hours)) {
+                return { name, unit };
+            }
+            // Nếu không phải số tiết, có thể là legacy "Name (Unit)"
+            return { name, unit: content };
+        } else {
+            // Kiểm tra xem "content" có phải chỉ là số tiết không
+            if (/^\d+(\.\d+)?$/.test(content)) {
+                return { name, unit: "" };
+            }
+            // Nếu không phải số tiết, coi như là đơn vị: "Name (Unit)"
+            return { name, unit: content };
+        }
     }
-    
-    // Chuyển đổi sang string nếu không phải string
-    const strName = typeof fullName === 'string' ? fullName : String(fullName);
-    
-    if (strName.includes(" - ")) {
-        const [name, unit] = strName.split(" - ");
+
+    // Case 1: "Name - Unit"
+    if (str.includes(" - ")) {
+        const [name, unit] = str.split(" - ");
         return { name: name.trim(), unit: unit ? unit.trim() : "" };
     }
-    return { name: strName.trim(), unit: "" };
+
+    return { name: str, unit: "" };
 };
 
 /**
@@ -438,6 +468,37 @@ const getRecords = async (loaiNCKH, namHoc, khoa) => {
 };
 
 /**
+ * Lấy tất cả bản ghi NCKH (không phân biệt loại)
+ * @param {string} namHoc - Năm học
+ * @param {string} khoa - Khoa (hoặc 'ALL' để lấy tất cả)
+ * @returns {Array} Danh sách toàn bộ bản ghi
+ */
+const getAllRecords = async (namHoc, khoa) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        let query = `SELECT * FROM nckh_chung WHERE NamHoc = ?`;
+        let params = [namHoc];
+
+        // Filter theo Khoa nếu không phải ALL
+        const { whereClause, params: khoaParams } = buildKhoaFilterClause(khoa);
+        query += whereClause;
+        params = params.concat(khoaParams);
+
+        query += ` ORDER BY ID DESC`;
+
+        const [results] = await connection.execute(query, params);
+        return results;
+    } catch (error) {
+        console.error(`Lỗi khi lấy toàn bộ dữ liệu NCKH:`, error);
+        throw error;
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+/**
  * Lấy một bản ghi theo ID
  * @param {number} id - ID bản ghi
  * @returns {Object|null} Bản ghi hoặc null
@@ -699,6 +760,7 @@ module.exports = {
     saveRecord,
     getRecords,
     getRecordById,
+    getAllRecords,
     updateRecord,
     deleteRecord,
     updateApprovalStatus,

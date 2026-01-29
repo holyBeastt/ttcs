@@ -15,7 +15,7 @@
 /* Container */
 .nckh-v2-container {
     padding: 20px;
-    max-width: 1400px;
+    max-width: 1650px;
     margin: 0 auto;
     background: #f8f9fa !important;
 }
@@ -318,6 +318,24 @@
     width: 100%;
     border-radius: 8px;
     overflow: hidden;
+    border: 1px solid #dee2e6;
+}
+
+/* Thêm border cho các ô của bảng NCKH */
+#table-container .ag-cell {
+    border-right: 1px solid #dee2e6 !important;
+}
+
+#table-container .ag-header-cell {
+    border-right: 1px solid #dee2e6 !important;
+}
+
+#table-container .ag-row {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+#table-container .ag-header-row {
+    border-bottom: 1px solid #dee2e6 !important;
 }
 
 /* Buttons */

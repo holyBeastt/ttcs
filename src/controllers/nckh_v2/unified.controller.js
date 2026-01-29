@@ -161,16 +161,57 @@ const createController = (loaiNCKH) => {
                     maSo: req.body.MaSo || req.body.maSo,
                     tacGiaChinh: req.body.TacGiaChinh || req.body.tacGiaChinh,
                     danhSachThanhVien: req.body.DanhSachThanhVien || req.body.danhSachThanhVien,
-                    tongSoTacGia: req.body.TongSoTacGia || req.body.tongSoTacGia || 0,
-                    tongSoThanhVien: req.body.TongSoThanhVien || req.body.tongSoThanhVien || 0,
+                    tongSoTacGia: parseInt(req.body.TongSoTacGia || req.body.tongSoTacGia) || 0,
+                    tongSoThanhVien: parseInt(req.body.TongSoThanhVien || req.body.tongSoThanhVien) || 0,
                     ngayNghiemThu: req.body.NgayNghiemThu || req.body.ngayNghiemThu,
                     ngayQuyetDinh: req.body.NgayQuyetDinh || req.body.ngayQuyetDinh,
                     ketQua: req.body.KetQua || req.body.ketQua,
                     khoa: req.body.Khoa || req.body.khoa,
-                    soNamThucHien: req.body.SoNamThucHien || req.body.soNamThucHien || 1,
-                    soDongTacGia: req.body.SoDongTacGia || req.body.soDongTacGia || 1,
+                    soNamThucHien: parseInt(req.body.SoNamThucHien || req.body.soNamThucHien) || 1,
+                    soDongTacGia: parseInt(req.body.SoDongTacGia || req.body.soDongTacGia) || 1,
                     daoTaoDuyet: req.body.DaoTaoDuyet !== undefined ? req.body.DaoTaoDuyet : req.body.daoTaoDuyet
                 };
+
+                // Tính lại số tiết để đảm bảo tính đúng đắn khi edit
+                // 1. Lấy số tiết chuẩn mới
+                const T = await nckhService.getSoTietChuanV2(loaiNCKH, updateData.phanLoai);
+
+                // 2. Tính lại số tiết
+                const { tacGiaChinh: tietTacGia, thanhVien: tietThanhVien } =
+                    nckhMappers.calculateHours(
+                        loaiNCKH,
+                        T,
+                        updateData.tongSoTacGia || 1,
+                        updateData.soDongTacGia || 1,
+                        updateData.soNamThucHien || 1,
+                        nckhService
+                    );
+
+                // 3. Re-format Tác giả chính (strip hours cũ và add hours mới)
+                if (updateData.tacGiaChinh) {
+                    const { name, unit } = nckhService.extractNameAndUnit(updateData.tacGiaChinh);
+                    if (unit) {
+                        updateData.tacGiaChinh = `${name} (${unit} - ${nckhService.formatHours(tietTacGia)})`;
+                    } else {
+                        const khoa = await nckhService.getKhoaByName(name);
+                        updateData.tacGiaChinh = khoa
+                            ? `${name} (${khoa} - ${nckhService.formatHours(tietTacGia)})`
+                            : `${name} (${nckhService.formatHours(tietTacGia)})`;
+                    }
+                }
+
+                // 4. Re-format Thành viên
+                if (updateData.danhSachThanhVien) {
+                    // Strip hours cũ từ danh sách thành viên trước khi re-format
+                    const members = updateData.danhSachThanhVien.split(',').map(m => {
+                        const { name, unit } = nckhService.extractNameAndUnit(m.trim());
+                        return unit ? `${name} - ${unit}` : name;
+                    }).filter(m => m);
+                    
+                    if (members.length > 0) {
+                        updateData.danhSachThanhVien = await nckhService.formatMembersWithHours(members, tietThanhVien);
+                    }
+                }
 
                 // Cập nhật
                 const result = await nckhService.updateRecord(ID, updateData);
@@ -483,6 +524,23 @@ const updateKhoaApprovalUnified = async (req, res) => {
     }
 };
 
+/**
+ * Lấy tất cả loại NCKH (Unified View)
+ */
+const getAllRecords = async (req, res) => {
+    const { NamHoc, Khoa } = req.params;
+    console.log(`[V2 Unified] Lấy TOÀN BỘ dữ liệu NCKH - Năm: ${NamHoc}, Khoa: ${Khoa}`);
+
+    try {
+        const records = await nckhService.getAllRecords(NamHoc, Khoa);
+        console.log(`[V2 Unified] Found total ${records.length} records`);
+        res.json(records);
+    } catch (error) {
+        console.error(`Lỗi khi lấy toàn bộ dữ liệu NCKH:`, error);
+        res.status(500).json({ message: "Không thể truy xuất dữ liệu tổng hợp." });
+    }
+};
+
 // =====================================================
 // EXPORTS
 // =====================================================
@@ -506,6 +564,7 @@ module.exports = {
 
     // API chung
     getQuyDinhSoGio,
+    getAllRecords,
     deleteRecordUnified,
     updateApprovalUnified,
     updateKhoaApprovalUnified

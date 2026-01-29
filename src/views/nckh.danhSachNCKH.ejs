@@ -34,340 +34,65 @@
 
         <div class="nckh-v2-container">
             <!-- Page Header -->
-            <!-- <div class="page-header">
-                <h1 class="page-title">
-                    Danh Sách Nghiên Cứu Khoa Học
-                </h1>
-                <div class="page-actions">
-                    <a href="/nckh-v2" class="btn btn-outline-primary active">
-                        <i class="fas fa-list"></i> Danh sách
-                    </a>
-                    <a href="/nckh-v2/them-moi-nckh" class="btn btn-outline-success">
-                        <i class="fas fa-plus"></i> Thêm mới
-                    </a>
-                </div>
-            </div> -->
-
-            <!-- Main Tabs - 8 loại NCKH -->
-            <div class="nckh-tabs">
-                <button class="nckh-tab-btn active" data-tab="detaiduan">Đề tài, Dự án</button>
-                <button class="nckh-tab-btn" data-tab="baibaokhoahoc">Bài báo KH</button>
-                <button class="nckh-tab-btn" data-tab="sangkien">Sáng kiến</button>
-                <button class="nckh-tab-btn" data-tab="giaithuong">Giải thưởng & Sáng chế</button>
-                <button class="nckh-tab-btn" data-tab="dexuat">Đề xuất NC</button>
-                <button class="nckh-tab-btn" data-tab="sachgiaotrinh">Sách, GT</button>
-                <button class="nckh-tab-btn" data-tab="huongdansvnckh">Hướng dẫn SV</button>
-                <button class="nckh-tab-btn" data-tab="hoidong">Hội đồng KH</button>
+            <div class="page-header text-center">
+                <h2 class="page-title">Danh Sách Nghiên Cứu Khoa Học</h2>
             </div>
 
             <!-- Chú thích trạng thái duyệt -->
-            <div class="approval-legend" style="display: flex; gap: 20px; padding: 10px 15px; background: #f8f9fa; border-radius: 5px; margin-bottom: 15px; font-size: 13px; align-items: center;">
-                <span style="font-weight: 600; color: #495057;"><i class="fas fa-info-circle"></i> Chú thích (màu):</span>
-                <span style="display: flex; align-items: center; gap: 5px;">
-                    <span style="width: 20px; height: 20px; background: #fff; border: 1px solid #dee2e6; border-radius: 3px;"></span>
-                    Chưa duyệt
-                </span>
-                <span style="display: flex; align-items: center; gap: 5px;">
-                    <span style="width: 20px; height: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 3px;"></span>
-                    Khoa đã duyệt
-                </span>
-                <span style="display: flex; align-items: center; gap: 5px;">
-                    <span style="width: 20px; height: 20px; background: #d4edda; border: 1px solid #28a745; border-radius: 3px;"></span>
-                    Viện NC đã duyệt
-                </span>
-            </div>
-
-            <!-- ======================================================
-         TAB 1: ĐỀ TÀI DỰ ÁN
-         ====================================================== -->
-            <div id="tab-detaiduan" class="nckh-tab-content active">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXem" class="form-select namHoc"></select>
-                        <button id="loadDataBtn" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container" class="ag-theme-alpine"></div>
+            <div class="approval-legend d-flex align-items-center justify-content-center flex-wrap gap-4 mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-dark"><i class="fas fa-info-circle text-primary"></i> Trạng thái duyệt:</span>
+                </div>
+                <div class="legend-item d-flex align-items-center gap-2">
+                    <div class="legend-box" style="width: 20px; height: 20px; background: #fff; border: 1px solid #dee2e6; border-radius: 4px;"></div>
+                    <span>Chưa duyệt</span>
+                </div>
+                <div class="legend-item d-flex align-items-center gap-2">
+                    <div class="legend-box" style="width: 20px; height: 20px; background: #fff3cd; border: 1px solid #ffecb5; border-radius: 4px;"></div>
+                    <span>Khoa đã duyệt</span>
+                </div>
+                <div class="legend-item d-flex align-items-center gap-2">
+                    <div class="legend-box" style="width: 20px; height: 20px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
+                    <span>Viện NC đã duyệt</span>
                 </div>
             </div>
 
-            <!-- Modal Chi Tiết Đề Tài -->
-            <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabel">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Đề Tài/Dự Án
-                            </h5>
+            <!-- Unified Panel -->
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="grid-toolbar">
+                        <div style="flex: 1; max-width: 300px;">
+                            <label class="form-label small fw-bold text-muted mb-1">CHỌN NĂM HỌC</label>
+                            <select id="namHocXem" class="form-select namHoc"></select>
+                        </div>
+                        <button id="loadDataBtn" class="btn btn-primary d-flex align-items-center gap-2">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>HIỂN THỊ DỮ LIỆU</span>
+                        </button>
+                    </div>
+
+                    <div id="table-container" class="ag-theme-alpine w-100" style="height: calc(100vh - 350px); min-height: 500px;"></div>
+                </div>
+            </div>
+
+            <!-- Modal Chi Tiết Chung -->
+            <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-light">
+                            <h5 class="modal-title" id="detailModalLabel">Chi Tiết Nghiên Cứu</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body" id="detailModalBody">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
+                        <div class="modal-body p-4" id="detailModalBody">
+                            <!-- Nội dung load từ JS -->
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- End of Modal -->
-            <div style="display:none;">
-            </div>
-
-            <!-- ======================================================
-         TAB 2: BÀI BÁO KHOA HỌC
-         ====================================================== -->
-            <div id="tab-baibaokhoahoc" class="nckh-tab-content">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel-bb" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXemBB" class="form-select namHoc"></select>
-                        <button id="renderBB" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container-bb" class="ag-theme-alpine"></div>
-                </div>
-            </div>
-
-            <!-- Modal Chi Tiết Bài Báo -->
-            <div class="modal fade" id="detailModalBB" tabindex="-1" aria-labelledby="detailModalLabelBB"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabelBB">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Bài Báo Khoa Học
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="detailModalBodyBB">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <div class="modal-footer bg-light border-0">
+                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ======================================================
-         TAB 3: SÁNG KIẾN
-         ====================================================== -->
-            <div id="tab-sangkien" class="nckh-tab-content">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel-sk" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXemSK" class="form-select namHoc"></select>
-                        <button id="loadDataBtnSK" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container-sk" class="ag-theme-alpine"></div>
-                </div>
-            </div>
-
-            <!-- Modal Chi Tiết Sáng Kiến -->
-            <div class="modal fade" id="detailModalSK" tabindex="-1" aria-labelledby="detailModalLabelSK"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabelSK">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Sáng Kiến
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="detailModalBodySK">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======================================================
-         TAB 4: GIẢI THƯỞNG & SÁNG CHẾ
-         ====================================================== -->
-            <div id="tab-giaithuong" class="nckh-tab-content">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel-gt" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXemGT" class="form-select namHoc"></select>
-                        <button id="renderGT" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container-gt" class="ag-theme-alpine"></div>
-                </div>
-            </div>
-
-            <!-- Modal Chi Tiết Giải Thưởng -->
-            <div class="modal fade" id="detailModalGT" tabindex="-1" aria-labelledby="detailModalLabelGT"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabelGT">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Giải Thưởng/Bằng Sáng Chế
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="detailModalBodyGT">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======================================================
-         TAB 5: ĐỀ XUẤT NGHIÊN CỨU
-         ====================================================== -->
-            <div id="tab-dexuat" class="nckh-tab-content">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel-dx" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXemDX" class="form-select namHoc"></select>
-                        <button id="loadDataBtnDX" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container-dx" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
-                </div>
-            </div>
-
-            <!-- Modal Chi Tiết Đề Xuất -->
-            <div class="modal fade" id="detailModalDX" tabindex="-1" aria-labelledby="detailModalLabelDX"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabelDX">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Đề Xuất Nghiên Cứu
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="detailModalBodyDX">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======================================================
-         TAB 6: SÁCH GIÁO TRÌNH
-         ====================================================== -->
-            <div id="tab-sachgiaotrinh" class="nckh-tab-content">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel-sgt" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXemSGT" class="form-select namHoc"></select>
-                        <button id="renderSGT" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container-sgt" class="ag-theme-alpine" style="height: 550px;"></div>
-                </div>
-            </div>
-
-            <!-- Modal Chi Tiết Sách/Giáo Trình -->
-            <div class="modal fade" id="detailModalSGT" tabindex="-1" aria-labelledby="detailModalLabelSGT"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabelSGT">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Sách/Giáo Trình
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="detailModalBodySGT">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======================================================
-         TAB 7: HƯỚNG DẪN SV NCKH
-         ====================================================== -->
-            <div id="tab-huongdansvnckh" class="nckh-tab-content">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel-hd" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXemHD" class="form-select namHoc"></select>
-                        <button id="loadDataBtnHD" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container-hd" class="ag-theme-alpine" style="height: 550px;"></div>
-                </div>
-            </div>
-
-            <!-- Modal Chi Tiết Hướng dẫn SV NCKH -->
-            <div class="modal fade" id="detailModalHD" tabindex="-1" aria-labelledby="detailModalLabelHD"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabelHD">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Hướng Dẫn SV NCKH
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="detailModalBodyHD">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ======================================================
-         TAB 8: HỘI ĐỒNG KHOA HỌC
-         ====================================================== -->
-            <div id="tab-hoidong" class="nckh-tab-content">
-                <!-- View Panel (No sub-tabs) -->
-                <div id="view-panel-hoidong" class="tab-panel active">
-                    <div class="grid-toolbar">
-                        <select id="namHocXemHoiDong" class="form-select namHoc"></select>
-                        <button id="loadDataBtnHoiDong" class="btn btn-primary">Hiển thị</button>
-                    </div>
-
-                    <div id="table-container-hoidong" class="ag-theme-alpine" style="height: 550px;"></div>
-                </div>
-            </div>
-
-            <!-- Modal Chi Tiết Hội đồng -->
-            <div class="modal fade" id="detailModalHoiDong" tabindex="-1" aria-labelledby="detailModalLabelHoiDong"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="detailModalLabelHoiDong">
-                                <i class="fas fa-info-circle"></i> Chi Tiết Thành Viên Hội Đồng
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="detailModalBodyHoiDong">
-                            <!-- Nội dung sẽ được load bằng JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Scripts -->
@@ -378,119 +103,13 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
         <script src="/js/TKB/ag-grid-community.min.js"></script>
 
-        <!-- NCKH V2 Scripts - Only view-related modules -->
-        <script src="/js/nckh_v2/utils.js"></script>
-        <!-- Đề tài dự án modules -->
-        <script src="/js/nckh_v2/detaiduan/modal.js"></script>
-        <script src="/js/nckh_v2/detaiduan/grid.js"></script>
-        <script src="/js/nckh_v2/detaiduan/index_view.js"></script>
-        <!-- Sáng kiến modules -->
-        <script src="/js/nckh_v2/sangkien/modal.js"></script>
-        <script src="/js/nckh_v2/sangkien/grid.js"></script>
-        <script src="/js/nckh_v2/sangkien/index_view.js"></script>
-        <!-- Giải thưởng modules -->
-        <script src="/js/nckh_v2/giaithuong/modal.js"></script>
-        <script src="/js/nckh_v2/giaithuong/grid.js"></script>
-        <script src="/js/nckh_v2/giaithuong/index_view.js"></script>
-        <!-- Đề xuất nghiên cứu modules -->
-        <script src="/js/nckh_v2/dexuat/modal.js"></script>
-        <script src="/js/nckh_v2/dexuat/grid.js"></script>
-        <script src="/js/nckh_v2/dexuat/index_view.js"></script>
-        <!-- Sách giáo trình modules -->
-        <script src="/js/nckh_v2/sachgiaotrinh/modal.js"></script>
-        <script src="/js/nckh_v2/sachgiaotrinh/grid.js"></script>
-        <script src="/js/nckh_v2/sachgiaotrinh/index_view.js"></script>
-        <!-- Bài báo khoa học modules -->
-        <script src="/js/nckh_v2/baibaokhoahoc/modal.js"></script>
-        <script src="/js/nckh_v2/baibaokhoahoc/grid.js"></script>
-        <script src="/js/nckh_v2/baibaokhoahoc/index_view.js"></script>
-        <!-- Hướng dẫn SV NCKH modules -->
-        <script src="/js/nckh_v2/huongdansvnckh/modal.js"></script>
-        <script src="/js/nckh_v2/huongdansvnckh/grid.js"></script>
-        <script src="/js/nckh_v2/huongdansvnckh/index_view.js"></script>
-        <!-- Thành viên Hội đồng modules -->
-        <script src="/js/nckh_v2/hoidong/modal.js"></script>
-        <script src="/js/nckh_v2/hoidong/grid.js"></script>
-        <script src="/js/nckh_v2/hoidong/index_view.js"></script>
-
-        <script>
-            // Load năm học từ API hệ thống
-            async function loadNamHocFromAPI() {
-                try {
-                    const response = await fetch('/getNamHoc');
-                    const result = await response.json();
-
-                    if (result.success && result.NamHoc) {
-                        const namHocSelects = document.querySelectorAll('.namHoc');
-                        namHocSelects.forEach(select => {
-                            select.innerHTML = '';
-                            result.NamHoc.forEach(item => {
-                                const option = document.createElement('option');
-                                option.value = item.NamHoc;
-                                option.textContent = item.NamHoc;
-                                select.appendChild(option);
-                            });
-                        });
-                    } else {
-                        console.error('Không lấy được dữ liệu năm học');
-                    }
-                } catch (error) {
-                    console.error('Lỗi khi load năm học:', error);
-                }
-            }
-
-            // Initialize
-            document.addEventListener('DOMContentLoaded', function () {
-                // Load năm học từ API
-                loadNamHocFromAPI();
-
-                // Initialize Flatpickr with Vietnamese locale
-                flatpickr('.flatpickr', {
-                    dateFormat: 'd/m/Y',
-                    locale: 'vn'
-                });
-            });
-
-            // Main tab switching
-            document.querySelectorAll('.nckh-tab-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    if (this.disabled) return;
-
-                    const tabId = this.dataset.tab;
-
-                    // Update buttons
-                    document.querySelectorAll('.nckh-tab-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-
-                    // Update content
-                    document.querySelectorAll('.nckh-tab-content').forEach(c => c.classList.remove('active'));
-                    document.getElementById('tab-' + tabId).classList.add('active');
-
-                    // Tự động click nút "Hiển thị"
-                    setTimeout(() => {
-                        // Map tabId với button ID tương ứng
-                        const tabButtonMap = {
-                            'detaiduan': 'loadDataBtn',
-                            'baibaokhoahoc': 'renderBB',
-                            'sangkien': 'loadDataBtnSK',
-                            'giaithuong': 'renderGT',
-                            'dexuat': 'loadDataBtnDX',
-                            'sachgiaotrinh': 'renderSGT',
-                            'huongdansvnckh': 'loadDataBtnHD',
-                            'hoidong': 'loadDataBtnHoiDong'
-                        };
-
-                        const buttonId = tabButtonMap[tabId];
-                        if (buttonId) {
-                            const displayButton = document.getElementById(buttonId);
-                            if (displayButton) {
-                                displayButton.click();
-                            }
-                        }
-                    }, 100);
-                });
-            });
-        </script>
+        <!-- NCKH V2 Utils -->
+        <script src="/js/nckh_themmoi/utils.js"></script>
+        
+        <!-- Unified NCKH Modules -->
+        <script src="/js/nckh_danhsach/grid.js"></script>
+        <script src="/js/nckh_danhsach/modal.js"></script>
+        <script src="/js/nckh_danhsach/index.js"></script>
 </body>
 
 </html>

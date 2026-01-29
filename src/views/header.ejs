@@ -504,12 +504,12 @@
     let navLink_addFileQC = document.getElementById("nav-link-add-file-qc");
 
     // phần này cho các thẻ links
-    let nckhNavChild = document.getElementById("nckhNav");
-    let links = nckhNavChild.getElementsByClassName("nav-link");
+    let nckhNavChild = document.getElementById("nckhNav") || document.getElementById("nckhNav2");
+    let links = nckhNavChild ? nckhNavChild.getElementsByClassName("nav-link") : [];
     let themFileKTHP = document.getElementById("addFileKTHP");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
-    if (maPhongBan === APP_DEPARTMENTS.ncHtpt && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+    if (nckhNavChild && links.length >= 11 && maPhongBan === APP_DEPARTMENTS.ncHtpt && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
       links[0].style.display = "block";
       links[1].style.display = "block";
       links[2].style.display = "none";
@@ -521,7 +521,7 @@
       links[8].style.display = "block";
       links[9].style.display = "block";
       links[10].style.display = "block";
-    } else if (maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+    } else if (nckhNavChild && links.length >= 11 && maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
       links[0].style.display = "none";
       links[1].style.display = "none";
       links[2].style.display = "block";
@@ -537,13 +537,15 @@
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     // quyền thường, gv nhót
+    // phòng nckh chỉ hiển thị nckh, log, thống kê
+    // quyền thường, gv nhót
     if (maPhongBan === APP_DEPARTMENTS.ncHtpt) {
-      gvmNav.style.display = "none";
-      quychuanNav.style.display = "none";
-      moigiangNav.style.display = "none";
-      vuotgioNav.style.display = "none";
-      doanNav.style.display = "none";
-      tkbNav.style.display = "none";
+      if (gvmNav) gvmNav.style.display = "none";
+      if (quychuanNav) quychuanNav.style.display = "none";
+      if (moigiangNav) moigiangNav.style.display = "none";
+      if (vuotgioNav) vuotgioNav.style.display = "none";
+      if (doanNav) doanNav.style.display = "none";
+      if (tkbNav) tkbNav.style.display = "none";
     }
 
     // else if (userRole == APP_ROLES.gv || userRole == APP_ROLES.thuong) {
