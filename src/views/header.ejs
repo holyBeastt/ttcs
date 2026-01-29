@@ -209,11 +209,12 @@
                 <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/vuotGioCuoiKi">Thông tin cuối kì của tôi</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Đánh giá giữa học phần</a>
+                <!-- <a class="nav-link" id="" href="/addclassgiuaky">Đánh giá giữa học phần</a> -->
                 <a class="nav-link" id="" href="/vuotGioDanhGiaCuoiKi">Đánh giá cuối học phần</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+                <!-- <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a> -->
                 <a class="nav-link" id="" href="/infovuotgio">Thông tin vượt giờ và NCKH</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ và NCKH
+                <a class="nav-link" id="" href="/importkthp">Coi, chấm, ra đề thi</a>
                 </a>
               </div>
             </div>
@@ -355,12 +356,14 @@
     // Thêm sự kiện cho phần tử có id="Home"
     const Home = document.getElementById("Home");
 
-    if (isKhoa == 0) {
-      ThongTinGD.href = "/info2";
-      Home.href = "/maindt";
-    } else if (isKhoa == 1) {
-      ThongTinGD.href = "/info";
-      Home.href = "/mainkhoa";
+    if (ThongTinGD && Home) {
+      if (isKhoa == 0) {
+        ThongTinGD.href = "/info2";
+        Home.href = "/maindt";
+      } else if (isKhoa == 1) {
+        ThongTinGD.href = "/info";
+        Home.href = "/mainkhoa";
+      }
     }
   });
 
@@ -419,17 +422,21 @@
       const navTaoSoHopDongMoiGiang = document.getElementById("nav-tao-so-hop-dong-moi-giang");
       const navTaoSoHopDongDoAn = document.getElementById("nav-tao-so-hop-dong-do-an");
 
-      if (isKhoa === "0" || role === APP_ROLES.gv) {
-        addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
+      if (addNewFileGvm) {
+        if (isKhoa === "0" || role === APP_ROLES.gv) {
+          addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
+        }
       }
 
       // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "<%= APP_ROLES.troLy_phong %>" và MaPhongBan "<%= APP_DEPARTMENTS.daoTao %>"
-      if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao) {
-        navTaoSoHopDongMoiGiang.style.display = "block";
-        navTaoSoHopDongDoAn.style.display = "block";
-      } else {
-        navTaoSoHopDongMoiGiang.style.display = "none";
-        navTaoSoHopDongDoAn.style.display = "none";
+      if (navTaoSoHopDongMoiGiang && navTaoSoHopDongDoAn) {
+        if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao) {
+          navTaoSoHopDongMoiGiang.style.display = "block";
+          navTaoSoHopDongDoAn.style.display = "block";
+        } else {
+          navTaoSoHopDongMoiGiang.style.display = "none";
+          navTaoSoHopDongDoAn.style.display = "none";
+        }
       }
 
       // Ẩn button import đồ án
@@ -440,23 +447,28 @@
 
       // Chỉ đào tạo (duyệt) được quyền thao tác với thêm TKB, thêm file và sửa hợp đồng
       if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
-        themFile.style.display = "block";
-        suaHD.style.display = "block";
-        addNewTKB.style.display = "block";
+        if (themFile) themFile.style.display = "block";
+        if (suaHD) suaHD.style.display = "block";
+        if (addNewTKB) addNewTKB.style.display = "block";
       }
 
-      if (
-        role === APP_ROLES.lanhDao_khoa ||
-        (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong))
-      ) {
-        actionButton3.style.display = "";
-      } else {
-        actionButton3.style.display = "none";
+      if (actionButton3) {
+        if (
+          role === APP_ROLES.lanhDao_khoa ||
+          (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong))
+        ) {
+          actionButton3.style.display = "";
+        } else {
+          actionButton3.style.display = "none";
+        }
       }
-      if (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong)) {
-        actionButtonBackup.style.display = "";
-      } else {
-        actionButtonBackup.style.display = "none";
+      
+      if (actionButtonBackup) {
+        if (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong)) {
+          actionButtonBackup.style.display = "";
+        } else {
+          actionButtonBackup.style.display = "none";
+        }
       }
     }
     const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
@@ -477,10 +489,12 @@
     // Ẩn thêm thông báo nếu không phải đào tạo hoặc tài chính
     const actionButton = document.getElementById("changeMessage");
     //Ẩn site thêm thông báo
-    if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
-      actionButton.style.display = "";
-    } else {
-      actionButton.style.display = "none";
+    if (actionButton) {
+      if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
+        actionButton.style.display = "";
+      } else {
+        actionButton.style.display = "none";
+      }
     }
   });
   // Phần thêm tên người dùng
@@ -602,9 +616,9 @@
 </script>
 
 <script>
-  document
-    .getElementById("changePasswordLink")
-    .addEventListener("click", function (event) {
+  const changePasswordLink = document.getElementById("changePasswordLink");
+  if (changePasswordLink) {
+    changePasswordLink.addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
@@ -617,4 +631,5 @@
         alert("Không tìm thấy TenDangNhap trong localStorage.");
       }
     });
+  }
 </script>
