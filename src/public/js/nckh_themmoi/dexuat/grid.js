@@ -132,12 +132,6 @@
                 editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1
             },
             {
-                field: "MaSoDeXuat",
-                headerName: "Mã Số",
-                width: 120,
-                editable: (params) => canEdit && params.data.KhoaDuyet !== 1 && params.data.DaoTaoDuyet !== 1
-            },
-            {
                 field: "DanhSachThanhVien",
                 headerName: "Thành Viên",
                 flex: 2,

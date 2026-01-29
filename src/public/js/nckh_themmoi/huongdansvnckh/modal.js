@@ -33,10 +33,6 @@
                 <p class="form-control-plaintext">${data.TenDeTai || ''}</p>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Mã Số Đề Tài:</label>
-                <p class="form-control-plaintext">${data.MaSoDeTai || ''}</p>
-            </div>
-            <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Ngày Nghiệm Thu:</label>
                 <p class="form-control-plaintext">${data.NgayNghiemThu ? NCKH_V2_Utils.formatDate(data.NgayNghiemThu) : '<em style="color: #999;">Chưa có</em>'}</p>
             </div>
@@ -70,7 +66,6 @@
             : "<em style='color: #999;'>Không có</em>";
 
         const ngayNghiemThuText = formData.ngayNghiemThu || "<em style='color: #999;'>Chưa có</em>";
-        const maSoText = formData.maSoDeTai || "<em style='color: #999;'>Chưa có</em>";
 
         const htmlContent = `
         <div style="text-align: left; padding: 10px 20px; font-size: 15px;">
@@ -86,10 +81,6 @@
                 <tr>
                     <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Tên đề tài:</td>
                     <td style="padding: 10px 0; color: #212529; font-size: 15px;"><strong>${formData.tenDeTai}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Mã số đề tài:</td>
-                    <td style="padding: 10px 0; color: #212529; font-size: 15px;">${maSoText}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Thành viên tham gia:</td>

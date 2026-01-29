@@ -86,7 +86,7 @@
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["phanLoai", "namHoc", "tenSachGiaoTrinh", "khoa"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["phanLoai", "namHoc", "tenSachGiaoTrinh"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {

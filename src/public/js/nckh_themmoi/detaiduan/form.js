@@ -87,7 +87,7 @@ async function submitForm() {
     console.log("Form data:", formData);
 
     // Validate
-    const validation = NCKH_V2_Utils.validateForm(formData, ["capDeTai", "namHoc", "tenDeTai", "khoa"]);
+    const validation = NCKH_V2_Utils.validateForm(formData, ["capDeTai", "namHoc", "tenDeTai"]);
     console.log("Validation result:", validation);
 
     if (!validation.isValid) {

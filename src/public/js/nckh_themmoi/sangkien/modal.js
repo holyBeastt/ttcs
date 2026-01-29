@@ -33,10 +33,6 @@
                 <p class="form-control-plaintext">${data.TenSangKien || ''}</p>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Mã Số Sáng Kiến:</label>
-                <p class="form-control-plaintext">${data.MaSoSangKien || ''}</p>
-            </div>
-            <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold">Tác Giả Chính:</label>
                 <p class="form-control-plaintext">${data.TacGiaChinh || ''}</p>
             </div>
@@ -78,7 +74,6 @@
             : "<em style='color: #999;'>Không có</em>";
 
         const ngayNghiemThuText = formData.ngayNghiemThu || "<em style='color: #999;'>Chưa có</em>";
-        const maSoText = formData.maSoSangKien || "<em style='color: #999;'>Chưa có</em>";
 
         const htmlContent = `
         <div style="text-align: left; padding: 10px 20px; font-size: 15px;">
@@ -94,10 +89,6 @@
                 <tr>
                     <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Tên sáng kiến:</td>
                     <td style="padding: 10px 0; color: #212529; font-size: 15px;"><strong>${formData.tenSangKien}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Mã số sáng kiến:</td>
-                    <td style="padding: 10px 0; color: #212529; font-size: 15px;">${maSoText}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 0; font-weight: 600; color: #495057; font-size: 15px;">Tác giả chính:</td>

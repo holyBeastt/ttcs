@@ -69,7 +69,6 @@
             loaiHuongDan: document.getElementById("loaiHuongDanHD").value,
             namHoc: document.getElementById("namHocFormHD").value,
             tenDeTai: document.getElementById("tenDeTaiHD").value.trim(),
-            maSoDeTai: document.getElementById("maSoDeTaiHD")?.value.trim() || "",
             ngayNghiemThu: document.getElementById("ngayNghiemThuHD")?.value || "",
             ketQua: document.getElementById("ketQuaHD")?.value || "",
             thanhVien: memberList,
@@ -80,7 +79,7 @@
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["loaiHuongDan", "namHoc", "tenDeTai", "khoa"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["loaiHuongDan", "namHoc", "tenDeTai"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {

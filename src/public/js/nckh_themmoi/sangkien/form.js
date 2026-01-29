@@ -72,7 +72,6 @@ async function submitForm() {
         loaiSangKien: document.getElementById("loaiSangKien").value,
         namHoc: document.getElementById("namHocFormSK").value,
         tenSangKien: document.getElementById("tenSangKien").value.trim(),
-        maSoSangKien: document.getElementById("maSoSangKien").value.trim(),
         tacGiaChinh: tacGiaListFromView.join(", "),
         ngayNghiemThu: document.getElementById("ngayNghiemThuSK").value,
         ketQua: document.getElementById("ketQuaSK").value,
@@ -86,7 +85,7 @@ async function submitForm() {
     console.log("Form data:", formData);
 
     // Validate
-    const validation = NCKH_V2_Utils.validateForm(formData, ["loaiSangKien", "namHoc", "tenSangKien", "khoa"]);
+    const validation = NCKH_V2_Utils.validateForm(formData, ["loaiSangKien", "namHoc", "tenSangKien"]);
     console.log("Validation result:", validation);
 
     if (!validation.isValid) {

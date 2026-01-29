@@ -68,7 +68,6 @@
             capDeXuat: document.getElementById("capDeXuat").value,
             namHoc: document.getElementById("namHocFormDX").value,
             tenDeXuat: document.getElementById("tenDeXuat").value.trim(),
-            maSoDeXuat: document.getElementById("maSoDeXuat").value.trim(),
             ngayNghiemThu: document.getElementById("ngayNghiemThuDX").value,
             ketQua: document.getElementById("ketQuaDX").value,
             thanhVien: memberList,
@@ -79,7 +78,7 @@
         console.log("Form data:", formData);
 
         // Validate
-        const validation = NCKH_V2_Utils.validateForm(formData, ["capDeXuat", "namHoc", "tenDeXuat", "khoa"]);
+        const validation = NCKH_V2_Utils.validateForm(formData, ["capDeXuat", "namHoc", "tenDeXuat"]);
         console.log("Validation result:", validation);
 
         if (!validation.isValid) {

@@ -49,7 +49,6 @@
                 <div class="mb-2"><strong>Cấp đề xuất:</strong> ${formData.capDeXuat || '-'}</div>
                 <div class="mb-2"><strong>Năm học:</strong> ${formData.namHoc || '-'}</div>
                 <div class="mb-2"><strong>Tên đề xuất:</strong> ${formData.tenDeXuat || '-'}</div>
-                <div class="mb-2"><strong>Mã số:</strong> ${formData.maSoDeXuat || '-'}</div>
                 <div class="mb-2"><strong>Kết quả:</strong> ${formData.ketQua || '-'}</div>
                 <div class="mb-2"><strong>Ngày nghiệm thu:</strong> ${formData.ngayNghiemThu || '-'}</div>
                 <hr>
@@ -120,10 +119,6 @@
             </div>
 
             <div class="row mb-3">
-                <div class="col-md-6">
-                    <strong>Mã số:</strong>
-                    <p>${data.MaSoDeXuat || '-'}</p>
-                </div>
                 <div class="col-md-6">
                     <strong>Kết quả:</strong>
                     <p>${data.KetQua || '-'}</p>
