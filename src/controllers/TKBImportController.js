@@ -265,6 +265,8 @@ const importExcelTKB = async (req, res) => {
     }
 
     let preTT = 0;
+    let preCourseName = "";  // Thêm: Lưu course_name dòng trước
+    // let preClassroom = "";   // Thêm: Lưu classroom dòng trước
     let ll_tmp = 0;
     let classIdAscending = 1;
 
@@ -324,20 +326,31 @@ const importExcelTKB = async (req, res) => {
 
       // Gán lại tt phục vụ tkb và phòng học
       if (i > 0) {
-        // Chỉnh sửa tt phục vụ quy chuẩn
-        if (row.tt !== preTT) {
+        // ✅ Kiểm tra 3 điều kiện để xác định "nhóm mới"
+        const isTTChanged = row.tt !== preTT;
+        const isCourseNameChanged = row.course_name !== preCourseName;
+        // const isClassroomChanged = row.classroom !== preClassroom;
+
+        if (isTTChanged || isCourseNameChanged) {
+          // ⚡ NHÓM MỚI: Bất kỳ điều kiện nào thay đổi
           preTT = row.tt;
+          preCourseName = row.course_name;
+          // preClassroom = row.classroom;
+
           row.tt = ++lastTTValue;
           ll_tmp = row.ll_total || 0;
           classIdAscending = 1;
         } else {
-          // Nếu tt giống với dòng trước, giữ nguyên giá trị
+          // ⚡ CÙNG NHÓM: Tất cả điều kiện giống nhau
           row.tt = lastTTValue;
           classIdAscending++;
         }
       } else {
-        // Dòng đầu tiên
+        // ⚡ Dòng đầu tiên
         preTT = row.tt;
+        preCourseName = row.course_name;
+        // preClassroom = row.classroom;
+
         row.tt = ++lastTTValue;
         ll_tmp = row.ll_total || 0;
         classIdAscending = 1;
