@@ -200,19 +200,19 @@ module.exports = {
     nckh_chung: {
         type: 'research',
         description: 'NCKH chung',
-        uniqueKey: ['LoaiNCKH'],
-    },
-
-    nckh_quydinhsogio: {
-        type: 'research',
-        description: 'NCKH quy định số giờ',
-        uniqueKey: ['LoaiNCKH', 'PhanLoai'],
+        uniqueKey: ['LoaiNCKH', 'PhanLoai', 'TenCongTrinh', 'NamHoc'],
     },
 
     sotietnckhbaoluusangnam: {
         type: 'research',
         description: 'Số tiết NCKH bảo lưu sang năm',
         uniqueKey: ['NamHoc', 'GiangVien'],
+    },
+
+    lopngoaiquychuan: {
+        type: 'teaching',
+        description: 'Lớp ngoài quy chuẩn',
+        uniqueKey: ['HocKy', 'NamHoc', 'TenHocPhan', 'Lop'],
     },
 
     // ============================================
