@@ -185,18 +185,6 @@ module.exports = {
     // RESEARCH - Nghiên cứu khoa học (NCKH)
     // ============================================
 
-    // uncngoai: {
-    //     type: 'business',
-    //     description: 'Ủy nhiệm chi ngoài',
-    //     uniqueKey: ['stk'],
-    // },
-
-    // uncngoaidetail: {
-    //     type: 'business',
-    //     description: 'Chi tiết ủy nhiệm chi ngoài',
-    //     uniqueKey: ['stk'],
-    // },
-
     nckh_chung: {
         type: 'research',
         description: 'NCKH chung',

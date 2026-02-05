@@ -496,8 +496,8 @@ async function importGenericTable(connection, tableName, records, config) {
                 values = Object.values(record);
                 console.log(`[SYNC DEBUG] 🔑 Preserving ID: ${record.id}`);
             } else {
-                // Remove id for other tables
-                const { id, ...dataWithoutId } = record;
+                // Remove id for other tables (handle all case variants)
+                const { id, ID, Id, ...dataWithoutId } = record;
                 fields = Object.keys(dataWithoutId);
                 values = Object.values(dataWithoutId);
             }
@@ -514,16 +514,16 @@ async function importGenericTable(connection, tableName, records, config) {
             let query;
             if (updateClauses) {
                 query = `
-          INSERT INTO ${tableName} (${fields.join(", ")})
-          VALUES (${placeholders})
-          ON DUPLICATE KEY UPDATE ${updateClauses}
-        `;
+                INSERT INTO ${tableName} (${fields.join(", ")})
+                VALUES (${placeholders})
+                ON DUPLICATE KEY UPDATE ${updateClauses}
+                `;
             } else {
                 // If all fields are part of the unique key, just INSERT IGNORE
                 query = `
-          INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
-          VALUES (${placeholders})
-        `;
+                INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
+                VALUES (${placeholders})
+                `;
             }
 
             const [result] = await connection.query(query, values);
