@@ -127,11 +127,11 @@ module.exports = {
     // BUSINESS - Nghiệp vụ giảng dạy chính
     // ============================================
 
-    // course_schedule_details: {
-    //     type: 'business',
-    //     description: 'Thời khóa biểu chi tiết',
-    //     uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'tt', 'course_name'],
-    // },
+    course_schedule_details: {
+        type: 'business',
+        description: 'Thời khóa biểu chi tiết',
+        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'tt', 'course_name', 'class_id_ascending'],
+    },
 
     giangday: {
         type: 'business',

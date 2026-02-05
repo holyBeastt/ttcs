@@ -6,6 +6,7 @@
 
 const createConnection = require("../config/databasePool");
 const syncConfig = require("../config/syncConfig");
+const { validateAndMigrateSchemaFromData } = require("../helpers/schemaValidator");
 
 // ============================================
 // EXPORT FUNCTIONS
@@ -205,6 +206,25 @@ exports.importTable = async (req, res) => {
 
         connection = await createConnection();
         const config = syncConfig[table];
+
+        // Auto schema validation & migration using import data
+        // This detects missing columns by comparing data fields vs table columns
+        console.log(`\n🔍 [DEBUG] === SCHEMA VALIDATION START ===`);
+        console.log(`🔍 [DEBUG] Table: ${table}`);
+        console.log(`🔍 [DEBUG] Data records: ${data.length}`);
+        console.log(`🔍 [DEBUG] Sample data fields:`, data[0] ? Object.keys(data[0]) : 'No data');
+
+        try {
+            console.log(`🔍 [DEBUG] Calling validateAndMigrateSchemaFromData...`);
+            const schemaResult = await validateAndMigrateSchemaFromData(connection, table, data);
+            console.log(`🔍 [DEBUG] Schema validation completed:`, schemaResult);
+        } catch (schemaError) {
+            console.error(`❌ [DEBUG] SCHEMA ERROR CAUGHT:`, schemaError);
+            console.warn(`⚠️  [SCHEMA] Schema validation skipped for ${table}:`, schemaError.message);
+            // Continue with import even if schema validation fails
+        }
+
+        console.log(`🔍 [DEBUG] === SCHEMA VALIDATION END ===\n`);
 
         // Start transaction
         await connection.beginTransaction();
@@ -568,6 +588,27 @@ exports.importAll = async (req, res) => {
 
             try {
                 const config = syncConfig[tableName];
+
+                // Auto schema validation & migration for this table
+                console.log(`\n🔍 [DEBUG] === SCHEMA VALIDATION (IMPORT-ALL) ===`);
+                console.log(`🔍 [DEBUG] Table: ${tableName}`);
+                console.log(`🔍 [DEBUG] Data records: ${tableData.data.length}`);
+
+                try {
+                    console.log(`🔍 [DEBUG] Calling validateAndMigrateSchemaFromData...`);
+                    const schemaResult = await validateAndMigrateSchemaFromData(
+                        connection,
+                        tableName,
+                        tableData.data
+                    );
+                    console.log(`🔍 [DEBUG] Schema validation completed:`, schemaResult);
+                } catch (schemaError) {
+                    console.error(`❌ [DEBUG] SCHEMA ERROR:`, schemaError);
+                    console.warn(`⚠️  [SCHEMA] Schema validation skipped for ${tableName}:`, schemaError.message);
+                    // Continue with import even if schema validation fails
+                }
+
+                console.log(`🔍 [DEBUG] === SCHEMA VALIDATION END ===\n`);
 
                 // Start transaction for this table
                 await connection.beginTransaction();
