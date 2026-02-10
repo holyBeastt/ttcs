@@ -102,13 +102,13 @@ module.exports = {
     },
 
     taikhoannguoidung: {
-        type: 'employee',
+        type: 'master',
         description: 'Tài khoản người dùng',
         uniqueKey: ['TenDangNhap'],
     },
 
     role: {
-        type: 'employee',
+        type: 'master',
         description: 'Phân quyền người dùng',
         uniqueKey: ['TenDangNhap'],
     },
@@ -148,7 +148,7 @@ module.exports = {
     quy_chuan_edit_requests: {
         type: 'business',
         description: 'Yêu cầu sửa quy chuẩn',
-        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'lop_hoc_phan', 'ten_lop'],
+        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'old_value', 'new_value', 'lop_hoc_phan', 'ten_lop'],
     },
 
     ketthuchocphan: {
@@ -197,11 +197,11 @@ module.exports = {
         uniqueKey: ['NamHoc', 'GiangVien'],
     },
 
-    lopngoaiquychuan: {
-        type: 'teaching',
-        description: 'Lớp ngoài quy chuẩn',
-        uniqueKey: ['HocKy', 'NamHoc', 'TenHocPhan', 'Lop'],
-    },
+    // lopngoaiquychuan: {
+    //     type: 'teaching',
+    //     description: 'Lớp ngoài quy chuẩn',
+    //     uniqueKey: ['HocKy', 'NamHoc', 'TenHocPhan', 'Lop'],
+    // },
 
     // ============================================
     // SALARY - Tiền lương và miễn giảm
