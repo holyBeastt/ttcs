@@ -361,6 +361,9 @@ async function importNhanVien(connection, records) {
                         updateValues
                     );
                     updated++;
+                } else {
+                    // No fields to update, but employee exists - still count as updated
+                    //updated++;
                 }
             } else {
                 // Employee doesn't exist - INSERT
@@ -474,6 +477,7 @@ async function importGvmoi(connection, records) {
 async function importGenericTable(connection, tableName, records, config) {
     let inserted = 0;
     let updated = 0;
+    let skipped = 0;  // Records matched but no changes
     const errors = [];
 
     for (const record of records) {
@@ -496,8 +500,8 @@ async function importGenericTable(connection, tableName, records, config) {
                 values = Object.values(record);
                 console.log(`[SYNC DEBUG] 🔑 Preserving ID: ${record.id}`);
             } else {
-                // Remove id for other tables (handle all case variants)
-                const { id, ID, Id, ...dataWithoutId } = record;
+                // Remove auto-increment PK fields (id, ID, Id, STT, stt)
+                const { id, ID, Id, STT, stt, ...dataWithoutId } = record;
                 fields = Object.keys(dataWithoutId);
                 values = Object.values(dataWithoutId);
             }
@@ -512,6 +516,8 @@ async function importGenericTable(connection, tableName, records, config) {
 
             // Use INSERT ... ON DUPLICATE KEY UPDATE for UPSERT
             let query;
+            let isInsertIgnore = false;
+
             if (updateClauses) {
                 query = `
                 INSERT INTO ${tableName} (${fields.join(", ")})
@@ -520,6 +526,7 @@ async function importGenericTable(connection, tableName, records, config) {
                 `;
             } else {
                 // If all fields are part of the unique key, just INSERT IGNORE
+                isInsertIgnore = true;
                 query = `
                 INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
                 VALUES (${placeholders})
@@ -528,13 +535,67 @@ async function importGenericTable(connection, tableName, records, config) {
 
             const [result] = await connection.query(query, values);
 
-            // Check if inserted or updated based on affectedRows
-            if (result.affectedRows === 1) {
-                inserted++;
-            } else if (result.affectedRows === 2) {
-                // ON DUPLICATE KEY UPDATE returns 2 for updates
-                updated++;
+            // Debug: Log first record to see actual query
+            if (inserted === 0 && updated === 0) {
+                console.log(`[SYNC DEBUG] 📝 First Query:`, query.substring(0, 200));
+                console.log(`[SYNC DEBUG] 📝 UniqueKey:`, config.uniqueKey);
+                console.log(`[SYNC DEBUG] 📝 Fields:`, fields);
+                console.log(`[SYNC DEBUG] 📝 First Record Data:`, JSON.stringify(record).substring(0, 150));
             }
+
+            console.log(`[SYNC DEBUG] 🔍 Query Result - affectedRows: ${result.affectedRows}, insertId: ${result.insertId}, changedRows: ${result.changedRows}, warningStatus: ${result.warningStatus}`);
+
+
+            // Count based on affectedRows and query type
+            // MySQL affectedRows behavior:
+            // - INSERT new: affectedRows = 1
+            // - UPDATE existing (ON DUPLICATE KEY): affectedRows = 2  
+            // - No change (ON DUPLICATE KEY with same values): affectedRows = 0
+            // - INSERT IGNORE duplicate: affectedRows = 0
+
+            // if (isInsertIgnore) {
+            //     if (result.affectedRows === 1) {
+            //         inserted++;
+            //     }
+            // } else {
+            //     if (result.insertId > 0 && result.changedRows === 0) {
+            //         inserted++;
+            //     } else if (result.changedRows > 0) {
+            //         updated++;
+            //     }
+            // }
+
+            if (isInsertIgnore) {
+                // INSERT IGNORE: affectedRows=1 means inserted, affectedRows=0 means duplicate
+                if (result.affectedRows === 1) {
+                    inserted++;
+                } else if (result.affectedRows === 0) {
+                    // Duplicate, skipped
+                    skipped++;
+                }
+            } else {
+                // ON DUPLICATE KEY UPDATE
+                if (result.affectedRows === 1) {
+                    // affectedRows=1 can mean INSERT or UPDATE with no change
+                    // Use insertId to distinguish:
+                    if (result.insertId > 0) {
+                        // Real INSERT (new auto-increment ID generated)
+                        inserted++;
+                    } else {
+                        // Matched duplicate but no fields changed (insertId=0, changedRows=0)
+                        // Don't count as updated - data unchanged!
+                        skipped++;
+                    }
+                } else if (result.affectedRows === 2) {
+                    // UPDATE with changes
+                    updated++;
+                } else if (result.affectedRows === 0) {
+                    // Matched duplicate, no change (alternative MySQL behavior)
+                    skipped++;
+                }
+            }
+
+
         } catch (error) {
             errors.push({
                 record: record,
@@ -543,9 +604,13 @@ async function importGenericTable(connection, tableName, records, config) {
         }
     }
 
+    // Debug: Show final counts
+    console.log(`📊 [IMPORT STATS] ${tableName}: inserted=${inserted}, updated=${updated}, skipped=${skipped}, errors=${errors.length}, total=${records.length}`);
+
     return {
         inserted,
         updated,
+        skipped,
         errors,
         total: records.length,
     };
