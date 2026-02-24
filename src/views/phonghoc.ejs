@@ -18,33 +18,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-    <style>
-    .ca-list-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-      justify-content: flex-start;
-      flex-wrap: wrap;
-    }
-    .ca-item {
-      padding: 6px 18px;
-      border-radius: 20px;
-      background: #f0f4ff;
-      color: #1976d2;
-      border: 1.5px solid #1976d2;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      user-select: none;
-    }
-    .ca-item.active,
-    .ca-item:hover {
-      background: #1976d2;
-      color: #fff;
-      border-color: #1976d2;
-      box-shadow: 0 2px 8px #1976d23a;
-    }
-  </style>
+    <!-- Styles moved to /css/phonghoc.css (kept minimal here) -->
   </head>
   <body>
     <%- include('header') %>
@@ -293,7 +267,10 @@
         }
 
         // Hàm render danh sách phòng
-        function renderPhongHoc(phongTrong, phongDaSuDung) {
+        function renderPhongHoc(phongTrong, phongDaSuDung, phongMuon) {
+          phongMuon = phongMuon || [];
+          const borrowedSet = new Set(phongMuon.map(pm => String(pm.phong)));
+
           const container = $(".schedule-container");
           container.empty();
 
@@ -329,18 +306,31 @@
                               );
                               const isAllDay = $("#caHocSelect").val() === "ALL";
                               const canMuonPhong = isKhoa == 0; // Cho phép cho mượn cả phòng có lớp
+                              const isBorrowed = borrowedSet.has(String(p.phong));
+
+                              // Gather first matching class or borrow info for display on the tile
+                              const usedEntriesForRoom = (phongDaSuDung || []).filter(u => String(u.phong) === String(p.phong));
+                              const borrowEntry = (phongMuon || []).find(pm => String(pm.phong) === String(p.phong));
+                              const monText = borrowEntry ? (borrowEntry.ten_mon || '') : (usedEntriesForRoom[0] ? (usedEntriesForRoom[0].monhoc || usedEntriesForRoom[0].ten_mon || '') : '');
+                              const gvText = borrowEntry ? (borrowEntry.giangvien || '') : (usedEntriesForRoom[0] ? (usedEntriesForRoom[0].gv || usedEntriesForRoom[0].giangvien || '') : '');
+
                               return `
                                   <div class="room ${
                                     isAvailable ? "available" : "occupied"
                                   }" data-phong="${p.phong}" style="position: relative;">
-                                    <span>${p.phong}</span>
-                                    <span>${
+                                    ${isBorrowed ? `<div class="borrow-badge" title="Đã cho mượn"><i class="fas fa-hand-holding"></i></div>` : ''}
+                                    <div class="room-num"><span>${p.phong}</span></div>
+                                    <div class="room-status"><span>${
                                       isAvailable
                                         ? "Trống"
                                         : isAllDay
                                         ? "Có lớp"
                                         : "Có lớp"
-                                    }</span>
+                                    }</span></div>
+                                    <div class="room-meta">
+                                      ${monText ? `<span class="line small-course">${monText}</span>` : ''}
+                                      ${gvText ? `<span class="line"> ${gvText}</span>` : ''}
+                                    </div>
                                     ${
                                       canMuonPhong
                                         ? `<button class="btn-muon-phong" data-phong="${p.phong}" title="Cho mượn phòng">
