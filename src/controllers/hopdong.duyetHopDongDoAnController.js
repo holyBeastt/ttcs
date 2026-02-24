@@ -438,19 +438,7 @@ const approveContracts = async (req, res) => {
                      SET dt.TaiChinhDuyet = 1
                      WHERE dt.MaPhongBan = ? AND dt.NamHoc = ? AND dt.Dot = ? AND dt.Ki = ?
                        AND dt.DaoTaoDuyet = 1 AND dt.TaiChinhDuyet != 1
-                       AND dt.DaLuu = 0
-                       AND (
-                         EXISTS (
-                           SELECT 1 FROM gvmoi gv 
-                           WHERE TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen 
-                             AND gv.isQuanDoi = 0
-                         )
-                         OR EXISTS (
-                           SELECT 1 FROM gvmoi gv 
-                           WHERE TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen 
-                             AND gv.isQuanDoi = 0
-                         )
-                       )`,
+                       AND dt.DaLuu = 0 `,
                     [facultyCode, namHoc, dot, ki]
                 );
                 affectedRows += updateResult.affectedRows;

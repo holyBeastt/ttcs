@@ -1139,6 +1139,9 @@ const AdminController = {
       if (connection) connection.release();
     }
   },
+  getKyTuBDKhoa: async (req, res) => {
+    res.render("admin_KyTuBatDauKhoa");
+  },
 
   postKyTuBD: async (req, res) => {
     let { viet_tat, loai_dao_tao, he_dao_tao, doi_tuong } = req.body;
@@ -1414,6 +1417,7 @@ const AdminController = {
           t.STT,
           t.he_dao_tao,
           h.he_dao_tao AS he_dao_tao_name,
+          h.loai_hinh,
           t.HocVi,
           t.SoTien,
           t.do_uu_tien,

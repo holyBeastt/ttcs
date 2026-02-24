@@ -36,6 +36,18 @@ const getHeDaoTaoLists = async (req, res) => {
   }
 };
 
+const getHeDaoTaoData = async (req, res) => {
+  try {
+    const query = "SELECT * FROM he_dao_tao";
+    const [results] = await pool.query(query);
+
+    return results;
+  } catch (error) {
+    console.error("Error fetching He Dao Tao lists:", error);
+    throw error; // ❗ Ném lỗi cho controller xử lý
+  }
+};
+
 const getHeMoiGiangLists = async (req, res) => {
   try {
     const query = "SELECT id, he_dao_tao FROM he_dao_tao where loai_hinh = 'mời giảng'";
@@ -232,5 +244,6 @@ module.exports = {
   getChucDanhNgheNghiep,
   buildDynamicQuery,
   getHeMoiGiangData,
-  getChucDanhNgheNghiepForAdmin
+  getChucDanhNgheNghiepForAdmin,
+  getHeDaoTaoData
 };

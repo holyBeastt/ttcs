@@ -2540,7 +2540,12 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
           // };
           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
           let SoTien = (TongSoTiet || 0) * DonGia; // Tính toán số tiền
-          let TruThue = 0; // Giả định không thu thuế
+
+          let TruThue = 0;
+          if (SoTien > 2000000) {
+            TruThue = Math.round(SoTien * 0.1); // Giả định thuế suất 10%
+          }
+          const ThucNhan = SoTien - TruThue;
 
           return [
             id_Gvm,
@@ -2565,6 +2570,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             SoTiet,
             SoTien,
             TruThue,
+            ThucNhan,
             Dot,
             NamHoc,
             MaPhongBan,
@@ -2582,7 +2588,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
     const queryInsert = `
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
-        DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
+        DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue, ThucNhan,
         Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao, NoiCongTac
       ) VALUES ?;
     `;
@@ -3208,6 +3214,11 @@ GROUP BY
           let SoTien = (TongSoTiet || 0) * DonGia; // Tính toán số tiền
           let TruThue = 0; // Giả định không thu thuế
 
+          if (SoTien > 2000000) {
+            TruThue = SoTien * 0.1; // Giả định không thu thuế
+          }
+          let ThucNhan = SoTien - TruThue;
+
           return [
             id_Gvm,
             DienThoai,
@@ -3231,6 +3242,7 @@ GROUP BY
             SoTiet,
             SoTien,
             TruThue,
+            ThucNhan,
             Dot,
             NamHoc,
             MaPhongBan,
@@ -3248,7 +3260,7 @@ GROUP BY
     const queryInsert = `
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
-        DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
+        DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue, ThucNhan,
         Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao, NoiCongTac
       ) VALUES ?;
     `;

@@ -39,7 +39,8 @@
   <!-- Phần dưới của navbar chứa các mục nằm ngang -->
   <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
     <div class="" style="width: 100%">
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" style="width: 100%" id="navbarNav">
@@ -47,256 +48,212 @@
           <li class="nav-item">
             <a class="nav-link" id="Home" href=""><i class="fa-solid fa-house"></i></a>
           </li>
-          <!--  -->
-          <div class="navbar-nav" id="tkb-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                Thời khóa biểu
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="add-new-tkb" style="display: none" href="/getImportTKBSite">Thêm thời khóa
-                  biểu</a>
-                <a class="nav-link" id="main-tkb" href="/getTKBChinhThucSite">Thời khóa biểu chính thức</a>
-              </div>
-            </div>
-          </div>
-          <!--  -->
-          <div class="navbar-nav" id="nav-gvm">
-            <!-- <div class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="/login"
-                id="navbarDropdownUser"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Giảng Viên Mời
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
-                <a
-                  class="nav-link"
-                  id="addNewFileGvm"
-                  href="/importGvmList"
-                  style="width: 100%"
-                  >Thêm giảng viên mời bằng file</a
-                >
-                <a class="nav-link" href="/api/gvm/waiting-list/render"
-                  >Danh sách chờ duyệt</a
-                >
-              </div>
-            </div> -->
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                Giảng Viên Mời
-                <span id="gvm-badge" class="badge">0</span>
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
-                <a class="nav-link" id="addNewFileGvm" href="/importGvmList">Thêm giảng viên mời bằng file</a>
-                <a class="nav-link" href="/api/gvm/waiting-list/render">
-                  Danh sách chờ duyệt
-                  <span id="waiting-list-badge" class="badge">0</span>
-                </a>
-                <a class="nav-link" href="/api/gvm/checked-list/render">
-                  Danh sách đã duyệt
-                </a>
-                <a class="nav-link" href="/api/gvm/stopped-teaching-list/site">
-                  Danh sách đã ngừng giảng dạy
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav" id="nav-quychuan">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                Bảng Quy Chuẩn
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle themFile" style="display: none" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Thêm file</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
-                    <a class="nav-link" href="/import" id="addNewFileQCDK" style="width: 100%">Thêm file quy chuẩn dự
-                      kiến</a>
-                    <a class="nav-link" id="" href="/importDoAn">Thêm file ĐATN chính thức</a>
 
+          <!-- 1. Giảng viên mời  -->
+          <div class="navbar-nav" id="nav-gvm">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                Giảng viên mời <span id="gvm-badge" class="badge">0</span>
+              </a>
+              <div class="dropdown-menu">
+                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+
+                <div class="dropdown-submenu" id="add-new-gvm">
+                  <a class="nav-link dropdown-toggle">Thêm giảng viên mời</a>
+                  <div class="dropdown-menu1">
+                    <a class="nav-link add-new-gvm" href="/api/v1/gvm/create-site">Thêm bằng giao diện</a>
+                    <a class="nav-link add-new-gvm" id="addNewFileGvm" href="/importGvmList">Thêm bằng file</a>
                   </div>
                 </div>
+
+                <a class="nav-link" href="/api/gvm/waiting-list/render">
+                  Danh sách chờ duyệt <span id="waiting-list-badge" class="badge">0</span>
+                </a>
+                <a class="nav-link" href="/api/gvm/checked-list/render">Danh sách đã duyệt</a>
+                <a class="nav-link" href="/api/gvm/stopped-teaching-list/site">
+                  Danh sách ngừng giảng dạy
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Thời khóa biểu & quy chuẩn -->
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                Thời khóa biểu và Quy chuẩn
+              </a>
+              <div class="dropdown-menu">
+                <!-- Thời khóa biểu -->
+                <a class="nav-link" id="add-new-tkb" href="/getImportTKBSite" style="display: none;">
+                  Thêm thời khóa biểu
+                </a>
+                <a class="nav-link" href="/getTKBChinhThucSite">
+                  Thời khóa biểu chính thức
+                </a>
+                <a class="nav-link" href="/tableTam">Bảng quy chuẩn giảng dạy dự kiến</a>
+                <a class="nav-link" href="/tableQC">Bảng quy chuẩn giảng dạy chính thức</a>
                 <div class="dropdown-submenu" style="width: 100%" id="addFileKTHP">
                   <a class="nav-link" id="" href="/importkthp">Coi, chấm, ra đề thi</a>
                 </div>
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Bảng quy chuẩn dự kiến</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
-                    <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
-                    <!-- <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite"
-                      >Bảng ĐATN dự kiến</a
-                    > -->
-                  </div>
-                </div>
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Bảng quy chuẩn chính thức</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
-                    <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
-                    <a class="nav-link" href="/doAnChinhThuc">Bảng ĐATN chính thức</a>
-                  </div>
-                </div>
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Thông tin giảng viên theo lớp</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
-                    <a class="nav-link" id="ThongTinGD" href="#">Thông tin giảng viên theo lớp</a>
-                    <a class="nav-link" id="" href="/thongTinDoAnTotNghiep">Thông tin đồ án tốt nghiệp</a>
-                  </div>
-                </div>
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Yêu cầu chỉnh sửa</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
-                    <a class="nav-link" id="" href="/chinhSuaQuyChuan">Yêu cầu chỉnh sửa quy chuẩn chính thức</a>
-                    <a class="nav-link" id="" href="/chinhSuaDoAn">Yêu cầu chỉnh sửa đồ án chính thức</a>
-
-                  </div>
-                </div>
               </div>
             </div>
           </div>
-          <div class="navbar-nav" id="nav-moigiang">
-            <div class="nav-item dropdown" style="width: max-content">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                Mời Giảng
+
+          <!-- 3. Thao tác giảng viên theo lớp -->
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                Thao tác giảng viên theo lớp
               </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> 
-                <!-- <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a> -->
-                <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
-                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown" aria-expanded="false">Tài chính - Duyệt hợp đồng</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
-                    <a class="nav-link" href="/duyet-hop-dong">Hợp đồng mời giảng</a>
-                    <a class="nav-link" href="/duyet-hop-dong-do-an">Hợp đồng đồ án</a>
-                  </div>
-                </div>
+              <div class="dropdown-menu">
+                <a class="nav-link" id="ThongTinGD" href="#">Thông tin giảng viên theo lớp</a>
+                <a class="nav-link" href="/chinhSuaQuyChuan">
+                  Yêu cầu chỉnh sửa quy chuẩn mời giảng
+                </a>
+                <a class="nav-link" id="" href="/chinhSuaDoAn">Yêu cầu chỉnh sửa đồ án chính thức</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Mời giảng -->
+          <div class="navbar-nav" id="nav-moigiang">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                Mời giảng
+              </a>
+              <div class="dropdown-menu">
+
+                <a class="nav-link" href="/classInfoGvm">
+                  Thống kê lớp mời theo giảng viên
+                </a>
+                <a class="nav-link" href="/hopDongDuKien">Hợp đồng dự kiến</a>
+
+                <a class="nav-link" href="/duyet-hop-dong">
+                  Tài chính duyệt hợp đồng mời giảng
+                </a>
+
                 <div class="dropdown-submenu" id="nav-tao-so-hop-dong-moi-giang" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContractMoiGiang" data-bs-toggle="dropdown" aria-expanded="false">Đào tạo - Tạo số hợp đồng mời giảng</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContractMoiGiang"
+                    data-bs-toggle="dropdown" aria-expanded="false">Đào tạo tạo số hợp đồng mời giảng</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownContractMoiGiang">
                     <a class="nav-link" href="/sohopdong">Cơ sở miền bắc</a>
                     <a class="nav-link" href="/sohopdong-dtph">Phân hiệu học viện</a>
                   </div>
                 </div>
+
+                <a class="nav-link" href="/infoHDGvm">Thông tin hợp đồng</a>
+                <a class="nav-link" href="/exportHD">Hợp đồng mời giảng</a>
+                <a class="nav-link" href="/phuLucHD">Phụ lục hợp đồng</a>
+                <a class="nav-link" href="/api/moi-giang/hd-gvm/img-download-site">
+                  Minh chứng hợp đồng
+                </a>
+                <a class="nav-link" href="/api/hd-gvm/additional-file-site">
+                  Tải tổng hợp hợp đồng
+                </a>
+                <a class="nav-link" id="suaHD" href="/suaHD">Sửa thông tin hợp đồng</a>
+                <a class="nav-link" href="/uy-nhiem-chi/tai-uy-nhiem-chi">Ủy nhiệm chi hợp đồng mời giảng</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Đồ án -->
+          <div class="navbar-nav" id="nav-doan">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                Đồ án
+              </a>
+              <div class="dropdown-menu">
+
+                <a class="nav-link themFile" href="/importDoAn">Thêm ĐATN chính thức</a>
+                <a class="nav-link" href="/thongTinDoAnTotNghiep">
+                  Thông tin đồ án tốt nghiệp
+                </a>
+                <a class="nav-link" href="/doAnHopDongDuKienSite">
+                  Thống kê ĐATN dự kiến
+                </a>
+
+                <a class="nav-link" href="/duyet-hop-dong-do-an">
+                  Tài chính duyệt hợp đồng ĐATN
+                </a>
+
+
                 <div class="dropdown-submenu" id="nav-tao-so-hop-dong-do-an" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContractDoAn" data-bs-toggle="dropdown" aria-expanded="false">Đào tạo - Tạo số hợp đồng đồ án</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContractDoAn" data-bs-toggle="dropdown"
+                    aria-expanded="false">Đào tạo - Tạo số hợp đồng đồ án</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownContractDoAn">
                     <a class="nav-link" href="/sohopdong-doan">Cơ sở miền bắc</a>
                     <a class="nav-link" href="/sohopdong-doan-dtph">Phân hiệu học viện</a>
                   </div>
                 </div>
-                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
-                <a class="nav-link" href="/phuLucHD">Phụ lục hợp đồng</a>
-                <a class="nav-link" href="/exportHD">Hợp Đồng</a>
-                <a class="nav-link" href="/api/moi-giang/hd-gvm/img-download-site">Phụ lục minh chứng giảng viên mời</a>
-                <a class="nav-link" href="/api/hd-gvm/additional-file-site">Tải tổng hợp hợp đồng</a>
-                <a class="nav-link" style="display: none" id="suaHD" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiem" data-bs-toggle="dropdown" aria-expanded="false">Ủy nhiệm chi</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiem">
-                    <!-- UNC hệ thống -->
-                    <div class="dropdown-submenu" style="width: 100%">
-                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiemHeThong" data-bs-toggle="dropdown" aria-expanded="false">UNC hệ thống</a>
-                      <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiemHeThong">
-                        <a class="nav-link" href="/uy-nhiem-chi/tai-uy-nhiem-chi">UNC mời giảng</a>
-                        <a class="nav-link" href="/uy-nhiem-chi/unc-datn">UNC ĐATN</a>
-                      </div>
-                    </div>
 
-                    <!-- UNC ngoài -->
-                    <div class="dropdown-submenu" style="width: 100%">
-                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiemNgoai" data-bs-toggle="dropdown" aria-expanded="false">UNC ngoài</a>
-                      <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiemNgoai">
-                        <div class="dropdown-submenu" style="width: 100%">
-                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiemNgoaiNhap" data-bs-toggle="dropdown" aria-expanded="false">Thêm người thụ hưởng</a>
-                          <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiemNgoaiNhap">
-                            <a class="nav-link" href="/uy-nhiem-chi/unc-ngoai/nhap-du-lieu/import-file">Import file</a>
-                            <a class="nav-link" href="/uy-nhiem-chi/unc-ngoai/nhap-du-lieu/giao-dien">Giao diện</a>
-                          </div>
-                        </div>
-                        <a class="nav-link" href="/uy-nhiem-chi/unc-ngoai/xem-du-lieu">Xem dữ liệu</a>
-                      </div>
-                    </div>
-
-                    <!-- Mẫu UNC -->
-                    <div class="dropdown-submenu" style="width: 100%">
-                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMauUNC" data-bs-toggle="dropdown" aria-expanded="false">Mẫu UNC</a>
-                      <div class="dropdown-menu1" aria-labelledby="navbarDropdownMauUNC">
-                        <a class="nav-link" href="/uy-nhiem-chi/sua-mau-uy-nhiem">Mẫu đóng HP</a>
-                        <a class="nav-link" href="/uy-nhiem-chi/mau-mat-ma">Mẫu mật mã</a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <a class="nav-link" href="/hopDongDA">Hợp đồng ĐATN</a>
+                <a class="nav-link" href="/exportPhuLucDA">Phụ lục ĐATN</a>
+                <a class="nav-link" href="/api/do-an/hd-gvm/bosung-download-file">
+                  Minh chứng ĐATN
+                </a>
+                <a class="nav-link" href="/api/do-an/hd-gvm/additional-file-site">
+                  Tải tổng hợp hợp đồng ĐATN
+                </a>
+                <a class="nav-link" href="/uy-nhiem-chi/unc-datn">Ủy nhiệm chi ĐATN</a>
               </div>
             </div>
           </div>
           <div class="navbar-nav" id="nav-vuotgio">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/vuotGioCuoiKi">Thông tin cuối kì của tôi</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Đánh giá giữa học phần</a>
+                <!-- <a class="nav-link" id="" href="/addclassgiuaky">Đánh giá giữa học phần</a> -->
                 <a class="nav-link" id="" href="/vuotGioDanhGiaCuoiKi">Đánh giá cuối học phần</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+                <!-- <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a> -->
                 <a class="nav-link" id="" href="/infovuotgio">Thông tin vượt giờ và NCKH</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ và NCKH
+                <a class="nav-link" id="" href="/importkthp">Coi, chấm, ra đề thi</a>
                 </a>
               </div>
             </div>
           </div>
           <div class="navbar-nav" id="nav-nckh">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
                 Nghiên Cứu Khoa Học
               </a>
-              <div id="nckhNav" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
-                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
-                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
-                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+              <div id="nckhNav2" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <!-- <a class="nav-link" href="/detaiduan">Đề tài và dự án</a> -->
+                <!-- <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a> -->
+                <!-- <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a> -->
+                <!-- <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a> -->
 
-                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
-                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
-                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
-                <a class="nav-link" id="" href="/nhiemvukhoahoccongnghe">Nhiệm vụ khoa học công nghệ</a>
-                <a class="nav-link" id="" href="/sotietnckhbaoluusangnam">Số tiết NCKH bảo lưu sang năm</a>
-                <a class="nav-link" id="" href="/tonghopsotietnckh/dukien">Dự kiến số tiết NCKH trong năm</a>
-                <a class="nav-link" id="" href="/tonghopsotietnckh">Tổng hợp số tiết NCKH</a>
+                <!-- <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a> -->
+                <!-- <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a> -->
+                <!-- <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a> -->
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahoccongnghe">Nhiệm vụ khoa học công nghệ</a> -->
+                <!-- <a class="nav-link" id="" href="/sotietnckhbaoluusangnam">Số tiết NCKH bảo lưu sang năm</a> -->
+                <!-- <a class="nav-link" id="" href="/tonghopsotietnckh/dukien">Dự kiến số tiết NCKH trong năm</a> -->
+                <a class="nav-link" id="" href="/v2/danh-sach-nckh">Danh sách NCKH</a>
+                <a class="nav-link" id="" href="/v2/them-moi-nckh">Thêm mới NCKH</a>
+                <a class="nav-link" id="" href="/v2/tonghopsotiet/dukien">Tổng hợp số tiết NCKH theo GV</a>
+                <a class="nav-link" id="" href="/v2/tonghopsotiet/khoa">Tổng hợp số tiết NCKH theo Khoa</a>
               </div>
             </div>
           </div>
-          <div class="navbar-nav" id="nav-doan">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                Đồ Án
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng ĐATN dự kiến</a>
-                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục ĐATN</a>
-                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng ĐATN</a>
-                <a class="nav-link" href="/api/do-an/hd-gvm/bosung-download-file">Phụ lục minh chứng giảng viên mời</a>
-                <a class="nav-link" href="/api/do-an/hd-gvm/additional-file-site">Tải tổng hợp hợp đồng</a>
-              </div>
-            </div>
-          </div>
-
           <div class="navbar-nav" id="nav-thongke">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
                 Thống Kê
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <div class="dropdown-submenu">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Giảng Dạy</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
+                    aria-expanded="false">Giảng Dạy</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link dropdown-item1" href="/ThongkeMG">Mời Giảng</a>
                     <a class="nav-link dropdown-item1" href="/thongkevuotgio">Vượt Giờ</a>
@@ -305,7 +262,8 @@
                   </div>
                 </div>
                 <div class="dropdown-submenu">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Thống kê chi tiết</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
+                    aria-expanded="false">Thống kê chi tiết</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link dropdown-item" href="/thongkeChiTietMG">Chi tiết mời giảng</a>
                     <a class="nav-link" id="" href="/tonghopsotietnckh">Tổng hợp số tiết NCKH</a>
@@ -318,27 +276,67 @@
             </div>
           </div>
 
-          <div class="navbar-nav" id="nav-hethong">
+          <!-- Chức năng khác -->
+          <div class="navbar-nav" id="nav-chucnangkhac">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                Hệ Thống
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownOther" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Chức năng khác
               </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/log">Xem File Log</a>
-                <a class="nav-link" href="/phonghoc">Phòng học</a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdownOther">
+                <a class="nav-link" href="/phonghoc">Xem phòng học</a>
+
+                <!-- UNC hệ thống -->
+                <!-- <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiemHeThong" data-bs-toggle="dropdown" aria-expanded="false">UNC hệ thống</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiemHeThong">
+                    <a class="nav-link" href="/uy-nhiem-chi/tai-uy-nhiem-chi">UNC mời giảng</a>
+                    <a class="nav-link" href="/uy-nhiem-chi/unc-datn">UNC ĐATN</a>
+                  </div>
+                </div> -->
+
+                <!-- UNC ngoài -->
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiemNgoai" data-bs-toggle="dropdown"
+                    aria-expanded="false">UNC ngoài</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiemNgoai">
+                    <div class="dropdown-submenu" style="width: 100%">
+                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiemNgoaiNhap"
+                        data-bs-toggle="dropdown" aria-expanded="false">Thêm người thụ hưởng</a>
+                      <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiemNgoaiNhap">
+                        <a class="nav-link" href="/uy-nhiem-chi/unc-ngoai/nhap-du-lieu/import-file">Import file</a>
+                        <a class="nav-link" href="/uy-nhiem-chi/unc-ngoai/nhap-du-lieu/giao-dien">Giao diện</a>
+                      </div>
+                    </div>
+                    <a class="nav-link" href="/uy-nhiem-chi/unc-ngoai/xem-du-lieu">Xem dữ liệu</a>
+                  </div>
+                </div>
+
+                <!-- Mẫu UNC -->
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMauUNC" data-bs-toggle="dropdown"
+                    aria-expanded="false">Mẫu UNC</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownMauUNC">
+                    <a class="nav-link" href="/uy-nhiem-chi/sua-mau-uy-nhiem">Mẫu đóng HP</a>
+                    <a class="nav-link" href="/uy-nhiem-chi/mau-mat-ma">Mẫu mật mã</a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
         </ul>
         <div class="navbar-nav">
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              aria-expanded="false">
               Lỗi Server, Vui lòng đăng nhập lại!
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="log-btn" href="/log">Xem file log</a>
               <a class="dropdown-item" id="backup-btn" href="/backup">Backup dữ liệu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
@@ -358,17 +356,19 @@
     // Thêm sự kiện cho phần tử có id="Home"
     const Home = document.getElementById("Home");
 
-    if (isKhoa == 0) {
-      ThongTinGD.href = "/info2";
-      Home.href = "/maindt";
-    } else if (isKhoa == 1) {
-      ThongTinGD.href = "/info";
-      Home.href = "/mainkhoa";
+    if (ThongTinGD && Home) {
+      if (isKhoa == 0) {
+        ThongTinGD.href = "/info2";
+        Home.href = "/maindt";
+      } else if (isKhoa == 1) {
+        ThongTinGD.href = "/info";
+        Home.href = "/mainkhoa";
+      }
     }
   });
 
   // Hàm xử lý trạng thái active
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function () {
     // Lấy đường dẫn hiện tại
     const currentPath = window.location.pathname;
 
@@ -408,7 +408,7 @@
   });
 
   // Phần phân quyền
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function () {
     const isKhoa = localStorage.getItem("isKhoa");
     const role = localStorage.getItem("userRole");
     const MaPhongBan = localStorage.getItem("MaPhongBan");
@@ -416,23 +416,27 @@
     if (isKhoa === null) {
       console.log("Không tìm thấy giá trị isKhoa trong localStorage");
     } else {
-      const addNewFileGvm = document.getElementById("addNewFileGvm");
+      const addNewFileGvm = document.getElementById("add-new-gvm");
       const actionButton3 = document.getElementById("actionButton3");
       const actionButtonBackup = document.getElementById("backup-btn");
       const navTaoSoHopDongMoiGiang = document.getElementById("nav-tao-so-hop-dong-moi-giang");
       const navTaoSoHopDongDoAn = document.getElementById("nav-tao-so-hop-dong-do-an");
 
-      if (isKhoa === "0" || role === APP_ROLES.gv) {
-        addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
+      if (addNewFileGvm) {
+        if (isKhoa === "0" || role === APP_ROLES.gv) {
+          addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
+        }
       }
 
       // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "<%= APP_ROLES.troLy_phong %>" và MaPhongBan "<%= APP_DEPARTMENTS.daoTao %>"
-      if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao) {
-        navTaoSoHopDongMoiGiang.style.display = "block";
-        navTaoSoHopDongDoAn.style.display = "block";
-      } else {
-        navTaoSoHopDongMoiGiang.style.display = "none";
-        navTaoSoHopDongDoAn.style.display = "none";
+      if (navTaoSoHopDongMoiGiang && navTaoSoHopDongDoAn) {
+        if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao) {
+          navTaoSoHopDongMoiGiang.style.display = "block";
+          navTaoSoHopDongDoAn.style.display = "block";
+        } else {
+          navTaoSoHopDongMoiGiang.style.display = "none";
+          navTaoSoHopDongDoAn.style.display = "none";
+        }
       }
 
       // Ẩn button import đồ án
@@ -443,23 +447,28 @@
 
       // Chỉ đào tạo (duyệt) được quyền thao tác với thêm TKB, thêm file và sửa hợp đồng
       if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
-        themFile.style.display = "block";
-        suaHD.style.display = "block";
-        addNewTKB.style.display = "block";
+        if (themFile) themFile.style.display = "block";
+        if (suaHD) suaHD.style.display = "block";
+        if (addNewTKB) addNewTKB.style.display = "block";
       }
 
-      if (
-        role === APP_ROLES.lanhDao_khoa ||
-        (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong))
-      ) {
-        actionButton3.style.display = "";
-      } else {
-        actionButton3.style.display = "none";
+      if (actionButton3) {
+        if (
+          role === APP_ROLES.lanhDao_khoa ||
+          (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong))
+        ) {
+          actionButton3.style.display = "";
+        } else {
+          actionButton3.style.display = "none";
+        }
       }
-      if (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong)) {
-        actionButtonBackup.style.display = "";
-      } else {
-        actionButtonBackup.style.display = "none";
+      
+      if (actionButtonBackup) {
+        if (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong)) {
+          actionButtonBackup.style.display = "";
+        } else {
+          actionButtonBackup.style.display = "none";
+        }
       }
     }
     const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
@@ -480,10 +489,12 @@
     // Ẩn thêm thông báo nếu không phải đào tạo hoặc tài chính
     const actionButton = document.getElementById("changeMessage");
     //Ẩn site thêm thông báo
-    if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
-      actionButton.style.display = "";
-    } else {
-      actionButton.style.display = "none";
+    if (actionButton) {
+      if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
+        actionButton.style.display = "";
+      } else {
+        actionButton.style.display = "none";
+      }
     }
   });
   // Phần thêm tên người dùng
@@ -491,7 +502,7 @@
 
 <!-- phân quyền nckh -->
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function () {
     let maPhongBan = localStorage.getItem("MaPhongBan");
     let userRole = localStorage.getItem("userRole");
     let isKhoa = localStorage.getItem("isKhoa");
@@ -507,12 +518,12 @@
     let navLink_addFileQC = document.getElementById("nav-link-add-file-qc");
 
     // phần này cho các thẻ links
-    let nckhNavChild = document.getElementById("nckhNav");
-    let links = nckhNavChild.getElementsByClassName("nav-link");
+    let nckhNavChild = document.getElementById("nckhNav") || document.getElementById("nckhNav2");
+    let links = nckhNavChild ? nckhNavChild.getElementsByClassName("nav-link") : [];
     let themFileKTHP = document.getElementById("addFileKTHP");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
-    if (maPhongBan === APP_DEPARTMENTS.ncHtpt && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+    if (nckhNavChild && links.length >= 11 && maPhongBan === APP_DEPARTMENTS.ncHtpt && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
       links[0].style.display = "block";
       links[1].style.display = "block";
       links[2].style.display = "none";
@@ -524,7 +535,7 @@
       links[8].style.display = "block";
       links[9].style.display = "block";
       links[10].style.display = "block";
-    } else if (maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+    } else if (nckhNavChild && links.length >= 11 && maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
       links[0].style.display = "none";
       links[1].style.display = "none";
       links[2].style.display = "block";
@@ -540,13 +551,15 @@
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     // quyền thường, gv nhót
+    // phòng nckh chỉ hiển thị nckh, log, thống kê
+    // quyền thường, gv nhót
     if (maPhongBan === APP_DEPARTMENTS.ncHtpt) {
-      gvmNav.style.display = "none";
-      quychuanNav.style.display = "none";
-      moigiangNav.style.display = "none";
-      vuotgioNav.style.display = "none";
-      doanNav.style.display = "none";
-      tkbNav.style.display = "none";
+      if (gvmNav) gvmNav.style.display = "none";
+      if (quychuanNav) quychuanNav.style.display = "none";
+      if (moigiangNav) moigiangNav.style.display = "none";
+      if (vuotgioNav) vuotgioNav.style.display = "none";
+      if (doanNav) doanNav.style.display = "none";
+      if (tkbNav) tkbNav.style.display = "none";
     }
 
     // else if (userRole == APP_ROLES.gv || userRole == APP_ROLES.thuong) {
@@ -561,7 +574,7 @@
 
     if (maPhongBan !== APP_DEPARTMENTS.khaoThi || (userRole !== APP_ROLES.lanhDao_phong && userRole !== APP_ROLES.troLy_phong)) {
       themFileKTHP.style.display = "none";
-    }else {
+    } else {
       themFileKTHP.style.display = "";
     }
   });
@@ -603,9 +616,9 @@
 </script>
 
 <script>
-  document
-    .getElementById("changePasswordLink")
-    .addEventListener("click", function(event) {
+  const changePasswordLink = document.getElementById("changePasswordLink");
+  if (changePasswordLink) {
+    changePasswordLink.addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
@@ -618,4 +631,5 @@
         alert("Không tìm thấy TenDangNhap trong localStorage.");
       }
     });
+  }
 </script>

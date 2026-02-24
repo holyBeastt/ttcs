@@ -5,7 +5,7 @@ const role = require("../controllers/middlewares"); // Check role
 
 // render site quy chuẩn dự kiến
 router.get('/tableTam', (req, res) => {
-  res.render('quychuan.bangQuyChuanDuKien.ejs'); 
+  res.render('quychuan.bangQuyChuanDuKien.ejs');
 });
 
 // render bảng theo khoa đợt kì năm
@@ -15,6 +15,9 @@ router.post("/qcdk", (req, res) => qcdk.getTableTam(req, res));
 router.post("/xoa-qcdk", (req, res) => {
   qcdk.deleteTableTam(req, res)
 });
+
+// reset publish status TKB
+router.post("/api/v1/moi-giang/reset-publish-status-tkb", qcdk.resetPublishStatusTKB);
 
 // cập nhật lại toàn bộ bảng theo khoa đợt kì năm
 router.post("/update-qcdk", (req, res) => {

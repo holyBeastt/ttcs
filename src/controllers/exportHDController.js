@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
+const gvmServices = require("../services/gvmServices");
 require("dotenv").config(); // Load biến môi trường
 
 const phuLucDHController = require("../controllers/phuLucHDController");
@@ -68,10 +69,8 @@ const convertToRoman = (num) => {
 
 // Hàm chuyển đổi số thành chữ
 const numberToWords = (num) => {
-  console.log("[numberToWords] Input:", num, "Type:", typeof num);
   // Làm tròn để tránh lỗi floating-point
   num = Math.round(num);
-  console.log("[numberToWords] After round:", num);
   if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
 
   const ones = [
@@ -118,7 +117,6 @@ const numberToWords = (num) => {
   while (num > 0) {
     const chunk = num % 1000;
     if (chunk) {
-      console.log(`[numberToWords] Processing chunk: ${chunk}, unitIndex: ${unitIndex}`);
       let chunkWords = [];
       const hundreds = Math.floor(chunk / 100);
       const remainder = chunk % 100;
@@ -167,7 +165,6 @@ const numberToWords = (num) => {
     str.charAt(0).toUpperCase() + str.slice(1);
 
   const result = capitalizeFirstLetter(words.trim() + " đồng");
-  console.log("[numberToWords] Output:", result);
   return result;
 };
 
@@ -317,6 +314,36 @@ const formatDateForExcel = (dateValue) => {
   }
 };
 
+const getTemplateFileName = (loaiHopDongId, heDaoTaoData) => {
+  const heDaoTao = heDaoTaoData.find(item => item.id == loaiHopDongId);
+  if (!heDaoTao) return null;
+
+  const { cap_do, loai_hinh } = heDaoTao;
+
+  // ĐỒ ÁN
+  if (loai_hinh === "đồ án") {
+    return "HopDongDA.docx";
+  }
+
+  // MỜI GIẢNG
+  if (loai_hinh === "mời giảng") {
+    switch (cap_do) {
+      case 1:
+        return "HopDongHP.docx";   // Đại học
+      case 2:
+        return "HopDongMM.docx";   // MM
+      case 3:
+        return "HopDongCH.docx";  // Cao học
+      case 4:
+        return "HopDongNCS.docx";  // NCS
+      default:
+        return null;
+    }
+  }
+
+  return null;
+};
+
 // Controller xuất nhiều hợp đồng
 const exportMultipleContracts = async (req, res) => {
   let connection;
@@ -351,9 +378,8 @@ const exportMultipleContracts = async (req, res) => {
         );
       }
     }
-    // Truy vấn bảng tienluong để lấy mức tiền
-    const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
-    const [tienLuongList] = await connection.execute(tienLuongQuery);
+    // Lấy hệ đào tạo
+    const heDaoTaoData = await gvmServices.getHeDaoTaoData(req, res);
 
     let query = `SELECT
     hd.id_Gvm,
@@ -526,59 +552,38 @@ const exportMultipleContracts = async (req, res) => {
 
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
+      console.log("Processing teacher:", teacher);
       const soTiet = teacher.SoTiet || 0;
 
       // Gán giá trị mặc định "Thạc sĩ" nếu cột học vị trống
       teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
-      const tienLuong = tienLuongList.find(
-        (item) =>
-          item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDongId
-      );
-
-      if (!tienLuong) {
-        return res
-          .status(404)
-          .send(
-            "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
-          );
-      }
-
-      // Tính toán số tiền
-      console.log("\n========== DEBUG TÍNH TOÁN SỐ TIỀN ==========");
-      console.log("Giảng viên:", teacher.HoTen);
-      console.log("Số tiết (raw):", soTiet, "Type:", typeof soTiet);
 
       // Đảm bảo soTiet là số và làm tròn để tránh lỗi floating-point
       const soTietNumber = typeof soTiet === 'string' ? parseFloat(soTiet) : soTiet;
-      console.log("Số tiết (parsed):", soTietNumber, "Type:", typeof soTietNumber);
-      console.log("Mức tiền/tiết:", tienLuong.SoTien, "Type:", typeof tienLuong.SoTien);
 
       // Làm tròn kết quả để tránh lỗi floating-point (27839999.999999996 -> 27840000)
-      const tienText = Math.round(tienLuong.SoTien * soTietNumber);
-      console.log("Tổng tiền (trước thuế):", tienText, "Type:", typeof tienText);
+      const tienText = Math.round(teacher.SoTien || 0);
 
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-      const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
-      console.log("Tiền thuế 10%:", tienThueText);
+      const tienThueText = Math.round(teacher.TruThue || 0);
 
-      const tienThucNhanText = tienText - tienThueText;
-      console.log("Tiền thực nhận:", tienThucNhanText);
+      const tienThucNhanText = teacher.ThucNhan;
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
         teacher.NgayKetThuc
       );
 
       // Cập nhật lại số tiền vào bảng hopdonggvmoi
-      await updateSoTienThucNhan(
-        connection,
-        teacher.id_Gvm,
-        dot,
-        ki,
-        namHoc,
-        tienThueText,
-        tienThucNhanText
-      );
+      // await updateSoTienThucNhan(
+      //   connection,
+      //   teacher.id_Gvm,
+      //   dot,
+      //   ki,
+      //   namHoc,
+      //   tienThueText,
+      //   tienThucNhanText
+      // );
 
       // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
@@ -604,12 +609,9 @@ const exportMultipleContracts = async (req, res) => {
 
       let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
-      console.log("\n----- CONVERT SANG CHỮ -----");
       const bangChuSoTien = numberToWords(tienText);
-      console.log("Bằng chữ số tiền:", bangChuSoTien);
       const bangChuThucNhan = numberToWords(tienThucNhanText);
-      console.log("Bằng chữ thực nhận:", bangChuThucNhan);
-      console.log("==========================================\n");
+      const MucTien = teacher.SoTien / teacher.SoTiet;
 
       const data = {
         Số_hợp_đồng: teacher.SoHopDong || "    ",
@@ -640,7 +642,7 @@ const exportMultipleContracts = async (req, res) => {
         Kỳ: convertToRoman(teacher.KiHoc),
         Năm_học: teacher.NamHoc,
         Thời_gian_thực_hiện: thoiGianThucHien,
-        Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
+        Mức_tiền: MucTien.toLocaleString("vi-VN"),
         Nơi_công_tác: teacher.NoiCongTac,
         Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã"
       };
@@ -649,15 +651,19 @@ const exportMultipleContracts = async (req, res) => {
       let templateFileName;
 
       // Map ID to template file
-      const templateMap = {
-        1: "HopDongHP.docx",      // Đại học (Đóng học phí)
-        2: "HopDongMM.docx",      // Đại học (Mật mã)
-        3: "HopDongCH.docx",      // Cao học (Đóng học phí)
-        4: "HopDongNCS.docx",     // Nghiên cứu sinh (Đóng học phí)
-        5: "HopDongDA.docx",      // Đồ án
-      };
+      // const templateMap = {
+      //   1: "HopDongHP.docx",      // Đại học (Đóng học phí)
+      //   2: "HopDongMM.docx",      // Đại học (Mật mã)
+      //   6: "HopDongCH.docx",      // Cao học (Đóng học phí)
+      //   4: "HopDongNCS.docx",     // Nghiên cứu sinh (Đóng học phí)
+      //   5: "HopDongDA.docx",      // Đồ án
+      // };
 
-      templateFileName = templateMap[loaiHopDongId];
+      // templateFileName = templateMap[loaiHopDongId];
+
+      templateFileName = getTemplateFileName(loaiHopDongId, heDaoTaoData);
+
+      console.log("Template file name:", templateFileName);
 
       // Fallback to name-based selection if ID mapping not found
       if (!templateFileName) {
@@ -672,6 +678,8 @@ const exportMultipleContracts = async (req, res) => {
         } else {
           heHopDongName = loaiHopDong;
         }
+
+        console.log("Hệ hợp đồng (dựa trên tên):", heHopDongName);
 
         // Fallback to name-based selection
         switch (heHopDongName) {
@@ -730,7 +738,6 @@ const exportMultipleContracts = async (req, res) => {
     const summaryName = `GiangDay_Daihoc_Thongke_chuyenkhoan_sauthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName), summaryBuf);
 
-    console.log("Tạo file thống kê chuyển khoản sau thuế thành công");
 
     // Tạo file thống kê chuyển khoản trước thuế
     const noiDung2 = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc}`;
@@ -739,29 +746,30 @@ const exportMultipleContracts = async (req, res) => {
     const summaryName2 = `GiangDay_Daihoc_Thongke_chuyenkhoan_truocthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
 
-    console.log("Tạo file thống kê chuyển khoản trước thuế thành công");
 
-    // Tạo file Excel báo cáo thuế
-    const taxReportData = summaryData.map((item, index) => {
-      // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
-      const tienTruocThue = item.TongTien || (item.ThucNhan < 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
-      // Nếu số tiền <= 2 triệu thì không có thuế
-      const thuePhaiTra = tienTruocThue < 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu < 2 triệu)
+    // Tạo file Excel báo cáo thuế - lấy dữ liệu trực tiếp từ database
+    const taxReportData = teachers.map((teacher, index) => {
+      const hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+      // Ép kiểu Number để đảm bảo Excel SUM hoạt động đúng
+      const amount = Number(teacher.SoTien);
+      const taxDeducted = Number(teacher.TruThue);
+      const netAmount = Number(teacher.ThucNhan);
 
       return {
         stt: index + 1,
-        contractNumber: item.SoHopDong,
-        executor: item.HoTen,
+        contractNumber: teacher.SoHopDong,
+        executor: hoTenTrim,
         expenseDescription: `Hợp đồng giao khoán công việc`,
-        idNumber: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.CCCD || '',
-        issueDate: formatDateForExcel(teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NgayCap),
-        issuePlace: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NoiCapCCCD || '',
-        idAddress: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DiaChi || '',
-        phoneNumber: item.DienThoai,
-        taxCode: item.MaSoThue,
-        amount: tienTruocThue, // Tổng tiền trước thuế
-        taxDeducted: thuePhaiTra, // Thuế 10%
-        netAmount: item.ThucNhan // Tiền sau thuế
+        idNumber: teacher.CCCD || '',
+        issueDate: formatDateForExcel(teacher.NgayCap),
+        issuePlace: teacher.NoiCapCCCD || '',
+        idAddress: teacher.DiaChi || '',
+        phoneNumber: teacher.DienThoai,
+        taxCode: teacher.MaSoThue,
+        amount: amount, // Tổng tiền trước thuế từ DB (đã ép kiểu Number)
+        taxDeducted: taxDeducted, // Thuế từ DB (đã ép kiểu Number)
+        netAmount: netAmount // Tiền sau thuế từ DB (đã ép kiểu Number)
       };
     });
 
@@ -769,9 +777,6 @@ const exportMultipleContracts = async (req, res) => {
     const taxReportName = `GiangDay_Daihoc_BangKeTongHopThue.xlsx`;
     await taxReportWorkbook.xlsx.writeFile(path.join(tempDir, taxReportName));
 
-    console.log("Tạo file bảng kê tổng hợp thuế thành công");
-
-    console.log("Bắt đầu tạo file ZIP...");
 
     // Tạo thư mục cho ZIP file bên ngoài tempDir
     const zipOutputDir = path.join(__dirname, '..', 'public', 'tempZips');
@@ -791,7 +796,6 @@ const exportMultipleContracts = async (req, res) => {
 
     // Thêm từng file thay vì toàn bộ directory
     const files = fs.readdirSync(tempDir);
-    console.log(`Found ${files.length} files to archive:`, files);
 
     files.forEach(file => {
       const filePath = path.join(tempDir, file);
@@ -810,10 +814,6 @@ const exportMultipleContracts = async (req, res) => {
       console.log("Finalizing archive...");
       archive.finalize();
     });
-
-    console.log("ZIP file created successfully, starting download...");
-
-    console.log("ZIP file created successfully, starting download...");
 
     res.download(zipPath, zipFileName, (err) => {
       if (err) {
@@ -1097,8 +1097,11 @@ const exportAdditionalInfoGvm = async (req, res) => {
       );
     }
 
-    // Lấy danh sách tiền lương
-    const tienLuongList = await getTienLuongList(connection);
+    const heDaoTaoData = await gvmServices.getHeDaoTaoData(req, res);
+
+    const loaiHopDongText = heDaoTaoData.find(
+      (item) => item.id.toString() === loaiHopDong.toString()
+    )?.he_dao_tao || "UnknownType";
 
     // Lấy danh sách phụ lục hợp đồng của giảng viên
     const phuLucData = await getAppendixData(
@@ -1138,13 +1141,16 @@ const exportAdditionalInfoGvm = async (req, res) => {
         const filesToDelete = [];
         const dirsToDelete = [];
 
+        console.log("Generating contract for teacher:", teacher.HoTen);
+
         // Tạo file hợp đồng
         const filePathContract = await generateContractForTeacher(
           teacher,
           loaiHopDong,
-          tienLuongList,
-          tempDir
+          tempDir,
+          heDaoTaoData,
         );
+
 
         // Lấy file tài liệu bổ sung
         const filePathAdditional = await generateAdditionalFile(
@@ -1164,7 +1170,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
             dot,
             ki,
             namHoc,
-            loaiHopDong,
+            loaiHopDongText,
             khoa,
             teacherName,
             phuLucTeacher
@@ -1318,32 +1324,23 @@ const exportAdditionalInfoGvm = async (req, res) => {
 const generateContractForTeacher = async (
   teacher,
   loaiHopDong,
-  tienLuongList,
-  tempDir
+  tempDir,
+  heDaoTaoData
 ) => {
   const soTiet = teacher.SoTiet || 0;
 
   // Assign default value "Thạc sĩ" if HocVi is empty
   teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
-  const tienLuong = tienLuongList.find(
-    (item) => item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDongId
-  );
-
-  if (!tienLuong) {
-    throw new Error(
-      `Không tìm thấy mức tiền phù hợp cho giảng viên: ${teacher.HoTen}`
-    );
-  }
-
-  const tienText = tienLuong.SoTien * soTiet;
+  const tienText = teacher.SoTien || 0;
   // Nếu số tiền <= 2 triệu đồng thì không tính thuế
-  const tienThueText = tienText < 2000000 ? 0 : Math.round(tienText * 0.1);
-  const tienThucNhanText = tienText - tienThueText;
+  const tienThueText = teacher.TruThue || 0;
+  const tienThucNhanText = teacher.ThucNhan || 0;
   const thoiGianThucHien = formatDateRange(
     teacher.NgayBatDau,
     teacher.NgayKetThuc
   );
+  const MucTien = teacher.SoTien / soTiet || 0;
 
   const data = {
     Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
@@ -1372,50 +1369,18 @@ const generateContractForTeacher = async (
     Kỳ: convertToRoman(teacher.KiHoc),
     Năm_học: teacher.NamHoc,
     Thời_gian_thực_hiện: thoiGianThucHien,
-    Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
+    Mức_tiền: MucTien.toLocaleString("vi-VN"),
     Nơi_công_tác: teacher.NoiCongTac,
     Số_hợp_đồng: teacher.SoHopDong || "",
     Số_thanh_lý: teacher.SoThanhLyHopDong || "",
     Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
   };
 
-  // Template mapping by ID
-  const templateMap = {
-    1: "HopDongHP.docx", // Đại học (Đóng học phí)
-    2: "HopDongMM.docx", // Đại học (Mật mã)
-    3: "HopDongCH.docx", // Cao học (Đóng học phí)
-    4: "HopDongNCS.docx", // Nghiên cứu sinh (Đóng học phí)
-    5: "HopDongDA.docx", // Đồ án
-  };
+
 
   let templateFileName;
-  if (templateMap[loaiHopDongId]) {
-    templateFileName = templateMap[loaiHopDongId];
-  } else if (typeof loaiHopDong === "string") {
-    // Fallback to name-based matching for backward compatibility
-    switch (loaiHopDong) {
-      case "Đại học (Đóng học phí)":
-        templateFileName = "HopDongHP.docx";
-        break;
-      case "Đại học (Mật mã)":
-        templateFileName = "HopDongMM.docx";
-        break;
-      case "Đồ án":
-        templateFileName = "HopDongDA.docx";
-        break;
-      case "Nghiên cứu sinh (Đóng học phí)":
-        templateFileName = "HopDongNCS.docx";
-        break;
-      case "Cao học (Đóng học phí)":
-        templateFileName = "HopDongCH.docx";
-        break;
-      default:
-        throw new Error("Loại hợp đồng không hợp lệ.");
-    }
-  } else {
-    throw new Error("Loại hợp đồng không hợp lệ.");
-  }
 
+  templateFileName = getTemplateFileName(loaiHopDong, heDaoTaoData);
   const templatePath = path.resolve(
     __dirname,
     "../templates",
@@ -1452,7 +1417,7 @@ const getAppendixData = async (
   namHoc,
   khoa,
   teacherName,
-  loaiHopDong
+  loaiHopDongId
 ) => {
   try {
     let query = `
@@ -2256,7 +2221,6 @@ const generateAdditionalFile = async (teacher, tempDir) => {
 
   // Đổi tên file
   //fs.renameSync(oldFilePath, newFilePath);
-  console.log("filepath = ", oldFilePath);
 
   return oldFilePath;
 };
@@ -2323,7 +2287,7 @@ const getImageDownloadSite = async (req, res) => {
     const query = `select HoTen, MaPhongBan from gvmoi`;
     const [gvmoiList] = await connection.query(query);
 
-    res.render("hopdong.fileBoSungDownload.ejs", {
+    res.render("moigiang.phuLucMinhChungGVM.ejs", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
     });
   } catch (error) {
@@ -2350,7 +2314,25 @@ const exportImageDownloadData = async (req, res) => {
 
     connection = await createPoolConnection();
 
-    let query = `SELECT
+    // Convert loaiHopDong from name to ID if it's a string
+    let loaiHopDongId = loaiHopDong;
+    if (loaiHopDong && isNaN(loaiHopDong)) {
+      // It's a name, convert to ID
+      const [heDaoTaoRows] = await connection.query(
+        'SELECT id FROM he_dao_tao WHERE he_dao_tao = ?',
+        [loaiHopDong]
+      );
+      if (heDaoTaoRows.length > 0) {
+        loaiHopDongId = heDaoTaoRows[0].id;
+      } else {
+        return res.status(404).send(
+          "<script>alert('Không tìm thấy hệ đào tạo'); window.location.href='/phu-luc-minh-chung-gvm';</script>"
+        );
+      }
+    }
+
+    let query = `
+  SELECT
     hd.id_Gvm,
     hd.DienThoai,
     hd.Email,
@@ -2368,121 +2350,60 @@ const exportImageDownloadData = async (req, res) => {
     hd.NganHang,
     MIN(hd.NgayBatDau) AS NgayBatDau,
     MAX(hd.NgayKetThuc) AS NgayKetThuc,
-    SUM(hd.SoTiet) AS SoTiet,
-    hd.SoTien,
-    hd.TruThue,
-    hd.NgayCap,
-    hd.ThucNhan,
-    hd.NgayNghiemThu,
     hd.Dot,
     hd.KiHoc,
     hd.NamHoc,
     hd.MaPhongBan,
     hd.MaBoMon,
     hd.NoiCongTac
-  FROM
-    hopdonggvmoi hd
-  JOIN
-    gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
-  WHERE
-    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.he_dao_tao = ?
-  GROUP BY
-    hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+  FROM hopdonggvmoi hd
+  JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
+`;
 
-    let params = [dot, ki, namHoc, loaiHopDongId];
+    const conditions = [];
+    const params = [];
 
-    // Xử lý các trường hợp khác nhau
+    /* điều kiện bắt buộc */
+    conditions.push("hd.Dot = ?");
+    params.push(dot);
+
+    conditions.push("hd.KiHoc = ?");
+    params.push(ki);
+
+    conditions.push("hd.NamHoc = ?");
+    params.push(namHoc);
+
+    conditions.push("hd.he_dao_tao = ?");
+    params.push(loaiHopDongId);
+
+    /* điều kiện theo khoa */
     if (khoa && khoa !== "ALL") {
-      query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      hd.NoiCongTac  
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
-    WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDongId];
+      conditions.push("hd.MaPhongBan LIKE ?");
+      params.push(`%${khoa}%`);
     }
-    if (teacherName) {
-      query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      hd.NoiCongTac
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
-    WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
-      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDongId];
+    /* điều kiện theo tên giảng viên */
+    if (teacherName) {
+      conditions.push("hd.HoTen LIKE ?");
+      params.push(`%${teacherName}%`);
     }
+
+    /* ghép WHERE */
+    query += " WHERE " + conditions.join(" AND ");
+
+    /* GROUP BY */
+    query += `
+  GROUP BY
+    hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue,
+    hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
+    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi,
+    hd.STK, hd.NganHang,
+    hd.Dot, hd.KiHoc, hd.NamHoc,
+    hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac
+  `;
 
     const [teachers] = await connection.execute(query, params);
+
 
     if (!teachers || teachers.length === 0) {
       return res.send(
@@ -2505,6 +2426,8 @@ const exportImageDownloadData = async (req, res) => {
 
     try {
       const fileList = [];
+      const missingFiles = [];
+
 
       for (const teacher of teachers) {
         const filePathAdditional = await generateAdditionalFile(
@@ -2513,7 +2436,10 @@ const exportImageDownloadData = async (req, res) => {
         );
         if (filePathAdditional) {
           fileList.push(filePathAdditional);
+        } else {
+          missingFiles.push(teacher.HoTen);
         }
+
       }
 
       if (fileList.length === 0) {
@@ -2529,7 +2455,6 @@ const exportImageDownloadData = async (req, res) => {
       const archive = archiver("zip", { zlib: { level: 9 } });
 
       output.on("close", () => {
-        console.log(`Đã tạo file zip: ${zipPath} (${archive.pointer()} bytes)`);
 
         let fileName = `file_bo_sung_dot${dot}_ki${ki}_${namHoc}`;
 
@@ -2538,19 +2463,51 @@ const exportImageDownloadData = async (req, res) => {
         } else if (khoa != "ALL") {
           fileName += "_" + khoa + ".zip";
         } else {
-          fileName += "_ALL" + ".zip";
+          fileName += "_ALL.zip";
         }
-        // Gửi file zip về client
-        res.download(zipPath, `${fileName}`, (err) => {
+
+        let warningMsg = "";
+        if (missingFiles.length > 0) {
+          warningMsg = `\\n⚠ Thiếu file minh chứng của: ${missingFiles.join(", ")}`;
+        }
+
+        res.download(zipPath, fileName, (err) => {
           if (err) {
             console.error("Lỗi gửi file:", err.message);
             res.status(500).send("Không thể tải file zip.");
           }
 
-          // Xoá file zip sau khi tải nếu muốn
           fs.unlinkSync(zipPath);
+
+          if (warningMsg) {
+            console.warn(warningMsg);
+          }
         });
       });
+
+
+      // output.on("close", () => {
+
+      //   let fileName = `file_bo_sung_dot${dot}_ki${ki}_${namHoc}`;
+
+      //   if (teacherName) {
+      //     fileName += "_" + teacherName + ".zip";
+      //   } else if (khoa != "ALL") {
+      //     fileName += "_" + khoa + ".zip";
+      //   } else {
+      //     fileName += "_ALL" + ".zip";
+      //   }
+      //   // Gửi file zip về client
+      //   res.download(zipPath, `${fileName}`, (err) => {
+      //     if (err) {
+      //       console.error("Lỗi gửi file:", err.message);
+      //       res.status(500).send("Không thể tải file zip.");
+      //     }
+
+      //     // Xoá file zip sau khi tải nếu muốn
+      //     fs.unlinkSync(zipPath);
+      //   });
+      // });
 
       archive.on("error", (err) => {
         throw err;
@@ -2696,7 +2653,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || '') + '   /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+              createCell((row.SoHopDong || '') + '', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
               createCell(row.DienThoai || ""),
               createCell(row.MaSoThue || ""),
@@ -3012,12 +2969,24 @@ function createTaxReportWorkbook(records) {
     });
   }
 
-  // Footer: Tổng cộng - sử dụng dataEndRow đã được tính chính xác ở trên
+  // Tính tổng trước khi thêm vào Excel
+  let totalAmount = 0;
+  let totalTax = 0;
+  let totalNet = 0;
+  if (records && records.length > 0) {
+    records.forEach(record => {
+      totalAmount += typeof record.amount === 'number' ? record.amount : 0;
+      totalTax += typeof record.taxDeducted === 'number' ? record.taxDeducted : 0;
+      totalNet += typeof record.netAmount === 'number' ? record.netAmount : 0;
+    });
+  }
+
+  // Footer: Tổng cộng - sử dụng giá trị đã tính sẵn thay vì formula
   worksheet.addRow([
     'Tổng cộng:', '', '', '', '', '', '', '', '', '',
-    { formula: `SUM(K${dataStartRow}:K${dataEndRow})` },
-    { formula: `SUM(L${dataStartRow}:L${dataEndRow})` },
-    { formula: `SUM(M${dataStartRow}:M${dataEndRow})` }
+    totalAmount,
+    totalTax,
+    totalNet
   ]);
   const totalRow = worksheet.lastRow.number;
   worksheet.mergeCells(`A${totalRow}:J${totalRow}`);
@@ -3029,16 +2998,7 @@ function createTaxReportWorkbook(records) {
     worksheet.getCell(`${col}${totalRow}`).numFmt = '#,##0';
   });
 
-  // Tính tổng số tiền để chuyển thành chữ
-  let totalAmount = 0;
-  if (records && records.length > 0) {
-    totalAmount = records.reduce((sum, record) => {
-      const amount = typeof record.amount === 'number' ? record.amount : 0;
-      return sum + amount;
-    }, 0);
-  }
-
-  // Bằng chữ
+  // Bằng chữ - sử dụng totalAmount đã tính ở trên
   const textRowVal = `Bằng chữ: ${numberToWords(totalAmount)} đồng chẵn.`;
   worksheet.addRow([textRowVal]);
   const textRow = worksheet.lastRow.number;

@@ -97,7 +97,7 @@ function filterHeDaoTaoTable(searchText) {
 
                 if (programData?.chiTietGiangVien?.[rowIndex]) {
                     const teacherData = programData.chiTietGiangVien[rowIndex];
-                    totalSoTiet += parseFloat(teacherData.SoTiet) || 0;
+                    totalSoTiet += parseFloat(teacherData.TongTiet) || 0;
                     totalThanhTien += parseFloat(teacherData.ThanhTien) || 0;
                     totalThue += parseFloat(teacherData.Thue) || 0;
                     totalThucNhan += parseFloat(teacherData.ThucNhan) || 0;

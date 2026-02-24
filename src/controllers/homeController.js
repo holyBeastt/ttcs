@@ -122,7 +122,8 @@ const getPhongBanInfoShared = async (req, res) => {
 
     // Xác định truy vấn dựa vào MaPhongBan
     let query = `
-      SELECT TenPhongBan, MaPhongBan from phongban where isKhoa = 1`;
+      SELECT id, TenPhongBan, MaPhongBan from phongban
+      where isKhoa = 1`;
 
     // Thực hiện truy vấn với kết nối
     const [results] = await connection.query(query);

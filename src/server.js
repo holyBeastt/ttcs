@@ -7,6 +7,14 @@ const session = require("express-session");
 const login = require("./routes/loginRoute");
 //const importFile = require("./routes/importRoute");
 
+const fs = require("fs");
+
+const exportDir = path.join(__dirname, "public", "exports");
+
+if (!fs.existsSync(exportDir)) {
+  fs.mkdirSync(exportDir, { recursive: true });
+}
+
 // config engine template
 const configViewEngine = require("./config/viewEngine");
 
@@ -68,6 +76,8 @@ const hopDongDARoute = require("./routes/hopDongDARoute");
 
 const phongHocRoute = require("./routes/phongHocRoute");
 const uyNhiemChiRoute = require("./routes/uyNhiemChiRoute");
+const kytubatdauKhoaRoute = require("./routes/kytubatdauKhoaRoute");
+const syncRoute = require("./routes/syncRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -191,6 +201,8 @@ app.use("/", hopDongDARoute);
 // Thêm route mới
 app.use("/", phongHocRoute);
 app.use("/uy-nhiem-chi", uyNhiemChiRoute);
+app.use("/", kytubatdauKhoaRoute);
+app.use("/sync", syncRoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);
@@ -205,6 +217,7 @@ const infoGvm = require("./routes/infoRoute");
 const tableQc = require("./routes/gvmRoute");
 const xoaQCDK = require("./routes/qcdkRoute");
 const nckhRoute = require("./routes/nckhRoute");
+const nckhV2Route = require("./routes/nckhV2Route");
 const { backupDatabase } = require("./controllers/backupController");
 
 app.use("/", importFile); // cấu hình import
@@ -212,5 +225,6 @@ app.use("/", infoGvm); // cấu hình import
 app.use("/", tableQc); // cấu hình import
 app.use("/", xoaQCDK);
 app.use("/", nckhRoute);
+app.use("/v2", nckhV2Route); // NCKH V2 routes
 
 // Thay đổi giới hạn kích thước payload (ví dụ: 10mb)

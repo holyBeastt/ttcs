@@ -2,6 +2,8 @@ const express = require("express");
 const createPoolConnection = require("../config/databasePool");
 const LogService = require("../services/logService");
 
+// FILE NÀY LÀ NCKH_v1 
+
 // render site quy định số tiết nckh cho admin dùng thư viện ejs
 const getQuyDinhSoGioNCKH = async (req, res) => {
   let connection;

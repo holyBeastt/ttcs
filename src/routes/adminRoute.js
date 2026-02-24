@@ -25,6 +25,7 @@ const {
   infome,
   updateMe,
   getKyTuBD,
+  getKyTuBDKhoa,
   deleteKyTuBD,
   postKyTuBD,
   updateKyTuBD,
@@ -157,12 +158,15 @@ router.get("/suggestPb/:MaPhongBan/:query", suggestPb);
 router.get("/infome/:id_User", infome);
 router.post("/infome/:id_User", updateMe);
 
-//Ký tự bắt đầu
+//Ký tự bắt đầu hệ đào tạo
 router.get("/kytubatdau", getKyTuBD);
 router.post("/kytubatdau", postKyTuBD);
 router.delete("/kytubatdau/:lop_vi_du", deleteKyTuBD);
 router.put("/kytubatdau/:lop_vi_du", updateKyTuBD);
 router.post("/kytubatdau/check", checkKyTuBD);
+
+// Ký tự bắt đầu khoa
+router.get("/api/v1/admin/kytu-bat-dau-khoa", getKyTuBDKhoa);
 
 // Hệ số lớp đông
 router.get("/api/v1/admin/he-so-lop-dong", getHeSoLopDongSite);

@@ -45,7 +45,7 @@ router.get("/", getLogin);
 router.get("/index", getIndex);
 //router.get("/dtxemhd", getDtaoxemhd);
 router.get("/daotaoduyet", getDtaoduyet);
-router.get("/daotaoxemhd/daotaonhap", getDtaonhap);
+router.get("/api/v1/gvm/create-site", getDtaonhap);
 
 //router.post("/daotaoxemhd/daotaonhap/createGVM", handleUploadFile);
 // router.get("/index/import", getImport);

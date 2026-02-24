@@ -330,11 +330,11 @@ const setupSoHopDongToanBo = async (req, res) => {
         const newSoHopDong = `${str}/${kiHieuHopDong}`;
         const newSoThanhLy = `${str}/${kiHieuThanhLy}`;
 
-        // UPDATE với CCCD chính xác
+        // UPDATE với CCCD và he_dao_tao (để phân biệt khi 1 người dạy nhiều hệ)
         const updateQuery = `
           UPDATE hopdonggvmoi 
           SET SoHopDong = ?, SoThanhLyHopDong = ?, CoSoDaoTao = ?
-          WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND CCCD = ?
+          WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND CCCD = ? AND he_dao_tao = ?
         `;
         const updateParams = [
           newSoHopDong,
@@ -343,7 +343,8 @@ const setupSoHopDongToanBo = async (req, res) => {
           dot,
           ki,
           nam,
-          row.CCCD
+          row.CCCD,
+          row.he_dao_tao
         ];
 
         const [result] = await connection.execute(updateQuery, updateParams);
@@ -480,26 +481,27 @@ const previewSoHopDongMoiGiang = async (req, res) => {
       });
     }
 
-    // Nhóm theo HeDaoTao và MaPhongBan
+    // Nhóm theo Khoa và HeDaoTao (đồng bộ với ORDER BY của execute)
     const grouped = rows.reduce((acc, item) => {
-      const he = item.HeDaoTao || 'Không xác định';
       const khoaKey = item.Khoa || 'Khác';
-      if (!acc[he]) acc[he] = {};
-      if (!acc[he][khoaKey]) acc[he][khoaKey] = [];
-      acc[he][khoaKey].push(item);
+      const he = item.HeDaoTao || 'Không xác định';
+      if (!acc[khoaKey]) acc[khoaKey] = {};
+      if (!acc[khoaKey][he]) acc[khoaKey][he] = [];
+      acc[khoaKey][he].push(item);
       return acc;
     }, {});
 
     // Khởi số bắt đầu và tăng dần liên tục
-    // Format: [kí hiệu trước số][số 2 chữ số][kí hiệu sau số]
+    // Format: [kí hiệu trước số][số 3 chữ số][kí hiệu sau số]
     let num = startNum;
     
     const result = {};
 
-    Object.keys(grouped).sort().forEach(he => {
-      result[he] = {};
-      Object.keys(grouped[he]).sort().forEach(khoaKey => {
-        result[he][khoaKey] = grouped[he][khoaKey].map(item => {
+    // Sort theo Khoa trước, sau đó Hệ (giống execute)
+    Object.keys(grouped).sort().forEach(khoaKey => {
+      result[khoaKey] = {};
+      Object.keys(grouped[khoaKey]).sort().forEach(he => {
+        result[khoaKey][he] = grouped[khoaKey][he].map(item => {
           const formattedNumber = String(num++).padStart(3, '0');
           const str = prefix + formattedNumber + suffix;
           return {
