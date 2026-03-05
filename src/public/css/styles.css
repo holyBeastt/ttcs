@@ -869,9 +869,9 @@ input[type="date"] {
   width: 250%;
 }
 select{
-  background-color: #FAF7F0 !important;
+  background-color: #FAF7F0;
   text-align: center;
-  color: #2c9caf !important;
+  color: #2c9caf;
 }
 
   /* Điều chỉnh độ rộng cho ô tìm kiếm giảng viên */

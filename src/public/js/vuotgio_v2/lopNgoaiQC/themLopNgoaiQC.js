@@ -1,11 +1,14 @@
 /**
  * Thêm Lớp Ngoài Quy Chuẩn - Frontend JS
- * VuotGio V2 - Refactored (giống module TKB)
+ * VuotGio V2 - Refactored 2026-03-04
  * 
- * Chức năng:
- * - Import file Excel (cùng format TKB)
- * - Xem bảng AG Grid
- * - Sửa inline, xóa dòng, thêm dòng mới
+ * Luồng 2 giai đoạn:
+ *   1. Nháp: CRUD trên course_schedule_details (class_type='ngoai_quy_chuan')
+ *   2. Chốt: Chuyển sang lopngoaiquychuan (chính thức)
+ * 
+ * Field names sử dụng convention của course_schedule_details:
+ *   course_name, course_code, credit_hours, ll_total, student_quantity,
+ *   student_bonus, bonus_time, qc, lecturer, major, he_dao_tao, note, ll_code
  */
 
 // =====================================================
@@ -16,18 +19,20 @@ var renderData = [];
 var khoaArray = [];
 let gridApi;
 let gridOptions;
-let pendingImportData = null; // Data đang chờ confirm import
+let pendingImportData = null;
+let heDaoTaoList = [];
+let heDaoTaoMap = {};
 
 // =====================================================
 // INITIALIZATION
 // =====================================================
 
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('[LopNgoaiQC] Init');
+document.addEventListener('DOMContentLoaded', async function () {
+    console.log('[LopNgoaiQC] Init - 2-phase draft flow');
     loadNamHocOptions();
     loadKhoaOptions();
+    await preloadHeDaoTao();
 
-    // Search box
     const searchInput = document.getElementById('find-by-name');
     if (searchInput) {
         searchInput.addEventListener('input', function () {
@@ -37,6 +42,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+// =====================================================
+// HELPER - Lấy filter values
+// =====================================================
+
+function getFilterValues() {
+    return {
+        dot: document.getElementById('dotFilter').value || '1',
+        ki_hoc: document.getElementById('hocKyFilter').value || '1',
+        nam_hoc: document.getElementById('namHocFilter').value,
+        major: document.getElementById('khoaFilter').value || 'ALL'
+    };
+}
 
 // =====================================================
 // LOAD DROPDOWN OPTIONS
@@ -66,7 +84,7 @@ async function loadKhoaOptions() {
         const response = await fetch('/api/khoa');
         const data = await response.json();
         const select = document.getElementById('khoaFilter');
-        select.innerHTML = '<option value="">Chọn khoa</option>';
+        select.innerHTML = '<option value="ALL" selected>ALL</option>';
 
         khoaArray = data.map(d => d.MaPhongBan);
 
@@ -81,15 +99,38 @@ async function loadKhoaOptions() {
     }
 }
 
+async function preloadHeDaoTao() {
+    const CACHE_KEY = 'HE_DAO_TAO_CACHE';
+    heDaoTaoList = JSON.parse(localStorage.getItem(CACHE_KEY)) || [];
+    heDaoTaoMap = {};
+
+    try {
+        const res = await fetch('/api/gvm/v1/he-dao-tao');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+            heDaoTaoList = json.data.map(item => ({
+                id: item.id,
+                tenHe: item.he_dao_tao
+            }));
+            localStorage.setItem(CACHE_KEY, JSON.stringify(heDaoTaoList));
+        }
+    } catch (err) {
+        console.warn('API lỗi, fallback cache', err);
+    }
+
+    heDaoTaoList.forEach(item => {
+        heDaoTaoMap[item.id] = item.tenHe;
+    });
+}
+
 // =====================================================
 // AG GRID - LOAD & RENDER TABLE
 // =====================================================
 
 async function getDataTable() {
-    const NamHoc = document.getElementById('namHocFilter').value;
-    const Khoa = document.getElementById('khoaFilter').value;
+    const { dot, ki_hoc, nam_hoc, major } = getFilterValues();
 
-    if (!NamHoc) {
+    if (!nam_hoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'error');
         return;
     }
@@ -97,7 +138,8 @@ async function getDataTable() {
     try {
         if (gridApi) gridApi.showLoadingOverlay();
 
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/${NamHoc}/${Khoa || 'ALL'}`);
+        // Gọi API nháp mới: /nhap/:Dot/:KiHoc/:NamHoc/:Khoa
+        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/nhap/${dot}/${ki_hoc}/${nam_hoc}/${major}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -108,189 +150,219 @@ async function getDataTable() {
 
         if (gridApi) {
             gridApi.setRowData(renderData);
-            if (renderData.length === 0) {
-                gridApi.showNoRowsOverlay();
-            } else {
-                gridApi.hideOverlay();
-            }
-            console.log('♻️ Data updated via AG Grid API');
+            renderData.length === 0 ? gridApi.showNoRowsOverlay() : gridApi.hideOverlay();
+            console.log('♻️ Data updated:', renderData.length, 'rows');
         } else {
             renderTable();
         }
     } catch (error) {
         console.error('Error fetching data:', error);
         if (gridApi) gridApi.hideOverlay();
-        Swal.fire('Lỗi', 'Có lỗi xảy ra khi gọi API: ' + error.message, 'error');
+        Swal.fire('Lỗi', 'Có lỗi xảy ra: ' + error.message, 'error');
     }
 }
 
 function renderTable() {
     const rowHeight = 50;
 
+    // Nếu grid đã tồn tại → chỉ cập nhật data (giống TKB)
     if (gridApi) {
         gridApi.setRowData(renderData);
-        if (renderData.length === 0) {
-            gridApi.showNoRowsOverlay();
-        } else {
-            gridApi.hideOverlay();
-        }
+        renderData.length === 0 ? gridApi.showNoRowsOverlay() : gridApi.hideOverlay();
         return;
     }
 
+    // Không có data → hiển thị thông báo
+    if (renderData.length === 0) {
+        document.getElementById('table-container').innerHTML = "<p class='text-center mt-3'>Không có dữ liệu</p>";
+        return;
+    }
+
+    // headersMap giống TKB + thêm các cột riêng của lớp ngoài QC
+    const headersMap = {
+        id: { name: "ID", width: 70 },
+        major: { name: "Khoa", width: 100 },
+        ll_total: { name: "LL", width: 50 },
+        student_quantity: { name: "Số SV", width: 70 },
+        student_bonus: { name: "HS lớp đông", width: 100 },
+        bonus_time: { name: "HS ngoài giờ", width: 90 },
+        course_id: { name: "Mã học phần", width: 100 },
+        lecturer: { name: "Giảng viên theo TKB", width: 150 },
+        credit_hours: { name: "Số TC", width: 80 },
+        course_name: { name: "Lớp học phần", width: 250 },
+        course_code: { name: "Mã học phần", width: 100 },
+        start_date: { name: "Ngày bắt đầu", width: 110 },
+        end_date: { name: "Ngày kết thúc", width: 110 },
+        ll_code: { name: "Tiết CTĐT", width: 90 },
+        qc: { name: "QC", width: 70 },
+        he_dao_tao: { name: "Hệ đào tạo", width: 150 },
+    };
+
+    // Dynamic column generation từ data (giống TKB)
     const columnDefs = [
         {
             headerName: 'STT',
-            valueGetter: 'node.rowIndex + 1',
-            width: 60,
-            pinned: 'left',
-            editable: false,
-            headerClass: 'custom-header'
+            field: 'stt',
+            valueGetter: (params) => params.node.rowIndex + 1,
+            width: 80, editable: false,
+            cellStyle: { fontWeight: 'bold', textAlign: 'center' }
         },
-        {
-            headerName: 'Giảng viên',
-            field: 'GiangVien',
-            width: 170,
-            editable: true,
-            pinned: 'left',
-            headerClass: 'custom-header'
-        },
-        {
-            headerName: 'Tên học phần',
-            field: 'TenHocPhan',
-            width: 220,
-            editable: true,
-            headerClass: 'custom-header'
-        },
-        {
-            headerName: 'Mã HP',
-            field: 'MaHocPhan',
-            width: 90,
-            editable: true,
-            headerClass: 'custom-header'
-        },
-        {
-            headerName: 'Số TC',
-            field: 'SoTC',
-            width: 70,
-            editable: true,
-            headerClass: 'custom-header',
-            type: 'numericColumn'
-        },
-        {
-            headerName: 'Lớp',
-            field: 'Lop',
-            width: 100,
-            editable: true,
-            headerClass: 'custom-header'
-        },
-        {
-            headerName: 'Lên lớp',
-            field: 'LenLop',
-            width: 80,
-            editable: true,
-            headerClass: 'custom-header',
-            type: 'numericColumn'
-        },
-        {
-            headerName: 'Số SV',
-            field: 'SoSV',
-            width: 80,
-            editable: true,
-            headerClass: 'custom-header',
-            type: 'numericColumn'
-        },
-        {
-            headerName: 'Tiết CTĐT',
-            field: 'SoTietCTDT',
-            width: 90,
-            editable: true,
-            headerClass: 'custom-header',
-            type: 'numericColumn'
-        },
-        {
-            headerName: 'HS T7CN',
-            field: 'HeSoT7CN',
-            width: 90,
-            editable: true,
-            headerClass: 'custom-header',
-            type: 'numericColumn'
-        },
-        {
-            headerName: 'HS Lớp đông',
-            field: 'HeSoLopDong',
-            width: 110,
-            editable: true,
-            headerClass: 'custom-header',
-            type: 'numericColumn'
-        },
-        {
-            headerName: 'Quy chuẩn',
-            field: 'QuyChuan',
-            width: 100,
-            editable: true,
-            headerClass: 'custom-header',
-            type: 'numericColumn',
-            valueFormatter: params => {
-                const val = parseFloat(params.value);
-                return isNaN(val) ? '' : val.toFixed(2);
-            }
-        },
-        {
-            headerName: 'Khoa',
-            field: 'Khoa',
-            width: 100,
-            editable: true,
-            headerClass: 'custom-header'
-        },
-        {
-            headerName: 'Hệ ĐT',
-            field: 'he_dao_tao',
-            width: 80,
-            editable: true,
-            headerClass: 'custom-header'
-        },
-        {
-            headerName: 'Ghi chú',
-            field: 'GhiChu',
-            width: 150,
-            editable: true,
-            headerClass: 'custom-header'
-        },
-        {
-            headerName: 'Xóa',
-            width: 70,
-            editable: false,
-            pinned: 'right',
-            headerClass: 'custom-header',
-            cellRenderer: function (params) {
-                if (!params.data || !params.data.ID) return '';
-                const btn = document.createElement('button');
-                btn.innerHTML = '<i class="bi bi-trash" style="color: red;"></i>';
-                btn.style.cssText = 'border: none; background: transparent; cursor: pointer;';
-                btn.addEventListener('click', () => deleteRow(params.data.ID));
-                return btn;
-            }
-        }
+        ...Object.keys(renderData[0])
+            .filter(key => key !== "GhiChu" && key !== "description")
+            .map(key => ({
+                field: key,
+                headerName: headersMap[key]?.name || key,
+                width: headersMap[key]?.width || 100,
+                editable: key !== "student_bonus" && key !== "id",
+                hide: key === "id" || key === "tt" || key === "course_id"
+                    || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc' || key === 'note',
+                headerClass: 'custom-header',
+                filter: false,
+
+                valueGetter: (params) => {
+                    const field = params.colDef.field;
+                    if (field === "start_date" || field === "end_date") {
+                        const value = params.data[field];
+                        if (!value) return "";
+                        const date = new Date(value);
+                        if (isNaN(date.getTime())) return value;
+                        return reFormatDateFromDB(value);
+                    }
+                    return params.data[field];
+                },
+
+                valueSetter: (params) => {
+                    const field = params.colDef.field;
+                    const oldValue = params.data[field];
+                    const rawValue = params.newValue;
+                    const value = typeof rawValue === "string" ? rawValue.trim() : rawValue;
+
+                    // Xử lý riêng cho cột ngày (giống TKB)
+                    if (field === "start_date" || field === "end_date") {
+                        if (!value) return false;
+                        const parts = value.split("/");
+                        if (parts.length === 3) {
+                            const day = parts[0].padStart(2, "0");
+                            const month = parts[1].padStart(2, "0");
+                            const year = parts[2];
+                            const formattedIsoDate = `${year}-${month}-${day}`;
+                            const date = new Date(formattedIsoDate);
+                            if (!isNaN(date.getTime())) {
+                                params.data[field] = formattedIsoDate;
+                                return true;
+                            }
+                        }
+                        Toastify({
+                            text: "Ngày không hợp lệ! Vui lòng kiểm tra lại (dd/mm/yyyy)",
+                            duration: 3000,
+                            gravity: "top",
+                            position: "right",
+                            stopOnFocus: true,
+                            backgroundColor: "#FF5252",
+                        }).showToast();
+                        params.data[field] = oldValue;
+                        return false;
+                    }
+
+                    // Xử lý các cột khác
+                    if (value !== oldValue) {
+                        params.data[field] = value;
+                        return true;
+                    }
+                    return false;
+                },
+
+                cellEditor: "agTextCellEditor",
+                cellEditorParams: { useFormatter: true },
+            })),
     ];
+
+    // Gắn combobox cho cột Khoa
+    const khoaCol = columnDefs.find(col => col.field === "major");
+    if (khoaCol) {
+        khoaCol.cellEditor = "agSelectCellEditor";
+        khoaCol.cellEditorParams = { values: khoaArray };
+    }
+
+    // Gắn combobox cho cột Hệ đào tạo
+    const heDaoTaoCol = columnDefs.find(col => col.field === "he_dao_tao");
+    if (heDaoTaoCol) {
+        heDaoTaoCol.cellEditor = "agSelectCellEditor";
+        heDaoTaoCol.cellEditorParams = {
+            values: heDaoTaoList.map(item => item.id),
+        };
+        heDaoTaoCol.valueFormatter = (params) => heDaoTaoMap[params.value] || "";
+    }
+
+    // Format QC 2 chữ số thập phân
+    const qcCol = columnDefs.find(col => col.field === "qc");
+    if (qcCol) {
+        qcCol.valueFormatter = params => {
+            const val = parseFloat(params.value);
+            return isNaN(val) ? '' : val.toFixed(2);
+        };
+    }
+
+    // Push cột Ghi chú (giống TKB)
+    columnDefs.push({
+        headerName: 'Ghi chú',
+        field: 'note',
+        width: 150, editable: true,
+        headerClass: 'custom-header',
+        cellEditor: 'agLargeTextCellEditor',
+        cellEditorPopup: true,
+        cellEditorParams: {
+            maxLength: 400,
+            rows: 6,
+            cols: 40,
+        }
+    });
+
+    // Push cột Xóa
+    columnDefs.push({
+        headerName: 'Xóa',
+        field: 'actions',
+        width: 60, editable: false,
+        cellRenderer: function (params) {
+            if (!params.data || !params.data.tt) return '';
+            const btn = document.createElement('button');
+            btn.textContent = 'Xóa';
+            btn.addEventListener('click', () => deleteRow(params.data));
+            return btn;
+        }
+    });
 
     gridOptions = {
         columnDefs: columnDefs,
         rowData: renderData,
+        getRowId: params => params.data.tt,
         rowHeight: rowHeight,
         defaultColDef: {
             sortable: true,
-            filter: true,
+            filter: false,
             resizable: true,
             suppressMenu: true,
+            editable: false,
+            cellStyle: {
+                fontSize: "14px",
+                whiteSpace: "normal",
+                wordWrap: "break-word",
+                textAlign: "center",
+            },
         },
         animateRows: true,
         singleClickEdit: true,
+        enterMovesDownAfterEdit: true,
+        suppressClickEdit: false,
         stopEditingWhenCellsLoseFocus: true,
         overlayNoRowsTemplate: '<span style="padding: 10px;">Không có dữ liệu. Hãy chọn bộ lọc và nhấn "Hiển thị"</span>',
         onCellValueChanged: onCellValueChanged,
+        onGridReady: (params) => {
+            gridApi = params.api;
+            params.api.sizeColumnsToFit();
+        }
     };
 
-    // Clear the static table and init AG Grid
     const container = document.getElementById('table-container');
     container.innerHTML = '';
     new agGrid.Grid(container, gridOptions);
@@ -303,6 +375,17 @@ function renderTable() {
     console.log('✅ AG Grid initialized with', renderData.length, 'rows');
 }
 
+// Helper format ngày từ DB (giống TKB)
+function reFormatDateFromDB(input) {
+    if (!input) return "";
+    const date = new Date(input);
+    if (isNaN(date.getTime())) return input;
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 // =====================================================
 // INLINE EDIT → SAVE TO DB
 // =====================================================
@@ -310,11 +393,11 @@ function renderTable() {
 async function onCellValueChanged(event) {
     const data = event.data;
 
-    // Nếu là dòng mới (chưa có ID) → bỏ qua, chờ user save
-    if (!data.ID) return;
+    // Cần có tt để xác định dòng
+    if (!data.tt) return;
 
     try {
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/edit/${data.ID}`, {
+        const response = await fetch('/v2/vuotgio/lop-ngoai-quy-chuan/edit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -340,13 +423,13 @@ async function onCellValueChanged(event) {
 }
 
 // =====================================================
-// DELETE ROW
+// DELETE ROW (theo tt, giống TKB)
 // =====================================================
 
-async function deleteRow(id) {
+async function deleteRow(rowData) {
     const confirmResult = await Swal.fire({
         title: 'Xác nhận xóa?',
-        text: 'Bạn có chắc muốn xóa dòng này?',
+        text: `Xóa dòng: ${rowData.course_name || ''} - ${rowData.lecturer || ''}`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Xóa',
@@ -356,7 +439,14 @@ async function deleteRow(id) {
     if (!confirmResult.isConfirmed) return;
 
     try {
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/${id}`, {
+        const params = new URLSearchParams({
+            tt: rowData.tt,
+            dot: rowData.dot,
+            ki_hoc: rowData.ki_hoc,
+            nam_hoc: rowData.nam_hoc
+        });
+
+        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/row?${params}`, {
             method: 'DELETE'
         });
         const result = await response.json();
@@ -369,8 +459,10 @@ async function deleteRow(id) {
                 position: "right",
                 backgroundColor: "#28a745",
             }).showToast();
-            // Reload data
-            getDataTable();
+            gridApi.applyTransaction({ remove: [{ tt: rowData.tt }] });
+            renderData = renderData.filter(r => r.tt !== rowData.tt);
+            // Refresh để cập nhật lại STT sau khi xóa dòng
+            gridApi.refreshCells({ force: true });
         } else {
             Swal.fire('Lỗi', result.message || 'Xóa thất bại', 'error');
         }
@@ -381,15 +473,13 @@ async function deleteRow(id) {
 }
 
 // =====================================================
-// DELETE ALL
+// DELETE ALL (nháp)
 // =====================================================
 
 async function handleDeleteAll() {
-    const NamHoc = document.getElementById('namHocFilter').value;
-    const HocKy = document.getElementById('hocKyFilter').value;
-    const Khoa = document.getElementById('khoaFilter').value;
+    const { dot, ki_hoc, nam_hoc, major } = getFilterValues();
 
-    if (!NamHoc) {
+    if (!nam_hoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'error');
         return;
     }
@@ -397,9 +487,10 @@ async function handleDeleteAll() {
     const confirmResult = await Swal.fire({
         title: 'Xác nhận xóa toàn bộ?',
         html: `Xóa tất cả dữ liệu lớp ngoài QC:<br>
-               <b>Năm học:</b> ${NamHoc}<br>
-               <b>Kì:</b> ${HocKy || 'Tất cả'}<br>
-               <b>Khoa:</b> ${Khoa || 'Tất cả'}`,
+               <b>Đợt:</b> ${dot}<br>
+               <b>Kì:</b> ${ki_hoc}<br>
+               <b>Năm học:</b> ${nam_hoc}<br>
+               <b>Khoa:</b> ${major || 'Tất cả'}`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -413,7 +504,7 @@ async function handleDeleteAll() {
         const response = await fetch('/v2/vuotgio/lop-ngoai-quy-chuan/all', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ NamHoc, HocKy, Khoa })
+            body: JSON.stringify({ nam_hoc, ki_hoc, dot, major })
         });
         const result = await response.json();
 
@@ -434,34 +525,31 @@ async function handleDeleteAll() {
 // =====================================================
 
 async function addNewRow() {
-    const NamHoc = document.getElementById('namHocFilter').value;
-    const HocKy = document.getElementById('hocKyFilter').value;
+    const { dot, ki_hoc, nam_hoc, major } = getFilterValues();
 
-    if (!NamHoc) {
+    if (!nam_hoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học trước khi thêm dòng', 'error');
         return;
     }
 
-    // Tạo dòng mới với data mặc định
     const newRow = {
-        NamHoc: NamHoc,
-        HocKy: HocKy || '1',
-        TenHocPhan: '',
-        MaHocPhan: '',
-        SoTC: 0,
-        Lop: '',
-        LenLop: 0,
-        SoSV: 0,
-        SoTietCTDT: 0,
-        SoTietKT: 0,
-        HeSoT7CN: 1,
-        HeSoLopDong: 1,
-        QuyChuan: 0,
-        GhiChu: '',
-        GiangVien: '',
-        Khoa: document.getElementById('khoaFilter').value || '',
+        nam_hoc: nam_hoc,
+        ki_hoc: ki_hoc || '1',
+        dot: dot || '1',
+        course_name: '',
+        course_code: '',
+        credit_hours: 0,
+        ll_total: 0,
+        student_quantity: 0,
+        ll_code: 0,
+        bonus_time: 1,
+        student_bonus: 1,
+        qc: 0,
+        note: '',
+        lecturer: '',
+        major: major !== 'ALL' ? major : '',
         he_dao_tao: '',
-        HoanThanh: 0
+        course_id: ''
     };
 
     try {
@@ -495,33 +583,40 @@ async function addNewRow() {
 // FILE IMPORT
 // =====================================================
 
+// Gắn sự kiện chọn file -> tự động import luôn
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleImportFile);
+    }
+});
+
 async function handleImportFile() {
     const fileInput = document.getElementById('fileInput');
-    const NamHoc = document.getElementById('namHocFilter').value;
-    const HocKy = document.getElementById('hocKyFilter').value;
+    const { dot, ki_hoc, nam_hoc } = getFilterValues();
 
     if (!fileInput.files || fileInput.files.length === 0) {
-        Swal.fire('Lỗi', 'Vui lòng chọn file Excel', 'error');
         return;
     }
 
-    if (!NamHoc) {
+    if (!nam_hoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'error');
+        fileInput.value = '';
         return;
     }
 
     const file = fileInput.files[0];
 
-    // 1. Parse file trên server
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('NamHoc', NamHoc);
-    formData.append('HocKy', HocKy || '1');
+    formData.append('NamHoc', nam_hoc);
+    formData.append('HocKy', ki_hoc || '1');
+    formData.append('Dot', dot || '1');
 
     try {
         Swal.fire({
             title: 'Đang xử lý...',
-            text: 'Đang đọc file Excel',
+            text: 'Đang đọc và import file Excel',
             allowOutsideClick: false,
             showConfirmButton: false,
             didOpen: () => Swal.showLoading()
@@ -533,55 +628,25 @@ async function handleImportFile() {
         });
 
         const result = await response.json();
-        Swal.close();
 
         if (!result.success) {
+            Swal.close();
             Swal.fire('Lỗi', result.message, 'error');
+            fileInput.value = '';
             return;
         }
 
         pendingImportData = result.data;
         console.log(`[LopNgoaiQC] Parsed ${pendingImportData.length} rows from file`);
 
-        // 2. Hiển thị preview trên AG Grid
-        renderData = pendingImportData;
-        if (gridApi) {
-            gridApi.setRowData(renderData);
-            gridApi.hideOverlay();
-        } else {
-            renderTable();
-        }
-
-        // 3. Kiểm tra dữ liệu đã tồn tại chưa
-        const checkResponse = await fetch('/v2/vuotgio/lop-ngoai-qc/check-data-exist', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ NamHoc, HocKy: HocKy || '1' })
-        });
-        const checkResult = await checkResponse.json();
-
-        if (checkResult.exists) {
-            // Hiện modal xóa/chèn/hủy
-            showImportModal(`Đã có ${checkResult.count} dòng dữ liệu cho năm ${NamHoc}${HocKy ? ', kì ' + HocKy : ''}. Bạn muốn:`);
-        } else {
-            // Không có data cũ → confirm luôn
-            const confirmResult = await Swal.fire({
-                title: 'Xác nhận import?',
-                text: `Import ${pendingImportData.length} dòng vào cơ sở dữ liệu?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Import',
-                cancelButtonText: 'Hủy'
-            });
-
-            if (confirmResult.isConfirmed) {
-                await confirmImport(false);
-            }
-        }
+        // Import trực tiếp không cần xác nhận
+        await confirmImport(false);
+        fileInput.value = '';
     } catch (error) {
         Swal.close();
         console.error('Error importing:', error);
         Swal.fire('Lỗi', 'Có lỗi xảy ra khi đọc file: ' + error.message, 'error');
+        fileInput.value = '';
     }
 }
 
@@ -594,21 +659,19 @@ function showImportModal(message) {
     document.getElementById('import-modal-message').textContent = message;
     modal.style.display = 'block';
 
-    // Button handlers
     document.getElementById('btn-import-delete').onclick = async () => {
         modal.style.display = 'none';
-        await confirmImport(true); // Xóa cũ trước
+        await confirmImport(true);
     };
 
     document.getElementById('btn-import-append').onclick = async () => {
         modal.style.display = 'none';
-        await confirmImport(false); // Chèn thêm
+        await confirmImport(false);
     };
 
     document.getElementById('btn-import-cancel').onclick = () => {
         modal.style.display = 'none';
         pendingImportData = null;
-        // Reload data gốc
         getDataTable();
     };
 }
@@ -619,8 +682,7 @@ async function confirmImport(deleteOld) {
         return;
     }
 
-    const NamHoc = document.getElementById('namHocFilter').value;
-    const HocKy = document.getElementById('hocKyFilter').value;
+    const { dot, ki_hoc, nam_hoc, major } = getFilterValues();
 
     try {
         Swal.fire({
@@ -631,18 +693,18 @@ async function confirmImport(deleteOld) {
             didOpen: () => Swal.showLoading()
         });
 
-        // Xóa dữ liệu cũ nếu cần
+        // Xóa nháp cũ nếu cần
         if (deleteOld) {
             const deleteResponse = await fetch('/v2/vuotgio/lop-ngoai-quy-chuan/all', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ NamHoc, HocKy: HocKy || '1' })
+                body: JSON.stringify({ nam_hoc, ki_hoc: ki_hoc || '1', dot: dot || '1', major })
             });
             const deleteResult = await deleteResponse.json();
-            console.log('[LopNgoaiQC] Deleted old data:', deleteResult.message);
+            console.log('[LopNgoaiQC] Deleted old draft:', deleteResult.message);
         }
 
-        // Lấy data hiện tại từ AG Grid (user có thể đã edit inline)
+        // Lấy data hiện tại từ Grid (user có thể đã edit inline)
         const currentData = [];
         if (gridApi) {
             gridApi.forEachNode(node => {
@@ -651,11 +713,16 @@ async function confirmImport(deleteOld) {
         }
         const dataToImport = currentData.length > 0 ? currentData : pendingImportData;
 
-        // Insert data
+        // Insert vào course_schedule_details (nháp)
         const response = await fetch('/v2/vuotgio/lop-ngoai-qc/confirm-import', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ records: dataToImport })
+            body: JSON.stringify({
+                records: dataToImport,
+                dot: dot || '1',
+                ki_hoc: ki_hoc || '1',
+                nam_hoc: nam_hoc
+            })
         });
 
         const result = await response.json();
@@ -664,9 +731,7 @@ async function confirmImport(deleteOld) {
         if (result.success) {
             Swal.fire('Thành công', result.message, 'success');
             pendingImportData = null;
-            // Reset file input
             document.getElementById('fileInput').value = '';
-            // Reload from DB
             getDataTable();
         } else {
             Swal.fire('Lỗi', result.message, 'error');
@@ -674,6 +739,66 @@ async function confirmImport(deleteOld) {
     } catch (error) {
         Swal.close();
         console.error('Error confirming import:', error);
-        Swal.fire('Lỗi', 'Có lỗi xảy ra khi import: ' + error.message, 'error');
+        Swal.fire('Lỗi', 'Có lỗi xảy ra: ' + error.message, 'error');
+    }
+}
+
+// =====================================================
+// CONFIRM TO MAIN (Chốt Danh Sách)
+// =====================================================
+
+async function handleConfirmToMain() {
+    const { dot, ki_hoc, nam_hoc, major } = getFilterValues();
+
+    if (!nam_hoc) {
+        Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'error');
+        return;
+    }
+
+    const confirmResult = await Swal.fire({
+        title: 'Ban hành?',
+        html: `
+               <b>Đợt:</b> ${dot}<br>
+               <b>Kì:</b> ${ki_hoc}<br>
+               <b>Năm học:</b> ${nam_hoc}<br>
+               <b>Khoa:</b> ${major || 'Tất cả'}<br><br>
+               <em>Sau khi ban hành, dữ liệu sẽ chuyển sang "Danh sách lớp ngoài QC" để duyệt.</em>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#f0ad4e',
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+        Swal.fire({
+            title: 'Đang chốt...',
+            text: 'Vui lòng chờ',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        const response = await fetch('/v2/vuotgio/lop-ngoai-quy-chuan/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dot, ki_hoc, nam_hoc, major })
+        });
+
+        const result = await response.json();
+        Swal.close();
+
+        if (result.success) {
+            Swal.fire('Thành công', result.message, 'success');
+            getDataTable(); // Reload → nháp sẽ trống (da_luu = 1)
+        } else {
+            Swal.fire('Lỗi', result.message || 'Chốt thất bại', 'error');
+        }
+    } catch (error) {
+        Swal.close();
+        console.error('Error confirming to main:', error);
+        Swal.fire('Lỗi', 'Có lỗi xảy ra: ' + error.message, 'error');
     }
 }

@@ -32,21 +32,30 @@ router.get("/api/dinhmuc", baseController.getDinhMuc);
 // LỚP NGOÀI QUY CHUẨN
 // =====================================================
 
+// --- Views ---
 router.get("/them-lop-ngoai-qc", baseController.getThemLopNgoaiQC);
 router.get("/danh-sach-lop-ngoai-qc", baseController.getDanhSachLopNgoaiQC);
+
+// --- Nháp (course_schedule_details) ---
 router.post("/lop-ngoai-quy-chuan", lopNgoaiQCController.save);
-router.get("/lop-ngoai-quy-chuan/:NamHoc/:Khoa", lopNgoaiQCController.getTable);
-router.post("/lop-ngoai-quy-chuan/edit/:ID", lopNgoaiQCController.edit);
-router.delete("/lop-ngoai-quy-chuan/:ID", lopNgoaiQCController.delete);
+router.get("/lop-ngoai-quy-chuan/nhap/:Dot/:KiHoc/:NamHoc/:Khoa", lopNgoaiQCController.getTable);
+router.post("/lop-ngoai-quy-chuan/edit", lopNgoaiQCController.edit);
+router.delete("/lop-ngoai-quy-chuan/row", lopNgoaiQCController.delete);
+router.delete("/lop-ngoai-quy-chuan/all", lopNgoaiQCController.deleteByFilter);
+router.post("/lop-ngoai-quy-chuan/confirm", lopNgoaiQCController.confirmToMain);
+
+// --- Chính thức (lopngoaiquychuan) ---
+router.get("/lop-ngoai-quy-chuan/chinh-thuc/:NamHoc/:Khoa", lopNgoaiQCController.getChinhThuc);
+router.post("/lop-ngoai-quy-chuan/edit-chinh-thuc/:ID", lopNgoaiQCController.editChinhThuc);
+router.delete("/lop-ngoai-quy-chuan/chinh-thuc/:ID", lopNgoaiQCController.deleteChinhThuc);
 router.post("/lop-ngoai-quy-chuan/approve/:ID", lopNgoaiQCController.approve);
 router.post("/lop-ngoai-quy-chuan/unapprove/:ID", lopNgoaiQCController.unapprove);
 router.post("/lop-ngoai-quy-chuan/batch-approve", lopNgoaiQCController.batchApprove);
 
-// Import file Lớp Ngoài QC
+// --- Import file Lớp Ngoài QC ---
 router.post("/lop-ngoai-qc/parse-excel", uploadSingleFile, lopNgoaiQCImportController.parseExcel);
 router.post("/lop-ngoai-qc/confirm-import", lopNgoaiQCImportController.confirmImport);
 router.post("/lop-ngoai-qc/check-data-exist", lopNgoaiQCImportController.checkDataExist);
-router.delete("/lop-ngoai-quy-chuan/all", lopNgoaiQCController.deleteByFilter);
 
 // =====================================================
 // THÊM KẾT THÚC HỌC PHẦN

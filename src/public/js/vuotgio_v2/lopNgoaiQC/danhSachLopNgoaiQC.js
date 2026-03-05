@@ -1,44 +1,41 @@
 /**
  * Danh Sách Lớp Ngoài Quy Chuẩn - Frontend JS
- * VuotGio V2 - Refactored to HTML Table (No AG-Grid)
+ * VuotGio V2 - Refactored 2026-03-04
+ * 
+ * Đọc từ bảng lopngoaiquychuan (chính thức, cột mới sau migration):
+ *   LopHocPhan, MaHocPhan, SoTinChi, TenLop, LL, MaBoMon, KiHoc, Dot...
  */
 
-let globalData = []; // Biến toàn cục để lưu dữ liệu từ server
+let globalData = [];
+let heDaoTaoList = [];
 
-// Get user role from localStorage
 const userRole = localStorage.getItem('userRole') || '';
 const userKhoa = localStorage.getItem('MaPhongBan') || '';
 
 // ==================== INITIALIZATION ====================
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[DanhSachLopNgoaiQC] Init - HTML Table Version');
-    
-    // Load dropdowns
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('[DanhSachLopNgoaiQC] Init - chính thức (cột mới)');
+
     loadNamHocOptions();
     loadKhoaOptions();
     loadHeDaoTaoOptions();
 
-    // Event listeners
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
     document.getElementById('saveEditBtn').addEventListener('click', handleEditSubmit);
     document.getElementById('updateApprovalBtn').addEventListener('click', submitApprovals);
 
-    // Filter event listeners
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
     document.getElementById('filterHocPhan').addEventListener('input', filterTable);
 
-    // Show/hide update button based on role
     setupUpdateButtonVisibility();
 });
 
-// Setup visibility of update button based on role
 function setupUpdateButtonVisibility() {
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const role = localStorage.getItem('userRole');
     const updateBtn = document.getElementById('updateApprovalBtn');
 
-    // APP_ROLES and APP_DEPARTMENTS from constantsMiddleware
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DT';
     const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGD';
@@ -46,7 +43,6 @@ function setupUpdateButtonVisibility() {
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'lanhDao_phong';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'lanhDao_khoa';
 
-    // Show button for appropriate roles
     if ((MaPhongBan === daoTao || MaPhongBan === vanPhong || MaPhongBan === banGiamDoc) &&
         (role === troLyPhong || role === lanhDaoPhong)) {
         updateBtn.style.display = 'flex';
@@ -57,16 +53,13 @@ function setupUpdateButtonVisibility() {
 
 // ==================== PERMISSION HELPERS ====================
 
-// Check if row can be edited/deleted (all approvals = 0)
 function canEditDelete(data) {
-    return data.KhoaDuyet === 0 && data.DaoTaoDuyet === 0 && data.TaiChinhDuyet === 0;
+    return data.KhoaDuyet === 0 && data.DaoTaoDuyet === 0;
 }
 
-// Check approval permission based on role
 function canApprove(type) {
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const role = localStorage.getItem('userRole');
-
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DT';
     const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGD';
@@ -74,28 +67,20 @@ function canApprove(type) {
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'lanhDao_phong';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'lanhDao_khoa';
 
-    // Ban Giám đốc can do everything
     if (MaPhongBan === banGiamDoc) return true;
-
-    if (type === 'khoa') {
-        return role === lanhDaoKhoa;
-    } else if (type === 'daoTao') {
-        return MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong);
-    } else if (type === 'taiChinh') {
-        return MaPhongBan === vanPhong && (role === troLyPhong || role === lanhDaoPhong);
-    }
+    if (type === 'khoa') return role === lanhDaoKhoa;
+    if (type === 'daoTao') return MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong);
     return false;
 }
 
 // ==================== DATA LOADING ====================
 
-// Load năm học
 async function loadNamHocOptions() {
     try {
         const response = await fetch('/api/namhoc');
         const data = await response.json();
-        
-        const selects = [document.getElementById('namHocXem'), document.getElementById('editNamHoc')];
+
+        const selects = [document.getElementById('namHocFilter'), document.getElementById('editNamHoc')];
         selects.forEach(select => {
             if (!select) return;
             select.innerHTML = '';
@@ -114,24 +99,23 @@ async function loadNamHocOptions() {
     }
 }
 
-// Load khoa
 async function loadKhoaOptions() {
     try {
         const response = await fetch('/api/khoa');
         const data = await response.json();
-        
-        const khoaXem = document.getElementById('khoaXem');
+
+        const khoaFilter = document.getElementById('khoaFilter');
         const editKhoa = document.getElementById('editKhoa');
-        
+
         if (editKhoa) {
             editKhoa.innerHTML = '<option value="">-- Chọn Khoa --</option>';
         }
-        
+
         data.forEach(dept => {
             const option = document.createElement('option');
             option.value = dept.MaPhongBan;
             option.textContent = dept.TenPhongBan || dept.MaPhongBan;
-            khoaXem.appendChild(option.cloneNode(true));
+            khoaFilter.appendChild(option.cloneNode(true));
             if (editKhoa) editKhoa.appendChild(option);
         });
     } catch (error) {
@@ -139,48 +123,49 @@ async function loadKhoaOptions() {
     }
 }
 
-// Load hệ đào tạo từ API
 async function loadHeDaoTaoOptions() {
     try {
         const response = await fetch('/api/gvm/v1/he-dao-tao');
         const result = await response.json();
-        
+
+        if (result.success && result.data) {
+            heDaoTaoList = result.data;
+        }
+
         const editHeDaoTao = document.getElementById('editHeDaoTao');
         if (editHeDaoTao) {
             editHeDaoTao.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
-            
-            if (result.success && result.data) {
-                result.data.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.he_dao_tao;
-                    option.textContent = item.he_dao_tao;
-                    editHeDaoTao.appendChild(option);
-                });
-            }
+            heDaoTaoList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.he_dao_tao;
+                option.textContent = item.he_dao_tao;
+                editHeDaoTao.appendChild(option);
+            });
         }
     } catch (error) {
         console.error('Error loading he dao tao:', error);
     }
 }
 
-// Load data
+// Gọi API chính thức (lopngoaiquychuan)
 async function loadData() {
-    const namHoc = document.getElementById('namHocXem').value;
-    const khoa = document.getElementById('khoaXem').value;
-    
+    const namHoc = document.getElementById('namHocFilter').value;
+    const khoa = document.getElementById('khoaFilter').value;
+
     if (!namHoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'warning');
         return;
     }
 
     try {
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/${namHoc}/${khoa}`);
+        // API chính thức mới
+        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/chinh-thuc/${namHoc}/${khoa}`);
         const data = await response.json();
-        
+
         globalData = data;
         renderTable(globalData);
         calculateTotals();
-        
+
         if (data.length === 0) {
             Swal.fire('Thông báo', 'Không có dữ liệu', 'info');
         }
@@ -191,6 +176,7 @@ async function loadData() {
 }
 
 // ==================== TABLE RENDERING ====================
+// Dùng tên cột mới: LopHocPhan, SoTinChi, TenLop, LL, KiHoc, Dot...
 
 function renderTable(data) {
     const tableBody = document.getElementById('tableBody');
@@ -198,7 +184,7 @@ function renderTable(data) {
 
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const role = localStorage.getItem('userRole');
-    
+
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DT';
     const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGD';
@@ -228,14 +214,19 @@ function renderTable(data) {
         khoaTd.textContent = row.Khoa || '';
         tableRow.appendChild(khoaTd);
 
-        // Học kỳ
-        const hocKyTd = document.createElement('td');
-        hocKyTd.textContent = row.HocKy || '';
-        tableRow.appendChild(hocKyTd);
+        // Kì (KiHoc - tên mới)
+        const kiTd = document.createElement('td');
+        kiTd.textContent = row.KiHoc || '';
+        tableRow.appendChild(kiTd);
 
-        // Tên học phần
+        // Đợt (Dot - cột mới)
+        const dotTd = document.createElement('td');
+        dotTd.textContent = row.Dot || '';
+        tableRow.appendChild(dotTd);
+
+        // Lớp học phần (LopHocPhan - tên mới, trước là TenHocPhan)
         const tenHPTd = document.createElement('td');
-        tenHPTd.textContent = row.TenHocPhan || '';
+        tenHPTd.textContent = row.LopHocPhan || '';
         tableRow.appendChild(tenHPTd);
 
         // Mã HP
@@ -243,19 +234,41 @@ function renderTable(data) {
         maHPTd.textContent = row.MaHocPhan || '';
         tableRow.appendChild(maHPTd);
 
-        // Số TC
+        // Số TC (SoTinChi - tên mới)
         const soTCTd = document.createElement('td');
-        soTCTd.textContent = row.SoTC || '';
+        soTCTd.textContent = row.SoTinChi || '';
         tableRow.appendChild(soTCTd);
 
-        // Tên lớp
-        const lopTd = document.createElement('td');
-        lopTd.textContent = row.Lop || '';
-        tableRow.appendChild(lopTd);
+        // Hệ đào tạo (he_dao_tao - select dropdown)
+        const heDTTd = document.createElement('td');
+        const heDTSelect = document.createElement('select');
+        heDTSelect.className = 'hdt-select';
+        heDTSelect.name = 'he_dao_tao';
 
-        // Số tiết LL
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = '';
+        heDTSelect.appendChild(emptyOpt);
+
+        const currentHeDT = String(row.he_dao_tao || '').trim();
+        heDaoTaoList.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.he_dao_tao;
+            opt.textContent = item.he_dao_tao;
+            if (String(item.id) === currentHeDT || item.he_dao_tao === currentHeDT) opt.selected = true;
+            heDTSelect.appendChild(opt);
+        });
+
+        heDTSelect.addEventListener('change', () => {
+            if (globalData[index]) globalData[index].he_dao_tao = heDTSelect.value;
+        });
+
+        heDTTd.appendChild(heDTSelect);
+        tableRow.appendChild(heDTTd);
+
+        // Số tiết LL (LL - tên mới, trước là LenLop)
         const llTd = document.createElement('td');
-        llTd.textContent = row.LenLop || '';
+        llTd.textContent = row.LL || '';
         tableRow.appendChild(llTd);
 
         // Số SV
@@ -265,7 +278,8 @@ function renderTable(data) {
 
         // Quy chuẩn
         const qcTd = document.createElement('td');
-        qcTd.textContent = row.QuyChuan || '';
+        const qcVal = parseFloat(row.QuyChuan);
+        qcTd.textContent = isNaN(qcVal) ? '' : qcVal.toFixed(2);
         tableRow.appendChild(qcTd);
 
         // Checkbox Khoa
@@ -275,16 +289,12 @@ function renderTable(data) {
         khoaCheckbox.name = 'khoa';
         khoaCheckbox.checked = row.KhoaDuyet === 1;
         khoaCheckbox.onchange = () => updateCheckAll('khoa');
-        
-        // Permission logic for Khoa checkbox
-        if (MaPhongBan === banGiamDoc) {
-            khoaCheckbox.disabled = false;
-        } else if (role === lanhDaoKhoa) {
+
+        if (MaPhongBan === banGiamDoc || role === lanhDaoKhoa) {
             khoaCheckbox.disabled = false;
         } else {
             khoaCheckbox.disabled = true;
         }
-        
         khoaCheckTd.appendChild(khoaCheckbox);
         tableRow.appendChild(khoaCheckTd);
 
@@ -295,42 +305,18 @@ function renderTable(data) {
         dtCheckbox.name = 'daoTao';
         dtCheckbox.checked = row.DaoTaoDuyet === 1;
         dtCheckbox.onchange = () => updateCheckAll('daoTao');
-        
-        // Permission logic for ĐT checkbox
+
         if (MaPhongBan === banGiamDoc) {
             dtCheckbox.disabled = false;
         } else if (MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong)) {
-            // Chỉ enable nếu Khoa đã duyệt
             dtCheckbox.disabled = row.KhoaDuyet !== 1;
         } else {
             dtCheckbox.disabled = true;
         }
-        
         dtCheckTd.appendChild(dtCheckbox);
         tableRow.appendChild(dtCheckTd);
 
-        // Checkbox Tài chính
-        const tcCheckTd = document.createElement('td');
-        const tcCheckbox = document.createElement('input');
-        tcCheckbox.type = 'checkbox';
-        tcCheckbox.name = 'taiChinh';
-        tcCheckbox.checked = row.TaiChinhDuyet === 1;
-        tcCheckbox.onchange = () => updateCheckAll('taiChinh');
-        
-        // Permission logic for TC checkbox
-        if (MaPhongBan === banGiamDoc) {
-            tcCheckbox.disabled = false;
-        } else if (MaPhongBan === vanPhong && (role === troLyPhong || role === lanhDaoPhong)) {
-            // Chỉ enable nếu ĐT đã duyệt
-            tcCheckbox.disabled = row.DaoTaoDuyet !== 1;
-        } else {
-            tcCheckbox.disabled = true;
-        }
-        
-        tcCheckTd.appendChild(tcCheckbox);
-        tableRow.appendChild(tcCheckTd);
-
-        // Thao tác (Sửa/Xóa)
+        // Thao tác
         const actionTd = document.createElement('td');
         if (canEditDelete(row)) {
             actionTd.innerHTML = `
@@ -349,10 +335,8 @@ function renderTable(data) {
         tableBody.appendChild(tableRow);
     });
 
-    // Update Check All states
     updateCheckAll('khoa');
     updateCheckAll('daoTao');
-    updateCheckAll('taiChinh');
 }
 
 // ==================== FILTER ====================
@@ -364,20 +348,13 @@ function filterTable() {
     const tableRows = document.querySelectorAll('#tableBody tr');
 
     tableRows.forEach(row => {
-        const gvCell = row.querySelector('td:nth-child(2)'); // Giảng viên
-        const hpCell = row.querySelector('td:nth-child(5)'); // Tên học phần
+        const gvCell = row.querySelector('td:nth-child(2)');
+        const hpCell = row.querySelector('td:nth-child(6)');
 
         const gvValue = gvCell ? gvCell.textContent.toLowerCase() : '';
         const hpValue = hpCell ? hpCell.textContent.toLowerCase() : '';
 
-        const gvMatch = gvValue.includes(gvFilter);
-        const hpMatch = hpValue.includes(hpFilter);
-
-        if (gvMatch && hpMatch) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        row.style.display = (gvValue.includes(gvFilter) && hpValue.includes(hpFilter)) ? '' : 'none';
     });
 
     calculateTotals();
@@ -390,18 +367,12 @@ function calculateTotals() {
     let totalQC = 0;
 
     const rows = document.querySelectorAll('#tableBody tr');
-
     rows.forEach(row => {
         if (row.style.display === 'none') return;
-
-        const llCell = row.querySelector('td:nth-child(9)'); // Số tiết LL
-        const qcCell = row.querySelector('td:nth-child(11)'); // QC
-
-        const ll = parseFloat(llCell?.textContent) || 0;
-        const qc = parseFloat(qcCell?.textContent) || 0;
-
-        totalLL += ll;
-        totalQC += qc;
+        const llCell = row.querySelector('td:nth-child(10)');
+        const qcCell = row.querySelector('td:nth-child(12)');
+        totalLL += parseFloat(llCell?.textContent) || 0;
+        totalQC += parseFloat(qcCell?.textContent) || 0;
     });
 
     document.getElementById('totalLL').textContent = totalLL.toFixed(2);
@@ -412,115 +383,101 @@ function calculateTotals() {
 
 function checkAll(type) {
     const checkboxes = document.querySelectorAll(`input[type="checkbox"][name="${type}"]`);
-    
-    const checkAllIdMap = {
-        'khoa': 'checkAllKhoa',
-        'daoTao': 'checkAllDaoTao',
-        'taiChinh': 'checkAllTC'
-    };
-
+    const checkAllIdMap = { 'khoa': 'checkAllKhoa', 'daoTao': 'checkAllDaoTao' };
     const checkAllCheckbox = document.getElementById(checkAllIdMap[type]);
     if (!checkAllCheckbox) return;
-
-    checkboxes.forEach(checkbox => {
-        if (checkbox.disabled) return;
-        checkbox.checked = checkAllCheckbox.checked;
-    });
+    checkboxes.forEach(cb => { if (!cb.disabled) cb.checked = checkAllCheckbox.checked; });
 }
 
 function updateCheckAll(type) {
     const checkboxes = document.querySelectorAll(`input[type="checkbox"][name="${type}"]`);
-    
-    const checkAllIdMap = {
-        'khoa': 'checkAllKhoa',
-        'daoTao': 'checkAllDaoTao',
-        'taiChinh': 'checkAllTC'
-    };
-
+    const checkAllIdMap = { 'khoa': 'checkAllKhoa', 'daoTao': 'checkAllDaoTao' };
     const checkAllCheckbox = document.getElementById(checkAllIdMap[type]);
     if (!checkAllCheckbox) return;
-
-    const enabledCheckboxes = Array.from(checkboxes).filter(cb => !cb.disabled);
-    
-    if (enabledCheckboxes.length === 0) {
-        checkAllCheckbox.checked = false;
-        return;
-    }
-    
-    const allChecked = enabledCheckboxes.every(cb => cb.checked);
-    checkAllCheckbox.checked = allChecked;
+    const enabled = Array.from(checkboxes).filter(cb => !cb.disabled);
+    checkAllCheckbox.checked = enabled.length > 0 && enabled.every(cb => cb.checked);
 }
 
-// ==================== CRUD OPERATIONS ====================
+// ==================== CRUD (trên lopngoaiquychuan chính thức) ====================
 
-// Edit record - Open modal
 function editRecord(id) {
     const record = globalData.find(r => r.ID === id);
     if (!record) return;
-    
+
     if (!canEditDelete(record)) {
         Swal.fire('Không thể sửa', 'Bản ghi đã được duyệt', 'warning');
         return;
     }
 
-    // Fill modal
+    // Fill modal với tên cột mới
     document.getElementById('editID').value = record.ID;
     document.getElementById('editNamHoc').value = record.NamHoc;
-    document.getElementById('editHocKy').value = record.HocKy;
-    document.getElementById('editKhoa').value = record.Khoa;
-    document.getElementById('editTenHP').value = record.TenHocPhan || '';
+    document.getElementById('editHocKy').value = record.KiHoc || '';
+    document.getElementById('editKhoa').value = record.Khoa || '';
+    document.getElementById('editDot').value = record.Dot || 1;
+    document.getElementById('editTenHP').value = record.LopHocPhan || '';
     document.getElementById('editMaHP').value = record.MaHocPhan || '';
-    document.getElementById('editSoTC').value = record.SoTC || 0;
+    document.getElementById('editMaBoMon').value = record.MaBoMon || '';
+    document.getElementById('editSoTC').value = record.SoTinChi || 0;
     document.getElementById('editGiangVien').value = record.GiangVien || '';
-    document.getElementById('editLop').value = record.Lop || '';
-    document.getElementById('editSoTietLL').value = record.LenLop || 0;
+    document.getElementById('editGiaoVienGiangDay').value = record.GiaoVienGiangDay || '';
+    document.getElementById('editLop').value = record.TenLop || '';
     document.getElementById('editSoSV').value = record.SoSV || 0;
+    document.getElementById('editMoiGiang').checked = record.MoiGiang === 1;
+    document.getElementById('editSoTietLL').value = record.LL || 0;
     document.getElementById('editSoTietCTDT').value = record.SoTietCTDT || 0;
-    document.getElementById('editSoTietKT').value = record.SoTietKT || 0;
     document.getElementById('editHeSoT7CN').value = record.HeSoT7CN || 1;
     document.getElementById('editHeSoLopDong').value = record.HeSoLopDong || 1;
     document.getElementById('editQuyChuan').value = record.QuyChuan || 0;
     document.getElementById('editHeDaoTao').value = record.he_dao_tao || '';
+    document.getElementById('editNgayBatDau').value = record.NgayBatDau || '';
+    document.getElementById('editNgayKetThuc').value = record.NgayKetThuc || '';
     document.getElementById('editGhiChu').value = record.GhiChu || '';
 
-    // Show modal
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
     modal.show();
 }
 
-// Handle edit submit
+// Edit submit - gửi với tên cột mới tương thích lopngoaiquychuan
 async function handleEditSubmit() {
     const id = document.getElementById('editID').value;
-    
+
     const formData = {
         NamHoc: document.getElementById('editNamHoc').value,
-        HocKy: document.getElementById('editHocKy').value,
+        KiHoc: document.getElementById('editHocKy').value,
         Khoa: document.getElementById('editKhoa').value,
-        TenHocPhan: document.getElementById('editTenHP').value,
+        Dot: document.getElementById('editDot').value,
+        LopHocPhan: document.getElementById('editTenHP').value,
         MaHocPhan: document.getElementById('editMaHP').value,
-        SoTC: document.getElementById('editSoTC').value,
+        MaBoMon: document.getElementById('editMaBoMon').value,
+        SoTinChi: document.getElementById('editSoTC').value,
         GiangVien: document.getElementById('editGiangVien').value,
-        Lop: document.getElementById('editLop').value,
-        LenLop: document.getElementById('editSoTietLL').value,
+        GiaoVienGiangDay: document.getElementById('editGiaoVienGiangDay').value,
+        TenLop: document.getElementById('editLop').value,
         SoSV: document.getElementById('editSoSV').value,
+        MoiGiang: document.getElementById('editMoiGiang').checked ? 1 : 0,
+        LL: document.getElementById('editSoTietLL').value,
         SoTietCTDT: document.getElementById('editSoTietCTDT').value,
-        SoTietKT: document.getElementById('editSoTietKT').value,
         HeSoT7CN: document.getElementById('editHeSoT7CN').value,
         HeSoLopDong: document.getElementById('editHeSoLopDong').value,
         QuyChuan: document.getElementById('editQuyChuan').value,
         he_dao_tao: document.getElementById('editHeDaoTao').value,
+        NgayBatDau: document.getElementById('editNgayBatDau').value,
+        NgayKetThuc: document.getElementById('editNgayKetThuc').value,
         GhiChu: document.getElementById('editGhiChu').value
     };
 
     try {
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/edit/${id}`, {
+        // API edit chính thức - cần API riêng cho bảng lopngoaiquychuan
+        // Tạm thời dùng endpoint cũ tương thích
+        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/edit-chinh-thuc/${id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             Swal.fire('Thành công', result.message, 'success');
             bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
@@ -534,10 +491,9 @@ async function handleEditSubmit() {
     }
 }
 
-// Delete record
 async function deleteRecord(id) {
     const record = globalData.find(r => r.ID === id);
-    
+
     if (record && !canEditDelete(record)) {
         Swal.fire('Không thể xóa', 'Bản ghi đã được duyệt', 'warning');
         return;
@@ -549,7 +505,6 @@ async function deleteRecord(id) {
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
         confirmButtonText: 'Xóa',
         cancelButtonText: 'Hủy'
     });
@@ -557,12 +512,12 @@ async function deleteRecord(id) {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/${id}`, {
+        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/chinh-thuc/${id}`, {
             method: 'DELETE'
         });
 
         const data = await response.json();
-        
+
         if (data.success) {
             Swal.fire('Đã xóa', data.message, 'success');
             loadData();
@@ -579,21 +534,17 @@ async function deleteRecord(id) {
 
 async function submitApprovals() {
     const rows = document.querySelectorAll('#tableBody tr');
-    
-    // Update globalData with current checkbox states
-    rows.forEach((row, index) => {
+
+    rows.forEach(row => {
         if (row.style.display === 'none') return;
-        
         const dataIndex = parseInt(row.getAttribute('data-index'));
-        
+
         const khoaCheckbox = row.querySelector('input[name="khoa"]');
         const dtCheckbox = row.querySelector('input[name="daoTao"]');
-        const tcCheckbox = row.querySelector('input[name="taiChinh"]');
-        
+
         if (globalData[dataIndex]) {
             globalData[dataIndex].KhoaDuyet = khoaCheckbox?.checked ? 1 : 0;
             globalData[dataIndex].DaoTaoDuyet = dtCheckbox?.checked ? 1 : 0;
-            globalData[dataIndex].TaiChinhDuyet = tcCheckbox?.checked ? 1 : 0;
         }
     });
 
@@ -605,7 +556,7 @@ async function submitApprovals() {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             Swal.fire('Thành công', result.message || 'Cập nhật thành công', 'success');
             loadData();

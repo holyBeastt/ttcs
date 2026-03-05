@@ -25,12 +25,60 @@
     <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css" />
 
     <style>
+        /* CSS cho bảng */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .table tbody tr:hover {
+            background-color: #e2e6ea;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .bg-custom {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
         .header-actions {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 10px;
             justify-content: space-between;
+        }
+
+        .right {
+            margin-top: 20px;
         }
 
         .btn {
@@ -68,115 +116,116 @@
             border-radius: 4px;
             padding: 6px;
         }
+
+        .input-full {
+            width: 100%;
+            margin-top: 5px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
 <body>
     <%- include('header') %>
 
-    <div class="container-fluid my-4" style="padding-left: 0px">
-        <div class="flex-grow-1">
-            <!-- Toolbar -->
-            <div class="header-actions">
-                <div class="left">
-                    <!-- File import -->
-                    <div class="file-input-wrapper">
-                        <input type="file" id="fileInput" accept=".xlsx,.xls" />
-                        <button class="btn btn-success text-nowrap" id="btn-import" onclick="handleImportFile()">
-                            <i class="bi bi-upload"></i> Import file
-                        </button>
+        <div class="container-fluid my-4" style="padding-left: 0px">
+            <div class="flex-grow-1">
+                <!-- Toolbar -->
+                <div class="header-actions">
+                    <div class="left">
+                        <!-- File import -->
+                        <div class="file-input-wrapper">
+                            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none" />
+                            <button class="btn btn-success text-nowrap" id="btn-import" onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-upload"></i> Import file
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="right" style="margin-top: 0px">
+                        <div class="loc d-flex align-items-center">
+                            <!-- Combo box Đợt -->
+                            <select class="selectop" id="dotFilter" style="width: 100px;">
+                                <option value="1" selected>Đợt 1</option>
+                                <option value="2">Đợt 2</option>
+                            </select>
+
+                            <!-- Combo box Kì -->
+                            <select class="selectop" id="hocKyFilter" style="width: 100px;">
+                                <option value="">Kì</option>
+                                <option value="1">Kì 1</option>
+                                <option value="2">Kì 2</option>
+                            </select>
+
+                            <!-- Combo box Năm học -->
+                            <select class="selectop" id="namHocFilter" style="width: 130px;">
+                                <option value="">Chọn năm học</option>
+                            </select>
+
+                            <!-- Combo box Khoa -->
+                            <select class="selectop" id="khoaFilter" style="width: 100px;">
+                                <option value="ALL" selected>ALL</option>
+                            </select>
+
+                            <button onclick="getDataTable()" class="btn text-nowrap" id="render"
+                                style="margin-top: 17px">
+                                Hiển thị
+                            </button>
+                            <button class="btn text-nowrap btn-warning" id="btn-chot" onclick="handleConfirmToMain()"
+                                style="margin-top: 17px">
+                                <i class="bi bi-check2-circle"></i> Ban Hành
+                            </button>
+                            <button class="btn text-nowrap" id="btn-xoa" onclick="handleDeleteAll()"
+                                style="margin-top: 17px">
+                                Xóa
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="right" style="margin-top: 0px">
-                    <div class="loc d-flex align-items-center">
-                        <!-- Combo box Năm học -->
-                        <select class="selectop" id="namHocFilter">
-                            <option value="">Chọn năm học</option>
-                        </select>
-
-                        <!-- Combo box Kì -->
-                        <select class="selectop" id="hocKyFilter">
-                            <option value="">Kì</option>
-                            <option value="1">Kì 1</option>
-                            <option value="2">Kì 2</option>
-                        </select>
-
-                        <!-- Combo box Khoa -->
-                        <select class="selectop" id="khoaFilter">
-                            <option value="">Chọn khoa</option>
-                        </select>
-
-                        <button onclick="getDataTable()" class="btn text-nowrap" id="render" style="margin-top: 17px">
-                            Hiển thị
-                        </button>
-                        <button class="btn text-nowrap" id="btn-xoa" onclick="handleDeleteAll()" style="margin-top: 17px">
-                            Xóa
-                        </button>
-                    </div>
+                <!-- Search -->
+                <div class="search-container">
+                    <input type="text" placeholder="Tìm kiếm theo Tên..." class="search search-input"
+                        id="find-by-name" />
                 </div>
-            </div>
 
-            <!-- Search -->
-            <div class="search-container">
-                <input type="text" placeholder="Tìm kiếm theo Tên..." class="search search-input" id="find-by-name" />
-            </div>
-
-            <!-- AG Grid Table -->
-            <div id="table-container" class="ag-theme-alpine" style="height: 500px; width: 100%">
-                <table style="width: 100%; border-collapse: collapse" class="table table-bordered">
-                    <thead>
-                        <tr id="table-header"></tr>
-                    </thead>
-                    <tbody id="data-table-body"></tbody>
-                </table>
-            </div>
-
-            <!-- Action buttons -->
-            <div style="margin-top: 20px">
-                <button class="btn text-nowrap" id="add-row-btn" onclick="addNewRow()">
-                    Thêm dòng mới
-                </button>
-            </div>
-
-            <!-- Modal xác nhận import -->
-            <div id="import-modal" style="display: none">
-                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 10000000000;">
-                    <div style="background: #ffffff; padding: 25px; border-radius: 12px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);">
-                        <p id="import-modal-message" style="font-size: 16px; color: #333; margin-bottom: 20px">
-                            Dữ liệu đã tồn tại.
-                        </p>
-                        <button id="btn-import-delete" style="background-color: #e74c3c; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                            Xóa cũ & Import
-                        </button>
-                        <button id="btn-import-append" style="background-color: #3498db; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                            Chèn thêm
-                        </button>
-                        <button id="btn-import-cancel" style="background-color: #95a5a6; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                            Hủy
-                        </button>
-                    </div>
+                <!-- AG Grid Table -->
+                <div id="table-container" class="ag-theme-alpine" style="height: 500px; width: 100%">
+                    <table style="width: 100%; border-collapse: collapse" class="table table-bordered">
+                        <thead>
+                            <tr id="table-header"></tr>
+                        </thead>
+                        <tbody id="data-table-body"></tbody>
+                    </table>
                 </div>
-            </div>
 
-            <div id="no-data-message" class="text-center my-3" style="display: none">
-                Không có dữ liệu để hiển thị.
+                <!-- Action buttons -->
+                <div style="margin-top: 20px">
+                    <button class="btn text-nowrap" id="add-row-btn" onclick="addNewRow()">
+                        Thêm dòng mới
+                    </button>
+                </div>
+
+                <div id="no-data-message" class="text-center my-3" style="display: none">
+                    Không có dữ liệu để hiển thị.
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-    <script src="/js/TKB/ag-grid-community.min.js"></script>
+        <!-- Scripts -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+        <script src="/js/TKB/ag-grid-community.min.js"></script>
 
-    <!-- Toastify -->
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+        <!-- Toastify -->
+        <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
-    <!-- Main JS -->
-    <script src="/js/vuotgio_v2/lopNgoaiQC/themLopNgoaiQC.js"></script>
+        <!-- Main JS -->
+        <script src="/js/vuotgio_v2/lopNgoaiQC/themLopNgoaiQC.js"></script>
 </body>
 
 </html>
