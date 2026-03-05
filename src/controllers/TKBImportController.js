@@ -265,7 +265,10 @@ const importExcelTKB = async (req, res) => {
     }
 
     let preTT = 0;
+    let preCourseName = "";  // Thêm: Lưu course_name dòng trước
+    // let preClassroom = "";   // Thêm: Lưu classroom dòng trước
     let ll_tmp = 0;
+    let classIdAscending = 1;
 
     for (let i = 0; i < renamedData.length; i++) {
       const row = renamedData[i];
@@ -321,47 +324,48 @@ const importExcelTKB = async (req, res) => {
         bonusRules
       );
 
+      // Gán lại tt phục vụ tkb và phòng học
       if (i > 0) {
-        // Chỉnh sửa tt phục vụ quy chuẩn
-        if (row.tt !== preTT) {
+        // ✅ Kiểm tra 3 điều kiện để xác định "nhóm mới"
+        const isTTChanged = row.tt !== preTT;
+        const isCourseNameChanged = row.course_name !== preCourseName;
+        // const isClassroomChanged = row.classroom !== preClassroom;
+
+        if (isTTChanged || isCourseNameChanged) {
+          // ⚡ NHÓM MỚI: Bất kỳ điều kiện nào thay đổi
           preTT = row.tt;
+          preCourseName = row.course_name;
+          // preClassroom = row.classroom;
+
           row.tt = ++lastTTValue;
           ll_tmp = row.ll_total || 0;
+          classIdAscending = 1;
         } else {
-          // Nếu tt giống với dòng trước, giữ nguyên giá trị
+          // ⚡ CÙNG NHÓM: Tất cả điều kiện giống nhau
           row.tt = lastTTValue;
+          classIdAscending++;
         }
       } else {
-        // Dòng đầu tiên
+        // ⚡ Dòng đầu tiên
         preTT = row.tt;
+        preCourseName = row.course_name;
+        // preClassroom = row.classroom;
+
         row.tt = ++lastTTValue;
         ll_tmp = row.ll_total || 0;
+        classIdAscending = 1;
       }
+
+      row.classIdAscending = classIdAscending;
 
       row.ll_total = ll_tmp;
       row.qc = row.ll_total * row.bonus_time * row.student_bonus;
-
-      // Gán lại tt phục vụ quy chuẩn
-      // if (i > 0) {
-      //   // Chỉnh sửa tt phục vụ quy chuẩn
-      //   if (row.tt !== preTT) {
-      //     preTT = row.tt;
-      //     row.tt = ++lastTTValue;
-      //     ll_tmp = row.ll_total || 0;
-      //   } else {
-      //     // Nếu tt giống với dòng trước, giữ nguyên giá trị
-      //     row.tt = lastTTValue;
-      //   }
-      // } else {
-      //   // Dòng đầu tiên
-      //   preTT = row.tt;
-      //   row.tt = ++lastTTValue;
-      // }
     }
 
     // Chuẩn bị values để insert
     const values = renamedData.map((row) => [
       row.tt,
+      row.classIdAscending,
       row.course_code,
       row.credit_hours,
       row.student_quantity || 0,
@@ -390,7 +394,7 @@ const importExcelTKB = async (req, res) => {
     // Insert batch
     const insertResult = await pool.query(
       `INSERT INTO course_schedule_details (
-        TT, course_code, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
+        TT, class_id_ascending, course_code, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
         day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, he_dao_tao, dot, ki_hoc, nam_hoc
       ) VALUES ?`,
       [values]

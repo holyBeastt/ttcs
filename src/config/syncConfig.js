@@ -102,13 +102,13 @@ module.exports = {
     },
 
     taikhoannguoidung: {
-        type: 'employee',
+        type: 'master',
         description: 'Tài khoản người dùng',
         uniqueKey: ['TenDangNhap'],
     },
 
     role: {
-        type: 'employee',
+        type: 'master',
         description: 'Phân quyền người dùng',
         uniqueKey: ['TenDangNhap'],
     },
@@ -127,11 +127,11 @@ module.exports = {
     // BUSINESS - Nghiệp vụ giảng dạy chính
     // ============================================
 
-    // course_schedule_details: {
-    //     type: 'business',
-    //     description: 'Thời khóa biểu chi tiết',
-    //     uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'tt', 'course_name'],
-    // },
+    course_schedule_details: {
+        type: 'business',
+        description: 'Thời khóa biểu chi tiết',
+        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'tt', 'course_name', 'class_id_ascending'],
+    },
 
     giangday: {
         type: 'business',
@@ -148,7 +148,7 @@ module.exports = {
     quy_chuan_edit_requests: {
         type: 'business',
         description: 'Yêu cầu sửa quy chuẩn',
-        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'lop_hoc_phan', 'ten_lop'],
+        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'old_value', 'new_value', 'lop_hoc_phan', 'ten_lop'],
     },
 
     ketthuchocphan: {
@@ -185,28 +185,10 @@ module.exports = {
     // RESEARCH - Nghiên cứu khoa học (NCKH)
     // ============================================
 
-    // uncngoai: {
-    //     type: 'business',
-    //     description: 'Ủy nhiệm chi ngoài',
-    //     uniqueKey: ['stk'],
-    // },
-
-    // uncngoaidetail: {
-    //     type: 'business',
-    //     description: 'Chi tiết ủy nhiệm chi ngoài',
-    //     uniqueKey: ['stk'],
-    // },
-
     nckh_chung: {
         type: 'research',
         description: 'NCKH chung',
-        uniqueKey: ['LoaiNCKH'],
-    },
-
-    nckh_quydinhsogio: {
-        type: 'research',
-        description: 'NCKH quy định số giờ',
-        uniqueKey: ['LoaiNCKH', 'PhanLoai'],
+        uniqueKey: ['LoaiNCKH', 'PhanLoai', 'TenCongTrinh', 'NamHoc'],
     },
 
     sotietnckhbaoluusangnam: {
@@ -214,6 +196,12 @@ module.exports = {
         description: 'Số tiết NCKH bảo lưu sang năm',
         uniqueKey: ['NamHoc', 'GiangVien'],
     },
+
+    // lopngoaiquychuan: {
+    //     type: 'teaching',
+    //     description: 'Lớp ngoài quy chuẩn',
+    //     uniqueKey: ['HocKy', 'NamHoc', 'TenHocPhan', 'Lop'],
+    // },
 
     // ============================================
     // SALARY - Tiền lương và miễn giảm

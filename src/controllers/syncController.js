@@ -6,6 +6,7 @@
 
 const createConnection = require("../config/databasePool");
 const syncConfig = require("../config/syncConfig");
+const { validateAndMigrateSchemaFromData } = require("../helpers/schemaValidator");
 
 // ============================================
 // EXPORT FUNCTIONS
@@ -206,6 +207,25 @@ exports.importTable = async (req, res) => {
         connection = await createConnection();
         const config = syncConfig[table];
 
+        // Auto schema validation & migration using import data
+        // This detects missing columns by comparing data fields vs table columns
+        console.log(`\n🔍 [DEBUG] === SCHEMA VALIDATION START ===`);
+        console.log(`🔍 [DEBUG] Table: ${table}`);
+        console.log(`🔍 [DEBUG] Data records: ${data.length}`);
+        console.log(`🔍 [DEBUG] Sample data fields:`, data[0] ? Object.keys(data[0]) : 'No data');
+
+        try {
+            console.log(`🔍 [DEBUG] Calling validateAndMigrateSchemaFromData...`);
+            const schemaResult = await validateAndMigrateSchemaFromData(connection, table, data);
+            console.log(`🔍 [DEBUG] Schema validation completed:`, schemaResult);
+        } catch (schemaError) {
+            console.error(`❌ [DEBUG] SCHEMA ERROR CAUGHT:`, schemaError);
+            console.warn(`⚠️  [SCHEMA] Schema validation skipped for ${table}:`, schemaError.message);
+            // Continue with import even if schema validation fails
+        }
+
+        console.log(`🔍 [DEBUG] === SCHEMA VALIDATION END ===\n`);
+
         // Start transaction
         await connection.beginTransaction();
 
@@ -263,13 +283,47 @@ exports.importTable = async (req, res) => {
 /**
  * Import nhanvien records
  * Logic:
- * 1. Find or create taikhoannguoidung by tendangnhap
- * 2. Find or create nhanvien by id_User
+ * 1. JOIN nhanvien with taikhoannguoidung via id_User
+ * 2. Check existence by tendangnhap (username)
+ * 3. If tendangnhap exists -> update (if changed) or skip (if identical)
+ * 4. If tendangnhap doesn't exist -> insert both account and employee
  */
 async function importNhanVien(connection, records) {
     let inserted = 0;
     let updated = 0;
+    let skipped = 0;
     const errors = [];
+
+    // Helper function to normalize values for comparison
+    function normalizeValue(val) {
+        // Handle null/undefined/empty string as null
+        if (val === null || val === undefined || val === '') {
+            return null;
+        }
+
+        // Handle Date objects - extract YYYY-MM-DD only (use LOCAL time, not UTC)
+        if (val instanceof Date) {
+            const year = val.getFullYear();      // Local year
+            const month = String(val.getMonth() + 1).padStart(2, '0');  // Local month
+            const day = String(val.getDate()).padStart(2, '0');         // Local day
+            return `${year}-${month}-${day}`;
+        }
+
+        // Handle date strings - extract YYYY-MM-DD only
+        if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}/)) {
+            return val.substring(0, 10);
+        }
+
+        // Handle strings - trim whitespace
+        if (typeof val === 'string') {
+            return val.trim();
+        }
+
+        // Return as-is for other types
+        return val;
+    }
+
+    console.log(`\n🔍 [DEBUG] Starting importNhanVien with ${records.length} records`);
 
     for (const record of records) {
         try {
@@ -283,76 +337,88 @@ async function importNhanVien(connection, records) {
                 continue;
             }
 
-            // Step 1: Find or create taikhoannguoidung
-            let userId = nhanvienData.id_User;
-
-            // Check if taikhoannguoidung exists by tendangnhap
-            const [existingAccounts] = await connection.query(
-                "SELECT id_User FROM taikhoannguoidung WHERE TenDangNhap = ?",
+            // JOIN query to check if employee exists by tendangnhap
+            const [existingRecords] = await connection.query(
+                `SELECT n.*, t.id_User, t.MatKhau
+                 FROM taikhoannguoidung t
+                 LEFT JOIN nhanvien n ON t.id_User = n.id_User
+                 WHERE t.TenDangNhap = ?`,
                 [tendangnhap]
             );
 
-            if (existingAccounts.length > 0) {
-                // Account exists - get the id_User
-                userId = existingAccounts[0].id_User;
+            if (existingRecords.length > 0) {
+                // Account exists
+                const existing = existingRecords[0];
+                const userId = existing.id_User;
 
-                // Update password if provided
-                if (matkhau) {
-                    await connection.query(
-                        "UPDATE taikhoannguoidung SET MatKhau = ? WHERE TenDangNhap = ?",
-                        [matkhau, tendangnhap]
-                    );
-                }
-            } else {
-                // Account doesn't exist - create it
-                const [insertResult] = await connection.query(
-                    "INSERT INTO taikhoannguoidung (TenDangNhap, MatKhau, id_User) VALUES (?, ?, ?)",
-                    [tendangnhap, matkhau || "123456", userId]
-                );
+                // Check if nhanvien record exists
+                if (existing.HoTen !== null || existing.id_User !== null) {
+                    // Both account and employee exist - check for changes
+                    const updateFields = [];
+                    const updateValues = [];
 
-                // If id_User was not provided, use the inserted ID
-                if (!userId) {
-                    userId = insertResult.insertId;
-                }
-            }
+                    // Compare nhanvien fields
+                    for (const [key, value] of Object.entries(nhanvienData)) {
+                        if (key !== "id_User") {
+                            const existingValue = normalizeValue(existing[key]);
+                            const newValue = normalizeValue(value);
 
-            // Step 2: Find or create nhanvien by id_User
-            const [existingNhanVien] = await connection.query(
-                "SELECT id_User FROM nhanvien WHERE id_User = ?",
-                [userId]
-            );
+                            if (existingValue !== newValue) {
+                                console.log(`[NHANVIEN DEBUG] Field "${key}" changed:`);
+                                console.log(`  Existing (raw): ${JSON.stringify(existing[key])} (type: ${typeof existing[key]})`);
+                                console.log(`  New (raw):      ${JSON.stringify(value)} (type: ${typeof value})`);
+                                console.log(`  Existing (normalized): ${JSON.stringify(existingValue)}`);
+                                console.log(`  New (normalized):      ${JSON.stringify(newValue)}`);
+                                console.log(`  Match: ${existingValue === newValue}`);
 
-            if (existingNhanVien.length > 0) {
-                // Employee exists - UPDATE
-                const updateFields = [];
-                const updateValues = [];
-
-                for (const [key, value] of Object.entries(nhanvienData)) {
-                    if (key !== "id_User") {
-                        updateFields.push(`${key} = ?`);
-                        updateValues.push(value);
+                                updateFields.push(`${key} = ?`);
+                                updateValues.push(value);
+                            }
+                        }
                     }
-                }
 
-                if (updateFields.length > 0) {
-                    updateValues.push(userId);
+                    console.log(`[NHANVIEN DEBUG] User ${tendangnhap}: ${updateFields.length} fields changed (${updateFields.join(", ")})`);
+
+                    // Update password if provided and different
+                    let passwordChanged = false;
+                    if (matkhau && existing.MatKhau !== matkhau) {
+                        await connection.query(
+                            "UPDATE taikhoannguoidung SET MatKhau = ? WHERE id_User = ?",
+                            [matkhau, userId]
+                        );
+                        passwordChanged = true;
+                    }
+
+                    if (updateFields.length > 0) {
+                        // Some nhanvien fields changed - UPDATE
+                        updateValues.push(userId);
+                        await connection.query(
+                            `UPDATE nhanvien SET ${updateFields.join(", ")} WHERE id_User = ?`,
+                            updateValues
+                        );
+                        updated++;
+                    } else if (passwordChanged) {
+                        // Only password changed, count as updated
+                        updated++;
+                    } else {
+                        // No changes - data identical
+                        skipped++;
+                    }
+                } else {
+                    // Account exists but no employee record - INSERT employee
+                    const fields = ["id_User", ...Object.keys(nhanvienData)];
+                    const values = [userId, ...Object.values(nhanvienData)];
+                    const placeholders = fields.map(() => "?").join(", ");
+
                     await connection.query(
-                        `UPDATE nhanvien SET ${updateFields.join(", ")} WHERE id_User = ?`,
-                        updateValues
+                        `INSERT INTO nhanvien (${fields.join(", ")}) VALUES (${placeholders})`,
+                        values
                     );
-                    updated++;
+                    inserted++;
                 }
             } else {
-                // Employee doesn't exist - INSERT
-                const fields = ["id_User", ...Object.keys(nhanvienData)];
-                const values = [userId, ...Object.values(nhanvienData)];
-                const placeholders = fields.map(() => "?").join(", ");
-
-                await connection.query(
-                    `INSERT INTO nhanvien (${fields.join(", ")}) VALUES (${placeholders})`,
-                    values
-                );
-                inserted++;
+                // Account doesn't exist - SKIP (don't insert)
+                skipped++;
             }
         } catch (error) {
             errors.push({
@@ -365,6 +431,7 @@ async function importNhanVien(connection, records) {
     return {
         inserted,
         updated,
+        skipped,
         errors,
         total: records.length,
     };
@@ -381,6 +448,7 @@ async function importNhanVien(connection, records) {
 async function importGvmoi(connection, records) {
     let inserted = 0;
     let updated = 0;
+    let skipped = 0;  // Records matched but no changes
     const errors = [];
 
     for (const record of records) {
@@ -417,12 +485,21 @@ async function importGvmoi(connection, records) {
 
             const [result] = await connection.query(query, values);
 
-            // Check if inserted or updated based on affectedRows
+            // Count based on affectedRows and insertId
             if (result.affectedRows === 1) {
-                inserted++;
+                if (result.insertId > 0) {
+                    // Real INSERT (new auto-increment ID)
+                    inserted++;
+                } else {
+                    // Matched duplicate but no change (insertId=0, changedRows=0)
+                    skipped++;
+                }
             } else if (result.affectedRows === 2) {
-                // ON DUPLICATE KEY UPDATE returns 2 for updates
+                // UPDATE with changes
                 updated++;
+            } else if (result.affectedRows === 0) {
+                // Matched duplicate, no change
+                skipped++;
             }
         } catch (error) {
             errors.push({
@@ -435,6 +512,7 @@ async function importGvmoi(connection, records) {
     return {
         inserted,
         updated,
+        skipped,
         errors,
         total: records.length,
     };
@@ -454,6 +532,7 @@ async function importGvmoi(connection, records) {
 async function importGenericTable(connection, tableName, records, config) {
     let inserted = 0;
     let updated = 0;
+    let skipped = 0;  // Records matched but no changes
     const errors = [];
 
     for (const record of records) {
@@ -474,10 +553,9 @@ async function importGenericTable(connection, tableName, records, config) {
                 // Keep id for master tables
                 fields = Object.keys(record);
                 values = Object.values(record);
-                console.log(`[SYNC DEBUG] 🔑 Preserving ID: ${record.id}`);
             } else {
-                // Remove id for other tables
-                const { id, ...dataWithoutId } = record;
+                // Remove auto-increment PK fields (id, ID, Id, STT, stt)
+                const { id, ID, Id, STT, stt, ...dataWithoutId } = record;
                 fields = Object.keys(dataWithoutId);
                 values = Object.values(dataWithoutId);
             }
@@ -492,29 +570,75 @@ async function importGenericTable(connection, tableName, records, config) {
 
             // Use INSERT ... ON DUPLICATE KEY UPDATE for UPSERT
             let query;
+            let isInsertIgnore = false;
+
             if (updateClauses) {
                 query = `
-          INSERT INTO ${tableName} (${fields.join(", ")})
-          VALUES (${placeholders})
-          ON DUPLICATE KEY UPDATE ${updateClauses}
-        `;
+                INSERT INTO ${tableName} (${fields.join(", ")})
+                VALUES (${placeholders})
+                ON DUPLICATE KEY UPDATE ${updateClauses}
+                `;
             } else {
                 // If all fields are part of the unique key, just INSERT IGNORE
+                isInsertIgnore = true;
                 query = `
-          INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
-          VALUES (${placeholders})
-        `;
+                INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
+                VALUES (${placeholders})
+                `;
             }
 
             const [result] = await connection.query(query, values);
 
-            // Check if inserted or updated based on affectedRows
-            if (result.affectedRows === 1) {
-                inserted++;
-            } else if (result.affectedRows === 2) {
-                // ON DUPLICATE KEY UPDATE returns 2 for updates
-                updated++;
+            // Count based on affectedRows and query type
+            // MySQL affectedRows behavior:
+            // - INSERT new: affectedRows = 1
+            // - UPDATE existing (ON DUPLICATE KEY): affectedRows = 2  
+            // - No change (ON DUPLICATE KEY with same values): affectedRows = 0
+            // - INSERT IGNORE duplicate: affectedRows = 0
+
+            // if (isInsertIgnore) {
+            //     if (result.affectedRows === 1) {
+            //         inserted++;
+            //     }
+            // } else {
+            //     if (result.insertId > 0 && result.changedRows === 0) {
+            //         inserted++;
+            //     } else if (result.changedRows > 0) {
+            //         updated++;
+            //     }
+            // }
+
+            if (isInsertIgnore) {
+                // INSERT IGNORE: affectedRows=1 means inserted, affectedRows=0 means duplicate
+                if (result.affectedRows === 1) {
+                    inserted++;
+                } else if (result.affectedRows === 0) {
+                    // Duplicate, skipped
+                    skipped++;
+                }
+            } else {
+                // ON DUPLICATE KEY UPDATE
+                if (result.affectedRows === 1) {
+                    // affectedRows=1 can mean INSERT or UPDATE with no change
+                    // Use insertId to distinguish:
+                    if (result.insertId > 0) {
+                        // Real INSERT (new auto-increment ID generated)
+                        inserted++;
+                    } else {
+                        // Matched duplicate but no fields changed (insertId=0, changedRows=0)
+                        // Don't count as updated - data unchanged!
+                        skipped++;
+                    }
+                } else if (result.affectedRows === 2) {
+                    // UPDATE with changes
+                    updated++;
+                } else if (result.affectedRows === 0) {
+                    // Matched duplicate, no change (alternative MySQL behavior)
+                    skipped++;
+                }
             }
+
+
         } catch (error) {
             errors.push({
                 record: record,
@@ -526,6 +650,7 @@ async function importGenericTable(connection, tableName, records, config) {
     return {
         inserted,
         updated,
+        skipped,
         errors,
         total: records.length,
     };
@@ -568,6 +693,18 @@ exports.importAll = async (req, res) => {
 
             try {
                 const config = syncConfig[tableName];
+
+                try {
+                    const schemaResult = await validateAndMigrateSchemaFromData(
+                        connection,
+                        tableName,
+                        tableData.data
+                    );
+                } catch (schemaError) {
+                    console.error(`❌ [DEBUG] SCHEMA ERROR:`, schemaError);
+                    console.warn(`⚠️  [SCHEMA] Schema validation skipped for ${tableName}:`, schemaError.message);
+                    // Continue with import even if schema validation fails
+                }
 
                 // Start transaction for this table
                 await connection.beginTransaction();

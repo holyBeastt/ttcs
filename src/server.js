@@ -7,6 +7,14 @@ const session = require("express-session");
 const login = require("./routes/loginRoute");
 //const importFile = require("./routes/importRoute");
 
+const fs = require("fs");
+
+const exportDir = path.join(__dirname, "public", "exports");
+
+if (!fs.existsSync(exportDir)) {
+  fs.mkdirSync(exportDir, { recursive: true });
+}
+
 // config engine template
 const configViewEngine = require("./config/viewEngine");
 

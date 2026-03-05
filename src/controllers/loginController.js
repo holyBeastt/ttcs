@@ -27,7 +27,7 @@ const login = async (req, res) => {
       `SELECT TenNhanVien 
        FROM nhanvien 
        JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User
-       WHERE TenDangNhap = ?`,
+       WHERE taikhoannguoidung.TenDangNhap = ?`,
       [username]
     );
     const TenNhanVien = employeeData[0]?.TenNhanVien || null;
