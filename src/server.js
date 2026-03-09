@@ -80,7 +80,7 @@ const kytubatdauKhoaRoute = require("./routes/kytubatdauKhoaRoute");
 const syncRoute = require("./routes/syncRoute");
 
 const app = express();
-const port = process.env.port || 8888;
+const port = process.env.PORT || 8888;
 const hostname = process.env.HOST_NAME;
 
 // Gọi middleware lấy roles và departments
