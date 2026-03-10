@@ -753,6 +753,12 @@ async function importGenericTable(connection, tableName, records, config) {
             }
 
             // 5️⃣ Count logic chính xác
+            // MySQL ON DUPLICATE KEY UPDATE:
+            //   affectedRows=0  → duplicate, values giống hệt → skip
+            //   affectedRows=1  → INSERT mới (insertId>0) hoặc collision không rõ
+            //   affectedRows=2  → ON DUPLICATE KEY đã chạy, dùng changedRows để phân biệt:
+            //                     changedRows=0 → values giống hệt (trùng key trong batch)  → skip
+            //                     changedRows>0 → có field thực sự thay đổi               → updated
             if (isInsertIgnore) {
                 if (result.affectedRows === 1) {
                     inserted++;
@@ -767,7 +773,11 @@ async function importGenericTable(connection, tableName, records, config) {
                         skipped++;
                     }
                 } else if (result.affectedRows === 2) {
-                    updated++;
+                    if (result.changedRows > 0) {
+                        updated++;   // Có field thực sự thay đổi
+                    } else {
+                        skipped++;   // ON DUPLICATE KEY nhưng values giống → không tính là update
+                    }
                 } else {
                     skipped++;
                 }
