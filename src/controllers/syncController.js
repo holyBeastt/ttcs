@@ -532,58 +532,78 @@ async function importGvmoi(connection, records) {
 
 async function prepareCourseScheduleTT(connection, records) {
 
-    const ttCache = {};
-    const courseTTCache = {};
-    const classIdCache = {};
+    const ttCache = {};          // groupKey -> current max tt
+    const courseTTCache = {};    // courseKey -> tt
+    const classIdCache = {};     // courseKey -> class_id_ascending
 
+    // normalize data
+    for (const r of records) {
+        r.dot = String(r.dot).trim();
+        r.ki_hoc = String(r.ki_hoc).trim();
+        r.nam_hoc = String(r.nam_hoc).trim();
+        r.course_name = String(r.course_name).trim();
+    }
+
+    // lấy unique group
+    const groups = [...new Set(
+        records.map(r => `${r.dot}|${r.ki_hoc}|${r.nam_hoc}`)
+    )];
+
+    // lấy unique course
+    const courses = [...new Set(
+        records.map(r => `${r.dot}|${r.ki_hoc}|${r.nam_hoc}|${r.course_name}`)
+    )];
+
+    // ===== 1️⃣ Lấy MAX(tt) theo group =====
+    for (const g of groups) {
+
+        const [dot, ki_hoc, nam_hoc] = g.split("|");
+
+        const [result] = await connection.query(
+            `SELECT COALESCE(MAX(tt),0) as maxTt
+             FROM course_schedule_details
+             WHERE dot=? AND ki_hoc=? AND nam_hoc=?`,
+            [dot, ki_hoc, nam_hoc]
+        );
+
+        ttCache[g] = result[0].maxTt;
+    }
+
+    // ===== 2️⃣ Lấy tt của course đã tồn tại =====
+    for (const c of courses) {
+
+        const [dot, ki_hoc, nam_hoc, course_name] = c.split("|");
+
+        const [existing] = await connection.query(
+            `SELECT tt
+             FROM course_schedule_details
+             WHERE dot=? AND ki_hoc=? AND nam_hoc=? AND course_name=?
+             LIMIT 1`,
+            [dot, ki_hoc, nam_hoc, course_name]
+        );
+
+        if (existing.length > 0) {
+            courseTTCache[c] = existing[0].tt;
+        }
+    }
+
+    // ===== 3️⃣ assign tt =====
     for (const record of records) {
 
         const { dot, ki_hoc, nam_hoc, course_name } = record;
 
         const groupKey = `${dot}|${ki_hoc}|${nam_hoc}`;
-        const courseKey = `${dot}|${ki_hoc}|${nam_hoc}|${course_name}`;
+        const courseKey = `${groupKey}|${course_name}`;
 
-        // 1️⃣ Nếu chưa biết tt của course_name
         if (!courseTTCache[courseKey]) {
 
-            // check DB xem course này đã có tt chưa
-            const [existing] = await connection.query(
-                `SELECT tt
-                 FROM course_schedule_details
-                 WHERE dot=? AND ki_hoc=? AND nam_hoc=? AND course_name=?
-                 LIMIT 1`,
-                [dot, ki_hoc, nam_hoc, course_name]
-            );
-
-            if (existing.length > 0) {
-
-                // đã tồn tại → reuse tt
-                courseTTCache[courseKey] = existing[0].tt;
-
-            } else {
-
-                // chưa tồn tại → lấy max tt
-                if (ttCache[groupKey] === undefined) {
-
-                    const [result] = await connection.query(
-                        `SELECT COALESCE(MAX(tt),0) as maxTt
-                         FROM course_schedule_details
-                         WHERE dot=? AND ki_hoc=? AND nam_hoc=?`,
-                        [dot, ki_hoc, nam_hoc]
-                    );
-
-                    ttCache[groupKey] = result[0].maxTt;
-                }
-
-                ttCache[groupKey] += 1;
-
-                courseTTCache[courseKey] = ttCache[groupKey];
-            }
+            ttCache[groupKey] += 1;
+            courseTTCache[courseKey] = ttCache[groupKey];
         }
 
         record.tt = courseTTCache[courseKey];
 
-        // 2️⃣ class_id_ascending
+        // ===== class_id_ascending =====
         if (!classIdCache[courseKey]) {
             classIdCache[courseKey] = 0;
         }
@@ -599,8 +619,6 @@ async function prepareCourseScheduleTT(connection, records) {
 async function importCourseScheduleDetails(connection, records) {
 
     const prepared = await prepareCourseScheduleTT(connection, records);
-
-    console.log(prepared[1]);   // check tt
 
     return importGenericTable(
         connection,
