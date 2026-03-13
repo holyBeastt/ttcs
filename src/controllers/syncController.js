@@ -239,6 +239,9 @@ exports.importTable = async (req, res) => {
             case "teacher":
                 result = await importGvmoi(connection, data);
                 break;
+            case "schedule":
+                result = await importCourseScheduleDetails(connection, data);
+                break;
             case "business":
             case "master":
             case "research":
@@ -506,6 +509,117 @@ async function importGvmoi(connection, records) {
         errors,
         total: records.length,
     };
+}
+
+// ============================================
+// IMPORT HELPERS - COURSE SCHEDULE DETAILS
+// ============================================
+
+/**
+ * Import course_schedule_details records
+ *
+ * Mỗi lớp học phần (course_name) có NHIỀU dòng (nhiều buổi học),
+ * phân biệt nhau bằng class_id_ascending.
+ *
+ * Logic:
+ * - Lookup theo (dot, ki_hoc, nam_hoc, course_name, class_id_ascending)
+ *   → Tìm đúng từng dòng buổi học cụ thể
+ * - Nếu đã tồn tại → UPDATE các field còn lại
+ * - Nếu chưa tồn tại → INSERT:
+ *     tt: lấy từ data nếu có, nếu không → MAX(tt)+1 trong nhóm (dot, ki_hoc, nam_hoc)
+ *     class_id_ascending: lấy từ data nếu có, nếu không → 1 (dòng đầu của tt mới)
+ */
+
+async function prepareCourseScheduleTT(connection, records) {
+
+    const ttCache = {};
+    const courseTTCache = {};
+    const classIdCache = {};
+
+    for (const record of records) {
+
+        const { dot, ki_hoc, nam_hoc, course_name } = record;
+
+        const groupKey = `${dot}|${ki_hoc}|${nam_hoc}`;
+        const courseKey = `${dot}|${ki_hoc}|${nam_hoc}|${course_name}`;
+
+        // 1️⃣ Nếu chưa biết tt của course_name
+        if (!courseTTCache[courseKey]) {
+
+            // check DB xem course này đã có tt chưa
+            const [existing] = await connection.query(
+                `SELECT tt
+                 FROM course_schedule_details
+                 WHERE dot=? AND ki_hoc=? AND nam_hoc=? AND course_name=?
+                 LIMIT 1`,
+                [dot, ki_hoc, nam_hoc, course_name]
+            );
+
+            if (existing.length > 0) {
+
+                // đã tồn tại → reuse tt
+                courseTTCache[courseKey] = existing[0].tt;
+
+            } else {
+
+                // chưa tồn tại → lấy max tt
+                if (ttCache[groupKey] === undefined) {
+
+                    const [result] = await connection.query(
+                        `SELECT COALESCE(MAX(tt),0) as maxTt
+                         FROM course_schedule_details
+                         WHERE dot=? AND ki_hoc=? AND nam_hoc=?`,
+                        [dot, ki_hoc, nam_hoc]
+                    );
+
+                    ttCache[groupKey] = result[0].maxTt;
+                }
+
+                ttCache[groupKey] += 1;
+
+                courseTTCache[courseKey] = ttCache[groupKey];
+            }
+        }
+
+        record.tt = courseTTCache[courseKey];
+
+        // 2️⃣ class_id_ascending
+        if (!classIdCache[courseKey]) {
+            classIdCache[courseKey] = 0;
+        }
+
+        classIdCache[courseKey] += 1;
+
+        record.class_id_ascending = classIdCache[courseKey];
+    }
+
+    return records;
+}
+
+async function importCourseScheduleDetails(connection, records) {
+
+    const prepared = await prepareCourseScheduleTT(connection, records);
+
+    console.log(prepared[1]);   // check tt
+
+    return importGenericTable(
+        connection,
+        "course_schedule_details",
+        prepared,
+        {
+            uniqueKey: [
+                "dot",
+                "ki_hoc",
+                "nam_hoc",
+                "course_name",
+                "day_of_week",
+                "start_date",
+                "end_date",
+                "period_start",
+                "period_end"
+            ]
+        }
+    );
 }
 
 // ============================================
@@ -862,6 +976,9 @@ exports.importAll = async (req, res) => {
                         break;
                     case "teacher":
                         result = await importGvmoi(connection, tableData.data);
+                        break;
+                    case "schedule":
+                        result = await importCourseScheduleDetails(connection, tableData.data);
                         break;
                     case "business":
                     case "master":

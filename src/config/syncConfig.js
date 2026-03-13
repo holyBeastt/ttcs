@@ -128,9 +128,12 @@ module.exports = {
     // ============================================
 
     course_schedule_details: {
-        type: 'business',
+        type: 'schedule',
         description: 'Thời khóa biểu chi tiết',
-        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'tt', 'course_name', 'class_id_ascending'],
+        // uniqueKey dùng để SO SÁNH (tìm record đã tồn tại chưa)
+        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'course_name', 'day_of_week', 'start_date', 'end_date', 'period_start', 'period_end'],
+        // ttGroupKey: nhóm để tính MAX(tt) khi INSERT mới
+        // ttGroupKey: ['dot', 'ki_hoc', 'nam_hoc'],
     },
 
     giangday: {
