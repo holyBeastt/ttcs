@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NCKH V3 - Xem chung</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/nckh_v3.css" />
+
+  <style>
+    .nckh-v3-list-wrap {
+      padding: 16px;
+      max-width: 1700px;
+      margin: 0 auto;
+    }
+
+    .nckh-v3-list-toolbar {
+      display: flex;
+      align-items: end;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .nckh-v3-list-toolbar .toolbar-item {
+      min-width: 180px;
+    }
+
+    .nckh-v3-list-toolbar .toolbar-item label {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+      color: #495057;
+      display: block;
+    }
+
+    .nckh-v3-list-toolbar .toolbar-item select {
+      height: 42px;
+    }
+
+    .nckh-v3-list-toolbar .toolbar-item input {
+      height: 42px;
+    }
+
+    .nckh-v3-list-toolbar .toolbar-action button {
+      height: 42px;
+      min-width: 140px;
+    }
+
+    .nckh-v3-list-table {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .nckh-v3-list-table .table {
+      margin-bottom: 0;
+      min-width: 1500px;
+    }
+
+    .nckh-v3-list-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f6f8fa;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .nckh-v3-list-table td {
+      vertical-align: middle;
+      font-size: 0.92rem;
+    }
+
+    .nckh-v3-list-table .col-main {
+      min-width: 260px;
+      font-weight: 600;
+    }
+
+    .nckh-v3-row-khoa-duyet {
+      background: #fff8dc;
+    }
+
+    .nckh-v3-row-vien-duyet {
+      background: #e8f5e9;
+    }
+
+    .nckh-v3-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .nckh-v3-checkbox:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .nckh-v3-inline-note {
+      color: #6c757d;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <%- include('../header') %>
+
+  <div class="nckh-v3-list-wrap">
+    <div class="page-header">
+      <h1 class="page-title">Danh sách NCKH</h1>
+    </div>
+
+    <div class="nckh-v3-list-toolbar">
+      <div class="toolbar-item">
+        <!-- <label for="namHocFilter">Năm học</label> -->
+        <select id="namHocFilter" class="form-select"></select>
+      </div>
+
+      <div class="toolbar-item">
+        <!-- <label for="khoaFilter">Khoa</label> -->
+        <select id="khoaFilter" class="form-select">
+          <option value="ALL">Tất cả khoa</option>
+        </select>
+      </div>
+
+      <div class="toolbar-item" style="min-width: 300px;">
+        <label for="quickSearchInput">Tìm nhanh</label>
+        <input
+          id="quickSearchInput"
+          class="form-control"
+          placeholder="Tên công trình / tác giả / thành viên"
+        />
+      </div>
+
+      <div class="toolbar-action">
+        <button id="loadDataBtn" class="btn btn-primary">
+          <i class="bi bi-search"></i> Hiển thị
+        </button>
+      </div>
+    </div>
+
+    <div class="nckh-v3-list-table table-responsive">
+      <table class="table table-bordered table-hover text-center align-middle">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Loại NCKH</th>
+            <th>Phân loại</th>
+            <th class="text-start">Tên công trình</th>
+            <th class="text-start">Tác giả chính/Chủ nhiệm</th>
+            <th class="text-start">Thành viên</th>
+            <th>Khoa</th>
+            <th>Năm học</th>
+            <th>Tổng số tiết</th>
+            <th>Khoa duyệt</th>
+            <th>Viện NC duyệt</th>
+            <th>Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- <div class="nckh-v3-inline-note">
+      Nút sửa đang tạm ẩn theo yêu cầu. Trang này chỉ phục vụ xem và duyệt.
+    </div> -->
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+  <script src="/js/nckh_v3/main/permissions.js"></script>
+  <script src="/js/nckh_v3/list/index.js"></script>
+</body>
+
+</html>

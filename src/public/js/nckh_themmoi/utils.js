@@ -88,6 +88,32 @@ const NCKH_CONFIG = {
     }
 };
 
+function getApiBase() {
+    if (typeof window !== "undefined" && window.NCKH_API_BASE) {
+        return window.NCKH_API_BASE;
+    }
+    return "/v2";
+}
+
+if (typeof window !== "undefined" && typeof window.fetch === "function" && !window.__NCKH_FETCH_PATCHED__) {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+        const url = typeof input === "string" ? input : (input && input.url);
+        const base = getApiBase();
+
+        if (typeof url === "string" && url.startsWith("/v2/")) {
+            const mappedUrl = `${base}${url.slice(3)}`;
+            if (typeof input === "string") {
+                return originalFetch(mappedUrl, init);
+            }
+            return originalFetch(new Request(mappedUrl, input), init);
+        }
+
+        return originalFetch(input, init);
+    };
+    window.__NCKH_FETCH_PATCHED__ = true;
+}
+
 // =====================================================
 // CÔNG THỨC TÍNH TIẾT V2 (Client-side)
 // =====================================================
@@ -269,7 +295,7 @@ let giangVienCoHuu = [];
 
 async function loadGiangVienCoHuu() {
     try {
-        const response = await fetch("/v2/giang-vien-co-huu");
+        const response = await fetch(`${getApiBase()}/giang-vien-co-huu`);
         giangVienCoHuu = await response.json();
         // Export ra window để các file khác có thể truy cập
         window.giangVienCoHuu = giangVienCoHuu;
@@ -419,7 +445,7 @@ function hideFormTabIfViewOnly(formPanelId) {
  */
 async function loadQuyDinhSoGio(loaiNCKH) {
     try {
-        const response = await fetch(`/v2/quydinh/${loaiNCKH}`);
+        const response = await fetch(`${getApiBase()}/quydinh/${loaiNCKH}`);
         const data = await response.json();
         return data;
     } catch (error) {
@@ -468,7 +494,7 @@ async function loadTableDataV2(tabName, namHoc, khoa = 'ALL') {
     const encodedKhoa = encodeURIComponent(khoa);
 
     try {
-        const response = await fetch(`/v2/${config.apiPath}/${encodedNamHoc}/${encodedKhoa}`);
+        const response = await fetch(`${getApiBase()}/${config.apiPath}/${encodedNamHoc}/${encodedKhoa}`);
         const data = await response.json();
         return data;
     } catch (error) {
@@ -488,7 +514,7 @@ async function submitFormV2(tabName, formData) {
         throw new Error(`Unknown tab: ${tabName}`);
     }
 
-    const response = await fetch(`/v2/${config.apiPath}`, {
+    const response = await fetch(`${getApiBase()}/${config.apiPath}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -509,7 +535,7 @@ async function updateRecordV2(tabName, id, data) {
         throw new Error(`Unknown tab: ${tabName}`);
     }
 
-    const response = await fetch(`/v2/${config.apiPath}/edit/${id}`, {
+    const response = await fetch(`${getApiBase()}/${config.apiPath}/edit/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -523,7 +549,7 @@ async function updateRecordV2(tabName, id, data) {
  * @param {number} id - ID bản ghi
  */
 async function deleteRecordV2(id) {
-    const response = await fetch(`/v2/nckh/delete/${id}`, {
+    const response = await fetch(`${getApiBase()}/nckh/delete/${id}`, {
         method: "POST"
     });
 
@@ -536,7 +562,7 @@ async function deleteRecordV2(id) {
  * @param {number} status - 0 hoặc 1
  */
 async function updateApprovalV2(id, status) {
-    const response = await fetch(`/v2/nckh/approve/${id}`, {
+    const response = await fetch(`${getApiBase()}/nckh/approve/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ DaoTaoDuyet: status })
@@ -561,6 +587,7 @@ window.NCKH_V2_Utils = {
     // Constants
     NCKH_TYPES,
     NCKH_CONFIG,
+    getApiBase,
     getNCKHConfig,
 
     // Công thức tính tiết

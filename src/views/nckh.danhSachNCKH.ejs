@@ -103,6 +103,30 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
         <script src="/js/TKB/ag-grid-community.min.js"></script>
 
+        <script>
+            window.NCKH_VERSION = '<%= typeof nckhVersion !== "undefined" ? nckhVersion : "v2" %>';
+            window.NCKH_API_BASE = window.NCKH_VERSION === 'v3' ? '/v3/nckh' : '/v2';
+
+            (function patchFetchForV3() {
+                if (window.NCKH_VERSION !== 'v3' || typeof window.fetch !== 'function') return;
+                const originalFetch = window.fetch.bind(window);
+
+                window.fetch = function (input, init) {
+                    const url = typeof input === 'string' ? input : (input && input.url);
+
+                    if (typeof url === 'string' && url.startsWith('/v2/')) {
+                        const mappedUrl = window.NCKH_API_BASE + url.slice(3);
+                        if (typeof input === 'string') {
+                            return originalFetch(mappedUrl, init);
+                        }
+                        return originalFetch(new Request(mappedUrl, input), init);
+                    }
+
+                    return originalFetch(input, init);
+                };
+            })();
+        </script>
+
         <!-- NCKH V2 Utils -->
         <script src="/js/nckh_themmoi/utils.js"></script>
         

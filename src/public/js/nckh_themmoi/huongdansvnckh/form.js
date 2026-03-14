@@ -6,13 +6,15 @@
 (function () {
     'use strict';
 
+    const API_BASE = () => (window.NCKH_V2_Utils?.getApiBase?.() || "/v2");
+
     // =====================================================
     // LOAD LOAI HUONG DAN OPTIONS
     // =====================================================
 
     async function loadLoaiHuongDanOptions() {
         try {
-            const response = await fetch("/v2/quydinh/HUONGDAN");
+            const response = await fetch(`${API_BASE()}/quydinh/HUONGDAN`);
             const data = await response.json();
 
             const select = document.getElementById("loaiHuongDanHD");
@@ -95,8 +97,9 @@
         }
 
         try {
-            console.log("Sending POST request to /v2/huong-dan-sv-nckh");
-            const response = await fetch("/v2/huong-dan-sv-nckh", {
+            const endpoint = `${API_BASE()}/huong-dan-sv-nckh`;
+            console.log("Sending POST request to", endpoint);
+            const response = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData)

@@ -57,7 +57,7 @@ const getTable = async (req, res) => {
         }
 
         // Group by giảng viên
-        query += ` GROUP BY GiangVien, MaPhongBan ORDER BY GiangVien`;
+        query += ` GROUP BY GiangVien, MaPhongBan ORDER BY Khoa`;
 
         const [rows] = await connection.query(query, values);
 

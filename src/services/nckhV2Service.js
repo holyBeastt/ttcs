@@ -7,6 +7,8 @@
 
 const createPoolConnection = require("../config/databasePool");
 
+let nckhChungSchemaCache = null;
+
 // =====================================================
 // CONSTANTS - LOẠI NCKH
 // =====================================================
@@ -255,6 +257,151 @@ const buildKhoaFilterClause = (khoa) => {
     };
 };
 
+const pickExistingColumn = (columnSet, candidates) => {
+    for (const candidate of candidates) {
+        if (columnSet.has(candidate.toLowerCase())) {
+            return candidate;
+        }
+    }
+    return null;
+};
+
+const getNckhChungSchemaConfig = async (connection) => {
+    if (nckhChungSchemaCache) {
+        return nckhChungSchemaCache;
+    }
+
+    const [rows] = await connection.execute(`
+        SELECT COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nckh_chung'
+    `);
+
+    const columnSet = new Set(rows.map((r) => String(r.COLUMN_NAME).toLowerCase()));
+
+    const config = {
+        idCol: pickExistingColumn(columnSet, ["ID", "id"]),
+        loaiCol: pickExistingColumn(columnSet, ["LoaiNCKH", "loai_nckh"]),
+        phanLoaiCol: pickExistingColumn(columnSet, ["PhanLoai", "phan_loai"]),
+        namHocCol: pickExistingColumn(columnSet, ["NamHoc", "nam_hoc"]),
+        tenCongTrinhCol: pickExistingColumn(columnSet, ["TenCongTrinh", "ten_cong_trinh"]),
+        maSoCol: pickExistingColumn(columnSet, ["MaSo", "ma_so"]),
+        tongSoTietCol: pickExistingColumn(columnSet, ["TongSoTiet", "tong_so_tiet"]),
+        khoaCol: pickExistingColumn(columnSet, ["Khoa", "khoa", "khoa_id"]),
+        khoaDuyetCol: pickExistingColumn(columnSet, ["KhoaDuyet", "khoa_duyet"]),
+        daoTaoDuyetCol: pickExistingColumn(columnSet, ["DaoTaoDuyet", "vien_nc_duyet"]),
+        tacGiaChinhCol: pickExistingColumn(columnSet, ["TacGiaChinh", "tac_gia_chinh"]),
+        danhSachThanhVienCol: pickExistingColumn(columnSet, ["DanhSachThanhVien", "danh_sach_thanh_vien"]),
+        tongSoTacGiaCol: pickExistingColumn(columnSet, ["TongSoTacGia", "tong_so_tac_gia"]),
+        tongSoThanhVienCol: pickExistingColumn(columnSet, ["TongSoThanhVien", "tong_so_thanh_vien"]),
+        ngayNghiemThuCol: pickExistingColumn(columnSet, ["NgayNghiemThu", "ngay_nghiem_thu"]),
+        ngayQuyetDinhCol: pickExistingColumn(columnSet, ["NgayQuyetDinh", "ngay_quyet_dinh"]),
+        ketQuaCol: pickExistingColumn(columnSet, ["KetQua", "ket_qua"]),
+        soNamThucHienCol: pickExistingColumn(columnSet, ["SoNamThucHien", "so_nam_thuc_hien"]),
+        soDongTacGiaCol: pickExistingColumn(columnSet, ["SoDongTacGia", "so_dong_tac_gia"]),
+        createdByCol: pickExistingColumn(columnSet, ["CreatedBy", "created_by"]),
+    };
+
+    nckhChungSchemaCache = config;
+    return config;
+};
+
+const buildKhoaFilterClauseBySchema = (khoa, schemaConfig, directKhoaFilter = false) => {
+    if (khoa === 'ALL') {
+        return { whereClause: '', params: [] };
+    }
+
+    if (schemaConfig.khoaCol && (schemaConfig.khoaCol !== 'khoa_id' || directKhoaFilter)) {
+        return {
+            whereClause: ` AND ${schemaConfig.khoaCol} = ?`,
+            params: [khoa],
+        };
+    }
+
+    if (schemaConfig.tacGiaChinhCol && schemaConfig.danhSachThanhVienCol) {
+        const khoaPattern = `(${khoa} -`;
+        return {
+            whereClause: ` AND (${schemaConfig.tacGiaChinhCol} LIKE ? OR ${schemaConfig.danhSachThanhVienCol} LIKE ?)`,
+            params: [`%${khoaPattern}%`, `%${khoaPattern}%`],
+        };
+    }
+
+    // Fallback an toàn: nếu không đủ cột để lọc theo khoa thì bỏ lọc.
+    return { whereClause: '', params: [] };
+};
+
+const normalizeLegacyNckhRecord = (row) => {
+    if (row.ID === undefined && row.id !== undefined) row.ID = row.id;
+    if (row.LoaiNCKH === undefined && row.loai_nckh !== undefined) row.LoaiNCKH = row.loai_nckh;
+    if (row.PhanLoai === undefined && row.phan_loai !== undefined) row.PhanLoai = row.phan_loai;
+    if (row.NamHoc === undefined && row.nam_hoc !== undefined) row.NamHoc = row.nam_hoc;
+    if (row.TenCongTrinh === undefined && row.ten_cong_trinh !== undefined) row.TenCongTrinh = row.ten_cong_trinh;
+    if (row.MaSo === undefined && row.ma_so !== undefined) row.MaSo = row.ma_so;
+    if (row.TacGiaChinh === undefined && row.tac_gia_chinh !== undefined) row.TacGiaChinh = row.tac_gia_chinh;
+    if (row.DanhSachThanhVien === undefined && row.danh_sach_thanh_vien !== undefined) row.DanhSachThanhVien = row.danh_sach_thanh_vien;
+    if (row.TongSoTacGia === undefined && row.tong_so_tac_gia !== undefined) row.TongSoTacGia = row.tong_so_tac_gia;
+    if (row.TongSoThanhVien === undefined && row.tong_so_thanh_vien !== undefined) row.TongSoThanhVien = row.tong_so_thanh_vien;
+    if (row.TongSoTiet === undefined && row.tong_so_tiet !== undefined) row.TongSoTiet = row.tong_so_tiet;
+    if (row.NgayNghiemThu === undefined && row.ngay_nghiem_thu !== undefined) row.NgayNghiemThu = row.ngay_nghiem_thu;
+    if (row.NgayQuyetDinh === undefined && row.ngay_quyet_dinh !== undefined) row.NgayQuyetDinh = row.ngay_quyet_dinh;
+    if (row.KetQua === undefined && row.ket_qua !== undefined) row.KetQua = row.ket_qua;
+    if (row.Khoa === undefined && row.khoa !== undefined) row.Khoa = row.khoa;
+    if (row.Khoa === undefined && row.khoa_id !== undefined) row.Khoa = row.khoa_id;
+    if (row.SoNamThucHien === undefined && row.so_nam_thuc_hien !== undefined) row.SoNamThucHien = row.so_nam_thuc_hien;
+    if (row.SoDongTacGia === undefined && row.so_dong_tac_gia !== undefined) row.SoDongTacGia = row.so_dong_tac_gia;
+    if (row.KhoaDuyet === undefined && row.khoa_duyet !== undefined) row.KhoaDuyet = row.khoa_duyet;
+    if (row.DaoTaoDuyet === undefined && row.vien_nc_duyet !== undefined) row.DaoTaoDuyet = row.vien_nc_duyet;
+    if (row.CreatedAt === undefined && row.created_at !== undefined) row.CreatedAt = row.created_at;
+    return row;
+};
+
+const resolveKhoaValueForSchema = async (connection, khoa, schemaConfig) => {
+    if (khoa === undefined || khoa === null || khoa === '' || !schemaConfig.khoaCol) {
+        return null;
+    }
+
+    if (schemaConfig.khoaCol !== 'khoa_id') {
+        return khoa;
+    }
+
+    if (!Number.isNaN(Number(khoa)) && String(khoa).trim() !== '') {
+        return Number(khoa);
+    }
+
+    const [rows] = await connection.execute(
+        'SELECT id FROM phongban WHERE MaPhongBan = ? LIMIT 1',
+        [khoa]
+    );
+
+    return rows.length > 0 ? Number(rows[0].id) : -1;
+};
+
+const buildNckhColumnValueMap = (loaiNCKH, data, schemaConfig, khoaValue) => {
+    const map = {};
+
+    if (schemaConfig.loaiCol) map[schemaConfig.loaiCol] = loaiNCKH;
+    if (schemaConfig.phanLoaiCol) map[schemaConfig.phanLoaiCol] = data.phanLoai || '';
+    if (schemaConfig.namHocCol) map[schemaConfig.namHocCol] = data.namHoc || '';
+    if (schemaConfig.tenCongTrinhCol) map[schemaConfig.tenCongTrinhCol] = data.tenCongTrinh || '';
+    if (schemaConfig.maSoCol) map[schemaConfig.maSoCol] = data.maSo || null;
+    if (schemaConfig.tacGiaChinhCol) map[schemaConfig.tacGiaChinhCol] = data.tacGiaChinh || '';
+    if (schemaConfig.danhSachThanhVienCol) map[schemaConfig.danhSachThanhVienCol] = data.danhSachThanhVien || null;
+    if (schemaConfig.tongSoTacGiaCol) map[schemaConfig.tongSoTacGiaCol] = data.tongSoTacGia || 0;
+    if (schemaConfig.tongSoThanhVienCol) map[schemaConfig.tongSoThanhVienCol] = data.tongSoThanhVien || 0;
+    if (schemaConfig.tongSoTietCol) map[schemaConfig.tongSoTietCol] = data.tongSoTiet || 0;
+    if (schemaConfig.ngayNghiemThuCol) map[schemaConfig.ngayNghiemThuCol] = convertDateFormat(data.ngayNghiemThu);
+    if (schemaConfig.ngayQuyetDinhCol) map[schemaConfig.ngayQuyetDinhCol] = convertDateFormat(data.ngayQuyetDinh);
+    if (schemaConfig.ketQuaCol) map[schemaConfig.ketQuaCol] = data.ketQua || null;
+    if (schemaConfig.khoaCol) map[schemaConfig.khoaCol] = khoaValue;
+    if (schemaConfig.soNamThucHienCol) map[schemaConfig.soNamThucHienCol] = data.soNamThucHien || 1;
+    if (schemaConfig.soDongTacGiaCol) map[schemaConfig.soDongTacGiaCol] = data.soDongTacGia || 1;
+    if (schemaConfig.khoaDuyetCol) map[schemaConfig.khoaDuyetCol] = data.khoaDuyet !== undefined ? data.khoaDuyet : 0;
+    if (schemaConfig.daoTaoDuyetCol) map[schemaConfig.daoTaoDuyetCol] = data.daoTaoDuyet !== undefined ? data.daoTaoDuyet : 0;
+    if (schemaConfig.createdByCol) map[schemaConfig.createdByCol] = data.createdBy || null;
+
+    return map;
+};
+
 // =====================================================
 // DATABASE HELPERS - BẢNG MỚI nckh_quydinhsogio
 // =====================================================
@@ -396,34 +543,18 @@ const saveRecord = async (loaiNCKH, data) => {
     try {
         connection = await createPoolConnection();
 
-        const query = `
-            INSERT INTO nckh_chung (
-                LoaiNCKH, PhanLoai, NamHoc, TenCongTrinh, MaSo,
-                TacGiaChinh, DanhSachThanhVien, TongSoTacGia, TongSoThanhVien,
-                NgayNghiemThu, NgayQuyetDinh, KetQua, Khoa,
-                SoNamThucHien, SoDongTacGia, DaoTaoDuyet, CreatedBy
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+        const khoaValue = await resolveKhoaValueForSchema(connection, data.khoa, schemaConfig);
+        const columnValueMap = buildNckhColumnValueMap(loaiNCKH, data, schemaConfig, khoaValue);
+        const columns = Object.keys(columnValueMap);
 
-        const params = [
-            loaiNCKH,
-            data.phanLoai || '',
-            data.namHoc || '',
-            data.tenCongTrinh || '',
-            data.maSo || null,
-            data.tacGiaChinh || '',
-            data.danhSachThanhVien || null,
-            data.tongSoTacGia || 0,
-            data.tongSoThanhVien || 0,
-            convertDateFormat(data.ngayNghiemThu),
-            convertDateFormat(data.ngayQuyetDinh),
-            data.ketQua || null,
-            data.khoa || null,
-            data.soNamThucHien || 1,
-            data.soDongTacGia || 1,
-            0, // DaoTaoDuyet mặc định = 0
-            data.createdBy || null
-        ];
+        if (!columns.length) {
+            throw new Error('Khong xac dinh duoc cot de luu vao nckh_chung');
+        }
+
+        const placeholders = columns.map(() => '?').join(', ');
+        const query = `INSERT INTO nckh_chung (${columns.join(', ')}) VALUES (${placeholders})`;
+        const params = columns.map((column) => columnValueMap[column]);
 
         const [result] = await connection.execute(query, params);
         return { success: true, insertId: result.insertId };
@@ -447,18 +578,29 @@ const getRecords = async (loaiNCKH, namHoc, khoa) => {
     try {
         connection = await createPoolConnection();
 
-        let query = `SELECT * FROM nckh_chung WHERE LoaiNCKH = ? AND NamHoc = ?`;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+
+        if (!schemaConfig.loaiCol || !schemaConfig.namHocCol || !schemaConfig.idCol) {
+            throw new Error("Schema nckh_chung khong hop le: thieu cot loai/nam hoc/id");
+        }
+
+        let query = `SELECT * FROM nckh_chung WHERE ${schemaConfig.loaiCol} = ? AND ${schemaConfig.namHocCol} = ?`;
         let params = [loaiNCKH, namHoc];
 
         // Filter theo Khoa nếu không phải ALL
-        const { whereClause, params: khoaParams } = buildKhoaFilterClause(khoa);
+        const khoaValue = await resolveKhoaValueForSchema(connection, khoa, schemaConfig);
+        const { whereClause, params: khoaParams } = buildKhoaFilterClauseBySchema(
+            schemaConfig.khoaCol === 'khoa_id' ? khoaValue : khoa,
+            schemaConfig,
+            schemaConfig.khoaCol === 'khoa_id'
+        );
         query += whereClause;
         params = params.concat(khoaParams);
 
-        query += ` ORDER BY ID DESC`;
+        query += ` ORDER BY ${schemaConfig.idCol} DESC`;
 
         const [results] = await connection.execute(query, params);
-        return results;
+        return results.map(normalizeLegacyNckhRecord);
     } catch (error) {
         console.error(`Lỗi khi lấy dữ liệu ${loaiNCKH}:`, error);
         throw error;
@@ -478,18 +620,29 @@ const getAllRecords = async (namHoc, khoa) => {
     try {
         connection = await createPoolConnection();
 
-        let query = `SELECT * FROM nckh_chung WHERE NamHoc = ?`;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+
+        if (!schemaConfig.namHocCol || !schemaConfig.idCol) {
+            throw new Error("Schema nckh_chung khong hop le: thieu cot nam hoc/id");
+        }
+
+        let query = `SELECT * FROM nckh_chung WHERE ${schemaConfig.namHocCol} = ?`;
         let params = [namHoc];
 
         // Filter theo Khoa nếu không phải ALL
-        const { whereClause, params: khoaParams } = buildKhoaFilterClause(khoa);
+        const khoaValue = await resolveKhoaValueForSchema(connection, khoa, schemaConfig);
+        const { whereClause, params: khoaParams } = buildKhoaFilterClauseBySchema(
+            schemaConfig.khoaCol === 'khoa_id' ? khoaValue : khoa,
+            schemaConfig,
+            schemaConfig.khoaCol === 'khoa_id'
+        );
         query += whereClause;
         params = params.concat(khoaParams);
 
-        query += ` ORDER BY ID DESC`;
+        query += ` ORDER BY ${schemaConfig.idCol} DESC`;
 
         const [results] = await connection.execute(query, params);
-        return results;
+        return results.map(normalizeLegacyNckhRecord);
     } catch (error) {
         console.error(`Lỗi khi lấy toàn bộ dữ liệu NCKH:`, error);
         throw error;
@@ -508,10 +661,12 @@ const getRecordById = async (id) => {
     try {
         connection = await createPoolConnection();
 
-        const query = `SELECT * FROM nckh_chung WHERE ID = ?`;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+        const idCol = schemaConfig.idCol || 'id';
+        const query = `SELECT * FROM nckh_chung WHERE ${idCol} = ?`;
         const [rows] = await connection.execute(query, [id]);
 
-        return rows.length > 0 ? rows[0] : null;
+        return rows.length > 0 ? normalizeLegacyNckhRecord(rows[0]) : null;
     } finally {
         if (connection) connection.release();
     }
@@ -528,42 +683,40 @@ const updateRecord = async (id, data) => {
     try {
         connection = await createPoolConnection();
 
-        const query = `
-            UPDATE nckh_chung SET
-                PhanLoai = ?,
-                TenCongTrinh = ?,
-                MaSo = ?,
-                TacGiaChinh = ?,
-                DanhSachThanhVien = ?,
-                TongSoTacGia = ?,
-                TongSoThanhVien = ?,
-                NgayNghiemThu = ?,
-                NgayQuyetDinh = ?,
-                KetQua = ?,
-                Khoa = ?,
-                SoNamThucHien = ?,
-                SoDongTacGia = ?,
-                DaoTaoDuyet = ?
-            WHERE ID = ?
-        `;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+        const idCol = schemaConfig.idCol || 'id';
+        const loaiNCKH = data.loaiNCKH || data.LoaiNCKH || null;
+        const khoaValue = await resolveKhoaValueForSchema(connection, data.khoa || data.Khoa, schemaConfig);
+        const columnValueMap = buildNckhColumnValueMap(loaiNCKH, {
+            ...data,
+            phanLoai: data.phanLoai || data.PhanLoai,
+            namHoc: data.namHoc || data.NamHoc,
+            tenCongTrinh: data.tenCongTrinh || data.TenCongTrinh,
+            maSo: data.maSo || data.MaSo,
+            tacGiaChinh: data.tacGiaChinh || data.TacGiaChinh,
+            danhSachThanhVien: data.danhSachThanhVien || data.DanhSachThanhVien,
+            tongSoTacGia: data.tongSoTacGia || data.TongSoTacGia,
+            tongSoThanhVien: data.tongSoThanhVien || data.TongSoThanhVien,
+            tongSoTiet: data.tongSoTiet || data.TongSoTiet,
+            ngayNghiemThu: data.ngayNghiemThu || data.NgayNghiemThu,
+            ngayQuyetDinh: data.ngayQuyetDinh || data.NgayQuyetDinh,
+            ketQua: data.ketQua || data.KetQua,
+            khoa: data.khoa || data.Khoa,
+            soNamThucHien: data.soNamThucHien || data.SoNamThucHien,
+            soDongTacGia: data.soDongTacGia || data.SoDongTacGia,
+            daoTaoDuyet: data.daoTaoDuyet !== undefined ? data.daoTaoDuyet : data.DaoTaoDuyet,
+            khoaDuyet: data.khoaDuyet !== undefined ? data.khoaDuyet : data.KhoaDuyet,
+            createdBy: data.createdBy || data.CreatedBy,
+        }, schemaConfig, khoaValue);
 
-        const params = [
-            data.phanLoai || data.PhanLoai,
-            data.tenCongTrinh || data.TenCongTrinh,
-            data.maSo || data.MaSo || null,
-            data.tacGiaChinh || data.TacGiaChinh,
-            data.danhSachThanhVien || data.DanhSachThanhVien || null,
-            data.tongSoTacGia || data.TongSoTacGia || 0,
-            data.tongSoThanhVien || data.TongSoThanhVien || 0,
-            convertDateFormat(data.ngayNghiemThu || data.NgayNghiemThu),
-            convertDateFormat(data.ngayQuyetDinh || data.NgayQuyetDinh),
-            data.ketQua || data.KetQua || null,
-            data.khoa || data.Khoa || null,
-            data.soNamThucHien || data.SoNamThucHien || 1,
-            data.soDongTacGia || data.SoDongTacGia || 1,
-            data.daoTaoDuyet !== undefined ? data.daoTaoDuyet : (data.DaoTaoDuyet !== undefined ? data.DaoTaoDuyet : 0),
-            id
-        ];
+        delete columnValueMap[schemaConfig.loaiCol];
+        delete columnValueMap[schemaConfig.createdByCol];
+        delete columnValueMap[schemaConfig.khoaDuyetCol];
+
+        const columns = Object.keys(columnValueMap);
+        const setClause = columns.map((column) => `${column} = ?`).join(', ');
+        const query = `UPDATE nckh_chung SET ${setClause} WHERE ${idCol} = ?`;
+        const params = columns.map((column) => columnValueMap[column]).concat(id);
 
         const [result] = await connection.execute(query, params);
         return { success: true, affectedRows: result.affectedRows };
@@ -585,7 +738,9 @@ const deleteRecord = async (id) => {
     try {
         connection = await createPoolConnection();
 
-        const query = `DELETE FROM nckh_chung WHERE ID = ?`;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+        const idCol = schemaConfig.idCol || 'id';
+        const query = `DELETE FROM nckh_chung WHERE ${idCol} = ?`;
         const [result] = await connection.execute(query, [id]);
 
         return { success: true, affectedRows: result.affectedRows };
@@ -609,12 +764,20 @@ const updateApprovalStatus = async (id, daoTaoDuyet) => {
     try {
         connection = await createPoolConnection();
 
-        // Nếu bỏ duyệt Đào Tạo, cascade bỏ duyệt Khoa
-        if (daoTaoDuyet === 0) {
-            const query = `UPDATE nckh_chung SET DaoTaoDuyet = 0, KhoaDuyet = 0 WHERE ID = ?`;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+        const idCol = schemaConfig.idCol || 'id';
+        const daoTaoDuyetCol = schemaConfig.daoTaoDuyetCol;
+        const khoaDuyetCol = schemaConfig.khoaDuyetCol;
+
+        if (!daoTaoDuyetCol) {
+            throw new Error('Schema nckh_chung khong co cot duyet vien/dao tao');
+        }
+
+        if (daoTaoDuyet === 0 && khoaDuyetCol) {
+            const query = `UPDATE nckh_chung SET ${daoTaoDuyetCol} = 0, ${khoaDuyetCol} = 0 WHERE ${idCol} = ?`;
             await connection.execute(query, [id]);
         } else {
-            const query = `UPDATE nckh_chung SET DaoTaoDuyet = ? WHERE ID = ?`;
+            const query = `UPDATE nckh_chung SET ${daoTaoDuyetCol} = ? WHERE ${idCol} = ?`;
             await connection.execute(query, [daoTaoDuyet, id]);
         }
 
@@ -634,7 +797,15 @@ const updateKhoaApprovalStatus = async (id, khoaDuyet) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        const query = `UPDATE nckh_chung SET KhoaDuyet = ? WHERE ID = ?`;
+        const schemaConfig = await getNckhChungSchemaConfig(connection);
+        const idCol = schemaConfig.idCol || 'id';
+        const khoaDuyetCol = schemaConfig.khoaDuyetCol;
+
+        if (!khoaDuyetCol) {
+            throw new Error('Schema nckh_chung khong co cot duyet khoa');
+        }
+
+        const query = `UPDATE nckh_chung SET ${khoaDuyetCol} = ? WHERE ${idCol} = ?`;
         console.log(`[updateKhoaApprovalStatus] Executing: ${query} with values [${khoaDuyet}, ${id}]`);
         const [result] = await connection.execute(query, [khoaDuyet, id]);
         console.log(`[updateKhoaApprovalStatus] Result:`, result);

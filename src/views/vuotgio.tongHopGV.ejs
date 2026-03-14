@@ -114,10 +114,7 @@
             font-size: 0.85rem;
             opacity: 0.9;
         }
-        .fixed-section {
-            height: 500px;
-            overflow-y: auto;
-        }
+
         .search {
             width: 200px;
             padding: 8px;
@@ -137,6 +134,41 @@
             color: green;
             font-weight: bold;
         }
+        /* Header cố định: cho tbody cuộn độc lập, thead đứng yên */
+        #mainTable {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        #mainTable thead tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        #mainTable thead th {
+            background-color: #4472C4;
+            color: #fff;
+            padding: 8px 6px;
+            border: 1px solid #2c5282;
+        }
+        #mainTable tbody {
+            display: block;
+            max-height: 450px;
+            overflow-y: auto;
+            width: 100%;
+            scrollbar-gutter: stable; /* dự trữ chỗ scrollbar — tránh lệch cột */
+        }
+        #mainTable tfoot {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        #mainTable tbody tr,
+        #mainTable tfoot tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
     </style>
 </head>
 
@@ -145,9 +177,9 @@
 
     <div class="vuotgio-v2-container">
         <!-- Page Header -->
-        <div class="page-header">
+        <!-- <div class="page-header">
             <h2 class="page-title">Tổng Hợp Vượt Giờ Theo Giảng Viên</h2>
-        </div>
+        </div> -->
 
 
 
@@ -158,23 +190,53 @@
             </div>
 
             <div class="grid-toolbar">
-                <div style="flex: 1; max-width: 200px;">
-                    <label class="form-label mb-1">Năm học</label>
-                    <select id="namHocXem" class="form-select"></select>
-                </div>
-                <div style="flex: 1; max-width: 200px;">
-                    <label class="form-label mb-1">Khoa</label>
-                    <select id="khoaXem" class="form-select">
-                        <option value="ALL">Tất cả</option>
-                    </select>
-                </div>
-                <button id="loadDataBtn" class="btn btn-primary" style="height: 38px;">
-                    TẢI DỮ LIỆU
-                </button>
-                <button id="exportBtn" class="btn btn-success" style="height: 38px;">
-                    <i class="fas fa-file-excel me-1"></i>XUẤT EXCEL
+                <select class="selectop" id="namHocXem" style="width: 130px; margin: 0; box-shadow: none;">
+                    <option value="">Chọn năm học</option>
+                </select>
+                <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
+                    <option value="ALL">Tất cả khoa</option>
+                </select>
+                <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
+                    Hiển thị
                 </button>
             </div>
+
+            <!-- Summary Boxes -->
+            <div class="summary-row" id="summaryRow" style="display: none;">
+                <div class="summary-box primary">
+                    <div class="value" id="totalGV">0</div>
+                    <div class="label">Tổng giảng viên</div>
+                </div>
+                <div class="summary-box success">
+                    <div class="value" id="gvCoVuotGio">0</div>
+                    <div class="label">GV có vượt giờ</div>
+                </div>
+                <div class="summary-box warning">
+                    <div class="value" id="totalVuotGio">0</div>
+                    <div class="label">Tổng tiết vượt giờ</div>
+                </div>
+            </div>
+
+            <!-- Công thức tính vượt giờ -->
+            <!-- <div class="formula-info" id="formulaInfo" style="display: none;">
+                <h6><i class="fas fa-calculator me-2"></i>Công thức tính số tiết vượt giờ</h6>
+                <div class="formula">
+                    Tổng số tiết thực hiện = Ngoài QC + Coi chấm ra đề thi + Hướng dẫn ĐATN
+                </div>
+                <div class="formula mt-2">
+                    Định mức phải giảng = Định mức gốc × (100 − % Miễn giảm) / 100
+                </div>
+                <div class="formula mt-2">
+                    Định mức NCKH = Định mức phải giảng (cùng giá trị)
+                </div>
+                <div class="formula mt-2">
+                    Số tiết chưa hoàn thành NCKH = MAX(0, Định mức NCKH − NCKH thực hiện − MIN(Giảng dạy TKB, phần NCKH thiếu))
+                </div>
+                <div class="formula mt-2">
+                    <strong>Vượt giờ = MAX(0, Tổng TH − Định mức phải giảng − Số tiết chưa hoàn thành NCKH)</strong>
+                </div>
+                <div class="note">※ Số tiết giảng dạy theo TKB được dùng để bù cho phần NCKH nếu chưa hoàn thành, không tính vào tổng thực hiện.</div>
+            </div> -->
 
             <!-- Filter Row -->
             <div class="d-flex my-3" style="height: 70px">
@@ -186,16 +248,16 @@
                 <table class="text-center" style="width: 100%" id="mainTable">
                     <thead>
                         <tr>
-                            <th style="width: 50px;">STT</th>
-                            <th style="width: 100px;">Mã GV</th>
+                            <th style="width: 40px;">STT</th>
                             <th style="width: 180px;">Họ tên</th>
-                            <th style="width: 80px;">Khoa</th>
-                            <th style="width: 100px;">Chức danh</th>
-                            <th style="width: 100px;">Thực hiện</th>
-                            <th style="width: 100px;">Định mức</th>
-                            <th style="width: 100px;">Thiếu NCKH</th>
+                            <th style="width: 70px;">Khoa</th>
+                            <th style="width: 70px;">% Miễn giảm</th>
+                            <th style="width: 110px;">Giảng dạy TKB</th>
+                            <th style="width: 120px;">Tổng số tiết thực hiện</th>
+                            <th style="width: 120px;">Định mức phải giảng</th>
+                            <th style="width: 140px;">Tổng số tiết chưa hoàn thành NCKH</th>
                             <th style="width: 100px;">Vượt giờ</th>
-                            <th style="width: 100px;">Thao tác</th>
+                            <th style="width: 90px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -229,6 +291,8 @@
             </div>
         </div>
     </div>
+
+    
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

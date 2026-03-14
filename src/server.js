@@ -35,10 +35,6 @@ const phuLucHDRoute = require("./routes/phuLucHDRoute");
 const exportHDRoute = require("./routes/exportHDRoute");
 const logRoute = require("./routes/logRoute");
 const xemCacLopMoiRoute = require("./routes/xemCacLopMoiRoute");
-const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
-const vuotGioExportRoute = require("./routes/vuotGioExportRoute");
-const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
-const vuotGioCuoiKyRoute = require("./routes/vuotGioCuoiKyRoute");
 const thongkemgRoute = require("./routes/thongkemgRoute");
 const thongkenckhRoute = require("./routes/thongkenckhRoute");
 const thongkedoanRoute = require("./routes/thongkedoanRoute");
@@ -69,7 +65,6 @@ const TKBImportRoute = require("./routes/TKBImportRoute");
 // Phần đồ án
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
 const doAnRoute = require("./routes/doAnRoute");
-const vuotGioDoAnDuKienRoute = require("./routes/vuotGioDoAnDuKienRoute");
 const doAnHopDongDuKienRoute = require("./routes/doAnHopDongDuKienRoute");
 const exportPhuLucDARoute = require("./routes/exportPhuLucDARoute");
 const hopDongDARoute = require("./routes/hopDongDARoute");
@@ -158,9 +153,6 @@ app.use("/", exportHDRoute);
 app.use("/", logRoute);
 app.use("/", xemCacLopGvmRoute);
 app.use("/", xemCacLopMoiRoute);
-app.use("/", vuotGioAddClassRoute);
-app.use("/", vuotGioExportRoute);
-app.use("/", vuotGioSoTietDMRouter);
 app.use("/", thongkemgRoute);
 app.use("/", thongkemonhocRoute);
 app.use("/", thongkenckhRoute);
@@ -176,7 +168,6 @@ app.use("/", soHopDong);
 app.use("/", duyetHopDongMoiGiang);
 app.use("/", duyetHopDongDoAn);
 app.use("/", previewHopDong);
-app.use("/", vuotGioCuoiKyRoute);
 
 app.use("/", chinhSuaQuyChuanRoute);
 app.use("/", chinhSuaDoAnRoute);
@@ -194,7 +185,6 @@ app.use("/", TKBImportRoute);
 // Phần đồ án
 app.use("/", doAnRoute);
 app.use("/", vuotGioImportDoAnRoute);
-app.use("/", vuotGioDoAnDuKienRoute);
 app.use("/", doAnHopDongDuKienRoute);
 app.use("/", hopDongDARoute);
 
@@ -218,6 +208,7 @@ const tableQc = require("./routes/gvmRoute");
 const xoaQCDK = require("./routes/qcdkRoute");
 const nckhRoute = require("./routes/nckhRoute");
 const nckhV2Route = require("./routes/nckhV2Route");
+const nckhV3Route = require("./routes/nckhV3Route");
 const vuotGioV2Route = require("./routes/vuotGioV2Route");
 const { backupDatabase } = require("./controllers/backupController");
 
@@ -227,6 +218,7 @@ app.use("/", tableQc); // cấu hình import
 app.use("/", xoaQCDK);
 app.use("/", nckhRoute);
 app.use("/v2", nckhV2Route); // NCKH V2 routes
+app.use("/v3/nckh", nckhV3Route); // NCKH V3 routes
 app.use("/v2/vuotgio", vuotGioV2Route); // VuotGio V2 routes
 
 // Thay đổi giới hạn kích thước payload (ví dụ: 10mb)

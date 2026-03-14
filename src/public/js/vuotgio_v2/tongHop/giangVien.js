@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listeners
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
-    document.getElementById('exportBtn').addEventListener('click', exportExcel);
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) exportBtn.addEventListener('click', exportExcel);
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
 });
 
@@ -102,6 +103,10 @@ async function loadData() {
         globalData = data;
         renderTable(globalData);
         updateSummary(globalData);
+
+        // Hiện công thức sau khi có dữ liệu
+        const formulaInfo = document.getElementById('formulaInfo');
+        if (formulaInfo) formulaInfo.style.display = '';
         
         if (data.length === 0) {
             Swal.fire('Thông báo', 'Không có dữ liệu', 'info');
@@ -124,6 +129,7 @@ function renderTable(data) {
     let STT = 1;
 
     // Calculate totals
+    let totalGiangDay = 0;
     let totalThucHien = 0;
     let totalDinhMuc = 0;
     let totalThieuNCKH = 0;
@@ -138,42 +144,46 @@ function renderTable(data) {
         sttTd.textContent = STT++;
         tableRow.appendChild(sttTd);
 
-        // Mã GV (không có trong API, để trống hoặc dùng STT)
-        const maGVTd = document.createElement('td');
-        maGVTd.textContent = STT - 1;
-        tableRow.appendChild(maGVTd);
-
-        // Họ tên (giangVien từ API)
+        // Họ tên
         const hoTenTd = document.createElement('td');
         hoTenTd.textContent = row.giangVien || '';
         hoTenTd.style.textAlign = 'left';
         tableRow.appendChild(hoTenTd);
 
-        // Khoa (maKhoa từ API)
+        // Khoa
         const khoaTd = document.createElement('td');
         khoaTd.textContent = row.maKhoa || '';
         tableRow.appendChild(khoaTd);
 
-        // Chức danh (không có trong API)
-        const chucDanhTd = document.createElement('td');
-        chucDanhTd.textContent = '';
-        tableRow.appendChild(chucDanhTd);
+        // % Miễn giảm
+        const mgTd = document.createElement('td');
+        const mg = row.phanTramMienGiam || 0;
+        mgTd.textContent = mg > 0 ? mg + '%' : '0%';
+        if (mg > 0) mgTd.style.color = '#e67e22';
+        tableRow.appendChild(mgTd);
 
-        // Thực hiện (soTietThucHien từ API)
+        // Giảng dạy TKB
+        const giangDayTd = document.createElement('td');
+        giangDayTd.textContent = formatNumber(row.soTietGiangDay);
+        giangDayTd.style.textAlign = 'right';
+        tableRow.appendChild(giangDayTd);
+        totalGiangDay += row.soTietGiangDay || 0;
+
+        // Tổng số tiết thực hiện
         const thucHienTd = document.createElement('td');
         thucHienTd.textContent = formatNumber(row.soTietThucHien);
         thucHienTd.style.textAlign = 'right';
         tableRow.appendChild(thucHienTd);
         totalThucHien += row.soTietThucHien || 0;
 
-        // Định mức (soTietDinhMuc từ API)
+        // Định mức phải giảng
         const dinhMucTd = document.createElement('td');
         dinhMucTd.textContent = formatNumber(row.soTietDinhMuc);
         dinhMucTd.style.textAlign = 'right';
         tableRow.appendChild(dinhMucTd);
         totalDinhMuc += row.soTietDinhMuc || 0;
 
-        // Thiếu NCKH (soTietThieuNCKH từ API)
+        // Tổng số tiết chưa hoàn thành NCKH
         const thieuNCKHTd = document.createElement('td');
         thieuNCKHTd.textContent = formatNumber(row.soTietThieuNCKH);
         thieuNCKHTd.style.textAlign = 'right';
@@ -183,7 +193,7 @@ function renderTable(data) {
         tableRow.appendChild(thieuNCKHTd);
         totalThieuNCKH += row.soTietThieuNCKH || 0;
 
-        // Vượt giờ (soTietVuotGio từ API)
+        // Vượt giờ
         const vuotGioTd = document.createElement('td');
         vuotGioTd.textContent = formatNumber(row.soTietVuotGio);
         vuotGioTd.style.textAlign = 'right';
@@ -193,7 +203,7 @@ function renderTable(data) {
         tableRow.appendChild(vuotGioTd);
         totalVuotGio += row.soTietVuotGio || 0;
 
-        // Thao tác - sử dụng giangVien làm ID
+        // Thao tác
         const actionTd = document.createElement('td');
         actionTd.innerHTML = `
             <button class="btn btn-sm btn-info" onclick="showDetail('${encodeURIComponent(row.giangVien)}', '${row.giangVien}')" title="Xem chi tiết">
@@ -205,13 +215,14 @@ function renderTable(data) {
         tableBody.appendChild(tableRow);
     });
 
-    // Render footer (totals)
+    // Render footer (totals) — 8 cột: STT, Họ tên, Khoa, %MG, TH, ĐM, NCKH, VG, Thao tác
     const footRow = document.createElement('tr');
     footRow.style.fontWeight = 'bold';
     footRow.style.backgroundColor = '#e9ecef';
     
     footRow.innerHTML = `
-        <td colspan="5" style="text-align: right;">TỔNG CỘNG</td>
+        <td colspan="4" style="text-align: right;">TỔNG CỘNG</td>
+        <td style="text-align: right;">${formatNumber(totalGiangDay)}</td>
         <td style="text-align: right;">${formatNumber(totalThucHien)}</td>
         <td style="text-align: right;">${formatNumber(totalDinhMuc)}</td>
         <td style="text-align: right;">${formatNumber(totalThieuNCKH)}</td>
@@ -220,6 +231,29 @@ function renderTable(data) {
     `;
 
     tableFoot.appendChild(footRow);
+
+    // Đồng bộ chiều rộng cột thead theo tbody (xử lý lệch do scrollbar)
+    syncTableColumnWidths();
+}
+
+/**
+ * Đọc chiều rộng thực của td đầu tiên trong tbody và áp lại cho th tương ứng.
+ * Giải quyết lệch cột khi scrollbar xuất hiện (scrollbar-gutter fallback).
+ */
+function syncTableColumnWidths() {
+    const firstBodyRow = document.querySelector('#tableBody tr');
+    if (!firstBodyRow) return;
+
+    const bodyTds = firstBodyRow.querySelectorAll('td');
+    const headThs = document.querySelectorAll('#mainTable thead th');
+
+    bodyTds.forEach((td, i) => {
+        if (headThs[i]) {
+            const w = td.getBoundingClientRect().width;
+            headThs[i].style.width = w + 'px';
+            headThs[i].style.minWidth = w + 'px';
+        }
+    });
 }
 
 // ==================== UPDATE SUMMARY ====================
@@ -228,12 +262,18 @@ function updateSummary(data) {
     const totalGV = data.length;
     const totalVuotGio = data.reduce((sum, r) => sum + (r.soTietVuotGio || 0), 0);
     const gvCoVuotGio = data.filter(r => r.soTietVuotGio > 0).length;
-    const avgVuotGio = totalGV > 0 ? totalVuotGio / totalGV : 0;
 
-    document.getElementById('totalGV').textContent = totalGV;
-    document.getElementById('totalVuotGio').textContent = formatNumber(totalVuotGio);
-    document.getElementById('avgVuotGio').textContent = formatNumber(avgVuotGio);
-    document.getElementById('gvCoVuotGio').textContent = gvCoVuotGio;
+    const elTotalGV = document.getElementById('totalGV');
+    const elTotalVuotGio = document.getElementById('totalVuotGio');
+    const elGvCoVuotGio = document.getElementById('gvCoVuotGio');
+
+    if (elTotalGV) elTotalGV.textContent = totalGV;
+    if (elTotalVuotGio) elTotalVuotGio.textContent = formatNumber(totalVuotGio);
+    if (elGvCoVuotGio) elGvCoVuotGio.textContent = gvCoVuotGio;
+
+    // Show the summary row once data is loaded
+    const summaryRow = document.getElementById('summaryRow');
+    if (summaryRow) summaryRow.style.display = '';
 }
 
 // ==================== FILTER ====================
@@ -243,7 +283,7 @@ function filterTable() {
     const tableRows = document.querySelectorAll('#tableBody tr');
 
     tableRows.forEach(row => {
-        const hoTenCell = row.querySelector('td:nth-child(3)'); // Họ tên
+        const hoTenCell = row.querySelector('td:nth-child(2)'); // Họ tên
         const hoTenValue = hoTenCell ? hoTenCell.textContent.toLowerCase() : '';
 
         if (hoTenValue.includes(gvFilter)) {
@@ -527,27 +567,27 @@ function renderDetailContent(data) {
 
 // ==================== EXPORT EXCEL ====================
 
-function exportExcel() {
-    if (globalData.length === 0) {
-        Swal.fire('Thông báo', 'Không có dữ liệu để xuất', 'info');
-        return;
-    }
+// function exportExcel() {
+//     if (globalData.length === 0) {
+//         Swal.fire('Thông báo', 'Không có dữ liệu để xuất', 'info');
+//         return;
+//     }
 
-    const namHoc = document.getElementById('namHocXem').value;
-    const khoa = document.getElementById('khoaXem').value;
+//     const namHoc = document.getElementById('namHocXem').value;
+//     const khoa = document.getElementById('khoaXem').value;
     
-    // Create CSV content
-    let csvContent = '\uFEFF'; // BOM for UTF-8
-    csvContent += 'STT,Mã GV,Họ tên,Khoa,Chức danh,Thực hiện,Định mức,Thiếu NCKH,Vượt giờ\n';
+//     // Create CSV content
+//     let csvContent = '\uFEFF'; // BOM for UTF-8
+//     csvContent += 'STT,Mã GV,Họ tên,Khoa,Chức danh,Thực hiện,Định mức,Thiếu NCKH,Vượt giờ\n';
     
-    globalData.forEach((row, index) => {
-        csvContent += `${index + 1},"${row.MaGV || ''}","${row.HoTen || ''}","${row.MaKhoa || ''}","${row.ChucDanh || ''}",${row.SoTietThucHien || 0},${row.SoTietDinhMuc || 0},${row.SoTietThieuNCKH || 0},${row.SoTietVuotGio || 0}\n`;
-    });
+//     globalData.forEach((row, index) => {
+//         csvContent += `${index + 1},"${row.MaGV || ''}","${row.HoTen || ''}","${row.MaKhoa || ''}","${row.ChucDanh || ''}",${row.SoTietThucHien || 0},${row.SoTietDinhMuc || 0},${row.SoTietThieuNCKH || 0},${row.SoTietVuotGio || 0}\n`;
+//     });
 
-    // Download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `TongHopVuotGio_${namHoc}_${khoa}.csv`;
-    link.click();
-}
+//     // Download
+//     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+//     const link = document.createElement('a');
+//     link.href = URL.createObjectURL(blob);
+//     link.download = `TongHopVuotGio_${namHoc}_${khoa}.csv`;
+//     link.click();
+// }

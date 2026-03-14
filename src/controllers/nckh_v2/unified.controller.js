@@ -80,6 +80,8 @@ const createController = (loaiNCKH) => {
                 // 7. Lưu vào DB
                 const result = await nckhService.saveRecord(loaiNCKH, {
                     ...recordData,
+                    loaiNCKH,
+                    tongSoTiet: T,
                     tacGiaChinh: formattedTacGia,
                     danhSachThanhVien: formattedThanhVien,
                     createdBy: userName
@@ -156,6 +158,7 @@ const createController = (loaiNCKH) => {
 
                 // Map dữ liệu từ request
                 const updateData = {
+                    loaiNCKH,
                     phanLoai: req.body.PhanLoai || req.body.phanLoai,
                     tenCongTrinh: req.body.TenCongTrinh || req.body.tenCongTrinh,
                     maSo: req.body.MaSo || req.body.maSo,
@@ -186,6 +189,8 @@ const createController = (loaiNCKH) => {
                         updateData.soNamThucHien || 1,
                         nckhService
                     );
+
+                updateData.tongSoTiet = T;
 
                 // 3. Re-format Tác giả chính (strip hours cũ và add hours mới)
                 if (updateData.tacGiaChinh) {

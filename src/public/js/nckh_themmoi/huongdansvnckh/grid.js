@@ -6,6 +6,8 @@
 (function () {
     'use strict';
 
+    const API_BASE = () => (window.NCKH_V2_Utils?.getApiBase?.() || "/v2");
+
     // =====================================================
     // MODULE VARIABLES
     // =====================================================
@@ -55,12 +57,12 @@
         const encodedKhoa = encodeURIComponent(khoa);
 
         console.log("Loading HuongDanSvNckh table data...");
-        console.log("API URL:", `/v2/huong-dan-sv-nckh/${encodedNamHoc}/${encodedKhoa}`);
+        console.log("API URL:", `${API_BASE()}/huong-dan-sv-nckh/${encodedNamHoc}/${encodedKhoa}`);
 
         try {
             if (gridApiHD) gridApiHD.showLoadingOverlay();
 
-            const response = await fetch(`/v2/huong-dan-sv-nckh/${encodedNamHoc}/${encodedKhoa}`);
+            const response = await fetch(`${API_BASE()}/huong-dan-sv-nckh/${encodedNamHoc}/${encodedKhoa}`);
             const data = await response.json();
             console.log("HuongDanSvNckh data received:", data.length, "records");
 
@@ -295,7 +297,7 @@
         if (newValue === oldValue) return;
 
         try {
-            const response = await fetch(`/v2/huong-dan-sv-nckh/edit/${data.ID}`, {
+            const response = await fetch(`${API_BASE()}/huong-dan-sv-nckh/edit/${data.ID}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -333,7 +335,7 @@
         if (!result.isConfirmed) return;
 
         try {
-            const response = await fetch(`/v2/huong-dan-sv-nckh/${id}`, {
+            const response = await fetch(`${API_BASE()}/huong-dan-sv-nckh/${id}`, {
                 method: "DELETE"
             });
 
@@ -353,7 +355,7 @@
 
     async function toggleApproval(id, newStatus, api, node) {
         try {
-            const response = await fetch(`/v2/nckh/approve/${id}`, {
+            const response = await fetch(`${API_BASE()}/nckh/approve/${id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ DaoTaoDuyet: newStatus ? 1 : 0 })
@@ -375,7 +377,7 @@
 
     async function toggleKhoaApproval(id, newStatus, api, node) {
         try {
-            const response = await fetch(`/v2/nckh/approve-khoa/${id}`, {
+            const response = await fetch(`${API_BASE()}/nckh/approve-khoa/${id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ KhoaDuyet: newStatus ? 1 : 0 })
