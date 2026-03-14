@@ -161,8 +161,9 @@ const importExcelTKB = async (req, res) => {
       "Giáo Viên",
       "Số SV",
       "ST/ tuần",
+      "Ngày BĐ",
+      "Ngày KT"
     ];
-    // LƯU Ý: KHÔNG đưa 'start_date', 'end_date', 'room', 'lecturer' vào đây
 
     // 2. Chỉ loop và fill dữ liệu cho các cột trong danh sách trên
     for (let i = 1; i < allData.length; i++) {
@@ -268,7 +269,6 @@ const importExcelTKB = async (req, res) => {
     let preCourseName = "";  // Thêm: Lưu course_name dòng trước
     // let preClassroom = "";   // Thêm: Lưu classroom dòng trước
     let ll_tmp = 0;
-    let classIdAscending = 1;
 
     for (let i = 0; i < renamedData.length; i++) {
       const row = renamedData[i];
@@ -339,11 +339,9 @@ const importExcelTKB = async (req, res) => {
 
           row.tt = ++lastTTValue;
           ll_tmp = row.ll_total || 0;
-          classIdAscending = 1;
         } else {
           // ⚡ CÙNG NHÓM: Tất cả điều kiện giống nhau
           row.tt = lastTTValue;
-          classIdAscending++;
         }
       } else {
         // ⚡ Dòng đầu tiên
@@ -353,10 +351,7 @@ const importExcelTKB = async (req, res) => {
 
         row.tt = ++lastTTValue;
         ll_tmp = row.ll_total || 0;
-        classIdAscending = 1;
       }
-
-      row.classIdAscending = classIdAscending;
 
       row.ll_total = ll_tmp;
       row.qc = row.ll_total * row.bonus_time * row.student_bonus;
@@ -365,7 +360,6 @@ const importExcelTKB = async (req, res) => {
     // Chuẩn bị values để insert
     const values = renamedData.map((row) => [
       row.tt,
-      row.classIdAscending,
       row.course_code,
       row.credit_hours,
       row.student_quantity || 0,
@@ -394,7 +388,7 @@ const importExcelTKB = async (req, res) => {
     // Insert batch
     const insertResult = await pool.query(
       `INSERT INTO course_schedule_details (
-        TT, class_id_ascending, course_code, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
+        TT, course_code, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
         day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, he_dao_tao, dot, ki_hoc, nam_hoc
       ) VALUES ?`,
       [values]

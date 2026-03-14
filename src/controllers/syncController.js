@@ -239,6 +239,9 @@ exports.importTable = async (req, res) => {
             case "teacher":
                 result = await importGvmoi(connection, data);
                 break;
+            case "schedule":
+                result = await importCourseScheduleDetails(connection, data);
+                break;
             case "business":
             case "master":
             case "research":
@@ -323,8 +326,6 @@ async function importNhanVien(connection, records) {
         return val;
     }
 
-    console.log(`\n🔍 [DEBUG] Starting importNhanVien with ${records.length} records`);
-
     for (const record of records) {
         try {
             const { tendangnhap, matkhau, ...nhanvienData } = record;
@@ -364,20 +365,12 @@ async function importNhanVien(connection, records) {
                             const newValue = normalizeValue(value);
 
                             if (existingValue !== newValue) {
-                                console.log(`[NHANVIEN DEBUG] Field "${key}" changed:`);
-                                console.log(`  Existing (raw): ${JSON.stringify(existing[key])} (type: ${typeof existing[key]})`);
-                                console.log(`  New (raw):      ${JSON.stringify(value)} (type: ${typeof value})`);
-                                console.log(`  Existing (normalized): ${JSON.stringify(existingValue)}`);
-                                console.log(`  New (normalized):      ${JSON.stringify(newValue)}`);
-                                console.log(`  Match: ${existingValue === newValue}`);
 
                                 updateFields.push(`${key} = ?`);
                                 updateValues.push(value);
                             }
                         }
                     }
-
-                    console.log(`[NHANVIEN DEBUG] User ${tendangnhap}: ${updateFields.length} fields changed (${updateFields.join(", ")})`);
 
                     // Update password if provided and different
                     let passwordChanged = false;
@@ -519,6 +512,135 @@ async function importGvmoi(connection, records) {
 }
 
 // ============================================
+// IMPORT HELPERS - COURSE SCHEDULE DETAILS
+// ============================================
+
+/**
+ * Import course_schedule_details records
+ *
+ * Mỗi lớp học phần (course_name) có NHIỀU dòng (nhiều buổi học),
+ * phân biệt nhau bằng class_id_ascending.
+ *
+ * Logic:
+ * - Lookup theo (dot, ki_hoc, nam_hoc, course_name, class_id_ascending)
+ *   → Tìm đúng từng dòng buổi học cụ thể
+ * - Nếu đã tồn tại → UPDATE các field còn lại
+ * - Nếu chưa tồn tại → INSERT:
+ *     tt: lấy từ data nếu có, nếu không → MAX(tt)+1 trong nhóm (dot, ki_hoc, nam_hoc)
+ *     class_id_ascending: lấy từ data nếu có, nếu không → 1 (dòng đầu của tt mới)
+ */
+
+async function prepareCourseScheduleTT(connection, records) {
+
+    const ttCache = {};          // groupKey -> current max tt
+    const courseTTCache = {};    // courseKey -> tt
+    const classIdCache = {};     // courseKey -> class_id_ascending
+
+    // normalize data
+    for (const r of records) {
+        r.dot = String(r.dot).trim();
+        r.ki_hoc = String(r.ki_hoc).trim();
+        r.nam_hoc = String(r.nam_hoc).trim();
+        r.course_name = String(r.course_name).trim();
+    }
+
+    // lấy unique group
+    const groups = [...new Set(
+        records.map(r => `${r.dot}|${r.ki_hoc}|${r.nam_hoc}`)
+    )];
+
+    // lấy unique course
+    const courses = [...new Set(
+        records.map(r => `${r.dot}|${r.ki_hoc}|${r.nam_hoc}|${r.course_name}`)
+    )];
+
+    // ===== 1️⃣ Lấy MAX(tt) theo group =====
+    for (const g of groups) {
+
+        const [dot, ki_hoc, nam_hoc] = g.split("|");
+
+        const [result] = await connection.query(
+            `SELECT COALESCE(MAX(tt),0) as maxTt
+             FROM course_schedule_details
+             WHERE dot=? AND ki_hoc=? AND nam_hoc=?`,
+            [dot, ki_hoc, nam_hoc]
+        );
+
+        ttCache[g] = result[0].maxTt;
+    }
+
+    // ===== 2️⃣ Lấy tt của course đã tồn tại =====
+    for (const c of courses) {
+
+        const [dot, ki_hoc, nam_hoc, course_name] = c.split("|");
+
+        const [existing] = await connection.query(
+            `SELECT tt
+             FROM course_schedule_details
+             WHERE dot=? AND ki_hoc=? AND nam_hoc=? AND course_name=?
+             LIMIT 1`,
+            [dot, ki_hoc, nam_hoc, course_name]
+        );
+
+        if (existing.length > 0) {
+            courseTTCache[c] = existing[0].tt;
+        }
+    }
+
+    // ===== 3️⃣ assign tt =====
+    for (const record of records) {
+
+        const { dot, ki_hoc, nam_hoc, course_name } = record;
+
+        const groupKey = `${dot}|${ki_hoc}|${nam_hoc}`;
+        const courseKey = `${groupKey}|${course_name}`;
+
+        if (!courseTTCache[courseKey]) {
+
+            ttCache[groupKey] += 1;
+            courseTTCache[courseKey] = ttCache[groupKey];
+        }
+
+        record.tt = courseTTCache[courseKey];
+
+        // ===== class_id_ascending =====
+        if (!classIdCache[courseKey]) {
+            classIdCache[courseKey] = 0;
+        }
+
+        classIdCache[courseKey] += 1;
+
+        record.class_id_ascending = classIdCache[courseKey];
+    }
+
+    return records;
+}
+
+async function importCourseScheduleDetails(connection, records) {
+
+    const prepared = await prepareCourseScheduleTT(connection, records);
+
+    return importGenericTable(
+        connection,
+        "course_schedule_details",
+        prepared,
+        {
+            uniqueKey: [
+                "dot",
+                "ki_hoc",
+                "nam_hoc",
+                "course_name",
+                "day_of_week",
+                "start_date",
+                "end_date",
+                "period_start",
+                "period_end"
+            ]
+        }
+    );
+}
+
+// ============================================
 // IMPORT HELPERS - GENERIC TABLES
 // ============================================
 
@@ -529,120 +651,274 @@ async function importGvmoi(connection, records) {
  * This handler works for all tables that use composite natural keys
  * including: business tables, master data, research tables, salary tables, etc.
  */
+// async function importGenericTable(connection, tableName, records, config) {
+//     let inserted = 0;
+//     let updated = 0;
+//     let skipped = 0;  // Records matched but no changes
+//     const errors = [];
+
+//     for (const record of records) {
+//         try {
+//             // Validate that all unique key fields are present
+//             const missingKeys = config.uniqueKey.filter((key) => !record[key]);
+//             if (missingKeys.length > 0) {
+//                 errors.push({
+//                     record: record,
+//                     error: `Missing required key fields: ${missingKeys.join(", ")}`,
+//                 });
+//                 continue;
+//             }
+
+//             // Build field list - keep id if preserveId, otherwise remove it
+//             let fields, values;
+//             if (config.preserveId && record.id !== undefined) {
+//                 // Keep id for master tables
+//                 fields = Object.keys(record);
+//                 values = Object.values(record);
+//             } else {
+//                 // Remove auto-increment PK fields (id, ID, Id, STT, stt)
+//                 const { id, ID, Id, STT, stt, ...dataWithoutId } = record;
+//                 fields = Object.keys(dataWithoutId);
+//                 values = Object.values(dataWithoutId);
+//             }
+
+//             // Build UPDATE clause for ON DUPLICATE KEY
+//             const updateClauses = fields
+//                 .filter((f) => !config.uniqueKey.includes(f)) // Don't update the key fields
+//                 .map((f) => `${f} = VALUES(${f})`)
+//                 .join(", ");
+
+//             const placeholders = fields.map(() => "?").join(", ");
+
+//             // Use INSERT ... ON DUPLICATE KEY UPDATE for UPSERT
+//             let query;
+//             let isInsertIgnore = false;
+
+//             if (updateClauses) {
+//                 query = `
+//                 INSERT INTO ${tableName} (${fields.join(", ")})
+//                 VALUES (${placeholders})
+//                 ON DUPLICATE KEY UPDATE ${updateClauses}
+//                 `;
+//             } else {
+//                 // If all fields are part of the unique key, just INSERT IGNORE
+//                 isInsertIgnore = true;
+//                 query = `
+//                 INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
+//                 VALUES (${placeholders})
+//                 `;
+//             }
+
+//             try {
+//                 const [result] = await connection.query(query, values);
+
+//                 console.log("ahiahi");
+//                 console.log("affectedRows:", result.affectedRows);
+//                 console.log("insertId:", result.insertId);
+
+//             } catch (err) {
+//                 console.log("LOI SQL:", err);
+//             }
+
+
+//             // Count based on affectedRows and query type
+//             // MySQL affectedRows behavior:
+//             // - INSERT new: affectedRows = 1
+//             // - UPDATE existing (ON DUPLICATE KEY): affectedRows = 2  
+//             // - No change (ON DUPLICATE KEY with same values): affectedRows = 0
+//             // - INSERT IGNORE duplicate: affectedRows = 0
+
+//             // if (isInsertIgnore) {
+//             //     if (result.affectedRows === 1) {
+//             //         inserted++;
+//             //     }
+//             // } else {
+//             //     if (result.insertId > 0 && result.changedRows === 0) {
+//             //         inserted++;
+//             //     } else if (result.changedRows > 0) {
+//             //         updated++;
+//             //     }
+//             // }
+
+//             if (isInsertIgnore) {
+//                 // INSERT IGNORE: affectedRows=1 means inserted, affectedRows=0 means duplicate
+//                 if (result.affectedRows === 1) {
+//                     inserted++;
+//                 } else if (result.affectedRows === 0) {
+//                     // Duplicate, skipped
+//                     skipped++;
+//                 }
+//             } else {
+//                 // ON DUPLICATE KEY UPDATE
+//                 if (result.affectedRows === 1) {
+//                     // affectedRows=1 can mean INSERT or UPDATE with no change
+//                     // Use insertId to distinguish:
+//                     if (result.insertId > 0) {
+//                         // Real INSERT (new auto-increment ID generated)
+//                         inserted++;
+//                     } else {
+//                         // Matched duplicate but no fields changed (insertId=0, changedRows=0)
+//                         // Don't count as updated - data unchanged!
+//                         skipped++;
+//                     }
+//                 } else if (result.affectedRows === 2) {
+//                     // UPDATE with changes
+//                     updated++;
+//                 } else if (result.affectedRows === 0) {
+//                     // Matched duplicate, no change (alternative MySQL behavior)
+//                     skipped++;
+//                 }
+//             }
+
+
+//         } catch (error) {
+//             errors.push({
+//                 record: record,
+//                 error: error.message,
+//             });
+//         }
+//     }
+
+//     return {
+//         inserted,
+//         updated,
+//         skipped,
+//         errors,
+//         total: records.length,
+//     };
+// }
+
 async function importGenericTable(connection, tableName, records, config) {
     let inserted = 0;
     let updated = 0;
-    let skipped = 0;  // Records matched but no changes
+    let skipped = 0;
     const errors = [];
+
+    // Helper: format Date cho MySQL
+    const formatDateForMySQL = (value) => {
+        if (!value) return null;
+
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return null;
+
+        return date.toISOString().slice(0, 19).replace("T", " ");
+    };
 
     for (const record of records) {
         try {
-            // Validate that all unique key fields are present
-            const missingKeys = config.uniqueKey.filter((key) => !record[key]);
+            // 1️⃣ Validate unique keys
+            const missingKeys = config.uniqueKey.filter(
+                (key) => record[key] === undefined || record[key] === null || record[key] === ""
+            );
+
             if (missingKeys.length > 0) {
                 errors.push({
-                    record: record,
-                    error: `Missing required key fields: ${missingKeys.join(", ")}`,
+                    record,
+                    error: `Missing required key fields: ${missingKeys.join(", ")}`
                 });
                 continue;
             }
 
-            // Build field list - keep id if preserveId, otherwise remove it
-            let fields, values;
+            // 2️⃣ Remove auto increment ID nếu không preserve
+            let data;
             if (config.preserveId && record.id !== undefined) {
-                // Keep id for master tables
-                fields = Object.keys(record);
-                values = Object.values(record);
+                data = { ...record };
             } else {
-                // Remove auto-increment PK fields (id, ID, Id, STT, stt)
-                const { id, ID, Id, STT, stt, ...dataWithoutId } = record;
-                fields = Object.keys(dataWithoutId);
-                values = Object.values(dataWithoutId);
+                const { id, ID, Id, STT, stt, ...rest } = record;
+                data = { ...rest };
             }
 
-            // Build UPDATE clause for ON DUPLICATE KEY
+            // 3️⃣ Auto format Date fields (nếu value là ISO string)
+            for (const key in data) {
+                if (
+                    typeof data[key] === "string" &&
+                    data[key].includes("T") &&
+                    data[key].includes("Z")
+                ) {
+                    data[key] = formatDateForMySQL(data[key]);
+                }
+            }
+
+            const fields = Object.keys(data);
+            const values = Object.values(data);
+
+            if (fields.length === 0) {
+                skipped++;
+                continue;
+            }
+
+            // 4️⃣ Build UPDATE clause
             const updateClauses = fields
-                .filter((f) => !config.uniqueKey.includes(f)) // Don't update the key fields
+                .filter((f) => !config.uniqueKey.includes(f))
                 .map((f) => `${f} = VALUES(${f})`)
                 .join(", ");
 
             const placeholders = fields.map(() => "?").join(", ");
 
-            // Use INSERT ... ON DUPLICATE KEY UPDATE for UPSERT
             let query;
             let isInsertIgnore = false;
 
             if (updateClauses) {
                 query = `
-                INSERT INTO ${tableName} (${fields.join(", ")})
-                VALUES (${placeholders})
-                ON DUPLICATE KEY UPDATE ${updateClauses}
+                    INSERT INTO ${tableName} (${fields.join(", ")})
+                    VALUES (${placeholders})
+                    ON DUPLICATE KEY UPDATE ${updateClauses}
                 `;
             } else {
-                // If all fields are part of the unique key, just INSERT IGNORE
                 isInsertIgnore = true;
                 query = `
-                INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
-                VALUES (${placeholders})
+                    INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
+                    VALUES (${placeholders})
                 `;
             }
 
-            const [result] = await connection.query(query, values);
+            let result;
 
-            // Count based on affectedRows and query type
-            // MySQL affectedRows behavior:
-            // - INSERT new: affectedRows = 1
-            // - UPDATE existing (ON DUPLICATE KEY): affectedRows = 2  
-            // - No change (ON DUPLICATE KEY with same values): affectedRows = 0
-            // - INSERT IGNORE duplicate: affectedRows = 0
+            try {
+                [result] = await connection.query(query, values);
+            } catch (err) {
+                errors.push({
+                    record,
+                    error: err.message
+                });
+                continue;
+            }
 
-            // if (isInsertIgnore) {
-            //     if (result.affectedRows === 1) {
-            //         inserted++;
-            //     }
-            // } else {
-            //     if (result.insertId > 0 && result.changedRows === 0) {
-            //         inserted++;
-            //     } else if (result.changedRows > 0) {
-            //         updated++;
-            //     }
-            // }
-
+            // 5️⃣ Count logic chính xác
+            // MySQL ON DUPLICATE KEY UPDATE:
+            //   affectedRows=0  → duplicate, values giống hệt → skip
+            //   affectedRows=1  → INSERT mới (insertId>0) hoặc collision không rõ
+            //   affectedRows=2  → ON DUPLICATE KEY đã chạy, dùng changedRows để phân biệt:
+            //                     changedRows=0 → values giống hệt (trùng key trong batch)  → skip
+            //                     changedRows>0 → có field thực sự thay đổi               → updated
             if (isInsertIgnore) {
-                // INSERT IGNORE: affectedRows=1 means inserted, affectedRows=0 means duplicate
                 if (result.affectedRows === 1) {
                     inserted++;
-                } else if (result.affectedRows === 0) {
-                    // Duplicate, skipped
+                } else {
                     skipped++;
                 }
             } else {
-                // ON DUPLICATE KEY UPDATE
                 if (result.affectedRows === 1) {
-                    // affectedRows=1 can mean INSERT or UPDATE with no change
-                    // Use insertId to distinguish:
                     if (result.insertId > 0) {
-                        // Real INSERT (new auto-increment ID generated)
                         inserted++;
                     } else {
-                        // Matched duplicate but no fields changed (insertId=0, changedRows=0)
-                        // Don't count as updated - data unchanged!
                         skipped++;
                     }
                 } else if (result.affectedRows === 2) {
-                    // UPDATE with changes
-                    updated++;
-                } else if (result.affectedRows === 0) {
-                    // Matched duplicate, no change (alternative MySQL behavior)
+                    if (result.changedRows > 0) {
+                        updated++;   // Có field thực sự thay đổi
+                    } else {
+                        skipped++;   // ON DUPLICATE KEY nhưng values giống → không tính là update
+                    }
+                } else {
                     skipped++;
                 }
             }
 
-
-        } catch (error) {
+        } catch (err) {
             errors.push({
-                record: record,
-                error: error.message,
+                record,
+                error: err.message
             });
         }
     }
@@ -652,7 +928,7 @@ async function importGenericTable(connection, tableName, records, config) {
         updated,
         skipped,
         errors,
-        total: records.length,
+        total: records.length
     };
 }
 
@@ -718,6 +994,9 @@ exports.importAll = async (req, res) => {
                         break;
                     case "teacher":
                         result = await importGvmoi(connection, tableData.data);
+                        break;
+                    case "schedule":
+                        result = await importCourseScheduleDetails(connection, tableData.data);
                         break;
                     case "business":
                     case "master":
