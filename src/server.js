@@ -53,6 +53,8 @@ const chinhSuaQuyChuanRoute = require("./routes/chinhSuaQuyChuanRoute");
 const chinhSuaDoAnRoute = require("./routes/chinhSuaDoAnRoute");
 const teachingInfoExportRoute = require("./routes/teachingInfoExportRoute");
 const doanExportRoute = require("./routes/doanExportRoute");
+const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
+
 
 // Phần admin
 const adminThemFileHocPhanRoute = require("./routes/adminThemFileHocPhanRoute");
@@ -168,6 +170,7 @@ app.use("/", soHopDong);
 app.use("/", duyetHopDongMoiGiang);
 app.use("/", duyetHopDongDoAn);
 app.use("/", previewHopDong);
+app.use("/", vuotGioSoTietDMRouter);
 
 app.use("/", chinhSuaQuyChuanRoute);
 app.use("/", chinhSuaDoAnRoute);

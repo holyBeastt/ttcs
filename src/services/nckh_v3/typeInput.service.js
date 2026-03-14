@@ -9,17 +9,10 @@ const responseMapper = require("../../mappers/nckh_v3/response.mapper");
 
 const formulaService = require("./formula.service");
 const validator = require("../../validators/nckh_v3/typeInput.validator");
+const quyDinhService = require("./quyDinh.service");
 
-const getPhanLoaiOptions = async (connection, loaiNckh) => {
-  const query = `
-    SELECT ID, PhanLoai, SoGio
-    FROM nckh_quydinhsogio
-    WHERE LoaiNCKH = ? AND COALESCE(IsActive, 1) = 1
-    ORDER BY SoGio DESC, PhanLoai ASC
-  `;
-
-  const [rows] = await connection.execute(query, [loaiNckh]);
-  return rows;
+const getPhanLoaiOptions = async (loaiNckh) => {
+  return quyDinhService.getQuyDinhSoGioByLoai(loaiNckh);
 };
 
 const assertNhanVienExist = async (connection, participants) => {
@@ -273,7 +266,7 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
       const [khoaList, giangVienList, phanLoaiOptions] = await Promise.all([
         phongBanRepo.listKhoa(connection),
         nhanVienRepo.listByKhoaId(connection, khoaId),
-        getPhanLoaiOptions(connection, loaiNckh),
+        getPhanLoaiOptions(loaiNckh),
       ]);
 
       return { khoaList, giangVienList, phanLoaiOptions };

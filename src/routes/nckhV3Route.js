@@ -11,6 +11,7 @@ const sachGiaoTrinhController = require("../controllers/nckh_v3/sachGiaoTrinh.co
 const huongDanSvNckhController = require("../controllers/nckh_v3/huongDanSvNckh.controller");
 const thanhVienHoiDongController = require("../controllers/nckh_v3/thanhVienHoiDong.controller");
 const recordController = require("../controllers/nckh_v3/record.controller");
+const adminController = require("../controllers/nckh_v3/adminQuyDinh.controller");
 
 router.use((req, res, next) => {
 	res.locals.nckhVersion = "v3";
@@ -109,5 +110,10 @@ router.get("/xem-chung", (req, res) => {
 router.get("/hoi-dong-khoa-hoc", (req, res) => {
 	res.redirect("/v3/nckh/them-moi-nckh?type=thanh-vien-hoi-dong");
 });
+
+// Admin quy-dinh APIs (route under V3 path)
+router.get("/admin/quy-dinh", adminController.getAdminQuyDinhPage);
+router.post("/admin/quy-dinh", adminController.saveQuyDinhSoGio);
+router.patch("/admin/quy-dinh/toggle/:id", adminController.toggleQuyDinhStatus);
 
 module.exports = router;

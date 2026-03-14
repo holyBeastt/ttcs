@@ -47,7 +47,7 @@ $(document).ready(function () {
         });
 
         $.ajax({
-            url: '/v2/admin/quy-dinh',
+            url: '/v3/nckh/admin/quy-dinh',
             type: 'POST',
             data: formData,
             success: function (res) {
@@ -118,7 +118,7 @@ function toggleStatus(id, isChecked) {
     const statusText = isChecked ? "bật" : "tắt";
 
     $.ajax({
-        url: `/v2/admin/quy-dinh/toggle/${id}`,
+        url: `/v3/nckh/admin/quy-dinh/toggle/${id}`,
         type: 'PATCH',
         data: JSON.stringify({ isActive: isActive }),
         contentType: 'application/json',
