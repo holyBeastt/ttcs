@@ -101,12 +101,6 @@ module.exports = {
         secondaryKey: ['TenDangNhap'],
     },
 
-    taikhoannguoidung: {
-        type: 'master',
-        description: 'Tài khoản người dùng',
-        uniqueKey: ['TenDangNhap'],
-    },
-
     role: {
         type: 'master',
         description: 'Phân quyền người dùng',

@@ -775,9 +775,15 @@
                             let detailsHtml = '<ul style="text-align: left; max-height: 300px; overflow-y: auto;">';
                             for (const [table, result] of Object.entries(data.results)) {
                                 if (result.success) {
-                                    detailsHtml += `<li><strong>${table}:</strong> ${result.inserted} mới, ${result.updated} cập nhật</li>`;
+                                    // Thêm thống kê chi tiết cho bảng nhanvien (bao gồm tài khoản)
+                                    if (table === 'nhanvien' && (typeof result.accInserted === 'number' || typeof result.accUpdated === 'number')) {
+                                        detailsHtml += `<li><strong>${table}:</strong> ${result.inserted} mới, ${result.updated} cập nhật (tài khoản: ${result.accInserted || 0} mới, ${result.accUpdated || 0} cập nhật)</li>`;
+                                    } else {
+                                        detailsHtml += `<li><strong>${table}:</strong> ${result.inserted} mới, ${result.updated} cập nhật</li>`;
+                                    }
                                 } else if (result.skipped) {
-                                    detailsHtml += `<li><strong>${table}:</strong> <i>Bỏ qua</i></li>`;
+                                    // Bảng không nằm trong danh sách sync hoặc không có dữ liệu
+                                    detailsHtml += `<li><strong>${table}:</strong> <i>Bỏ qua (không nằm trong cấu hình đồng bộ hoặc không có dữ liệu)</i></li>`;
                                 } else {
                                     detailsHtml += `<li><strong>${table}:</strong> <span class="text-danger">Lỗi</span></li>`;
                                 }
@@ -821,6 +827,14 @@
 
                             $('#import-result').addClass('show');
 
+                            // Thêm thống kê chi tiết cho từng bảng (nếu có)
+                            let perTableDetailsHtml = '';
+                            if (tableName === 'nhanvien' && (typeof data.accInserted === 'number' || typeof data.accUpdated === 'number')) {
+                                perTableDetailsHtml = `
+                                       <li>Tài khoản (taikhoannguoidung): ${data.accInserted || 0} mới, ${data.accUpdated || 0} cập nhật</li>
+                                `;
+                            }
+
                             Swal.fire({
                                 title: 'Thành công!',
                                 html: `<p>Đã nhập thành công!</p>
@@ -828,6 +842,7 @@
                                          <li>Mới: ${data.inserted} bản ghi</li>
                                          <li>Cập nhật: ${data.updated} bản ghi</li>
                                          <li>Lỗi: ${data.errors.length} bản ghi</li>
+                                         ${perTableDetailsHtml}
                                        </ul>`,
                                 icon: 'success'
                             });

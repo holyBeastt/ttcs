@@ -292,10 +292,27 @@ exports.importTable = async (req, res) => {
  * 4. If tendangnhap doesn't exist -> insert both account and employee
  */
 async function importNhanVien(connection, records) {
-    let inserted = 0;
-    let updated = 0;
-    let skipped = 0;
+    // Thống kê tổng hợp (giữ nguyên cho API cũ)
+    let inserted = 0; // = nvInserted
+    let updated = 0;  // = nvUpdated
+    let skipped = 0;  // = nvSkipped
+
+    // Thống kê chi tiết theo bảng
+    let nvInserted = 0;
+    let nvUpdated = 0;
+    let nvSkipped = 0;
+    let accInserted = 0;
+    let accUpdated = 0;
     const errors = [];
+
+    // Đếm số lần xuất hiện của id_User trong dữ liệu import
+    // để đảm bảo 1 người không bị tạo nhiều tài khoản trùng nhau
+    const userIdCounts = {};
+    for (const r of records) {
+        if (r.id_User !== undefined && r.id_User !== null) {
+            userIdCounts[r.id_User] = (userIdCounts[r.id_User] || 0) + 1;
+        }
+    }
 
     // Helper function to normalize values for comparison
     function normalizeValue(val) {
@@ -326,9 +343,36 @@ async function importNhanVien(connection, records) {
         return val;
     }
 
+    // Helper: format ISO date string (có dạng ...T...Z) về dạng MySQL DATE `YYYY-MM-DD`
+    function formatIsoDateToMySQLDate(value) {
+        if (
+            typeof value === 'string' &&
+            value.includes('T') &&
+            value.includes('Z')
+        ) {
+            const d = new Date(value);
+            if (!isNaN(d.getTime())) {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        }
+        return value;
+    }
+
     for (const record of records) {
         try {
-            const { tendangnhap, matkhau, ...nhanvienData } = record;
+            const { tendangnhap, matkhau, id_User, ...rawNhanvienData } = record;
+
+            // Chuẩn hóa một số field ngày (từ ISO string -> DATE MySQL) trong nhanvienData
+            const nhanvienData = { ...rawNhanvienData };
+            if (nhanvienData.NgaySinh) {
+                nhanvienData.NgaySinh = formatIsoDateToMySQLDate(nhanvienData.NgaySinh);
+            }
+            if (nhanvienData.NgayCapCCCD) {
+                nhanvienData.NgayCapCCCD = formatIsoDateToMySQLDate(nhanvienData.NgayCapCCCD);
+            }
 
             if (!tendangnhap) {
                 errors.push({
@@ -348,12 +392,13 @@ async function importNhanVien(connection, records) {
             );
 
             if (existingRecords.length > 0) {
-                // Account exists
+
+                // Account exists trên PRIVATE
                 const existing = existingRecords[0];
                 const userId = existing.id_User;
 
-                // Check if nhanvien record exists
-                if (existing.HoTen !== null || existing.id_User !== null) {
+                // Check nếu đã có bản ghi nhanvien (dựa trên field đặc trưng của bảng nhanvien)
+                if (existing.MaNhanVien !== null && existing.MaNhanVien !== undefined) {
                     // Both account and employee exist - check for changes
                     const updateFields = [];
                     const updateValues = [];
@@ -380,6 +425,7 @@ async function importNhanVien(connection, records) {
                             [matkhau, userId]
                         );
                         passwordChanged = true;
+                        accUpdated++;
                     }
 
                     if (updateFields.length > 0) {
@@ -389,16 +435,18 @@ async function importNhanVien(connection, records) {
                             `UPDATE nhanvien SET ${updateFields.join(", ")} WHERE id_User = ?`,
                             updateValues
                         );
+                        nvUpdated++;
                         updated++;
                     } else if (passwordChanged) {
-                        // Only password changed, count as updated
-                        updated++;
+                        // Only password changed
+                        updated++; // tổng
                     } else {
                         // No changes - data identical
+                        nvSkipped++;
                         skipped++;
                     }
                 } else {
-                    // Account exists but no employee record - INSERT employee
+                    // Account exists nhưng chưa có record nhanvien → INSERT nhanvien mới với userId hiện có
                     const fields = ["id_User", ...Object.keys(nhanvienData)];
                     const values = [userId, ...Object.values(nhanvienData)];
                     const placeholders = fields.map(() => "?").join(", ");
@@ -407,13 +455,73 @@ async function importNhanVien(connection, records) {
                         `INSERT INTO nhanvien (${fields.join(", ")}) VALUES (${placeholders})`,
                         values
                     );
+                    nvInserted++;
                     inserted++;
                 }
             } else {
-                // Account doesn't exist - SKIP (don't insert)
-                skipped++;
+                // Account không tồn tại trên PRIVATE
+                // Cơ chế:
+                // - So sánh TenDangNhap giữa PUBLIC và PRIVATE
+                // - Nếu TenDangNhap chỉ có ở PUBLIC
+                //   + Và id_User đó trong dữ liệu PUBLIC chỉ xuất hiện đúng 1 lần
+                //   => tạo mới cả tài khoản và nhân viên bên PRIVATE
+
+                if (id_User === undefined || id_User === null) {
+                    errors.push({
+                        record: record,
+                        error: "Missing id_User for new account/employee creation",
+                    });
+                    nvSkipped++;
+                    skipped++;
+                    continue;
+                }
+
+                // Nếu 1 người có nhiều tài khoản (id_User xuất hiện > 1) thì bỏ qua để tránh tạo nhiều row trùng nhau
+                if (userIdCounts[id_User] !== 1) {
+                    errors.push({
+                        record: record,
+                        error: `id_User ${id_User} appears ${userIdCounts[id_User]} times in source data, skip to avoid duplicates`,
+                    });
+                    nvSkipped++;
+                    skipped++;
+                    continue;
+                }
+
+                // 1. Tạo bản ghi nhanvien mới – KHÔNG reuse id_User của PUBLIC,
+                //    để PRIVATE tự auto-increment id_User riêng
+                const nvFields = Object.keys(nhanvienData);
+                const nvValues = Object.values(nhanvienData);
+
+                if (nvFields.length === 0) {
+                    nvSkipped++;
+                    skipped++;
+                    continue;
+                }
+
+                console.log("[SYNC nhanvien] Thêm nhân viên mới với TenDangNhap =", tendangnhap);
+
+                const nvPlaceholders = nvFields.map(() => "?").join(", ");
+                const [nvResult] = await connection.query(
+                    `INSERT INTO nhanvien (${nvFields.join(", ")}) VALUES (${nvPlaceholders})`,
+                    nvValues
+                );
+
+                const newUserId = nvResult.insertId;
+
+                console.log("[SYNC nhanvien] Thêm tài khoản người dùng mới với TenDangNhap =", tendangnhap);
+
+                // 2. Tạo tài khoản tương ứng trong taikhoannguoidung
+                await connection.query(
+                    `INSERT INTO taikhoannguoidung (TenDangNhap, MatKhau, id_User) VALUES (?, ?, ?)`,
+                    [tendangnhap, matkhau || "", newUserId]
+                );
+
+                nvInserted++;
+                accInserted++;
+                inserted++;
             }
         } catch (error) {
+            console.error("[SYNC nhanvien] Lỗi khi xử lý bản ghi nhanvien với TenDangNhap =", record?.tendangnhap, "=>", error.message);
             errors.push({
                 record: record,
                 error: error.message,
@@ -425,6 +533,12 @@ async function importNhanVien(connection, records) {
         inserted,
         updated,
         skipped,
+        // Thống kê chi tiết
+        nvInserted,
+        nvUpdated,
+        nvSkipped,
+        accInserted,
+        accUpdated,
         errors,
         total: records.length,
     };
@@ -444,9 +558,36 @@ async function importGvmoi(connection, records) {
     let skipped = 0;  // Records matched but no changes
     const errors = [];
 
+    // Helper: format ISO date string (có dạng ...T...Z) về dạng MySQL DATE `YYYY-MM-DD`
+    const formatIsoDateToMySQLDate = (value) => {
+        if (
+            typeof value === "string" &&
+            value.includes("T") &&
+            value.includes("Z")
+        ) {
+            const d = new Date(value);
+            if (!isNaN(d.getTime())) {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, "0");
+                const day = String(d.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+            }
+        }
+        return value;
+    };
+
     for (const record of records) {
         try {
-            const { CCCD } = record;
+            const { CCCD, ...rest } = record;
+
+            // Chuẩn hóa ngày sinh (và có thể các trường ngày khác sau này)
+            if (rest.NgaySinh) {
+                rest.NgaySinh = formatIsoDateToMySQLDate(rest.NgaySinh);
+            }
+
+            if (rest.NgayCapCCCD){
+                rest.NgayCapCCCD = formatIsoDateToMySQLDate(rest.NgayCapCCCD);
+            }
 
             if (!CCCD) {
                 errors.push({
@@ -457,15 +598,16 @@ async function importGvmoi(connection, records) {
             }
 
             // Build field list (excluding id if present)
-            const { id, ...dataWithoutId } = record;
-            const fields = Object.keys(dataWithoutId);
-            const values = Object.values(dataWithoutId);
+            const { id, ...dataWithoutId } = rest;
 
-            // Build UPDATE clause for ON DUPLICATE KEY
+            const dataInsert = { CCCD, ...dataWithoutId };
+            const fields = Object.keys(dataInsert);
+            const values = Object.values(dataInsert);
+
             const updateClauses = fields
-                .filter((f) => f !== "CCCD") // Don't update the key itself
+                .filter((f) => f !== "CCCD")
                 .map((f) => `${f} = VALUES(${f})`)
-                .join(", ");
+                .join(", ") || "CCCD = CCCD";
 
             const placeholders = fields.map(() => "?").join(", ");
 
@@ -495,6 +637,7 @@ async function importGvmoi(connection, records) {
                 skipped++;
             }
         } catch (error) {
+            console.error("[SYNC gvmoi] Lỗi khi xử lý bản ghi gvmoi với CCCD =", record?.CCCD, "=>", error.message);
             errors.push({
                 record: record,
                 error: error.message,
@@ -514,6 +657,7 @@ async function importGvmoi(connection, records) {
 // ============================================
 // IMPORT HELPERS - COURSE SCHEDULE DETAILS
 // ============================================
+
 
 /**
  * Import course_schedule_details records
@@ -651,130 +795,142 @@ async function importCourseScheduleDetails(connection, records) {
  * This handler works for all tables that use composite natural keys
  * including: business tables, master data, research tables, salary tables, etc.
  */
+
 // async function importGenericTable(connection, tableName, records, config) {
 //     let inserted = 0;
 //     let updated = 0;
-//     let skipped = 0;  // Records matched but no changes
+//     let skipped = 0;
 //     const errors = [];
+
+//     // Helper: format Date cho MySQL
+//     const formatDateForMySQL = (value) => {
+//         if (!value) return null;
+
+//         const date = new Date(value);
+//         if (isNaN(date.getTime())) return null;
+
+//         return date.toISOString().slice(0, 19).replace("T", " ");
+//     };
 
 //     for (const record of records) {
 //         try {
-//             // Validate that all unique key fields are present
-//             const missingKeys = config.uniqueKey.filter((key) => !record[key]);
+//             // 1️⃣ Validate unique keys
+//             const missingKeys = config.uniqueKey.filter(
+//                 (key) => record[key] === undefined || record[key] === null || record[key] === ""
+//             );
+
 //             if (missingKeys.length > 0) {
 //                 errors.push({
-//                     record: record,
-//                     error: `Missing required key fields: ${missingKeys.join(", ")}`,
+//                     record,
+//                     error: `Missing required key fields: ${missingKeys.join(", ")}`
 //                 });
 //                 continue;
 //             }
 
-//             // Build field list - keep id if preserveId, otherwise remove it
-//             let fields, values;
+//             // 2️⃣ Remove auto increment ID nếu không preserve
+//             let data;
 //             if (config.preserveId && record.id !== undefined) {
-//                 // Keep id for master tables
-//                 fields = Object.keys(record);
-//                 values = Object.values(record);
+//                 data = { ...record };
 //             } else {
-//                 // Remove auto-increment PK fields (id, ID, Id, STT, stt)
-//                 const { id, ID, Id, STT, stt, ...dataWithoutId } = record;
-//                 fields = Object.keys(dataWithoutId);
-//                 values = Object.values(dataWithoutId);
+//                 const { id, ID, Id, STT, stt, ...rest } = record;
+//                 data = { ...rest };
 //             }
 
-//             // Build UPDATE clause for ON DUPLICATE KEY
+//             // 3️⃣ Auto format Date fields (nếu value là ISO string)
+//             for (const key in data) {
+//                 if (
+//                     typeof data[key] === "string" &&
+//                     data[key].includes("T") &&
+//                     data[key].includes("Z")
+//                 ) {
+//                     data[key] = formatDateForMySQL(data[key]);
+//                 }
+//             }
+
+//             const fields = Object.keys(data);
+//             const values = Object.values(data);
+
+//             if (fields.length === 0) {
+//                 skipped++;
+//                 continue;
+//             }
+
+//             // 4️⃣ Build UPDATE clause
 //             const updateClauses = fields
-//                 .filter((f) => !config.uniqueKey.includes(f)) // Don't update the key fields
+//                 .filter((f) => !config.uniqueKey.includes(f))
 //                 .map((f) => `${f} = VALUES(${f})`)
 //                 .join(", ");
 
 //             const placeholders = fields.map(() => "?").join(", ");
 
-//             // Use INSERT ... ON DUPLICATE KEY UPDATE for UPSERT
 //             let query;
 //             let isInsertIgnore = false;
 
 //             if (updateClauses) {
 //                 query = `
-//                 INSERT INTO ${tableName} (${fields.join(", ")})
-//                 VALUES (${placeholders})
-//                 ON DUPLICATE KEY UPDATE ${updateClauses}
+//                     INSERT INTO ${tableName} (${fields.join(", ")})
+//                     VALUES (${placeholders})
+//                     ON DUPLICATE KEY UPDATE ${updateClauses}
 //                 `;
 //             } else {
-//                 // If all fields are part of the unique key, just INSERT IGNORE
 //                 isInsertIgnore = true;
 //                 query = `
-//                 INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
-//                 VALUES (${placeholders})
+//                     INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
+//                     VALUES (${placeholders})
 //                 `;
 //             }
 
+//             let result;
+
 //             try {
-//                 const [result] = await connection.query(query, values);
-
-//                 console.log("ahiahi");
-//                 console.log("affectedRows:", result.affectedRows);
-//                 console.log("insertId:", result.insertId);
-
+//                 [result] = await connection.query(query, values);
 //             } catch (err) {
-//                 console.log("LOI SQL:", err);
+//                 errors.push({
+//                     record,
+//                     error: err.message
+//                 });
+//                 continue;
 //             }
 
-
-//             // Count based on affectedRows and query type
-//             // MySQL affectedRows behavior:
-//             // - INSERT new: affectedRows = 1
-//             // - UPDATE existing (ON DUPLICATE KEY): affectedRows = 2  
-//             // - No change (ON DUPLICATE KEY with same values): affectedRows = 0
-//             // - INSERT IGNORE duplicate: affectedRows = 0
-
-//             // if (isInsertIgnore) {
-//             //     if (result.affectedRows === 1) {
-//             //         inserted++;
-//             //     }
-//             // } else {
-//             //     if (result.insertId > 0 && result.changedRows === 0) {
-//             //         inserted++;
-//             //     } else if (result.changedRows > 0) {
-//             //         updated++;
-//             //     }
-//             // }
-
+//             // 5️⃣ Count logic chính xác
+//             // MySQL ON DUPLICATE KEY UPDATE:
+//             //   affectedRows=0  → duplicate, values giống hệt → skip
+//             //   affectedRows=1  → INSERT mới (insertId>0) hoặc collision không rõ
+//             //   affectedRows=2  → ON DUPLICATE KEY đã chạy, dùng changedRows để phân biệt:
+//             //                     changedRows=0 → values giống hệt (trùng key trong batch)  → skip
+//             //                     changedRows>0 → có field thực sự thay đổi               → updated
 //             if (isInsertIgnore) {
-//                 // INSERT IGNORE: affectedRows=1 means inserted, affectedRows=0 means duplicate
 //                 if (result.affectedRows === 1) {
 //                     inserted++;
-//                 } else if (result.affectedRows === 0) {
-//                     // Duplicate, skipped
+//                 } else {
 //                     skipped++;
 //                 }
 //             } else {
-//                 // ON DUPLICATE KEY UPDATE
 //                 if (result.affectedRows === 1) {
-//                     // affectedRows=1 can mean INSERT or UPDATE with no change
-//                     // Use insertId to distinguish:
 //                     if (result.insertId > 0) {
-//                         // Real INSERT (new auto-increment ID generated)
 //                         inserted++;
-//                     } else {
-//                         // Matched duplicate but no fields changed (insertId=0, changedRows=0)
-//                         // Don't count as updated - data unchanged!
+//                     } else if (result.changedRows > 0){
+//                         updated ++;
+//                     } 
+//                     else {
 //                         skipped++;
 //                     }
 //                 } else if (result.affectedRows === 2) {
-//                     // UPDATE with changes
-//                     updated++;
-//                 } else if (result.affectedRows === 0) {
-//                     // Matched duplicate, no change (alternative MySQL behavior)
+//                     if (result.changedRows > 0) {
+//                         updated++;   // Có field thực sự thay đổi
+//                     } else {
+//                         skipped++;   // ON DUPLICATE KEY nhưng values giống → không tính là update
+//                     }
+//                 } else {
 //                     skipped++;
 //                 }
 //             }
 
-
-//         } catch (error) {
+//         } catch (err) {
+//             console.error(`[SYNC generic] Lỗi khi xử lý bản ghi ở bảng ${tableName}:`, err.message);
 //             errors.push({
-//                 record: record,
-//                 error: error.message,
+//                 record,
+//                 error: err.message
 //             });
 //         }
 //     }
@@ -784,7 +940,7 @@ async function importCourseScheduleDetails(connection, records) {
 //         updated,
 //         skipped,
 //         errors,
-//         total: records.length,
+//         total: records.length
 //     };
 // }
 
@@ -847,6 +1003,58 @@ async function importGenericTable(connection, tableName, records, config) {
                 continue;
             }
 
+            // 🔍 DEBUG: So sánh từng field với giá trị trong DB
+            try {
+                const whereClause = config.uniqueKey.map(k => `${k} = ?`).join(" AND ");
+                const whereValues = config.uniqueKey.map(k => data[k]);
+                const [existingRows] = await connection.query(
+                    `SELECT * FROM ${tableName} WHERE ${whereClause} LIMIT 1`,
+                    whereValues
+                );
+
+                if (existingRows.length > 0) {
+                    const existingRow = existingRows[0];
+                    const diffs = [];
+
+                    for (const field of fields) {
+                        const newVal = data[field];
+                        const oldVal = existingRow[field];
+
+                        const normalize = (v) => {
+                            if (v === null || v === undefined) return "";
+                            if (v instanceof Date) return v.toISOString().slice(0, 19).replace("T", " ");
+                            return String(v).trim();
+                        };
+
+                        const oldNorm = normalize(oldVal);
+                        const newNorm = normalize(newVal);
+
+                        if (oldNorm !== newNorm) {
+                            diffs.push({
+                                field,
+                                old: oldVal,
+                                new: newVal,
+                                oldType: typeof oldVal,
+                                newType: typeof newVal,
+                                oldNorm,
+                                newNorm,
+                            });
+                        }
+                    }
+
+                    if (diffs.length > 0) {
+                        console.log(`[DIFF ${tableName}] key=${config.uniqueKey.map(k => data[k]).join("||")}`);
+                        console.table(diffs);
+                    } else {
+                        console.log(`[SAME ${tableName}] key=${config.uniqueKey.map(k => data[k]).join("||")} — không có gì thay đổi`);
+                    }
+                } else {
+                    console.log(`[NEW ${tableName}] key=${config.uniqueKey.map(k => data[k]).join("||")} — record chưa tồn tại trong DB`);
+                }
+            } catch (debugErr) {
+                console.warn(`[DEBUG ERROR ${tableName}]`, debugErr.message);
+            }
+
             // 4️⃣ Build UPDATE clause
             const updateClauses = fields
                 .filter((f) => !config.uniqueKey.includes(f))
@@ -884,6 +1092,14 @@ async function importGenericTable(connection, tableName, records, config) {
                 continue;
             }
 
+            // 🔍 DEBUG: Log kết quả MySQL sau mỗi query
+            console.log(`[RESULT ${tableName}]`, {
+                key: config.uniqueKey.map(k => data[k]).join("||"),
+                affectedRows: result.affectedRows,
+                changedRows: result.changedRows,
+                insertId: result.insertId,
+            });
+
             // 5️⃣ Count logic chính xác
             // MySQL ON DUPLICATE KEY UPDATE:
             //   affectedRows=0  → duplicate, values giống hệt → skip
@@ -894,28 +1110,39 @@ async function importGenericTable(connection, tableName, records, config) {
             if (isInsertIgnore) {
                 if (result.affectedRows === 1) {
                     inserted++;
+                    console.log(`[COUNT ${tableName}] → inserted`);
                 } else {
                     skipped++;
+                    console.log(`[COUNT ${tableName}] → skipped (insert ignore duplicate)`);
                 }
             } else {
                 if (result.affectedRows === 1) {
                     if (result.insertId > 0) {
                         inserted++;
+                        console.log(`[COUNT ${tableName}] → inserted`);
+                    } else if (result.changedRows > 0) {
+                        updated++;
+                        console.log(`[COUNT ${tableName}] → updated (affectedRows=1, changedRows>0)`);
                     } else {
                         skipped++;
+                        console.log(`[COUNT ${tableName}] → skipped (affectedRows=1, insertId=0, changedRows=0)`);
                     }
                 } else if (result.affectedRows === 2) {
                     if (result.changedRows > 0) {
-                        updated++;   // Có field thực sự thay đổi
+                        updated++;
+                        console.log(`[COUNT ${tableName}] → updated (affectedRows=2, changedRows>0)`);
                     } else {
-                        skipped++;   // ON DUPLICATE KEY nhưng values giống → không tính là update
+                        skipped++;
+                        console.log(`[COUNT ${tableName}] → skipped (affectedRows=2, changedRows=0)`);
                     }
                 } else {
                     skipped++;
+                    console.log(`[COUNT ${tableName}] → skipped (affectedRows=0)`);
                 }
             }
 
         } catch (err) {
+            console.error(`[SYNC generic] Lỗi khi xử lý bản ghi ở bảng ${tableName}:`, err.message);
             errors.push({
                 record,
                 error: err.message
