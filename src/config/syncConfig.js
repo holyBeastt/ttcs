@@ -148,11 +148,11 @@ module.exports = {
         uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'old_value', 'new_value', 'lop_hoc_phan', 'ten_lop'],
     },
 
-    ketthuchocphan: {
-        type: 'business',
-        description: 'Kết thúc học phần',
-        uniqueKey: ['ki', 'namhoc', 'tenhocphan', 'lophocphan'],
-    },
+    // ketthuchocphan: {
+    //     type: 'business',
+    //     description: 'Kết thúc học phần',
+    //     uniqueKey: ['ki', 'namhoc', 'tenhocphan', 'lophocphan'],
+    // },
 
     giuaky: {
         type: 'business',

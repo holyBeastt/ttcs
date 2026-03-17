@@ -944,54 +944,332 @@ async function importCourseScheduleDetails(connection, records) {
 //     };
 // }
 
+// async function importGenericTable(connection, tableName, records, config) {
+//     let inserted = 0;
+//     let updated = 0;
+//     let skipped = 0;
+//     const errors = [];
+
+//     const formatDateForMySQL = (value) => {
+//         if (!value) return null;
+//         const date = new Date(value);
+//         if (isNaN(date.getTime())) return null;
+//         return date.toISOString().slice(0, 19).replace("T", " ");
+//     };
+
+//     for (const record of records) {
+//         try {
+//             const missingKeys = config.uniqueKey.filter(
+//                 (key) => record[key] === undefined || record[key] === null || record[key] === ""
+//             );
+
+//             if (missingKeys.length > 0) {
+//                 errors.push({ record, error: `Missing required key fields: ${missingKeys.join(", ")}` });
+//                 continue;
+//             }
+
+//             let data;
+//             if (config.preserveId && record.id !== undefined) {
+//                 data = { ...record };
+//             } else {
+//                 const { id, ID, Id, STT, stt, ...rest } = record;
+//                 data = { ...rest };
+//             }
+
+//             for (const key in data) {
+//                 if (
+//                     typeof data[key] === "string" &&
+//                     data[key].includes("T") &&
+//                     data[key].includes("Z")
+//                 ) {
+//                     data[key] = formatDateForMySQL(data[key]);
+//                 }
+//             }
+
+//             const fields = Object.keys(data);
+//             const values = Object.values(data);
+
+//             if (fields.length === 0) {
+//                 skipped++;
+//                 continue;
+//             }
+
+//             const updateClauses = fields
+//                 .filter((f) => !config.uniqueKey.includes(f))
+//                 .map((f) => `${f} = VALUES(${f})`)
+//                 .join(", ");
+
+//             const placeholders = fields.map(() => "?").join(", ");
+
+//             let query;
+//             let isInsertIgnore = false;
+
+//             if (updateClauses) {
+//                 query = `
+//                     INSERT INTO ${tableName} (${fields.join(", ")})
+//                     VALUES (${placeholders})
+//                     ON DUPLICATE KEY UPDATE ${updateClauses}
+//                 `;
+//             } else {
+//                 isInsertIgnore = true;
+//                 query = `
+//                     INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
+//                     VALUES (${placeholders})
+//                 `;
+//             }
+
+//             let result;
+//             try {
+//                 [result] = await connection.query(query, values);
+//             } catch (err) {
+//                 errors.push({ record, error: err.message });
+//                 continue;
+//             }
+
+
+//             if (isInsertIgnore) {
+//                 if (result.affectedRows === 1) inserted++;
+//                 else skipped++;
+//             } else {
+//                 if (result.affectedRows === 1) {
+//                     if (result.insertId > 0) inserted++;
+//                     else if (result.changedRows > 0) updated++;
+//                     else skipped++;
+//                 } else if (result.affectedRows === 2) {
+//                     if (result.changedRows > 0) updated++;
+//                     else skipped++;
+//                 } else {
+//                     skipped++;
+//                 }
+//             }
+
+//         } catch (err) {
+//             errors.push({ record, error: err.message });
+//         }
+//     }
+
+//     return { inserted, updated, skipped, errors, total: records.length };
+// }
+
+// async function importGenericTable(connection, tableName, records, config) {
+//     let inserted = 0;
+//     let updated = 0;
+//     let skipped = 0;
+//     const errors = [];
+//     const warnings = [];
+
+//     const formatDateForMySQL = (value) => {
+//         if (!value) return null;
+//         const date = new Date(value);
+//         if (isNaN(date.getTime())) return null;
+//         return date.toISOString().slice(0, 19).replace("T", " ");
+//     };
+
+//     const formatDateOnlyForMySQL = (value) => {
+//         if (!value) return null;
+//         const date = new Date(value);
+//         if (isNaN(date.getTime())) return null;
+//         const vnDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+//         return vnDate.toISOString().slice(0, 10);
+//     };
+
+//     for (const record of records) {
+//         try {
+//             const missingKeys = config.uniqueKey.filter(
+//                 (key) => record[key] === undefined || record[key] === null || record[key] === ""
+//             );
+
+//             if (missingKeys.length > 0) {
+//                 errors.push({ record, error: `Missing required key fields: ${missingKeys.join(", ")}` });
+//                 continue;
+//             }
+
+//             let data;
+//             if (config.preserveId && record.id !== undefined) {
+//                 data = { ...record };
+//             } else {
+//                 const { id, ID, Id, STT, stt, MaGiangDay, ...rest } = record;
+//                 data = { ...rest };
+//             }
+
+//             for (const key in data) {
+//                 if (
+//                     typeof data[key] === "string" &&
+//                     data[key].includes("T") &&
+//                     data[key].includes("Z")
+//                 ) {
+//                     const isDateOnlyColumn = /ngay|date|deadline/i.test(key);
+//                     data[key] = isDateOnlyColumn
+//                         ? formatDateOnlyForMySQL(data[key])
+//                         : formatDateForMySQL(data[key]);
+//                 }
+//             }
+
+//             const fields = Object.keys(data);
+//             const values = Object.values(data);
+
+//             if (fields.length === 0) {
+//                 skipped++;
+//                 continue;
+//             }
+
+//             const updateClauses = fields
+//                 .filter((f) => !config.uniqueKey.includes(f))
+//                 .map((f) => `${f} = VALUES(${f})`)
+//                 .join(", ");
+
+//             const placeholders = fields.map(() => "?").join(", ");
+
+//             let query;
+//             let isInsertIgnore = false;
+
+//             if (updateClauses) {
+//                 query = `
+//                     INSERT INTO ${tableName} (${fields.join(", ")})
+//                     VALUES (${placeholders})
+//                     ON DUPLICATE KEY UPDATE ${updateClauses}
+//                 `;
+//             } else {
+//                 isInsertIgnore = true;
+//                 query = `
+//                     INSERT IGNORE INTO ${tableName} (${fields.join(", ")})
+//                     VALUES (${placeholders})
+//                 `;
+//             }
+
+//             let result;
+//             try {
+//                 [result] = await connection.query(query, values);
+
+//                 if (tableName == 'course_schedule_details')
+//                     console.log(`[${tableName}] affectedRows=${result.affectedRows} insertId=${result.insertId} changedRows=${result.changedRows}`);
+
+//                 if (result.warningStatus > 0) {
+//                     const [warningRows] = await connection.query("SHOW WARNINGS");
+//                     const realWarnings = warningRows.filter(w => w.Code !== 1062);
+//                     if (realWarnings.length > 0) {
+//                         warnings.push({
+//                             record,
+//                             warnings: realWarnings.map(w => ({
+//                                 level: w.Level,
+//                                 code: w.Code,
+//                                 message: w.Message
+//                             }))
+//                         });
+//                     }
+//                 }
+
+//             } catch (err) {
+//                 errors.push({ record, error: err.message });
+//                 continue;
+//             }
+
+//             // if (isInsertIgnore) {
+//             //     if (result.affectedRows === 1) inserted++;
+//             //     else skipped++;
+//             // } else {
+//             //     if (result.affectedRows === 1) {
+//             //         if (result.insertId > 0) inserted++;
+//             //         else if (result.changedRows > 0) updated++;
+//             //         else skipped++;
+//             //     } else if (result.affectedRows === 2) {
+//             //         updated++;
+//             //         if (result.changedRows > 0) updated++;
+//             //         else skipped++;
+//             //     } else {
+//             //         skipped++;
+//             //     }
+//             // }
+
+//             if (isInsertIgnore) {
+//                 if (result.affectedRows === 1) inserted++;
+//                 else skipped++;
+//             } else {
+//                 if (result.affectedRows === 0) {
+//                     // Không khớp điều kiện nào
+//                     skipped++;
+//                 } else if (result.affectedRows === 1) {
+//                     if (result.insertId > 0) inserted++;       // INSERT mới
+//                     else skipped++;                             // Khớp nhưng không đổi gì
+//                 } else if (result.affectedRows === 2) {
+//                     updated++;                                  // DELETE cũ + INSERT mới = có thay đổi thật
+//                         console.log(`[${tableName}] UPDATE record:`, JSON.stringify(record));
+
+//                 }
+//             }
+
+//         } catch (err) {
+//             errors.push({ record, error: err.message });
+//         }
+//     }
+
+//     return { inserted, updated, skipped, errors, warnings, total: records.length };
+// }
+
 async function importGenericTable(connection, tableName, records, config) {
     let inserted = 0;
     let updated = 0;
     let skipped = 0;
     const errors = [];
+    const warnings = [];
 
-    // Helper: format Date cho MySQL
     const formatDateForMySQL = (value) => {
         if (!value) return null;
-
         const date = new Date(value);
         if (isNaN(date.getTime())) return null;
-
         return date.toISOString().slice(0, 19).replace("T", " ");
     };
 
+    const formatDateOnlyForMySQL = (value) => {
+        if (!value) return null;
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return null;
+        const vnDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+        return vnDate.toISOString().slice(0, 10);
+    };
+
+    const normalizeValue = (val) => {
+        if (val === null || val === undefined || val === "") return null;
+        // Date object từ mysql2 → cộng +7h để ra ngày VN
+        if (val instanceof Date) {
+            const vnDate = new Date(val.getTime() + 7 * 60 * 60 * 1000);
+            return vnDate.toISOString().slice(0, 10);
+        }
+        const str = String(val).trim();
+        const num = Number(str);
+        if (!isNaN(num) && str !== "") return num;
+        return str;
+    }
+
     for (const record of records) {
         try {
-            // 1️⃣ Validate unique keys
             const missingKeys = config.uniqueKey.filter(
                 (key) => record[key] === undefined || record[key] === null || record[key] === ""
             );
 
             if (missingKeys.length > 0) {
-                errors.push({
-                    record,
-                    error: `Missing required key fields: ${missingKeys.join(", ")}`
-                });
+                errors.push({ record, error: `Missing required key fields: ${missingKeys.join(", ")}` });
                 continue;
             }
 
-            // 2️⃣ Remove auto increment ID nếu không preserve
             let data;
             if (config.preserveId && record.id !== undefined) {
                 data = { ...record };
             } else {
-                const { id, ID, Id, STT, stt, ...rest } = record;
+                const { id, ID, Id, STT, stt, MaGiangDay, ...rest } = record;
                 data = { ...rest };
             }
 
-            // 3️⃣ Auto format Date fields (nếu value là ISO string)
             for (const key in data) {
                 if (
                     typeof data[key] === "string" &&
                     data[key].includes("T") &&
                     data[key].includes("Z")
                 ) {
-                    data[key] = formatDateForMySQL(data[key]);
+                    const isDateOnlyColumn = /ngay|date|deadline/i.test(key);
+                    data[key] = isDateOnlyColumn
+                        ? formatDateOnlyForMySQL(data[key])
+                        : formatDateForMySQL(data[key]);
                 }
             }
 
@@ -1003,59 +1281,6 @@ async function importGenericTable(connection, tableName, records, config) {
                 continue;
             }
 
-            // 🔍 DEBUG: So sánh từng field với giá trị trong DB
-            try {
-                const whereClause = config.uniqueKey.map(k => `${k} = ?`).join(" AND ");
-                const whereValues = config.uniqueKey.map(k => data[k]);
-                const [existingRows] = await connection.query(
-                    `SELECT * FROM ${tableName} WHERE ${whereClause} LIMIT 1`,
-                    whereValues
-                );
-
-                if (existingRows.length > 0) {
-                    const existingRow = existingRows[0];
-                    const diffs = [];
-
-                    for (const field of fields) {
-                        const newVal = data[field];
-                        const oldVal = existingRow[field];
-
-                        const normalize = (v) => {
-                            if (v === null || v === undefined) return "";
-                            if (v instanceof Date) return v.toISOString().slice(0, 19).replace("T", " ");
-                            return String(v).trim();
-                        };
-
-                        const oldNorm = normalize(oldVal);
-                        const newNorm = normalize(newVal);
-
-                        if (oldNorm !== newNorm) {
-                            diffs.push({
-                                field,
-                                old: oldVal,
-                                new: newVal,
-                                oldType: typeof oldVal,
-                                newType: typeof newVal,
-                                oldNorm,
-                                newNorm,
-                            });
-                        }
-                    }
-
-                    if (diffs.length > 0) {
-                        console.log(`[DIFF ${tableName}] key=${config.uniqueKey.map(k => data[k]).join("||")}`);
-                        console.table(diffs);
-                    } else {
-                        console.log(`[SAME ${tableName}] key=${config.uniqueKey.map(k => data[k]).join("||")} — không có gì thay đổi`);
-                    }
-                } else {
-                    console.log(`[NEW ${tableName}] key=${config.uniqueKey.map(k => data[k]).join("||")} — record chưa tồn tại trong DB`);
-                }
-            } catch (debugErr) {
-                console.warn(`[DEBUG ERROR ${tableName}]`, debugErr.message);
-            }
-
-            // 4️⃣ Build UPDATE clause
             const updateClauses = fields
                 .filter((f) => !config.uniqueKey.includes(f))
                 .map((f) => `${f} = VALUES(${f})`)
@@ -1081,82 +1306,72 @@ async function importGenericTable(connection, tableName, records, config) {
             }
 
             let result;
-
+            let existingBefore;
             try {
+                // SELECT trước khi INSERT để lấy giá trị cũ
+                const whereClause = config.uniqueKey.map(k => `${k} = ?`).join(" AND ");
+                const whereValues = config.uniqueKey.map(k => data[k]);
+                [[existingBefore]] = await connection.query(
+                    `SELECT * FROM ${tableName} WHERE ${whereClause}`,
+                    whereValues
+                );
+
                 [result] = await connection.query(query, values);
+
+                if (result.warningStatus > 0) {
+                    const [warningRows] = await connection.query("SHOW WARNINGS");
+                    const realWarnings = warningRows.filter(w => w.Code !== 1062);
+                    if (realWarnings.length > 0) {
+                        warnings.push({
+                            record,
+                            warnings: realWarnings.map(w => ({
+                                level: w.Level,
+                                code: w.Code,
+                                message: w.Message
+                            }))
+                        });
+                    }
+                }
+
             } catch (err) {
-                errors.push({
-                    record,
-                    error: err.message
-                });
+                errors.push({ record, error: err.message });
                 continue;
             }
 
-            // 🔍 DEBUG: Log kết quả MySQL sau mỗi query
-            console.log(`[RESULT ${tableName}]`, {
-                key: config.uniqueKey.map(k => data[k]).join("||"),
-                affectedRows: result.affectedRows,
-                changedRows: result.changedRows,
-                insertId: result.insertId,
-            });
-
-            // 5️⃣ Count logic chính xác
-            // MySQL ON DUPLICATE KEY UPDATE:
-            //   affectedRows=0  → duplicate, values giống hệt → skip
-            //   affectedRows=1  → INSERT mới (insertId>0) hoặc collision không rõ
-            //   affectedRows=2  → ON DUPLICATE KEY đã chạy, dùng changedRows để phân biệt:
-            //                     changedRows=0 → values giống hệt (trùng key trong batch)  → skip
-            //                     changedRows>0 → có field thực sự thay đổi               → updated
             if (isInsertIgnore) {
-                if (result.affectedRows === 1) {
-                    inserted++;
-                    console.log(`[COUNT ${tableName}] → inserted`);
-                } else {
-                    skipped++;
-                    console.log(`[COUNT ${tableName}] → skipped (insert ignore duplicate)`);
-                }
+                if (result.affectedRows === 1) inserted++;
+                else skipped++;
             } else {
-                if (result.affectedRows === 1) {
-                    if (result.insertId > 0) {
-                        inserted++;
-                        console.log(`[COUNT ${tableName}] → inserted`);
-                    } else if (result.changedRows > 0) {
-                        updated++;
-                        console.log(`[COUNT ${tableName}] → updated (affectedRows=1, changedRows>0)`);
-                    } else {
-                        skipped++;
-                        console.log(`[COUNT ${tableName}] → skipped (affectedRows=1, insertId=0, changedRows=0)`);
-                    }
-                } else if (result.affectedRows === 2) {
-                    if (result.changedRows > 0) {
-                        updated++;
-                        console.log(`[COUNT ${tableName}] → updated (affectedRows=2, changedRows>0)`);
-                    } else {
-                        skipped++;
-                        console.log(`[COUNT ${tableName}] → skipped (affectedRows=2, changedRows=0)`);
-                    }
-                } else {
+                if (result.affectedRows === 0) {
                     skipped++;
-                    console.log(`[COUNT ${tableName}] → skipped (affectedRows=0)`);
+                } else if (result.affectedRows === 1) {
+                    if (result.insertId > 0) inserted++;
+                    else skipped++;
+            } else if (result.affectedRows === 2) {
+                const reallyChanged = !existingBefore || fields.some(f => {
+                    const dbVal = normalizeValue(existingBefore[f]);
+                    const newVal = normalizeValue(data[f]);
+                    if (dbVal !== newVal) {
+                        console.log(`[${tableName}] DIFF field="${f}" db=${JSON.stringify(dbVal)} new=${JSON.stringify(newVal)}`);
+                        return true;
+                    }
+                    return false;
+                });
+                if (reallyChanged) {
+                    console.log(`[${tableName}] → updated`);
+                    updated++;
+                } else {
+                    console.log(`[${tableName}] → skipped (không có diff)`);
+                    skipped++;
                 }
             }
-
+        }
         } catch (err) {
-            console.error(`[SYNC generic] Lỗi khi xử lý bản ghi ở bảng ${tableName}:`, err.message);
-            errors.push({
-                record,
-                error: err.message
-            });
+            errors.push({ record, error: err.message });
         }
     }
 
-    return {
-        inserted,
-        updated,
-        skipped,
-        errors,
-        total: records.length
-    };
+    return { inserted, updated, skipped, errors, warnings, total: records.length };
 }
 
 /**
@@ -1238,6 +1453,15 @@ exports.importAll = async (req, res) => {
 
                 // Commit transaction
                 await connection.commit();
+
+                // ← thêm vào đây
+if (result.warnings?.length > 0) {
+    console.warn(`⚠️  [${tableName}] ${result.warnings.length} warning(s):`);
+    result.warnings.forEach((w) => {
+        console.warn(`   Code: ${w.warnings.map(x => x.code).join(", ")} | Message: ${w.warnings.map(x => x.message).join(", ")}`);
+        console.warn(`   Record:`, JSON.stringify(w.record));
+    });
+}
 
                 results[tableName] = {
                     success: true,
