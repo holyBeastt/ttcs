@@ -653,6 +653,115 @@ const deleteHocPhan = async (req, res) => {
   }
 };
 
+const getHeDaoTaoList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = `
+      SELECT id, he_dao_tao, cap_do, loai_hinh
+      FROM he_dao_tao
+      ORDER BY loai_hinh ASC, cap_do ASC, id ASC
+    `;
+    const [results] = await connection.query(query);
+
+    res.render("heDaoTao.ejs", {
+      heDaoTaoList: results,
+      message: req.query.message || null,
+      error: req.query.error || null,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách hệ đào tạo:", error);
+    res.status(500).send("Lỗi hệ thống. Không thể lấy danh sách hệ đào tạo.");
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const postHeDaoTao = async (req, res) => {
+  let { he_dao_tao, cap_do, loai_hinh } = req.body;
+  let connection;
+
+  he_dao_tao = typeof he_dao_tao === "string" ? he_dao_tao.trim() : "";
+  cap_do = Number(cap_do);
+  loai_hinh = typeof loai_hinh === "string" ? loai_hinh.trim() : "";
+
+  const validLoaiHinh = ["mời giảng", "đồ án"];
+
+  if (!he_dao_tao) {
+    return res.redirect(
+      "/heDaoTao?error=" +
+        encodeURIComponent("Tên hệ đào tạo không được để trống.")
+    );
+  }
+
+  if (!Number.isInteger(cap_do) || cap_do < 1) {
+    return res.redirect(
+      "/heDaoTao?error=" +
+        encodeURIComponent("Cấp độ phải là số nguyên lớn hơn hoặc bằng 1.")
+    );
+  }
+
+  if (!validLoaiHinh.includes(loai_hinh)) {
+    return res.redirect(
+      "/heDaoTao?error=" +
+        encodeURIComponent("Loại hình không hợp lệ.")
+    );
+  }
+
+  try {
+    connection = await createPoolConnection();
+
+    const duplicateQuery = `
+      SELECT id
+      FROM he_dao_tao
+      WHERE he_dao_tao = ? AND loai_hinh = ?
+      LIMIT 1
+    `;
+    const [duplicateRows] = await connection.query(duplicateQuery, [
+      he_dao_tao,
+      loai_hinh,
+    ]);
+
+    if (duplicateRows.length > 0) {
+      return res.redirect(
+        "/heDaoTao?error=" +
+          encodeURIComponent("Hệ đào tạo này đã tồn tại trong loại hình đã chọn.")
+      );
+    }
+
+    const insertQuery = `
+      INSERT INTO he_dao_tao (he_dao_tao, cap_do, loai_hinh)
+      VALUES (?, ?, ?)
+    `;
+    await connection.query(insertQuery, [he_dao_tao, cap_do, loai_hinh]);
+
+    try {
+      const logSql = `
+        INSERT INTO lichsunhaplieu
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+      const logMessage = `Admin thêm hệ đào tạo mới: "${he_dao_tao}", cấp độ "${cap_do}", loại hình "${loai_hinh}"`;
+      await connection.query(logSql, [1, "ADMIN", "DAOTAO", "Admin Log", logMessage]);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log hệ đào tạo:", logError);
+    }
+
+    res.redirect(
+      "/heDaoTao?message=" +
+        encodeURIComponent("Thêm hệ đào tạo thành công.")
+    );
+  } catch (error) {
+    console.error("Lỗi khi thêm hệ đào tạo:", error);
+    res.redirect(
+      "/heDaoTao?error=" +
+        encodeURIComponent("Không thể thêm hệ đào tạo.")
+    );
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 const updateBonusTimeRow = async (req, res) => {
   const { id, field, value } = req.body;
 
@@ -770,6 +879,8 @@ module.exports = {
   getHocPhanList,
   updateHocPhan,
   deleteHocPhan,
+  getHeDaoTaoList,
+  postHeDaoTao,
   getHeSoLopDongSite,
   getHeSoLopDongData,
   updateBonusTimeRow,

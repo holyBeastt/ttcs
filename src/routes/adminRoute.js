@@ -73,6 +73,8 @@ const {
   getHocPhanList,
   updateHocPhan,
   deleteHocPhan,
+  getHeDaoTaoList,
+  postHeDaoTao,
   getHeSoLopDongSite,
   getHeSoLopDongData,
   updateBonusTimeRow,
@@ -198,6 +200,10 @@ router.delete("/dotDoAn/:dotdoan", deleteDotDoAn);
 router.get("/hocphan", getHocPhanList);
 router.put("/hocphan/:MaHocPhan", updateHocPhan);
 router.delete("/hocphan/:MaHocPhan", deleteHocPhan);
+
+// Hệ đào tạo
+router.get("/heDaoTao", getHeDaoTaoList);
+router.post("/heDaoTao", postHeDaoTao);
 
 router.get("/themHocPhan", (req, res) => {
   res.render("themHocPhan");
