@@ -1243,8 +1243,15 @@ async function importGenericTable(connection, tableName, records, config) {
 
     for (const record of records) {
         try {
+            // const missingKeys = config.uniqueKey.filter(
+            //     (key) => record[key] === undefined || record[key] === null || record[key] === ""
+            // );
+
             const missingKeys = config.uniqueKey.filter(
-                (key) => record[key] === undefined || record[key] === null || record[key] === ""
+                (key) => {
+                    const val = record[key];
+                    return val === undefined || val === null || String(val).trim() === "";
+                }
             );
 
             if (missingKeys.length > 0) {
@@ -1260,18 +1267,36 @@ async function importGenericTable(connection, tableName, records, config) {
                 data = { ...rest };
             }
 
+            const isISODate = (val) => {
+                return typeof val === "string" &&
+                    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val);
+            };
+
             for (const key in data) {
-                if (
-                    typeof data[key] === "string" &&
-                    data[key].includes("T") &&
-                    data[key].includes("Z")
-                ) {
+                if (isISODate(data[key])) {
                     const isDateOnlyColumn = /ngay|date|deadline/i.test(key);
                     data[key] = isDateOnlyColumn
                         ? formatDateOnlyForMySQL(data[key])
                         : formatDateForMySQL(data[key]);
+
+                    if (data[key] === null && record[key]) {
+                        console.log('⚠️ LOST DATA:', key, record[key]);
+                    }
                 }
             }
+
+            // for (const key in data) {
+            //     if (
+            //         typeof data[key] === "string" &&
+            //         data[key].includes("T") &&
+            //         data[key].includes("Z")
+            //     ) {
+            //         const isDateOnlyColumn = /ngay|date|deadline/i.test(key);
+            //         data[key] = isDateOnlyColumn
+            //             ? formatDateOnlyForMySQL(data[key])
+            //             : formatDateForMySQL(data[key]);
+            //     }
+            // }
 
             const fields = Object.keys(data);
             const values = Object.values(data);
@@ -1334,6 +1359,12 @@ async function importGenericTable(connection, tableName, records, config) {
                 }
 
             } catch (err) {
+                console.log('❌ INSERT FAIL:', tableName);
+                console.log('👉 RECORD:', JSON.stringify(record));
+                console.log('👉 DATA:', JSON.stringify(data));
+                console.log('👉 ERROR:', err.message);
+                console.log('-----------------------------');
+
                 errors.push({ record, error: err.message });
                 continue;
             }
