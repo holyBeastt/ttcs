@@ -92,7 +92,20 @@
 
         .table-select {
             position: relative;
-            height: 50px;
+            min-height: auto;
+        }
+
+        .table-checkbox-list {
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 0.6rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            background: #fff;
+        }
+
+        .table-checkbox-list .form-check {
+            margin-bottom: 0.35rem;
         }
 
         .table-select select {
@@ -305,11 +318,24 @@
 
                 <div class="row align-items-end">
                     <div class="col-md-8">
-                        <label for="export-table" class="form-label">Chọn bảng để xuất</label>
+                        <label class="form-label">Chọn bảng để xuất</label>
+                        <small class="text-muted">(Tick chọn nhiều; đánh dấu Tất cả để chọn tất cả bảng)</small>
                         <div class="table-select">
-                            <select id="export-table" class="form-select">
-                                <option value="">-- Chọn bảng --</option>
-                            </select>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="export-select-all" />
+                                <label class="form-check-label" for="export-select-all">Chọn tất cả</label>
+                            </div>
+                            <div id="export-table-list" class="table-checkbox-list"></div>
+                        </div>
+
+                        <div class="row g-2 mt-2">
+                            <div class="col-6">
+                                <label for="export-year" class="form-label">Chọn năm học</label>
+                                <select id="export-year" class="form-select">
+                                    <option value="">-- Tất cả năm --</option>
+                                </select>
+                                <small class="text-muted">Áp dụng cho: doantotnghiep, course_schedule_details, quychuan, giangday, nckh_chung</small>
+                            </div>
                         </div>
 
                         <div id="export-table-info" class="table-info">
@@ -427,11 +453,41 @@
             let selectedFile = null;
             let fileData = null;
 
-            // Load available tables on page load
+            function isExportAllFormat(data) {
+                return data && typeof data === 'object' && data.tables && typeof data.tables === 'object';
+            }
+
+            function isSingleTableFormat(data) {
+                return Array.isArray(data) || (data && Array.isArray(data.data));
+            }
+
+            // Load available tables and năm học on page load
             $(document).ready(async function () {
-                await loadTableInfo();
+                await Promise.all([loadTableInfo(), loadNamHocOptions()]);
                 setupEventListeners();
             });
+
+            async function loadNamHocOptions() {
+                try {
+                    const response = await fetch('/getNamHoc');
+                    const data = await response.json();
+
+                    if (data.success && Array.isArray(data.NamHoc)) {
+                        const select = $('#export-year');
+
+                        // Reset to ensure no duplicates
+                        select.empty();
+                        select.append('<option value="">-- Tất cả năm --</option>');
+
+                        data.NamHoc.forEach(item => {
+                            // item.NamHoc may be string
+                            select.append(`<option value="${item.NamHoc}">${item.NamHoc}</option>`);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi tải danh sách năm học:', error);
+                }
+            }
 
             // Load table information from API
             async function loadTableInfo() {
@@ -451,42 +507,77 @@
                 }
             }
 
-            // Populate table select dropdowns
+            // Populate table options for export and import
             function populateTableSelects() {
-                const exportSelect = $('#export-table');
+                const exportList = $('#export-table-list');
                 const importSelect = $('#import-table');
 
-                // Add "All Tables" option
-                const allOption = '<option value="*ALL*">🔄 Tất cả các bảng (' + tables.length + ' bảng)</option>';
-                exportSelect.append(allOption);
-                importSelect.append(allOption);
+                exportList.empty();
+                importSelect.empty();
+
+                importSelect.append('<option value="">-- Chọn bảng --</option>');
+                importSelect.append(`<option value="*ALL*">🔄 Tất cả các bảng (${tables.length} bảng)</option>`);
 
                 tables.forEach(table => {
+                    const checkbox = `
+                        <div class="form-check">
+                            <input class="form-check-input export-table-checkbox" type="checkbox" id="export-${table.table}" value="${table.table}" />
+                            <label class="form-check-label" for="export-${table.table}">${table.table} - ${table.description}</label>
+                        </div>
+                    `;
+                    exportList.append(checkbox);
+
                     const option = `<option value="${table.table}">${table.table} - ${table.description}</option>`;
-                    exportSelect.append(option);
                     importSelect.append(option);
                 });
             }
 
+            function getSelectedExportTables() {
+                return $('#export-table-list .export-table-checkbox:checked').map(function () {
+                    return $(this).val();
+                }).get();
+            }
+
+            function updateExportSelectionInfo() {
+                const selectedTables = getSelectedExportTables();
+
+                if (selectedTables.length === 0) {
+                    $('#export-table-info').removeClass('show');
+                    $('#btn-export').prop('disabled', true);
+                    return;
+                }
+
+                if (selectedTables.length === tables.length) {
+                    $('#export-type').text('Tất cả');
+                    $('#export-keys').text(`${selectedTables.length} bảng`);
+                    $('#export-desc').text('Xuất tất cả các bảng cùng một lúc');
+                    $('#export-table-info').addClass('show');
+                } else if (selectedTables.length === 1) {
+                    showTableInfo(selectedTables[0], 'export');
+                } else {
+                    $('#export-type').text('Nhiều bảng');
+                    $('#export-keys').text(`${selectedTables.length} bảng`);
+                    $('#export-desc').text(`Xuất bảng: ${selectedTables.join(', ')}`);
+                    $('#export-table-info').addClass('show');
+                }
+
+                $('#btn-export').prop('disabled', false);
+            }
+
             // Setup all event listeners
             function setupEventListeners() {
-                // Export table selection
-                $('#export-table').change(function () {
-                    const tableName = $(this).val();
-                    if (tableName) {
-                        if (tableName === '*ALL*') {
-                            $('#export-type').text('Tất cả');
-                            $('#export-keys').text(`${tables.length} bảng`);
-                            $('#export-desc').text('Xuất tất cả các bảng cùng một lúc');
-                            $('#export-table-info').addClass('show');
-                        } else {
-                            showTableInfo(tableName, 'export');
-                        }
-                        $('#btn-export').prop('disabled', false);
-                    } else {
-                        $('#export-table-info').removeClass('show');
-                        $('#btn-export').prop('disabled', true);
-                    }
+                // Export table selection behavior via checkbox list
+                $('#export-select-all').change(function () {
+                    const checked = $(this).is(':checked');
+                    $('#export-table-list .export-table-checkbox').prop('checked', checked);
+                    updateExportSelectionInfo();
+                });
+
+                $('#export-table-list').on('change', '.export-table-checkbox', function () {
+                    const selectedCount = $('#export-table-list .export-table-checkbox:checked').length;
+                    const totalCount = $('#export-table-list .export-table-checkbox').length;
+                    $('#export-select-all').prop('checked', selectedCount === totalCount);
+                    updateExportSelectionInfo();
                 });
 
                 // Import table selection
@@ -623,15 +714,36 @@
 
             // Check if import is ready
             function checkImportReady() {
-                const tableSelected = $('#import-table').val() !== '';
+                const tableName = $('#import-table').val();
+                const tableSelected = tableName !== '';
                 const fileSelected = fileData !== null;
-                $('#btn-import').prop('disabled', !(tableSelected && fileSelected));
+
+                if (!tableSelected || !fileSelected) {
+                    $('#btn-import').prop('disabled', true);
+                    return;
+                }
+
+                const fileIsExportAll = isExportAllFormat(fileData);
+                const fileIsSingle = isSingleTableFormat(fileData);
+
+                if (tableName === '*ALL*') {
+                    $('#btn-import').prop('disabled', !fileIsExportAll);
+                    return;
+                }
+
+                // For single-table import, file should contain a data array, not a full `tables` object
+                if (fileIsExportAll) {
+                    $('#btn-import').prop('disabled', true);
+                    return;
+                }
+
+                $('#btn-import').prop('disabled', !fileIsSingle);
             }
 
             // Handle export
             async function handleExport() {
-                const tableName = $('#export-table').val();
-                if (!tableName) return;
+                const selectedTables = getSelectedExportTables();
+                if (selectedTables.length === 0) return;
 
                 // Show loading
                 const btn = $('#btn-export');
@@ -642,22 +754,27 @@
                 try {
                     let response, data;
 
+                    // Year filter value
+                    const exportYear = $('#export-year').val()?.trim();
+
                     // Check if exporting all tables
-                    if (tableName === '*ALL*') {
-                        response = await fetch('/sync/export-all');
+                    const isAll = selectedTables.length === tables.length;
+                    if (isAll) {
+                        const url = exportYear
+                            ? `/sync/export-all?namhoc=${encodeURIComponent(exportYear)}`
+                            : '/sync/export-all';
+                        response = await fetch(url);
                         data = await response.json();
 
                         if (data.success) {
-                            // Create file and download
                             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                            const url = URL.createObjectURL(blob);
+                            const urlObject = URL.createObjectURL(blob);
                             const a = document.createElement('a');
-                            a.href = url;
+                            a.href = urlObject;
                             a.download = `all_tables_export_${new Date().getTime()}.json`;
                             a.click();
-                            URL.revokeObjectURL(url);
+                            URL.revokeObjectURL(urlObject);
 
-                            // Show result
                             $('#export-count').text(data.totalRecords);
                             $('#export-table-name').text(`${data.totalTables} bảng`);
                             $('#export-result').addClass('show');
@@ -670,22 +787,23 @@
                                 backgroundColor: "#4CAF50"
                             }).showToast();
                         }
-                    } else {
-                        // Export single table
-                        response = await fetch(`/sync/export?table=${tableName}`);
+                    } else if (selectedTables.length === 1) {
+                        const tableName = selectedTables[0];
+                        const url = exportYear
+                            ? `/sync/export?table=${tableName}&namhoc=${encodeURIComponent(exportYear)}`
+                            : `/sync/export?table=${tableName}`;
+                        response = await fetch(url);
                         data = await response.json();
 
                         if (data.success) {
-                            // Create file and download
                             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                            const url = URL.createObjectURL(blob);
+                            const urlObject = URL.createObjectURL(blob);
                             const a = document.createElement('a');
-                            a.href = url;
+                            a.href = urlObject;
                             a.download = `${tableName}_export_${new Date().getTime()}.json`;
                             a.click();
-                            URL.revokeObjectURL(url);
+                            URL.revokeObjectURL(urlObject);
 
-                            // Show result
                             $('#export-count').text(data.count);
                             $('#export-table-name').text(tableName);
                             $('#export-result').addClass('show');
@@ -698,9 +816,38 @@
                                 backgroundColor: "#4CAF50"
                             }).showToast();
                         }
+                    } else {
+                        const tableList = selectedTables.join(',');
+                        const url = exportYear
+                            ? `/sync/export-multiple?tables=${encodeURIComponent(tableList)}&namhoc=${encodeURIComponent(exportYear)}`
+                            : `/sync/export-multiple?tables=${encodeURIComponent(tableList)}`;
+                        response = await fetch(url);
+                        data = await response.json();
+
+                        if (data.success) {
+                            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                            const urlObject = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = urlObject;
+                            a.download = `selected_tables_export_${new Date().getTime()}.json`;
+                            a.click();
+                            URL.revokeObjectURL(urlObject);
+
+                            $('#export-count').text(data.totalRecords);
+                            $('#export-table-name').text(`${data.totalTables} bảng`);
+                            $('#export-result').addClass('show');
+
+                            Toastify({
+                                text: `✅ Xuất thành công ${data.totalRecords} bản ghi từ ${data.totalTables} bảng!`,
+                                duration: 3000,
+                                gravity: "top",
+                                position: "right",
+                                backgroundColor: "#4CAF50"
+                            }).showToast();
+                        }
                     }
 
-                    if (!data.success) {
+                    if (data && !data.success) {
                         throw new Error(data.message || 'Export failed');
                     }
                 } catch (error) {
@@ -717,14 +864,33 @@
                 const tableName = $('#import-table').val();
                 if (!tableName || !fileData) return;
 
-                // Determine if import all or single table
-                const isImportAll = tableName === '*ALL*' || (fileData.tables && typeof fileData.tables === 'object');
+                const fileIsExportAll = isExportAllFormat(fileData);
+                const fileIsSingle = isSingleTableFormat(fileData);
+
+                if (tableName === '*ALL*' && !fileIsExportAll) {
+                    Swal.fire('Lỗi', 'Đã chọn nhập tất cả bảng nhưng file không ở định dạng export-all.', 'error');
+                    return;
+                }
+
+                if (tableName !== '*ALL*' && fileIsExportAll) {
+                    Swal.fire('Lỗi', 'Đã chọn bảng cụ thể nhưng file chứa dữ liệu tất cả bảng. Vui lòng chọn [Tất cả các bảng] hoặc file dữ liệu bảng riêng phù hợp.', 'error');
+                    return;
+                }
+
+                if (tableName !== '*ALL*' && !fileIsSingle) {
+                    Swal.fire('Lỗi', 'File import không hợp lệ. Vui lòng chọn file JSON định dạng mảng dữ liệu hoặc object { data: [...] }.', 'error');
+                    return;
+                }
+
+                const isImportAll = tableName === '*ALL*' && fileIsExportAll;
 
                 let recordCount = 0;
-                if (isImportAll && fileData.tables) {
+                if (isImportAll) {
                     Object.values(fileData.tables).forEach(t => recordCount += (t.data?.length || 0));
                 } else if (Array.isArray(fileData)) {
                     recordCount = fileData.length;
+                } else if (fileData.data && Array.isArray(fileData.data)) {
+                    recordCount = fileData.data.length;
                 }
 
                 // Confirm import

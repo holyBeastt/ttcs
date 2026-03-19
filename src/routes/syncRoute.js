@@ -32,6 +32,7 @@ const { requireAdmin } = require("../middlewares/syncAuthMiddleware");
  * }
  */
 router.get("/export", requireAdmin, syncController.exportTable);
+router.get("/export-multiple", requireAdmin, syncController.exportMultiple);
 
 // ============================================
 // IMPORT ENDPOINT

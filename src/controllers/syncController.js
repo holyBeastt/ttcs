@@ -8,6 +8,23 @@ const createConnection = require("../config/databasePool");
 const syncConfig = require("../config/syncConfig");
 const { validateAndMigrateSchemaFromData } = require("../helpers/schemaValidator");
 
+// Tables that support year-based filtering (Năm học)
+const yearFilteredTables = new Set([
+    'doantotnghiep',
+    'course_schedule_details',
+    'quychuan',
+    'giangday',
+    'nckh_chung'
+]);
+
+const yearColumnByTable = {
+    doantotnghiep: 'NamHoc',
+    course_schedule_details: 'nam_hoc',
+    quychuan: 'NamHoc',
+    giangday: 'NamHoc',
+    nckh_chung: 'NamHoc'
+};
+
 // ============================================
 // EXPORT FUNCTIONS
 // ============================================
@@ -65,14 +82,22 @@ exports.exportTable = async (req, res) => {
         let query;
         let data;
 
+        // Year filter support for selected tables
+        const year = req.query.namhoc || req.query.year || req.query.nam || req.query.nam_hoc;
+        const yearColumn = yearColumnByTable[table];
+
         // Use custom export query if defined, otherwise use default SELECT *
         if (config.exportQuery) {
             query = config.exportQuery;
             [data] = await connection.query(query);
         } else {
-            // Default: SELECT * FROM table
-            query = `SELECT * FROM ${table}`;
-            [data] = await connection.query(query);
+            if (year && yearColumn && yearFilteredTables.has(table)) {
+                query = `SELECT * FROM ${table} WHERE ${yearColumn} = ?`;
+                [data] = await connection.query(query, [year]);
+            } else {
+                query = `SELECT * FROM ${table}`;
+                [data] = await connection.query(query);
+            }
 
             // Only remove id column if NOT preserveId
             if (!config.preserveId) {
@@ -114,6 +139,9 @@ exports.exportAll = async (req, res) => {
         const allData = {};
         let totalCount = 0;
 
+        // Year filter support for selected tables
+        const year = req.query.namhoc || req.query.year || req.query.nam || req.query.nam_hoc;
+
         // Export each table
         for (const [tableName, config] of Object.entries(syncConfig)) {
             try {
@@ -124,8 +152,14 @@ exports.exportAll = async (req, res) => {
                     query = config.exportQuery;
                     [data] = await connection.query(query);
                 } else {
-                    query = `SELECT * FROM ${tableName}`;
-                    [data] = await connection.query(query);
+                    const yearColumn = yearColumnByTable[tableName];
+                    if (year && yearColumn && yearFilteredTables.has(tableName)) {
+                        query = `SELECT * FROM ${tableName} WHERE ${yearColumn} = ?`;
+                        [data] = await connection.query(query, [year]);
+                    } else {
+                        query = `SELECT * FROM ${tableName}`;
+                        [data] = await connection.query(query);
+                    }
 
                     // Only remove id column if NOT preserveId
                     if (!config.preserveId) {
@@ -173,6 +207,113 @@ exports.exportAll = async (req, res) => {
     }
 };
 
+/**
+ * Export multiple tables
+ * GET /sync/export-multiple?tables=table1,table2
+ */
+exports.exportMultiple = async (req, res) => {
+    const tablesQuery = req.query.tables;
+    if (!tablesQuery) {
+        return res.status(400).json({
+            success: false,
+            message: 'Parameter "tables" is required (comma-separated list)'
+        });
+    }
+
+    const requestedTables = Array.isArray(tablesQuery)
+        ? tablesQuery
+        : String(tablesQuery).split(',').map(t => t.trim()).filter(Boolean);
+
+    if (requestedTables.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'No valid table names provided'
+        });
+    }
+
+    if (requestedTables.length === Object.keys(syncConfig).length) {
+        // Same as export-all
+        return exports.exportAll(req, res);
+    }
+
+    const invalidTables = requestedTables.filter(t => !syncConfig[t]);
+    if (invalidTables.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: `Invalid table(s): ${invalidTables.join(', ')}`
+        });
+    }
+
+    let connection;
+    try {
+        connection = await createConnection();
+        const allData = {};
+        let totalCount = 0;
+        const year = req.query.namhoc || req.query.year || req.query.nam || req.query.nam_hoc;
+
+        for (const tableName of requestedTables) {
+            const config = syncConfig[tableName];
+            try {
+                let query;
+                let data;
+
+                if (config.exportQuery) {
+                    query = config.exportQuery;
+                    [data] = await connection.query(query);
+                } else {
+                    const yearColumn = yearColumnByTable[tableName];
+                    if (year && yearColumn && yearFilteredTables.has(tableName)) {
+                        query = `SELECT * FROM ${tableName} WHERE ${yearColumn} = ?`;
+                        [data] = await connection.query(query, [year]);
+                    } else {
+                        query = `SELECT * FROM ${tableName}`;
+                        [data] = await connection.query(query);
+                    }
+
+                    if (!config.preserveId) {
+                        data = data.map((row) => {
+                            const { id, ...rest } = row;
+                            return rest;
+                        });
+                    }
+                }
+
+                allData[tableName] = {
+                    count: data.length,
+                    description: config.description,
+                    type: config.type,
+                    data: data,
+                };
+                totalCount += data.length;
+            } catch (error) {
+                console.error(`Error exporting ${tableName}:`, error);
+                allData[tableName] = {
+                    count: 0,
+                    error: error.message,
+                    data: [],
+                };
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Exported selected tables',
+            totalTables: requestedTables.length,
+            totalRecords: totalCount,
+            tables: allData,
+        });
+    } catch (error) {
+        console.error('Export multiple error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error exporting selected tables',
+            error: error.message,
+        });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
 // ============================================
 // IMPORT FUNCTIONS
 // ============================================
@@ -191,13 +332,27 @@ exports.importTable = async (req, res) => {
         if (!table || !syncConfig[table]) {
             return res.status(400).json({
                 success: false,
-                message: `Invalid table name. Supported tables: ${Object.keys(
-                    syncConfig
-                ).join(", ")}`,
+                message: table
+                    ? `Invalid table name "${table}". Supported tables: ${Object.keys(syncConfig).join(", ")}`
+                    : `Table name is required. Supported tables: ${Object.keys(syncConfig).join(", ")}`,
             });
         }
 
-        if (!data || !Array.isArray(data) || data.length === 0) {
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+            return res.status(400).json({
+                success: false,
+                message: "Data must be a non-empty array",
+            });
+        }
+
+        if (!Array.isArray(data)) {
+            if (data && typeof data === 'object' && data.tables) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Payload appears to be export-all format. Use /sync/import-all endpoint for full dataset import.",
+                });
+            }
+
             return res.status(400).json({
                 success: false,
                 message: "Data must be a non-empty array",
