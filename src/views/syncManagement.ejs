@@ -299,6 +299,32 @@
             border-radius: 20px;
             font-weight: 600;
         }
+
+        .export-controls {
+            row-gap: 1rem;
+        }
+
+        .export-side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .export-year-group {
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.75rem;
+            background: #f8fbff;
+        }
+
+        .export-year-group .form-label {
+            margin-bottom: 0.5rem;
+        }
+
+        .export-year-help {
+            display: block;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 
@@ -316,7 +342,7 @@
             <div class="sync-card">
                 <h4><i class="bi bi-download text-success"></i> Xuất Dữ Liệu (Export)</h4>
 
-                <div class="row align-items-end">
+                <div class="row export-controls">
                     <div class="col-md-8">
                         <label class="form-label">Chọn bảng để xuất</label>
                         <small class="text-muted">(Tick chọn nhiều; đánh dấu Tất cả để chọn tất cả bảng)</small>
@@ -328,16 +354,6 @@
                             <div id="export-table-list" class="table-checkbox-list"></div>
                         </div>
 
-                        <div class="row g-2 mt-2">
-                            <div class="col-6">
-                                <label for="export-year" class="form-label">Chọn năm học</label>
-                                <select id="export-year" class="form-select">
-                                    <option value="">-- Tất cả năm --</option>
-                                </select>
-                                <small class="text-muted">Áp dụng cho: doantotnghiep, course_schedule_details, quychuan, giangday, nckh_chung</small>
-                            </div>
-                        </div>
-
                         <div id="export-table-info" class="table-info">
                             <p><strong>Loại:</strong> <span id="export-type"></span></p>
                             <p><strong>Khóa tự nhiên:</strong> <span id="export-keys"></span></p>
@@ -346,10 +362,20 @@
                     </div>
 
                     <div class="col-md-4">
-                        <button id="btn-export" class="btn btn-export btn-action w-100" disabled>
-                            <i class="bi bi-download"></i>
-                            <span>Xuất dữ liệu</span>
-                        </button>
+                        <div class="export-side-panel h-100">
+                            <div class="export-year-group">
+                                <label for="export-year" class="form-label">Chọn năm học</label>
+                                <select id="export-year" class="form-select">
+                                    <option value="">-- Tất cả năm --</option>
+                                </select>
+                                <small class="text-muted export-year-help">Áp dụng cho: doantotnghiep, course_schedule_details, quychuan, giangday, nckh_chung</small>
+                            </div>
+
+                            <button id="btn-export" class="btn btn-export btn-action w-100 mt-md-auto" disabled>
+                                <i class="bi bi-download"></i>
+                                <span>Xuất dữ liệu</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
