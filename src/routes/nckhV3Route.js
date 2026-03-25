@@ -12,6 +12,8 @@ const huongDanSvNckhController = require("../controllers/nckh_v3/huongDanSvNckh.
 const thanhVienHoiDongController = require("../controllers/nckh_v3/thanhVienHoiDong.controller");
 const recordController = require("../controllers/nckh_v3/record.controller");
 const adminController = require("../controllers/nckh_v3/adminQuyDinh.controller");
+const statsController = require("../controllers/nckh_v3/stats.controller");
+const exportController = require("../controllers/nckh_v3/export.controller");
 
 router.use((req, res, next) => {
 	res.locals.nckhVersion = "v3";
@@ -89,6 +91,7 @@ router.delete("/hoi-dong-khoa-hoc/:id", thanhVienHoiDongController.remove);
 
 // Unified records APIs (all NCKH types)
 router.get("/records/filters", recordController.getFilters);
+router.patch("/records/bulk-approvals", recordController.bulkApprovals);
 router.get("/records", recordController.list);
 router.get("/records/:id", recordController.detail);
 router.patch("/records/:id/khoa-duyet", recordController.approveKhoa);
@@ -106,6 +109,21 @@ router.get("/them-moi-nckh", (req, res) => {
 router.get("/xem-chung", (req, res) => {
 	portalController.renderUnifiedListPage(req, res);
 });
+
+router.get("/thong-ke/giang-vien", statsController.renderLecturerPage);
+router.get("/thong-ke/khoa", statsController.renderFacultyPage);
+router.get("/thong-ke/hoc-vien", statsController.renderInstitutePage);
+
+router.get("/stats/filters", statsController.getFilters);
+router.get("/stats/giang-vien", statsController.lecturerSummary);
+router.get("/stats/giang-vien/:lecturerId/cong-trinh", statsController.lecturerRecords);
+router.get("/stats/khoa", statsController.facultySummary);
+router.get("/stats/khoa/:khoaId/cong-trinh", statsController.facultyRecords);
+router.get("/stats/hoc-vien", statsController.instituteSummary);
+router.get("/stats/hoc-vien/cong-trinh", statsController.instituteRecords);
+
+// Export APIs
+router.get("/export/stats/giang-vien", exportController.exportLecturerStats);
 
 router.get("/hoi-dong-khoa-hoc", (req, res) => {
 	res.redirect("/v3/nckh/them-moi-nckh?type=thanh-vien-hoi-dong");

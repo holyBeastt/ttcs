@@ -6,13 +6,18 @@
       canApprove: false,
       canApproveKhoa: false,
     },
+    pendingApprovals: new Map(), // Map of id -> { khoaDuyet?, vienNcDuyet? }
   };
 
   const el = {
     namHocFilter: null,
     khoaFilter: null,
-    quickSearchInput: null,
+    workNameSearchInput: null,
+    authorMemberSearchInput: null,
     loadDataBtn: null,
+    submitApprovalsBtn: null,
+    selectAllKhoaDuyet: null,
+    selectAllVienDuyet: null,
     tableBody: null,
   };
 
@@ -38,20 +43,11 @@
       return response.json();
     },
 
-    async approveKhoa(id, khoaDuyet) {
-      const response = await fetch(`/v3/nckh/records/${id}/khoa-duyet`, {
+    async bulkApprovals(updates) {
+      const response = await fetch(`/v3/nckh/records/bulk-approvals`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ khoaDuyet }),
-      });
-      return response.json();
-    },
-
-    async approveVien(id, vienNcDuyet) {
-      const response = await fetch(`/v3/nckh/records/${id}/vien-duyet`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vienNcDuyet }),
+        body: JSON.stringify({ updates }),
       });
       return response.json();
     },
@@ -60,8 +56,12 @@
   function cacheElements() {
     el.namHocFilter = document.getElementById("namHocFilter");
     el.khoaFilter = document.getElementById("khoaFilter");
-    el.quickSearchInput = document.getElementById("quickSearchInput");
+    el.workNameSearchInput = document.getElementById("workNameSearchInput");
+    el.authorMemberSearchInput = document.getElementById("authorMemberSearchInput");
     el.loadDataBtn = document.getElementById("loadDataBtn");
+    el.submitApprovalsBtn = document.getElementById("submitApprovalsBtn");
+    el.selectAllKhoaDuyet = document.getElementById("selectAllKhoaDuyet");
+    el.selectAllVienDuyet = document.getElementById("selectAllVienDuyet");
     el.tableBody = document.getElementById("recordsTableBody");
   }
 
@@ -74,22 +74,32 @@
   }
 
   function applyClientFilter() {
-    const keyword = normalizeText(el.quickSearchInput && el.quickSearchInput.value ? el.quickSearchInput.value : "");
+    const workNameKeyword = normalizeText(
+      el.workNameSearchInput && el.workNameSearchInput.value ? el.workNameSearchInput.value : ""
+    );
+    const authorMemberKeyword = normalizeText(
+      el.authorMemberSearchInput && el.authorMemberSearchInput.value ? el.authorMemberSearchInput.value : ""
+    );
 
-    if (!keyword) {
+    if (!workNameKeyword && !authorMemberKeyword) {
       state.rows = [...state.rawRows];
       renderRows();
       return;
     }
 
     state.rows = (state.rawRows || []).filter((row) => {
-      const haystack = normalizeText([
-        row.tenCongTrinh,
+      const workNameHaystack = normalizeText(row.tenCongTrinh || "");
+      const authorMemberHaystack = normalizeText([
         row.tacGiaChinh,
         row.thanhVien,
+        row.tacGiaChinhDisplay,
+        row.thanhVienDisplay,
       ].join(" "));
 
-      return haystack.includes(keyword);
+      const isWorkNameMatched = !workNameKeyword || workNameHaystack.includes(workNameKeyword);
+      const isAuthorMemberMatched = !authorMemberKeyword || authorMemberHaystack.includes(authorMemberKeyword);
+
+      return isWorkNameMatched && isAuthorMemberMatched;
     });
 
     renderRows();
@@ -166,53 +176,90 @@
       .replace(/'/g, "&#039;");
   }
 
+  function formatHours(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return "0,00";
+    }
+    return numeric.toFixed(2).replace(".", ",");
+  }
+
+  function formatDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return value;
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+
+  function formatMultilineCell(value) {
+    const lines = String(value || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (!lines.length) {
+      return "";
+    }
+
+    return lines
+      .map((line) => `<span class="nckh-v3-person-row">${escapeHtml(line)}</span>`)
+      .join("");
+  }
+
   function renderRows() {
     if (!el.tableBody) return;
 
     if (!state.rows.length) {
       el.tableBody.innerHTML = `
         <tr>
-          <td colspan="12" class="text-center text-muted py-4">Không có dữ liệu</td>
+          <td colspan="14" class="text-center text-muted py-4">Không có dữ liệu</td>
         </tr>
       `;
       return;
     }
 
     const html = state.rows.map((row, index) => {
-      const canToggleKhoa = state.permission.canApproveKhoa && row.vienNcDuyet !== 1;
-      const canToggleVien = state.permission.canApprove && (row.khoaDuyet === 1 || row.vienNcDuyet === 1);
+      const pending = state.pendingApprovals.get(row.id) || {};
+      const currentKhoaDuyet = pending.khoaDuyet !== undefined ? pending.khoaDuyet : row.khoaDuyet;
+      const currentVienDuyet = pending.vienNcDuyet !== undefined ? pending.vienNcDuyet : row.vienNcDuyet;
 
-      const tacGia = escapeHtml(row.tacGiaChinh || "");
-      const thanhVien = escapeHtml(row.thanhVien || "");
+      const canToggleKhoa = state.permission.canApproveKhoa && currentVienDuyet !== 1;
+      const canToggleVien = state.permission.canApprove && (currentKhoaDuyet === 1 || currentVienDuyet === 1);
+
+      const tacGia = formatMultilineCell(row.tacGiaChinhDisplay || row.tacGiaChinh || "");
+      const thanhVien = formatMultilineCell(row.thanhVienDisplay || row.thanhVien || "");
 
       return `
         <tr class="${getRowClass(row)}" data-id="${row.id}">
           <td>${index + 1}</td>
           <td>${escapeHtml(row.loaiNckhLabel)}</td>
           <td>${escapeHtml(row.phanLoai)}</td>
-          <td class="text-start col-main">${escapeHtml(row.tenCongTrinh)}</td>
-          <td class="text-start">${tacGia || ""}</td>
-          <td class="text-start">${thanhVien || ""}</td>
-          <td>${escapeHtml(row.tenPhongBan || row.maPhongBan || "")}</td>
-          <td>${escapeHtml(row.namHoc || "")}</td>
-          <td>${row.tongSoTiet}</td>
+          <td class="text-start col-main">${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}</td>
+          <td>${escapeHtml(row.maSo || "")}</td>
+          <td>${escapeHtml(row.xepLoai || "")}</td>
+          <td>${formatDate(row.ngayNghiemThu)}</td>
+          <td class="text-start col-people">${tacGia || ""}</td>
+          <td class="text-start col-people">${thanhVien || ""}</td>
+          <td>${escapeHtml(row.maPhongBan || row.tenPhongBan || "")}</td>
+          <td>${formatHours(row.tongSoTiet)}</td>
           <td>
             <input
               type="checkbox"
-              class="nckh-v3-checkbox"
-              data-action="khoa"
+              class="nckh-v3-checkbox nckh-v3-approval-khoa"
               data-id="${row.id}"
-              ${row.khoaDuyet === 1 ? "checked" : ""}
+              ${currentKhoaDuyet === 1 ? "checked" : ""}
               ${canToggleKhoa ? "" : "disabled"}
             />
           </td>
           <td>
             <input
               type="checkbox"
-              class="nckh-v3-checkbox"
-              data-action="vien"
+              class="nckh-v3-checkbox nckh-v3-approval-vien"
               data-id="${row.id}"
-              ${row.vienNcDuyet === 1 ? "checked" : ""}
+              ${currentVienDuyet === 1 ? "checked" : ""}
               ${canToggleVien ? "" : "disabled"}
             />
           </td>
@@ -253,8 +300,11 @@
         <p><strong>Phân loại:</strong> ${escapeHtml(data.phanLoai)}</p>
         <p><strong>Tên công trình:</strong> ${escapeHtml(data.tenCongTrinh)}</p>
         <p><strong>Năm học:</strong> ${escapeHtml(data.namHoc)}</p>
+        <p><strong>Mã số:</strong> ${escapeHtml(data.maSo || "")}</p>
+        <p><strong>Xếp loại:</strong> ${escapeHtml(data.xepLoai || "")}</p>
+        <p><strong>Ngày nghiệm thu:</strong> ${formatDate(data.ngayNghiemThu)}</p>
         <p><strong>Khoa:</strong> ${escapeHtml(data.tenPhongBan || data.maPhongBan || "")}</p>
-        <p><strong>Tổng số tiết:</strong> ${data.tongSoTiet}</p>
+        <p><strong>Tổng số tiết:</strong> ${formatHours(data.tongSoTiet)}</p>
         <p><strong>Tác giả chính/Chủ nhiệm:</strong><br/>${formatParticipants(data.participants, "tac_gia")}</p>
         <p><strong>Thành viên:</strong><br/>${formatParticipants(data.participants, "thanh_vien")}</p>
       </div>
@@ -266,6 +316,113 @@
       width: 760,
       confirmButtonText: "Đóng",
     });
+  }
+
+  function updateSubmitButtonVisibility() {
+    if (!el.submitApprovalsBtn) return;
+    const hasPendingChanges = state.pendingApprovals.size > 0;
+    el.submitApprovalsBtn.style.display = hasPendingChanges ? "inline-block" : "none";
+  }
+
+  function onKhoaDuyetChange(event) {
+    const checkbox = event.target.closest("input.nckh-v3-approval-khoa");
+    if (!checkbox) return;
+
+    const rowId = Number(checkbox.getAttribute("data-id"));
+    const khoaDuyet = checkbox.checked ? 1 : 0;
+
+    if (!state.pendingApprovals.has(rowId)) {
+      state.pendingApprovals.set(rowId, {});
+    }
+    state.pendingApprovals.get(rowId).khoaDuyet = khoaDuyet;
+
+    updateSubmitButtonVisibility();
+  }
+
+  function onVienDuyetChange(event) {
+    const checkbox = event.target.closest("input.nckh-v3-approval-vien");
+    if (!checkbox) return;
+
+    const rowId = Number(checkbox.getAttribute("data-id"));
+    const vienNcDuyet = checkbox.checked ? 1 : 0;
+
+    if (!state.pendingApprovals.has(rowId)) {
+      state.pendingApprovals.set(rowId, {});
+    }
+    state.pendingApprovals.get(rowId).vienNcDuyet = vienNcDuyet;
+
+    updateSubmitButtonVisibility();
+  }
+
+  function onSelectAllKhoaDuyet(event) {
+    const checkbox = event.target;
+    if (!checkbox) return;
+
+    const newValue = checkbox.checked ? 1 : 0;
+    const affectedCount = state.rows.length;
+
+    for (const row of state.rows) {
+      if (!state.pendingApprovals.has(row.id)) {
+        state.pendingApprovals.set(row.id, {});
+      }
+      state.pendingApprovals.get(row.id).khoaDuyet = newValue;
+    }
+
+    updateSubmitButtonVisibility();
+    renderRows();
+  }
+
+  function onSelectAllVienDuyet(event) {
+    const checkbox = event.target;
+    if (!checkbox) return;
+
+    const newValue = checkbox.checked ? 1 : 0;
+
+    for (const row of state.rows) {
+      if (!state.pendingApprovals.has(row.id)) {
+        state.pendingApprovals.set(row.id, {});
+      }
+      state.pendingApprovals.get(row.id).vienNcDuyet = newValue;
+    }
+
+    updateSubmitButtonVisibility();
+    renderRows();
+  }
+
+  async function onSubmitApprovals() {
+    if (state.pendingApprovals.size === 0) {
+      await Swal.fire("Thông báo", "Không có thay đổi nào để duyệt", "info");
+      return;
+    }
+
+    const confirmed = await Swal.fire({
+      title: "Xác nhận duyệt",
+      text: `Bạn chắc chắn muốn duyệt ${state.pendingApprovals.size} công trình?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Duyệt",
+      cancelButtonText: "Hủy",
+    });
+
+    if (!confirmed.isConfirmed) return;
+
+    const updates = Array.from(state.pendingApprovals.entries()).map(([id, changes]) => ({
+      id: Number(id),
+      ...changes,
+    }));
+
+    const result = await api.bulkApprovals(updates);
+    if (!result.success) {
+      await Swal.fire("Thất bại", result.message || "Không thể cập nhật duyệt", "error");
+      return;
+    }
+
+    await Swal.fire("Thành công", result.message || "Cập nhật duyệt thành công", "success");
+
+    // Clear pending approvals and reload data
+    state.pendingApprovals.clear();
+    updateSubmitButtonVisibility();
+    await loadData();
   }
 
   async function loadData() {
@@ -287,70 +444,6 @@
     applyClientFilter();
   }
 
-  async function handleKhoaApproval(target) {
-    const id = target.getAttribute("data-id");
-    if (!id) {
-      await Swal.fire("Thất bại", "ID bản ghi không hợp lệ", "error");
-      return;
-    }
-
-    const khoaDuyet = target.checked ? 1 : 0;
-
-    const result = await api.approveKhoa(id, khoaDuyet);
-    if (!result.success) {
-      await Swal.fire("Thất bại", result.message || "Không thể cập nhật duyệt khoa", "error");
-      await loadData();
-      return;
-    }
-
-    await loadData();
-  }
-
-  async function handleVienApproval(target) {
-    const id = target.getAttribute("data-id");
-    if (!id) {
-      await Swal.fire("Thất bại", "ID bản ghi không hợp lệ", "error");
-      return;
-    }
-
-    const vienNcDuyet = target.checked ? 1 : 0;
-
-    const result = await api.approveVien(id, vienNcDuyet);
-    if (!result.success) {
-      await Swal.fire("Thất bại", result.message || "Không thể cập nhật duyệt viện", "error");
-      await loadData();
-      return;
-    }
-
-    await loadData();
-  }
-
-  async function onTableClick(event) {
-    const button = event.target.closest("button[data-action]");
-    if (!button) return;
-
-    const action = button.getAttribute("data-action");
-    const id = button.getAttribute("data-id");
-
-    if (action === "detail") {
-      await showDetail(id);
-    }
-  }
-
-  async function onTableChange(event) {
-    const checkbox = event.target.closest("input[data-action]");
-    if (!checkbox) return;
-
-    const action = checkbox.getAttribute("data-action");
-    if (action === "khoa") {
-      await handleKhoaApproval(checkbox);
-    }
-
-    if (action === "vien") {
-      await handleVienApproval(checkbox);
-    }
-  }
-
   async function init() {
     cacheElements();
     state.permission = getPermissionState();
@@ -369,16 +462,47 @@
       el.loadDataBtn.addEventListener("click", loadData);
     }
 
-    if (el.quickSearchInput) {
-      el.quickSearchInput.addEventListener("input", applyClientFilter);
+    if (el.submitApprovalsBtn) {
+      el.submitApprovalsBtn.addEventListener("click", onSubmitApprovals);
+    }
+
+    if (el.selectAllKhoaDuyet) {
+      el.selectAllKhoaDuyet.addEventListener("change", onSelectAllKhoaDuyet);
+    }
+
+    if (el.selectAllVienDuyet) {
+      el.selectAllVienDuyet.addEventListener("change", onSelectAllVienDuyet);
+    }
+
+    if (el.workNameSearchInput) {
+      el.workNameSearchInput.addEventListener("input", applyClientFilter);
+    }
+
+    if (el.authorMemberSearchInput) {
+      el.authorMemberSearchInput.addEventListener("input", applyClientFilter);
     }
 
     if (el.tableBody) {
       el.tableBody.addEventListener("click", onTableClick);
-      el.tableBody.addEventListener("change", onTableChange);
+      el.tableBody.addEventListener("change", (event) => {
+        onKhoaDuyetChange(event);
+        onVienDuyetChange(event);
+      });
     }
 
     await loadData();
+  }
+
+  function onTableClick(event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const action = button.getAttribute("data-action");
+    const id = button.getAttribute("data-id");
+
+    if (action === "detail") {
+      showDetail(id);
+    }
   }
 
   window.addEventListener("DOMContentLoaded", () => {

@@ -10,8 +10,11 @@ const insert = async (connection, data) => {
       tong_so_tiet,
       khoa_id,
       khoa_duyet,
-      vien_nc_duyet
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      vien_nc_duyet,
+      ngay_nghiem_thu,
+      xep_loai,
+      ma_so
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
@@ -23,6 +26,9 @@ const insert = async (connection, data) => {
     data.khoaId,
     data.khoaDuyet,
     data.vienNcDuyet,
+    data.ngayNghiemThu || null,
+    data.xepLoai || null,
+    data.maSo || null,
   ];
 
   const [result] = await connection.execute(query, params);
@@ -37,7 +43,10 @@ const updateById = async (connection, id, data) => {
         phan_loai = ?,
         nam_hoc = ?,
         tong_so_tiet = ?,
-        khoa_id = ?
+        khoa_id = ?,
+        ngay_nghiem_thu = ?,
+        xep_loai = ?,
+        ma_so = ?
     WHERE id = ?
   `;
 
@@ -48,6 +57,9 @@ const updateById = async (connection, id, data) => {
     data.namHoc,
     data.tongSoTiet,
     data.khoaId,
+    data.ngayNghiemThu || null,
+    data.xepLoai || null,
+    data.maSo || null,
     id,
   ];
 
@@ -82,8 +94,20 @@ const listByType = async (connection, loaiNckh, namHoc, khoaId) => {
   const params = [loaiNckh, namHoc];
 
   if (khoaId !== "ALL") {
-    query += " AND c.khoa_id = ?";
-    params.push(Number(khoaId));
+    // Lọc: Thuộc khoa này HOẶC là bài báo cấp Học viện có giảng viên khoa này tham gia
+    query += ` AND (
+      c.khoa_id = ?
+      OR (
+        c.khoa_id IS NULL
+        AND EXISTS (
+          SELECT 1 FROM nckh_so_tiet st_sub
+          INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
+          INNER JOIN phongban pb_sub ON pb_sub.MaPhongBan = nv_sub.MaPhongBan
+          WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
+        )
+      )
+    )`;
+    params.push(Number(khoaId), Number(khoaId));
   }
 
   query += " ORDER BY c.id DESC";
@@ -108,53 +132,35 @@ const listUnified = async (connection, namHoc, khoaId) => {
       c.khoa_duyet,
       c.vien_nc_duyet,
       c.created_at,
+      c.ngay_nghiem_thu,
+      c.xep_loai,
+      c.ma_so,
       pb.MaPhongBan,
-      pb.TenPhongBan,
-      GROUP_CONCAT(
-        CASE
-          WHEN st.vai_tro = 'tac_gia' THEN COALESCE(nv.TenNhanVien, st.ten_ngoai)
-          ELSE NULL
-        END
-        ORDER BY st.id ASC
-        SEPARATOR ', '
-      ) AS tac_gia_chinh,
-      GROUP_CONCAT(
-        CASE
-          WHEN st.vai_tro = 'thanh_vien' THEN COALESCE(nv.TenNhanVien, st.ten_ngoai)
-          ELSE NULL
-        END
-        ORDER BY st.id ASC
-        SEPARATOR ', '
-      ) AS thanh_vien
+      pb.TenPhongBan
     FROM ${TABLE} c
     LEFT JOIN phongban pb ON pb.id = c.khoa_id
-    LEFT JOIN nckh_so_tiet st ON st.nckh_id = c.id
-    LEFT JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
     WHERE c.nam_hoc = ?
   `;
   const params = [namHoc];
 
   if (khoaId !== "ALL") {
-    query += " AND c.khoa_id = ?";
-    params.push(Number(khoaId));
+    // Lọc: Thuộc khoa này HOẶC là bài báo cấp Học viện có giảng viên khoa này tham gia
+    query += ` AND (
+      c.khoa_id = ?
+      OR (
+        c.khoa_id IS NULL
+        AND EXISTS (
+          SELECT 1 FROM nckh_so_tiet st_sub
+          INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
+          INNER JOIN phongban pb_sub ON pb_sub.MaPhongBan = nv_sub.MaPhongBan
+          WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
+        )
+      )
+    )`;
+    params.push(Number(khoaId), Number(khoaId));
   }
 
-  query += `
-    GROUP BY
-      c.id,
-      c.ten_cong_trinh,
-      c.loai_nckh,
-      c.phan_loai,
-      c.nam_hoc,
-      c.tong_so_tiet,
-      c.khoa_id,
-      c.khoa_duyet,
-      c.vien_nc_duyet,
-      c.created_at,
-      pb.MaPhongBan,
-      pb.TenPhongBan
-    ORDER BY c.id DESC
-  `;
+  query += " ORDER BY c.id DESC";
 
   const [rows] = await connection.execute(query, params);
   return rows;
@@ -192,6 +198,41 @@ const setVienApproval = async (connection, id, vienNcDuyet, khoaDuyetWhenReset =
   return result.affectedRows;
 };
 
+const bulkUpdateApprovals = async (connection, updates) => {
+  let totalAffected = 0;
+
+  for (const update of updates) {
+    const { id, khoaDuyet, vienNcDuyet } = update;
+
+    let query = `UPDATE ${TABLE} SET `;
+    const params = [];
+    const setParts = [];
+
+    if (khoaDuyet !== undefined) {
+      setParts.push("khoa_duyet = ?");
+      params.push(khoaDuyet);
+    }
+
+    if (vienNcDuyet !== undefined) {
+      setParts.push("vien_nc_duyet = ?");
+      params.push(vienNcDuyet);
+    }
+
+    if (setParts.length === 0) {
+      continue;
+    }
+
+    query += setParts.join(", ");
+    query += " WHERE id = ?";
+    params.push(id);
+
+    const [result] = await connection.execute(query, params);
+    totalAffected += result.affectedRows;
+  }
+
+  return totalAffected;
+};
+
 module.exports = {
   insert,
   updateById,
@@ -202,4 +243,5 @@ module.exports = {
   listUnified,
   setKhoaApproval,
   setVienApproval,
+  bulkUpdateApprovals,
 };

@@ -1,27 +1,72 @@
 const round2 = (value) => Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 
+const cloneParticipantForYear = (participant, namThucHien) => ({
+  ...participant,
+  namThucHien,
+});
+
+const expandParticipantsByYears = (baseParticipants, soNamThucHien) => {
+  const totalYears = Number(soNamThucHien || 1);
+  if (totalYears <= 1) {
+    return baseParticipants.map((item) => cloneParticipantForYear(item, 1));
+  }
+
+  const expanded = [];
+  for (let nam = 1; nam <= totalYears; nam += 1) {
+    baseParticipants.forEach((item) => {
+      expanded.push(cloneParticipantForYear(item, nam));
+    });
+  }
+
+  return expanded;
+};
+
 const quyDoiSoTietStandard = (T, tongSoNguoi, soDongTacGia = 1, soNamThucHien = 1) => {
+  const totalHours = Number(T);
+  const totalParticipants = Number(tongSoNguoi);
+  const totalMainAuthors = Number(soDongTacGia);
+  const totalYears = Number(soNamThucHien);
+
+  if (totalParticipants <= 0) {
+    throw new Error("Tổng số người phải lớn hơn 0");
+  }
+
+  if (totalMainAuthors <= 0) {
+    throw new Error("Số tác giả chính phải lớn hơn 0");
+  }
+
+  if (totalYears <= 0) {
+    throw new Error("Số năm thực hiện phải lớn hơn 0");
+  }
+
   let tacGia = 0;
   let thanhVien = 0;
 
-  if (tongSoNguoi === 1) {
-    tacGia = T;
-    thanhVien = 0;
-  } else if (tongSoNguoi === 2) {
-    tacGia = (2 * T) / 3;
-    thanhVien = T / 3;
-  } else if (tongSoNguoi === 3) {
-    tacGia = T / 2;
-    thanhVien = T / 4;
+  if (totalMainAuthors === 1) {
+    if (totalParticipants === 1) {
+      tacGia = totalHours;
+      thanhVien = 0;
+    } else if (totalParticipants === 2) {
+      tacGia = (2 * totalHours) / 3;
+      thanhVien = totalHours / 3;
+    } else if (totalParticipants === 3) {
+      tacGia = totalHours / 2;
+      thanhVien = totalHours / 4;
+    } else {
+      const base = (2 * totalHours) / (3 * totalParticipants);
+      tacGia = totalHours / 3 + base;
+      thanhVien = base;
+    }
   } else {
-    const phanChia = (2 * T / 3) / tongSoNguoi;
-    tacGia = T / 3 + phanChia;
-    thanhVien = phanChia;
+    // Dong tac gia: chia bonus T/3 theo so tac gia chinh + base 2T/3 chia deu cho tat ca.
+    const base = (2 * totalHours) / (3 * totalParticipants);
+    const bonusEachMainAuthor = totalHours / (3 * totalMainAuthors);
+    tacGia = bonusEachMainAuthor + base;
+    thanhVien = base;
   }
 
-  tacGia = tacGia / soDongTacGia;
-  tacGia = tacGia / soNamThucHien;
-  thanhVien = thanhVien / soNamThucHien;
+  tacGia = tacGia / totalYears;
+  thanhVien = thanhVien / totalYears;
 
   return {
     tacGia: round2(tacGia),
@@ -67,12 +112,14 @@ const buildParticipantsWithHours = (
   const T = Number(tongSoTiet);
   const base = quyDoiSoTietStandard(T, tongSoNguoi, totalTacGia, soNamThucHien);
 
-  const participants = [
+  const baseParticipants = [
     ...uniqueTacGia.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "tac_gia", soTiet: base.tacGia })),
     ...ngoaiTacGia.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "tac_gia", soTiet: base.tacGia })),
     ...uniqueThanhVien.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "thanh_vien", soTiet: base.thanhVien })),
     ...ngoaiThanhVien.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "thanh_vien", soTiet: base.thanhVien })),
   ];
+
+  const participants = expandParticipantsByYears(baseParticipants, soNamThucHien);
 
   const sum = round2(participants.reduce((acc, item) => acc + Number(item.soTiet), 0));
   const delta = round2(T - sum);
@@ -115,12 +162,14 @@ const buildParticipantsWithEqualHours = (
 
   const soTietMoiNguoi = quyDoiSoTietChiaDeu(Number(tongSoTiet), tongSoNguoi, soNamThucHien);
 
-  const participants = [
+  const baseParticipants = [
     ...uniqueTacGia.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "tac_gia", soTiet: soTietMoiNguoi })),
     ...ngoaiTacGia.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "tac_gia", soTiet: soTietMoiNguoi })),
     ...uniqueThanhVien.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "thanh_vien", soTiet: soTietMoiNguoi })),
     ...ngoaiThanhVien.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "thanh_vien", soTiet: soTietMoiNguoi })),
   ];
+
+  const participants = expandParticipantsByYears(baseParticipants, soNamThucHien);
 
   const sum = round2(participants.reduce((acc, item) => acc + Number(item.soTiet), 0));
   const delta = round2(Number(tongSoTiet) - sum);

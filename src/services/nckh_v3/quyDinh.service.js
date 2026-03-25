@@ -1,6 +1,7 @@
 const createPoolConnection = require("../../config/databasePool");
 
 const TABLE_CANDIDATES = [
+  "admin_quydinhsogio",
   "nckh_quydinhsogio",
   "nckh_quy_dinh_so_tiet",
   "nckh_quydinh_so_tiet",
@@ -9,10 +10,11 @@ const TABLE_CANDIDATES = [
 const COLUMN_CANDIDATES = {
   id: ["ID", "id"],
   loaiNckh: ["LoaiNCKH", "loai_nckh"],
-  phanLoai: ["PhanLoai", "phan_loai"],
-  soGio: ["SoGio", "so_gio"],
+  phanLoai: ["PhanLoai", "phan_loai", "ten_quydinh"],
+  soGio: ["SoGio", "so_gio", "so_tiet"],
   moTa: ["MoTa", "mo_ta"],
-  isActive: ["IsActive", "is_active"],
+  isActive: ["IsActive", "is_active", "trang_thai"],
+  thuTu: ["ThuTu", "thu_tu"],
 };
 
 const findColumn = (columns, candidates) => {
@@ -40,6 +42,7 @@ const resolveSchema = async (connection) => {
         soGio: findColumn(columns, COLUMN_CANDIDATES.soGio),
         moTa: findColumn(columns, COLUMN_CANDIDATES.moTa),
         isActive: findColumn(columns, COLUMN_CANDIDATES.isActive),
+        thuTu: findColumn(columns, COLUMN_CANDIDATES.thuTu),
       };
 
       if (!schema.id || !schema.loaiNckh || !schema.phanLoai || !schema.soGio) {
@@ -53,7 +56,7 @@ const resolveSchema = async (connection) => {
   }
 
   throw new Error(
-    "Không tìm thấy bảng quy định số giờ NCKH V3 tương thích (nckh_quydinhsogio / nckh_quy_dinh_so_tiet)."
+    "Không tìm thấy bảng quy định số giờ NCKH V3 tương thích (admin_quydinhsogio / nckh_quydinhsogio / nckh_quy_dinh_so_tiet)."
   );
 };
 
@@ -64,6 +67,7 @@ const normalizeRow = (row, schema) => ({
   SoGio: Number(row[schema.soGio] || 0),
   MoTa: schema.moTa ? row[schema.moTa] || "" : "",
   IsActive: schema.isActive ? Number(row[schema.isActive] || 0) : 1,
+  ThuTu: schema.thuTu ? Number(row[schema.thuTu] || 0) : 0,
 });
 
 const getAllQuyDinhSoGio = async () => {
@@ -75,7 +79,7 @@ const getAllQuyDinhSoGio = async () => {
     const query = `
       SELECT *
       FROM ${schema.table}
-      ORDER BY ${schema.loaiNckh} ASC, ${schema.soGio} DESC, ${schema.phanLoai} ASC
+      ORDER BY ${schema.loaiNckh} ASC, ${schema.thuTu ? schema.thuTu + " ASC," : ""} ${schema.soGio} DESC, ${schema.phanLoai} ASC
     `;
 
     const [rows] = await connection.query(query);
@@ -97,7 +101,7 @@ const getQuyDinhSoGioByLoai = async (loaiNCKH) => {
       SELECT *
       FROM ${schema.table}
       WHERE ${schema.loaiNckh} = ?${whereActive}
-      ORDER BY ${schema.soGio} DESC, ${schema.phanLoai} ASC
+      ORDER BY ${schema.thuTu ? schema.thuTu + " ASC," : ""} ${schema.soGio} DESC, ${schema.phanLoai} ASC
     `;
 
     const [rows] = await connection.execute(query, [loaiNCKH]);
@@ -115,7 +119,7 @@ const getQuyDinhSoGioByLoai = async (loaiNCKH) => {
   }
 };
 
-const manageQuyDinhSoGio = async ({ id, loaiNCKH, phanLoai, soGio, moTa }) => {
+const manageQuyDinhSoGio = async ({ id, loaiNCKH, phanLoai, soGio, moTa, thuTu }) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -134,6 +138,11 @@ const manageQuyDinhSoGio = async ({ id, loaiNCKH, phanLoai, soGio, moTa }) => {
         params.push(moTa || null);
       }
 
+      if (schema.thuTu && Number.isFinite(Number(thuTu))) {
+        setParts.push(`${schema.thuTu} = ?`);
+        params.push(Number(thuTu));
+      }
+
       const query = `UPDATE ${schema.table} SET ${setParts.join(", ")} WHERE ${schema.id} = ?`;
       params.push(Number(id));
 
@@ -149,6 +158,12 @@ const manageQuyDinhSoGio = async ({ id, loaiNCKH, phanLoai, soGio, moTa }) => {
       columns.push(schema.moTa);
       placeholders.push("?");
       params.push(moTa || null);
+    }
+
+    if (schema.thuTu) {
+      columns.push(schema.thuTu);
+      placeholders.push("?");
+      params.push(Number.isFinite(Number(thuTu)) ? Number(thuTu) : 0);
     }
 
     if (schema.isActive) {

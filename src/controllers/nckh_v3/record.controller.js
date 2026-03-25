@@ -55,10 +55,22 @@ const getFilters = async (_req, res) => {
   }
 };
 
+const bulkApprovals = async (req, res) => {
+  try {
+    const { updates } = req.body;
+    const result = await recordService.updateBulkApprovals(updates);
+    res.json({ success: true, message: result.message, data: result });
+  } catch (error) {
+    console.error("[NCKH V3] bulkApprovals error:", error);
+    res.status(400).json({ success: false, message: error.message || "Không thể cập nhật duyệt" });
+  }
+};
+
 module.exports = {
   list,
   detail,
   approveKhoa,
   approveVien,
+  bulkApprovals,
   getFilters,
 };

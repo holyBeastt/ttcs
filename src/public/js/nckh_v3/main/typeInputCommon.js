@@ -75,6 +75,47 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     return [...new Set((Array.isArray(input) ? input : []).map(Number).filter((x) => Number.isFinite(x) && x > 0))];
   }
 
+  function normalizeText(input) {
+    return String(input || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function classifyBaiBaoOption(phanLoai) {
+    const normalized = normalizeText(phanLoai);
+    if (normalized.includes("tap chi")) return "TAP_CHI";
+    if (normalized.includes("hoi nghi") || normalized.includes("bao cao")) return "HOI_NGHI";
+    return "TAP_CHI";
+  }
+
+  function renderPhanLoaiOptions(selectEl, options, placeholder) {
+    if (!selectEl) return;
+
+    const MAX_LEN = 100;
+    const truncate = (text) => text.length > MAX_LEN ? text.slice(0, MAX_LEN) + "…" : text;
+
+    selectEl.innerHTML = "";
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = placeholder || "-- Chọn phân loại --";
+    selectEl.appendChild(defaultOption);
+
+    (options || []).forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.PhanLoai;
+      const soGioDisplay = String(item.SoGio).replace(".", ",");
+      const fullLabel = `${item.PhanLoai} (${soGioDisplay} tiết)`;
+      option.textContent = truncate(fullLabel);
+      option.title = fullLabel;
+      selectEl.appendChild(option);
+    });
+
+    selectEl.disabled = (options || []).length === 0;
+  }
+
   async function loadNamHoc(selectEl) {
     if (!selectEl) return;
 
@@ -107,8 +148,12 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     if (!payload.tenCongTrinh) missing.push("Tên công trình");
     if (!payload.phanLoai) missing.push("Phân loại");
     if (!payload.namHoc) missing.push("Năm học");
-    if (!payload.khoaId) missing.push("Khoa");
+    // BAIBAO cho phép khoaId = null (cấp Học viện)
+    if (payload.loaiNckh !== "BAIBAO" && !payload.khoaId) missing.push("Khoa");
     if (!payload.tongSoTiet || Number(payload.tongSoTiet) <= 0) missing.push("Tổng số tiết");
+    if (!payload.xepLoai) missing.push("Xếp loại");
+    if (payload.loaiNckh !== "BAIBAO" && !payload.ngayNghiemThu) missing.push("Ngày nghiệm thu");
+    if (payload.loaiNckh === "DETAI_DUAN" && !payload.maSo) missing.push("Mã số");
 
     const hasTacGia = (payload.tacGiaIds || []).length > 0 || (payload.tacGiaNgoai || []).length > 0;
     if (!hasTacGia) {
@@ -154,11 +199,14 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     const { khoaList, giangVienList, phanLoaiOptions } = metadataResult.data;
     const byId = new Map((giangVienList || []).map((gv) => [Number(gv.id), gv]));
 
+    const baiBaoGroupEl = document.getElementById("baiBaoGroup");
     const phanLoaiEl = document.getElementById("phanLoai");
-    const tongSoTietEl = document.getElementById("tongSoTiet");
     const namHocEl = document.getElementById("namHoc");
     const khoaEl = document.getElementById("khoaId");
     const soNamThucHienEl = document.getElementById("soNamThucHien");
+    const xepLoaiEl = document.getElementById("xepLoai");
+    const ngayNghiemThuEl = document.getElementById("ngayNghiemThu");
+    const maSoEl = document.getElementById("maSo");
 
     const tacGiaInput = document.getElementById("tacGiaInput");
     const tacGiaSuggestions = document.getElementById("tacGia-suggestions");
@@ -183,23 +231,41 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     };
 
     const phanLoaiMap = new Map((phanLoaiOptions || []).map((item) => [item.PhanLoai, Number(item.SoGio)]));
+    const phanLoaiPlaceholder = phanLoaiEl?.options?.[0]?.textContent || "-- Chọn phân loại --";
+    const allPhanLoaiOptions = Array.isArray(phanLoaiOptions) ? phanLoaiOptions : [];
 
-    if (phanLoaiEl) {
-      (phanLoaiOptions || []).forEach((item) => {
-        const option = document.createElement("option");
-        option.value = item.PhanLoai;
-        option.textContent = `${item.PhanLoai} (${item.SoGio} tiết)`;
-        phanLoaiEl.appendChild(option);
-      });
+    let rerenderPhanLoaiForCurrentContext = () => {
+      renderPhanLoaiOptions(phanLoaiEl, allPhanLoaiOptions, phanLoaiPlaceholder);
+    };
 
-      phanLoaiEl.addEventListener("change", () => {
-        const soGio = phanLoaiMap.get(phanLoaiEl.value);
-        tongSoTietEl.value = soGio !== undefined ? soGio : "";
-      });
+    if (phanLoaiEl && config.loaiNckh === "BAIBAO" && baiBaoGroupEl) {
+      const getOptionsByGroup = (group) => {
+        const normalizedGroup = String(group || "TAP_CHI");
+        return allPhanLoaiOptions.filter((item) => classifyBaiBaoOption(item.PhanLoai) === normalizedGroup);
+      };
+
+      const applyBaiBaoGroup = () => {
+        const activeGroup = baiBaoGroupEl.value || "TAP_CHI";
+        const filteredOptions = getOptionsByGroup(activeGroup);
+        renderPhanLoaiOptions(phanLoaiEl, filteredOptions, phanLoaiPlaceholder);
+      };
+
+      rerenderPhanLoaiForCurrentContext = applyBaiBaoGroup;
+      baiBaoGroupEl.addEventListener("change", applyBaiBaoGroup);
+      applyBaiBaoGroup();
+    } else {
+      rerenderPhanLoaiForCurrentContext();
     }
 
     if (khoaEl) {
-      khoaEl.innerHTML = '<option value="">Chọn khoa</option>';
+      // Giữ lại option "Cấp Học viện" nếu đã có từ EJS (BAIBAO)
+      const existingHocVienOption = khoaEl.querySelector('option[value="0"]');
+      if (existingHocVienOption) {
+        khoaEl.innerHTML = '';
+        khoaEl.appendChild(existingHocVienOption);
+      } else {
+        khoaEl.innerHTML = '<option value="">Chọn khoa</option>';
+      }
       (khoaList || []).forEach((khoa) => {
         const opt = document.createElement("option");
         opt.value = khoa.id;
@@ -464,24 +530,41 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         }
         if (addTacGiaBtn) addTacGiaBtn.style.display = "none";
         if (addThanhVienBtn) addThanhVienBtn.style.display = "none";
+
+        if (xepLoaiEl) xepLoaiEl.value = "Đạt";
+        if (ngayNghiemThuEl) ngayNghiemThuEl.value = "";
+        if (maSoEl) maSoEl.value = "";
+
+        rerenderPhanLoaiForCurrentContext();
       });
     }
 
     formEl.addEventListener("submit", async (event) => {
       event.preventDefault();
 
+      const selectedPhanLoai = String((phanLoaiEl?.value || "")).trim();
+      const tongSoTietByPhanLoai = Number(phanLoaiMap.get(selectedPhanLoai) || 0);
+
+      if (selectedPhanLoai && tongSoTietByPhanLoai <= 0) {
+        Swal.fire("Thiếu cấu hình", "Phân loại chưa có số tiết quy định hợp lệ.", "warning");
+        return;
+      }
+
       const payload = {
         tenCongTrinh: String((document.getElementById("tenCongTrinh")?.value || "")).trim(),
         loaiNckh: config.loaiNckh,
-        phanLoai: String((phanLoaiEl?.value || "")).trim(),
+        phanLoai: selectedPhanLoai,
         namHoc: String((namHocEl?.value || "")).trim(),
-        tongSoTiet: Number(tongSoTietEl?.value || 0),
-        khoaId: Number(khoaEl?.value || 0),
+        tongSoTiet: tongSoTietByPhanLoai,
+        khoaId: Number(khoaEl?.value || 0) === 0 ? null : Number(khoaEl?.value),
         soNamThucHien: Number(soNamThucHienEl?.value || 1),
         tacGiaIds: ensureArrayUniqueNumbers(state.tacGiaIds),
         thanhVienIds: ensureArrayUniqueNumbers(state.thanhVienIds),
         tacGiaNgoai: [...state.tacGiaNgoai],
         thanhVienNgoai: [...state.thanhVienNgoai],
+        xepLoai: xepLoaiEl ? xepLoaiEl.value : null,
+        ngayNghiemThu: ngayNghiemThuEl ? ngayNghiemThuEl.value : null,
+        maSo: maSoEl ? maSoEl.value : null,
       };
 
       if (config.mode === "fixed") {

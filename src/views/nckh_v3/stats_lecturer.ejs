@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NCKH V3 - Thống Kê Giảng Viên</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/nckh_v3.css" />
+
+  <style>
+    .nckh-v3-list-wrap { padding: 16px; max-width: 1700px; margin: 0 auto; }
+    .nckh-v3-list-toolbar { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .nckh-v3-list-toolbar .form-select, .nckh-v3-list-toolbar .form-control, .nckh-v3-list-toolbar .btn { margin-top: 0 !important; margin-bottom: 0 !important; }
+    .nckh-v3-list-toolbar .toolbar-item { min-width: 180px; }
+    .nckh-v3-list-toolbar .toolbar-item input, .nckh-v3-list-toolbar .toolbar-item select { height: 42px; }
+    .nckh-v3-list-toolbar .toolbar-action { display: flex; align-items: flex-end; gap: 8px; }
+    .nckh-v3-list-toolbar .toolbar-action button { height: 42px; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; line-height: 1.2; }
+    .nckh-v3-list-table { background: #fff; border: 1px solid #dee2e6; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, .06); }
+    .nckh-v3-list-table .table { margin-bottom: 0; }
+    .nckh-v3-list-table thead th { background: #3eacff; color: #fff; border-color: #2d7fbe; text-transform: uppercase; font-size: .78rem; white-space: nowrap; }
+    .nckh-v3-section-title { margin: 18px 0 10px; font-weight: 700; }
+  </style>
+</head>
+
+<body>
+  <%- include('../header') %>
+
+  <div class="nckh-v3-list-wrap">
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <h1 class="page-title mb-0">Thống kê NCKH theo giảng viên</h1>
+      <div class="d-flex gap-2">
+        <a href="/v3/nckh/xem-chung" class="btn btn-outline-secondary btn-sm">Xem chung</a>
+        <a href="/v3/nckh/thong-ke/khoa" class="btn btn-outline-primary btn-sm">Theo khoa</a>
+        <a href="/v3/nckh/thong-ke/hoc-vien" class="btn btn-outline-primary btn-sm">Theo học viện</a>
+      </div>
+    </div>
+
+    <div class="nckh-v3-list-toolbar">
+      <div class="toolbar-item">
+        <select id="namHocFilter" class="form-select"></select>
+      </div>
+      <div class="toolbar-item">
+        <select id="khoaFilter" class="form-select">
+          <option value="ALL">Tất cả khoa</option>
+        </select>
+      </div>
+      <div class="toolbar-item" style="min-width: 320px;">
+        <input id="keywordInput" class="form-control" placeholder="Tên giảng viên" />
+      </div>
+      <div class="toolbar-action">
+        <button id="loadDataBtn" class="btn btn-primary">
+          <i class="bi bi-search"></i> Hiển thị
+        </button>
+        <button id="exportExcelBtn" class="btn btn-success">
+          <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+        </button>
+      </div>
+    </div>
+
+    <!-- <h6 class="nckh-v3-section-title">Tổng hợp theo giảng viên</h6> -->
+    <div class="nckh-v3-list-table table-responsive">
+      <table class="table table-bordered table-hover text-center align-middle">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th class="text-start">Giảng viên</th>
+            <th>Mã phòng ban</th>
+            <th class="text-start">Khoa của giảng viên</th>
+            <th>Số công trình</th>
+            <th>Tổng số tiết giảng viên</th>
+            <th>Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody id="lecturerTableBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="modal fade" id="recordDetailModal" tabindex="-1" aria-labelledby="recordDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="recordDetailModalLabel">Chi tiết công trình</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="nckh-v3-list-table table-responsive">
+            <table class="table table-bordered table-hover text-center align-middle">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Loại NCKH</th>
+                  <th class="text-start">Tên công trình</th>
+                  <th class="text-start">Tác giả chính</th>
+                  <th class="text-start">Thành viên</th>
+                  <th>Khoa công trình</th>
+                  <th>Tổng tiết công trình</th>
+                  <th>Tiết của giảng viên</th>
+                  <th>Vai trò</th>
+                </tr>
+              </thead>
+              <tbody id="recordDetailTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <script src="/js/nckh_v3/stats/common.js"></script>
+  <script src="/js/nckh_v3/stats/lecturer.js"></script>
+</body>
+
+</html>

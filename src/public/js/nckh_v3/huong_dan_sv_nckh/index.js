@@ -4,6 +4,6 @@ window.addEventListener("DOMContentLoaded", () => {
     loaiNckh: "HUONGDAN",
     label: "Hướng dẫn SV NCKH",
     mode: "equal",
-    hasSecondaryMembers: true,
+    hasSecondaryMembers: false,
   });
 });

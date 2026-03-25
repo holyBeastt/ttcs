@@ -59,7 +59,10 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
       connection = await createPoolConnection();
       await connection.beginTransaction();
 
-      await assertKhoaExist(connection, payload.khoaId);
+      // BAIBAO cho phép khoaId null (cấp Học viện)
+      if (payload.khoaId != null) {
+        await assertKhoaExist(connection, payload.khoaId);
+      }
 
       const participants = formulaService.buildParticipantsByMode(
         mode,
@@ -79,9 +82,12 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         phanLoai: payload.phanLoai,
         namHoc: payload.namHoc,
         tongSoTiet: Number(payload.tongSoTiet),
-        khoaId: Number(payload.khoaId),
+        khoaId: payload.khoaId != null ? Number(payload.khoaId) : null,
         khoaDuyet: 0,
         vienNcDuyet: 0,
+        ngayNghiemThu: payload.ngayNghiemThu,
+        xepLoai: payload.xepLoai,
+        maSo: payload.maSo,
       });
 
       await nckhSoTietRepo.bulkInsert(connection, nckhId, participants);
@@ -138,7 +144,10 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         throw new Error("Không được sửa công trình đã được viện duyệt");
       }
 
-      await assertKhoaExist(connection, payload.khoaId);
+      // BAIBAO cho phép khoaId null (cấp Học viện)
+      if (payload.khoaId != null) {
+        await assertKhoaExist(connection, payload.khoaId);
+      }
 
       const participants = formulaService.buildParticipantsByMode(
         mode,
@@ -158,7 +167,10 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         phanLoai: payload.phanLoai,
         namHoc: payload.namHoc,
         tongSoTiet: Number(payload.tongSoTiet),
-        khoaId: Number(payload.khoaId),
+        khoaId: payload.khoaId != null ? Number(payload.khoaId) : null,
+        ngayNghiemThu: payload.ngayNghiemThu,
+        xepLoai: payload.xepLoai,
+        maSo: payload.maSo,
       });
 
       await nckhSoTietRepo.deleteByNckhId(connection, Number(id));

@@ -43,22 +43,50 @@ const saveQuyDinhSoGio = async (req, res) => {
   const user = getUserContext(req);
 
   try {
-    const { id, loaiNCKH, phanLoai, soGio, moTa } = req.body;
+    const {
+      id,
+      loaiNCKH,
+      loaiNckh,
+      loai_nckh,
+      phanLoai,
+      phan_loai,
+      tenQuyDinh,
+      ten_quydinh,
+      soGio,
+      so_gio,
+      soTiet,
+      so_tiet,
+      moTa,
+      mo_ta,
+      thuTu,
+      thu_tu,
+    } = req.body;
 
-    if (!loaiNCKH || !phanLoai || soGio === undefined || soGio === null) {
+    const resolvedLoaiNCKH = loaiNCKH ?? loaiNckh ?? loai_nckh;
+    const resolvedPhanLoai = phanLoai ?? phan_loai ?? tenQuyDinh ?? ten_quydinh;
+    const resolvedSoGio = soGio ?? so_gio ?? soTiet ?? so_tiet;
+    const resolvedMoTa = moTa ?? mo_ta ?? null;
+    const resolvedThuTu = thuTu ?? thu_tu;
+
+    if (!resolvedLoaiNCKH || !resolvedPhanLoai || resolvedSoGio === undefined || resolvedSoGio === null) {
       return res.status(400).json({ success: false, message: "Thiếu dữ liệu bắt buộc." });
     }
 
     const payload = {
       id: id ? Number(id) : null,
-      loaiNCKH: String(loaiNCKH).trim(),
-      phanLoai: String(phanLoai).trim(),
-      soGio: Number(soGio),
-      moTa: moTa || null,
+      loaiNCKH: String(resolvedLoaiNCKH).trim(),
+      phanLoai: String(resolvedPhanLoai).trim(),
+      soGio: Number(resolvedSoGio),
+      moTa: resolvedMoTa,
+      thuTu: resolvedThuTu !== undefined && resolvedThuTu !== null ? Number(resolvedThuTu) : undefined,
     };
 
-    if (!Number.isFinite(payload.soGio) || payload.soGio < 0) {
-      return res.status(400).json({ success: false, message: "Số giờ không hợp lệ." });
+    if (!Number.isInteger(payload.soGio) || payload.soGio < 0) {
+      return res.status(400).json({ success: false, message: "Số tiết không hợp lệ." });
+    }
+
+    if (payload.thuTu !== undefined && (!Number.isInteger(payload.thuTu) || payload.thuTu < 0)) {
+      return res.status(400).json({ success: false, message: "Thứ tự không hợp lệ." });
     }
 
     const result = await quyDinhService.manageQuyDinhSoGio(payload);
@@ -91,16 +119,17 @@ const toggleQuyDinhStatus = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { isActive } = req.body;
+    const { isActive, trangThai, trang_thai } = req.body;
+    const resolvedStatus = isActive ?? trangThai ?? trang_thai;
 
-    if (!id || isActive === undefined) {
+    if (!id || resolvedStatus === undefined) {
       return res.status(400).json({ success: false, message: "Thiếu thông tin." });
     }
 
-    await quyDinhService.toggleQuyDinhStatus(Number(id), Number(isActive));
+    await quyDinhService.toggleQuyDinhStatus(Number(id), Number(resolvedStatus));
 
     try {
-      const statusText = Number(isActive) === 1 ? "Bật" : "Tắt";
+      const statusText = Number(resolvedStatus) === 1 ? "Bật" : "Tắt";
       await LogService.logChange(
         user.userId,
         user.userName,

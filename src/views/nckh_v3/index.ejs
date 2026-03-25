@@ -63,11 +63,11 @@
           </select>
         </form>
 
-        <div id="nckhTypeContent">
+        <div id="nckhTypeContent" class="nckh-v3-form-scroll">
           <% if (selectedTypeMeta && selectedTypeMeta.implemented) { %>
-            <%- include('./partials/typeInput', { pageMode: pageMode, selectedTypeMeta: selectedTypeMeta }) %>
+            <%- include('./typeInput', { pageMode: pageMode, selectedTypeMeta: selectedTypeMeta }) %>
           <% } else { %>
-            <%- include('./partials/notImplemented', { selectedTypeMeta: selectedTypeMeta }) %>
+            <%- include('./notImplemented', { selectedTypeMeta: selectedTypeMeta }) %>
           <% } %>
         </div>
       </div>

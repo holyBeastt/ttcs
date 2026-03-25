@@ -11,3 +11,5 @@ plan/
 config_global/
 local_file/
 test/
+docs/
+rule/

@@ -263,3 +263,32 @@
 .placeholder-message h4 {
   margin-bottom: 10px;
 }
+
+/* Scroll long type forms independently from the whole page */
+.nckh-v3-form-scroll {
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+}
+
+.nckh-v3-form-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.nckh-v3-form-scroll::-webkit-scrollbar-thumb {
+  background: #c8cfd6;
+  border-radius: 999px;
+}
+
+.nckh-v3-form-scroll::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+@media (max-width: 992px) {
+  .nckh-v3-form-scroll {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}

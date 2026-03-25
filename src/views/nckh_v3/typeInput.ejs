@@ -10,6 +10,16 @@
       </div>
 
       <div class="form-row">
+        <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
+          <div class="form-col">
+            <label class="form-label">Nhóm bài báo <span class="required">*</span></label>
+            <select id="baiBaoGroup" class="form-select" required>
+              <option value="TAP_CHI">Tạp chí</option>
+              <option value="HOI_NGHI">Hội nghị</option>
+            </select>
+          </div>
+        <% } %>
+
         <div class="form-col">
           <label class="form-label">Phân loại <span class="required">*</span></label>
           <select id="phanLoai" class="form-select" required>
@@ -23,24 +33,44 @@
         </div>
 
         <div class="form-col">
-          <label class="form-label">Tổng số tiết <span class="required">*</span></label>
-          <input id="tongSoTiet" type="number" min="0" step="0.01" class="form-control" readonly required />
-        </div>
-
-        <div class="form-col">
           <label class="form-label">Khoa <span class="required">*</span></label>
-          <select id="khoaId" class="form-select" required></select>
+          <select id="khoaId" class="form-select" required>
+            <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
+              <option value="0">-- Cấp Học viện (Nhiều khoa) --</option>
+            <% } %>
+          </select>
         </div>
       </div>
 
-      <% if (selectedTypeMeta && selectedTypeMeta.showSoNamThucHien) { %>
-        <div class="form-row">
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">Xếp loại <span class="required">*</span></label>
+          <select id="xepLoai" class="form-select" required>
+            <option value="Đạt" selected>Đạt</option>
+            <option value="Giỏi">Giỏi</option>
+            <option value="Xuất sắc">Xuất sắc</option>
+          </select>
+        </div>
+
+        <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh !== 'BAIBAO') { %>
+          <div class="form-col">
+            <label class="form-label">Ngày nghiệm thu <span class="required">*</span></label>
+            <input id="ngayNghiemThu" type="date" class="form-control" required />
+          </div>
+        <% } %>
+
+        <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'DETAI_DUAN') { %>
+          <div class="form-col">
+            <label class="form-label">Mã số <span class="required">*</span></label>
+            <input id="maSo" type="text" class="form-control" required placeholder="Nhập mã số" />
+          </div>
+
           <div class="form-col">
             <label class="form-label">Số năm thực hiện</label>
             <input id="soNamThucHien" type="number" min="1" step="1" value="1" class="form-control" />
           </div>
-        </div>
-      <% } %>
+        <% } %>
+      </div>
     </div>
 
     <div class="form-section">
