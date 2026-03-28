@@ -1,27 +1,28 @@
 const TABLE_CHUNG = "nckh_chung";
 const TABLE_SO_TIET = "nckh_so_tiet";
 
-const buildApprovedWhere = ({ namHoc, khoaId = "ALL" }) => {
-  let where = `
+/**
+ * Điều kiện chung: năm học + trạng thái phê duyệt.
+ * Không chứa logic lọc khoa.
+ */
+const buildApprovedWhere = (namHoc) => {
+  const where = `
     c.nam_hoc = ?
     AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
     AND c.vien_nc_duyet = 1
   `;
   const params = [namHoc];
-
-  if (String(khoaId || "ALL") === "UNASSIGNED") {
-    where += " AND c.khoa_id IS NULL";
-  } else if (String(khoaId || "ALL") !== "ALL") {
-    where += " AND c.khoa_id = ?";
-    params.push(Number(khoaId));
-  }
-
   return { where, params };
 };
 
+// ──────────────────────────────────────────────
+// 1. Thống kê theo Giảng viên
+// ──────────────────────────────────────────────
+
 const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword = "" }) => {
-  const { where, params } = buildApprovedWhere({ namHoc, khoaId });
+  const { where, params } = buildApprovedWhere(namHoc);
   const normalizedKeyword = String(keyword || "").trim();
+  const safeKhoaId = String(khoaId || "ALL").trim();
 
   let query = `
     SELECT
@@ -35,9 +36,14 @@ const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword
     FROM ${TABLE_SO_TIET} st
     INNER JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
-    LEFT JOIN phongban pb ON pb.MaPhongBan = nv.MaPhongBan
+    INNER JOIN phongban pb ON pb.id = nv.phongban_id
     WHERE ${where}
   `;
+
+  if (safeKhoaId !== "ALL") {
+    query += " AND nv.phongban_id = ?";
+    params.push(Number(safeKhoaId));
+  }
 
   if (normalizedKeyword) {
     query += " AND nv.TenNhanVien LIKE ?";
@@ -58,8 +64,13 @@ const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword
   return rows;
 };
 
-const listLecturerRecords = async (connection, { lecturerId, namHoc, khoaId = "ALL" }) => {
-  const { where, params } = buildApprovedWhere({ namHoc, khoaId });
+// ──────────────────────────────────────────────
+// 2. Chi tiết công trình của 1 Giảng viên
+//    Không lọc theo khoa — hiển thị toàn bộ.
+// ──────────────────────────────────────────────
+
+const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
+  const { where, params } = buildApprovedWhere(namHoc);
 
   const query = `
     SELECT
@@ -115,6 +126,10 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc, khoaId = "A
   return rows;
 };
 
+// ──────────────────────────────────────────────
+// 3. Thống kê theo Khoa (tổng hợp)
+// ──────────────────────────────────────────────
+
 const listFacultySummary = async (connection, { namHoc }) => {
   const query = `
     SELECT
@@ -125,7 +140,7 @@ const listFacultySummary = async (connection, { namHoc }) => {
       COALESCE(SUM(st.so_tiet), 0) AS tong_so_tiet
     FROM ${TABLE_SO_TIET} st
     INNER JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
-    INNER JOIN phongban pb ON pb.MaPhongBan = nv.MaPhongBan
+    INNER JOIN phongban pb ON pb.id = nv.phongban_id
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
     WHERE c.nam_hoc = ?
       AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
@@ -138,27 +153,15 @@ const listFacultySummary = async (connection, { namHoc }) => {
   return rows;
 };
 
+// ──────────────────────────────────────────────
+// 4. Danh sách công trình theo Khoa
+// ──────────────────────────────────────────────
+
 const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
-  let where = `
-    c.nam_hoc = ?
-    AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
-    AND c.vien_nc_duyet = 1
-  `;
-  const params = [namHoc];
+  const { where, params } = buildApprovedWhere(namHoc);
+  const safeKhoaId = Number(khoaId);
 
-  if (String(khoaId) === "UNASSIGNED") {
-    where += " AND c.khoa_id IS NULL";
-  } else {
-    // Lọc: Hiển thị nếu có ít nhất 1 thành viên của khoa này tham gia (đã phân tiết)
-    where += ` AND EXISTS (
-      SELECT 1 FROM ${TABLE_SO_TIET} st_sub
-      INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
-      INNER JOIN phongban pb_sub ON pb_sub.MaPhongBan = nv_sub.MaPhongBan
-      WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
-    )`;
-    params.push(Number(khoaId));
-  }
-
+  // Lọc công trình có ít nhất 1 giảng viên thuộc khoa này tham gia
   const query = `
     SELECT
       c.id,
@@ -166,11 +169,7 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
       c.loai_nckh,
       c.phan_loai,
       c.nam_hoc,
-      -- Tính tổng tiết của các giảng viên thuộc khoa này trong công trình
-      ${String(khoaId) === "UNASSIGNED"
-      ? "c.tong_so_tiet"
-      : `COALESCE(SUM(CASE WHEN pb_gv.id = ${Number(khoaId)} THEN st.so_tiet ELSE 0 END), 0)`
-    } AS tong_so_tiet,
+      COALESCE(SUM(CASE WHEN nv.phongban_id = ? THEN st.so_tiet ELSE 0 END), 0) AS tong_so_tiet,
       c.khoa_id,
       c.ngay_nghiem_thu,
       c.xep_loai,
@@ -197,8 +196,12 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
     LEFT JOIN phongban pb ON pb.id = c.khoa_id
     LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id
     LEFT JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
-    LEFT JOIN phongban pb_gv ON pb_gv.MaPhongBan = nv.MaPhongBan
     WHERE ${where}
+      AND EXISTS (
+        SELECT 1 FROM ${TABLE_SO_TIET} st_sub
+        INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
+        WHERE st_sub.nckh_id = c.id AND nv_sub.phongban_id = ?
+      )
     GROUP BY
       c.id,
       c.ten_cong_trinh,
@@ -212,9 +215,13 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
     ORDER BY c.id DESC
   `;
 
-  const [rows] = await connection.execute(query, params);
+  const [rows] = await connection.execute(query, [safeKhoaId, ...params, safeKhoaId]);
   return rows;
 };
+
+// ──────────────────────────────────────────────
+// 5. Thống kê Học viện — Tổng quan
+// ──────────────────────────────────────────────
 
 const getInstituteOverview = async (connection, { namHoc }) => {
   const query = `
@@ -264,26 +271,36 @@ const listInstituteByType = async (connection, { namHoc }) => {
   return rows;
 };
 
-const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNckh = "ALL" }) => {
-  let where = `
-    c.nam_hoc = ?
-    AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
-    AND c.vien_nc_duyet = 1
-  `;
-  const params = [namHoc];
+// ──────────────────────────────────────────────
+// 6. Danh sách công trình Học viện
+// ──────────────────────────────────────────────
 
+const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNckh = "ALL" }) => {
+  const { where, params } = buildApprovedWhere(namHoc);
   const safeKhoaId = String(khoaId || "ALL");
-  if (safeKhoaId === "UNASSIGNED") {
-    where += " AND c.khoa_id IS NULL";
-  } else if (safeKhoaId !== "ALL") {
-    // SỬA: Dùng logic tham gia (Participation) tương tự summary cấp khoa
-    where += ` AND EXISTS (
+
+  // --- Xử lý lọc theo khoa ---
+  let selectTongSoTiet;
+  let khoaWhere = "";
+
+  if (safeKhoaId !== "ALL") {
+    const numKhoaId = Number(safeKhoaId);
+
+    // Chỉ tính tiết của giảng viên thuộc khoa đang lọc
+    selectTongSoTiet = `COALESCE(SUM(CASE WHEN nv.phongban_id = ? THEN st.so_tiet ELSE 0 END), 0)`;
+
+    khoaWhere = ` AND EXISTS (
       SELECT 1 FROM ${TABLE_SO_TIET} st_sub
       INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
-      INNER JOIN phongban pb_sub ON pb_sub.MaPhongBan = nv_sub.MaPhongBan
-      WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
+      WHERE st_sub.nckh_id = c.id AND nv_sub.phongban_id = ?
     )`;
-    params.push(Number(safeKhoaId));
+
+    // Thêm tham số: 1 cho SUM CASE, 1 cho EXISTS
+    params.unshift(numKhoaId); // cho SUM CASE (đặt trước WHERE params)
+    // Lưu ý: params hiện tại = [numKhoaId, namHoc]
+    // Sau WHERE sẽ push thêm numKhoaId cho EXISTS
+  } else {
+    selectTongSoTiet = "c.tong_so_tiet";
   }
 
   let query = `
@@ -293,11 +310,7 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
       c.loai_nckh AS loai_nckh,
       c.phan_loai,
       c.nam_hoc,
-      -- Tính tổng tiết: nếu lọc theo khoa thì lấy tiết của khoa, nếu không lấy tổng tiết công trình
-      ${String(khoaId || "ALL") === "ALL" || String(khoaId || "ALL") === "UNASSIGNED"
-      ? "c.tong_so_tiet"
-      : `COALESCE(SUM(CASE WHEN pb_gv.id = ${Number(khoaId)} THEN st.so_tiet ELSE 0 END), 0)`
-    } AS tong_so_tiet,
+      ${selectTongSoTiet} AS tong_so_tiet,
       c.khoa_id,
       c.ngay_nghiem_thu,
       c.xep_loai,
@@ -324,9 +337,12 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
     LEFT JOIN phongban pb ON pb.id = c.khoa_id
     LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id
     LEFT JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
-    LEFT JOIN phongban pb_gv ON pb_gv.MaPhongBan = nv.MaPhongBan
-    WHERE ${where}
+    WHERE ${where}${khoaWhere}
   `;
+
+  if (safeKhoaId !== "ALL") {
+    params.push(Number(safeKhoaId)); // cho EXISTS
+  }
 
   if (String(loaiNckh || "ALL") !== "ALL") {
     query += " AND c.loai_nckh = ?";

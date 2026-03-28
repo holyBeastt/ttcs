@@ -49,7 +49,7 @@ class ExportService {
         worksheet.addRow([]); // Blank row
 
         // Get records for this lecturer
-        const records = await statsService.getLecturerRecords(lecturer.lecturerId, namHoc, khoaId);
+        const records = await statsService.getLecturerRecords(lecturer.lecturerId, namHoc);
         
         // Group records by type
         const groupedRecords = this._groupRecordsByType(records);

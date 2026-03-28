@@ -35,8 +35,8 @@ const lecturerSummary = async (req, res) => {
 
 const lecturerRecords = async (req, res) => {
   try {
-    const { namHoc, khoaId = "ALL" } = req.query;
-    const data = await statsService.getLecturerRecords(req.params.lecturerId, namHoc, khoaId);
+    const { namHoc } = req.query;
+    const data = await statsService.getLecturerRecords(req.params.lecturerId, namHoc);
     res.json({ success: true, data });
   } catch (error) {
     console.error("[NCKH V3] stats lecturer records error:", error);

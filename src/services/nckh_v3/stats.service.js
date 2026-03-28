@@ -47,9 +47,8 @@ const getLecturerSummary = async (namHoc, khoaId, keyword) => {
   }
 };
 
-const getLecturerRecords = async (lecturerId, namHoc, khoaId) => {
+const getLecturerRecords = async (lecturerId, namHoc) => {
   const safeNamHoc = ensureNamHoc(namHoc);
-  const safeKhoaId = normalizeKhoaId(khoaId);
   const safeLecturerId = Number(lecturerId);
 
   if (!Number.isFinite(safeLecturerId) || safeLecturerId <= 0) {
@@ -62,7 +61,6 @@ const getLecturerRecords = async (lecturerId, namHoc, khoaId) => {
     const rows = await statsRepo.listLecturerRecords(connection, {
       lecturerId: safeLecturerId,
       namHoc: safeNamHoc,
-      khoaId: safeKhoaId,
     });
     return rows.map(mapper.mapLecturerRecordRow);
   } finally {
