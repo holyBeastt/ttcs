@@ -60,6 +60,12 @@
       console.error(error);
       await Swal.fire("Lỗi", error?.message || fallbackMessage || "Đã xảy ra lỗi", "error");
     },
+    formatRole(role) {
+      const r = String(role || "").toLowerCase();
+      if (r === "tac_gia") return "Tác giả";
+      if (r === "thanh_vien") return "Thành viên";
+      return role || "";
+    },
   };
 
   window.NCKH_V3_STATS = {

@@ -15,6 +15,12 @@ const mapTypeMeta = (loaiNckh) => {
     loaiNckhLabel: meta ? meta.label : (normalized || "N/A"),
   };
 };
+const mapRoleLabel = (role) => {
+  const r = String(role || "").toLowerCase();
+  if (r === "tac_gia") return "Tác giả";
+  if (r === "thanh_vien") return "Thành viên";
+  return role || "";
+};
 
 const mapLecturerSummaryRow = (row) => ({
   lecturerId: Number(row.lecturer_id),
@@ -48,7 +54,7 @@ const mapCommonRecordRow = (row) => ({
 
 const mapLecturerRecordRow = (row) => ({
   ...mapCommonRecordRow(row),
-  vaiTroGiangVien: row.vai_tro_giang_vien || "",
+  vaiTroGiangVien: mapRoleLabel(row.vai_tro_giang_vien),
   soTietGiangVien: round2(Number(row.so_tiet_giang_vien || 0)),
 });
 

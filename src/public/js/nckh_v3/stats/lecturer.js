@@ -123,7 +123,7 @@
           <td>${escapeHtml(row.tenPhongBan || row.maPhongBan || "")}</td>
           <td>${formatHours(row.tongSoTietCongTrinh)}</td>
           <td>${formatHours(row.soTietGiangVien)}</td>
-          <td>${escapeHtml(row.vaiTroGiangVien)}</td>
+          <td>${window.NCKH_V3_STATS.helpers.formatRole(row.vaiTroGiangVien)}</td>
         </tr>
       `
       )
