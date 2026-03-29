@@ -152,7 +152,6 @@ const importExcelTKB = async (req, res) => {
     }
 
     // 1. Định nghĩa danh sách các cột ĐƯỢC PHÉP kế thừa dữ liệu từ dòng trên
-    // Dựa vào ảnh của bạn, đây là các cột thông tin chung bên trái
     const columnsToMerge = [
       "TT",
       "Mã HP",
@@ -161,8 +160,8 @@ const importExcelTKB = async (req, res) => {
       "Giáo Viên",
       "Số SV",
       "ST/ tuần",
-      "Ngày BĐ",
-      "Ngày KT"
+      // "Ngày BĐ",
+      // "Ngày KT"
     ];
 
     // 2. Chỉ loop và fill dữ liệu cho các cột trong danh sách trên
@@ -264,6 +263,9 @@ const importExcelTKB = async (req, res) => {
       tongTietMap[row.course_name] =
         (tongTietMap[row.course_name] || 0) + tongTiet;
     }
+
+    // ✅ Lưu tt đầu tiên TRƯỚC vòng loop để tính range chính xác
+    const firstTTValue = lastTTValue + 1;
 
     let preTT = 0;
     let preCourseName = "";  // Thêm: Lưu course_name dòng trước
@@ -385,14 +387,75 @@ const importExcelTKB = async (req, res) => {
       nam,
     ]);
 
-    // Insert batch
-    const insertResult = await pool.query(
-      `INSERT INTO course_schedule_details (
-        TT, course_code, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
-        day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, he_dao_tao, dot, ki_hoc, nam_hoc
-      ) VALUES ?`,
-      [values]
-    );
+    const ttMin = firstTTValue;
+    const ttMax = lastTTValue;
+
+    // Bắt đầu transaction
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      // Insert vào room_timetable
+      await connection.query(
+        `INSERT INTO room_timetable (
+      TT, course_code, credit_hours, student_quantity, student_bonus, bonus_time,
+      ll_code, ll_total, qc, course_name, study_format, periods_per_week,
+      day_of_week, period_start, period_end, classroom, start_date, end_date,
+      lecturer, major, he_dao_tao, dot, ki_hoc, nam_hoc
+    ) VALUES ?`,
+        [values]
+      );
+
+      // Insert vào course_schedule_details
+      await connection.query(
+        `INSERT INTO course_schedule_details (
+        tt, id, course_name, credit_hours, ll_code, ll_total, classroom,
+        course_code, major, study_format, lecturer, periods_per_week,
+        period_start, period_end, day_of_week, start_date, end_date,
+        student_quantity, student_bonus, bonus_time, bonus_teacher,
+        bonus_total, qc, class_section, course_id, semester,
+        description, da_luu, dot, ki_hoc, nam_hoc, note,
+        he_dao_tao, class_id_ascending, class_type
+    )
+    SELECT
+        tt, MIN(id), MAX(course_name), MAX(credit_hours), MAX(ll_code), MAX(ll_total),
+        MAX(classroom), MAX(course_code), MAX(major), MAX(study_format), MAX(lecturer),
+        MAX(periods_per_week), MAX(period_start), MAX(period_end), MAX(day_of_week),
+        MIN(start_date), MAX(end_date), MAX(student_quantity), MAX(student_bonus),
+        MAX(bonus_time), MAX(bonus_teacher), MAX(bonus_total), MAX(qc),
+        MAX(class_section), MAX(course_id), MAX(semester), MAX(description),
+        MAX(da_luu), dot, ki_hoc, nam_hoc, MAX(note), MAX(he_dao_tao),
+        MAX(class_id_ascending), MAX(class_type)
+    FROM room_timetable
+    WHERE tt BETWEEN ? AND ?
+    GROUP BY tt, dot, ki_hoc, nam_hoc`,
+        [ttMin, ttMax]
+      );
+
+      await connection.commit();
+
+    } catch (err) {
+      await connection.rollback();
+
+      // ✅ Bắt lỗi duplicate unique (course_name, dot, ki_hoc, nam_hoc)
+      // MySQL error code 1062 = Duplicate entry
+      if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
+        // Parse tên lớp bị trùng từ message lỗi của MySQL
+        // VD: "Duplicate entry 'Toán cao cấp (ĐH)-1-1-2024' for key 'unique_course'"
+        const dupMatch = err.message.match(/Duplicate entry '(.+)' for key/);
+        const dupValue = dupMatch ? dupMatch[1] : "không xác định";
+
+        return res.status(409).json({
+          success: false,
+          message: `Dữ liệu bị trùng lặp trong thời khóa biểu. Lớp học phần "${dupValue}" đã tồn tại trong kỳ ${ki}, đợt ${dot}, năm học ${nam}. Vui lòng kiểm tra lại file Excel.`,
+          errorCode: "DUPLICATE_ENTRY",
+        });
+      }
+
+      throw err; // Ném lại các lỗi khác để catch bên ngoài xử lý
+    } finally {
+      connection.release();
+    }
 
     // Ghi log việc import thời khóa biểu thành công
     try {
