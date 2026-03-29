@@ -2,7 +2,6 @@ const listKhoa = async (connection) => {
   const query = `
     SELECT id, MaPhongBan, TenPhongBan
     FROM phongban
-    WHERE isKhoa = 1
     ORDER BY TenPhongBan ASC
   `;
   const [rows] = await connection.execute(query);

@@ -124,6 +124,8 @@ router.get("/stats/hoc-vien/cong-trinh", statsController.instituteRecords);
 
 // Export APIs
 router.get("/export/stats/giang-vien", exportController.exportLecturerStats);
+router.get("/export/stats/khoa", exportController.exportFacultyStats);
+router.get("/export/stats/hoc-vien", exportController.exportInstituteStats);
 
 router.get("/hoi-dong-khoa-hoc", (req, res) => {
 	res.redirect("/v3/nckh/them-moi-nckh?type=thanh-vien-hoi-dong");

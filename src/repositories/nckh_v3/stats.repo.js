@@ -8,7 +8,7 @@ const TABLE_SO_TIET = "nckh_so_tiet";
 const buildApprovedWhere = (namHoc) => {
   const where = `
     c.nam_hoc = ?
-    AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
+    AND c.khoa_duyet = 1
     AND c.vien_nc_duyet = 1
   `;
   const params = [namHoc];
@@ -80,14 +80,11 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
       c.phan_loai,
       c.nam_hoc,
       c.tong_so_tiet,
-      c.khoa_id,
-      pb.MaPhongBan,
-      pb.TenPhongBan,
       st.so_tiet AS so_tiet_giang_vien,
       st.vai_tro AS vai_tro_giang_vien,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st2.vai_tro = 'tac_gia' THEN COALESCE(nv2.TenNhanVien, st2.ten_ngoai)
+          WHEN st2.vai_tro = 'tac_gia' THEN TRIM(COALESCE(nv2.TenNhanVien, st2.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st2.id ASC
@@ -95,7 +92,7 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
       ) AS tac_gia_chinh,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st2.vai_tro = 'thanh_vien' THEN COALESCE(nv2.TenNhanVien, st2.ten_ngoai)
+          WHEN st2.vai_tro = 'thanh_vien' THEN TRIM(COALESCE(nv2.TenNhanVien, st2.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st2.id ASC
@@ -103,7 +100,6 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
       ) AS thanh_vien
     FROM ${TABLE_SO_TIET} st
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
-    LEFT JOIN phongban pb ON pb.id = c.khoa_id
     LEFT JOIN ${TABLE_SO_TIET} st2 ON st2.nckh_id = c.id
     LEFT JOIN nhanvien nv2 ON nv2.id_User = st2.nhanvien_id
     WHERE st.nhanvien_id = ? AND ${where}
@@ -114,9 +110,6 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
       c.phan_loai,
       c.nam_hoc,
       c.tong_so_tiet,
-      c.khoa_id,
-      pb.MaPhongBan,
-      pb.TenPhongBan,
       st.so_tiet,
       st.vai_tro
     ORDER BY c.id DESC
@@ -143,7 +136,7 @@ const listFacultySummary = async (connection, { namHoc }) => {
     INNER JOIN phongban pb ON pb.id = nv.phongban_id
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
     WHERE c.nam_hoc = ?
-      AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
+      AND c.khoa_duyet = 1
       AND c.vien_nc_duyet = 1
     GROUP BY pb.id, pb.MaPhongBan, pb.TenPhongBan
     ORDER BY tong_so_tiet DESC
@@ -169,16 +162,13 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
       c.loai_nckh,
       c.phan_loai,
       c.nam_hoc,
-      COALESCE(SUM(CASE WHEN nv.phongban_id = ? THEN st.so_tiet ELSE 0 END), 0) AS tong_so_tiet,
-      c.khoa_id,
+      COALESCE(SUM(CASE WHEN st.nhanvien_id IS NOT NULL THEN st.so_tiet ELSE 0 END), 0) AS tong_so_tiet,
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
-      pb.MaPhongBan,
-      pb.TenPhongBan,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st.vai_tro = 'tac_gia' THEN COALESCE(nv.TenNhanVien, st.ten_ngoai)
+          WHEN st.vai_tro = 'tac_gia' THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st.id ASC
@@ -186,14 +176,13 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
       ) AS tac_gia_chinh,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st.vai_tro = 'thanh_vien' THEN COALESCE(nv.TenNhanVien, st.ten_ngoai)
+          WHEN st.vai_tro = 'thanh_vien' THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st.id ASC
         SEPARATOR ', '
       ) AS thanh_vien
     FROM ${TABLE_CHUNG} c
-    LEFT JOIN phongban pb ON pb.id = c.khoa_id
     LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id
     LEFT JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
     WHERE ${where}
@@ -208,14 +197,13 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
       c.loai_nckh,
       c.phan_loai,
       c.nam_hoc,
-      c.tong_so_tiet,
-      c.khoa_id,
-      pb.MaPhongBan,
-      pb.TenPhongBan
+      c.ngay_nghiem_thu,
+      c.xep_loai,
+      c.ma_so
     ORDER BY c.id DESC
   `;
 
-  const [rows] = await connection.execute(query, [safeKhoaId, ...params, safeKhoaId]);
+  const [rows] = await connection.execute(query, [...params, safeKhoaId]);
   return rows;
 };
 
@@ -226,11 +214,12 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
 const getInstituteOverview = async (connection, { namHoc }) => {
   const query = `
     SELECT
-      COUNT(*) AS tong_cong_trinh,
-      COALESCE(SUM(c.tong_so_tiet), 0) AS tong_so_tiet
+      COUNT(DISTINCT c.id) AS tong_cong_trinh,
+      COALESCE(SUM(st.so_tiet), 0) AS tong_so_tiet
     FROM ${TABLE_CHUNG} c
+    LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id AND st.nhanvien_id IS NOT NULL
     WHERE c.nam_hoc = ?
-      AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
+      AND c.khoa_duyet = 1
       AND c.vien_nc_duyet = 1
   `;
 
@@ -244,7 +233,7 @@ const countInstituteLecturers = async (connection, { namHoc }) => {
     FROM ${TABLE_SO_TIET} st
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
     WHERE c.nam_hoc = ?
-      AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
+      AND c.khoa_duyet = 1
       AND c.vien_nc_duyet = 1
       AND st.nhanvien_id IS NOT NULL
   `;
@@ -257,11 +246,12 @@ const listInstituteByType = async (connection, { namHoc }) => {
   const query = `
     SELECT
       c.loai_nckh,
-      COUNT(*) AS cong_trinh_count,
-      COALESCE(SUM(c.tong_so_tiet), 0) AS tong_so_tiet
+      COUNT(DISTINCT c.id) AS cong_trinh_count,
+      COALESCE(SUM(st.so_tiet), 0) AS tong_so_tiet
     FROM ${TABLE_CHUNG} c
+    LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id AND st.nhanvien_id IS NOT NULL
     WHERE c.nam_hoc = ?
-      AND (c.khoa_duyet = 1 OR c.khoa_id IS NULL)
+      AND c.khoa_duyet = 1
       AND c.vien_nc_duyet = 1
     GROUP BY c.loai_nckh
     ORDER BY tong_so_tiet DESC
@@ -300,7 +290,7 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
     // Lưu ý: params hiện tại = [numKhoaId, namHoc]
     // Sau WHERE sẽ push thêm numKhoaId cho EXISTS
   } else {
-    selectTongSoTiet = "c.tong_so_tiet";
+    selectTongSoTiet = `COALESCE(SUM(CASE WHEN st.nhanvien_id IS NOT NULL THEN st.so_tiet ELSE 0 END), 0)`;
   }
 
   let query = `
@@ -311,15 +301,12 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
       c.phan_loai,
       c.nam_hoc,
       ${selectTongSoTiet} AS tong_so_tiet,
-      c.khoa_id,
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
-      pb.MaPhongBan,
-      pb.TenPhongBan,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st.vai_tro = 'tac_gia' THEN COALESCE(nv.TenNhanVien, st.ten_ngoai)
+          WHEN st.vai_tro = 'tac_gia' THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st.id ASC
@@ -327,14 +314,13 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
       ) AS tac_gia_chinh,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st.vai_tro = 'thanh_vien' THEN COALESCE(nv.TenNhanVien, st.ten_ngoai)
+          WHEN st.vai_tro = 'thanh_vien' THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st.id ASC
         SEPARATOR ', '
       ) AS thanh_vien
     FROM ${TABLE_CHUNG} c
-    LEFT JOIN phongban pb ON pb.id = c.khoa_id
     LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id
     LEFT JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
     WHERE ${where}${khoaWhere}
@@ -356,10 +342,9 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
       c.loai_nckh,
       c.phan_loai,
       c.nam_hoc,
-      c.tong_so_tiet,
-      c.khoa_id,
-      pb.MaPhongBan,
-      pb.TenPhongBan
+      c.ngay_nghiem_thu,
+      c.xep_loai,
+      c.ma_so
     ORDER BY c.id DESC
   `;
 

@@ -120,7 +120,6 @@
           <td class="text-start">${escapeHtml(row.tenCongTrinh)}</td>
           <td class="text-start">${escapeHtml(row.tacGiaChinh)}</td>
           <td class="text-start">${escapeHtml(row.thanhVien)}</td>
-          <td>${escapeHtml(row.tenPhongBan || row.maPhongBan || "")}</td>
           <td>${formatHours(row.tongSoTietCongTrinh)}</td>
           <td>${formatHours(row.soTietGiangVien)}</td>
           <td>${window.NCKH_V3_STATS.helpers.formatRole(row.vaiTroGiangVien)}</td>

@@ -8,10 +8,6 @@ const validateMainPayload = (data) => {
   assertRequired(data.tenCongTrinh, "Thiếu tên công trình");
   assertRequired(data.phanLoai, "Thiếu phân loại");
   assertRequired(data.namHoc, "Thiếu năm học");
-  // BAIBAO cho phép khoaId null (cấp Học viện)
-  if (data.loaiNckh !== "BAIBAO") {
-    assertRequired(data.khoaId, "Thiếu khoa");
-  }
   assertRequired(data.tongSoTiet, "Thiếu tổng số tiết");
 
   const tongSoTiet = Number(data.tongSoTiet);

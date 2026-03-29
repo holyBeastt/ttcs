@@ -8,13 +8,12 @@ const insert = async (connection, data) => {
       phan_loai,
       nam_hoc,
       tong_so_tiet,
-      khoa_id,
       khoa_duyet,
       vien_nc_duyet,
       ngay_nghiem_thu,
       xep_loai,
       ma_so
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
@@ -23,7 +22,6 @@ const insert = async (connection, data) => {
     data.phanLoai,
     data.namHoc,
     data.tongSoTiet,
-    data.khoaId,
     data.khoaDuyet,
     data.vienNcDuyet,
     data.ngayNghiemThu || null,
@@ -43,7 +41,6 @@ const updateById = async (connection, id, data) => {
         phan_loai = ?,
         nam_hoc = ?,
         tong_so_tiet = ?,
-        khoa_id = ?,
         ngay_nghiem_thu = ?,
         xep_loai = ?,
         ma_so = ?
@@ -56,7 +53,6 @@ const updateById = async (connection, id, data) => {
     data.phanLoai,
     data.namHoc,
     data.tongSoTiet,
-    data.khoaId,
     data.ngayNghiemThu || null,
     data.xepLoai || null,
     data.maSo || null,
@@ -74,9 +70,8 @@ const deleteById = async (connection, id) => {
 
 const findById = async (connection, id) => {
   const query = `
-    SELECT c.*, pb.MaPhongBan, pb.TenPhongBan
+    SELECT c.*
     FROM ${TABLE} c
-    LEFT JOIN phongban pb ON pb.id = c.khoa_id
     WHERE c.id = ?
     LIMIT 1
   `;
@@ -86,28 +81,20 @@ const findById = async (connection, id) => {
 
 const listByType = async (connection, loaiNckh, namHoc, khoaId) => {
   let query = `
-    SELECT c.*, pb.MaPhongBan, pb.TenPhongBan
+    SELECT c.*
     FROM ${TABLE} c
-    LEFT JOIN phongban pb ON pb.id = c.khoa_id
     WHERE c.loai_nckh = ? AND c.nam_hoc = ?
   `;
   const params = [loaiNckh, namHoc];
 
   if (khoaId !== "ALL") {
-    // Lọc: Thuộc khoa này HOẶC là bài báo cấp Học viện có giảng viên khoa này tham gia
-    query += ` AND (
-      c.khoa_id = ?
-      OR (
-        c.khoa_id IS NULL
-        AND EXISTS (
-          SELECT 1 FROM nckh_so_tiet st_sub
-          INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
-          INNER JOIN phongban pb_sub ON pb_sub.MaPhongBan = nv_sub.MaPhongBan
-          WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
-        )
-      )
+    // Lọc: có ít nhất 1 giảng viên thuộc khoa này tham gia
+    query += ` AND EXISTS (
+      SELECT 1 FROM nckh_so_tiet st_sub
+      INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
+      WHERE st_sub.nckh_id = c.id AND nv_sub.phongban_id = ?
     )`;
-    params.push(Number(khoaId), Number(khoaId));
+    params.push(Number(khoaId));
   }
 
   query += " ORDER BY c.id DESC";
@@ -128,36 +115,25 @@ const listUnified = async (connection, namHoc, khoaId) => {
       c.phan_loai,
       c.nam_hoc,
       c.tong_so_tiet,
-      c.khoa_id,
       c.khoa_duyet,
       c.vien_nc_duyet,
       c.created_at,
       c.ngay_nghiem_thu,
       c.xep_loai,
-      c.ma_so,
-      pb.MaPhongBan,
-      pb.TenPhongBan
+      c.ma_so
     FROM ${TABLE} c
-    LEFT JOIN phongban pb ON pb.id = c.khoa_id
     WHERE c.nam_hoc = ?
   `;
   const params = [namHoc];
 
   if (khoaId !== "ALL") {
-    // Lọc: Thuộc khoa này HOẶC là bài báo cấp Học viện có giảng viên khoa này tham gia
-    query += ` AND (
-      c.khoa_id = ?
-      OR (
-        c.khoa_id IS NULL
-        AND EXISTS (
-          SELECT 1 FROM nckh_so_tiet st_sub
-          INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
-          INNER JOIN phongban pb_sub ON pb_sub.MaPhongBan = nv_sub.MaPhongBan
-          WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
-        )
-      )
+    // Lọc: có ít nhất 1 giảng viên thuộc khoa này tham gia
+    query += ` AND EXISTS (
+      SELECT 1 FROM nckh_so_tiet st_sub
+      INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
+      WHERE st_sub.nckh_id = c.id AND nv_sub.phongban_id = ?
     )`;
-    params.push(Number(khoaId), Number(khoaId));
+    params.push(Number(khoaId));
   }
 
   query += " ORDER BY c.id DESC";

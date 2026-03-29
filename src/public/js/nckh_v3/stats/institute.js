@@ -231,6 +231,13 @@
         title: `Chi tiết: ${facultyName} (${namHoc})`,
       });
     });
+
+    document.getElementById("exportExcelBtn")?.addEventListener("click", () => {
+      const namHoc = el.namHocFilter?.value;
+      if (!namHoc) return Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning");
+
+      window.location.href = `/v3/nckh/export/stats/hoc-vien?namHoc=${encodeURIComponent(namHoc)}`;
+    });
   }
 
   async function init() {

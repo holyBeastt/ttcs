@@ -31,15 +31,6 @@
           <label class="form-label">Năm học <span class="required">*</span></label>
           <select id="namHoc" class="form-select" required></select>
         </div>
-
-        <div class="form-col">
-          <label class="form-label">Khoa <span class="required">*</span></label>
-          <select id="khoaId" class="form-select" required>
-            <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
-              <option value="0">-- Cấp Học viện (Nhiều khoa) --</option>
-            <% } %>
-          </select>
-        </div>
       </div>
 
       <div class="form-row">

@@ -148,8 +148,6 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     if (!payload.tenCongTrinh) missing.push("Tên công trình");
     if (!payload.phanLoai) missing.push("Phân loại");
     if (!payload.namHoc) missing.push("Năm học");
-    // BAIBAO cho phép khoaId = null (cấp Học viện)
-    if (payload.loaiNckh !== "BAIBAO" && !payload.khoaId) missing.push("Khoa");
     if (!payload.tongSoTiet || Number(payload.tongSoTiet) <= 0) missing.push("Tổng số tiết");
     if (!payload.xepLoai) missing.push("Xếp loại");
     if (payload.loaiNckh !== "BAIBAO" && !payload.ngayNghiemThu) missing.push("Ngày nghiệm thu");
@@ -202,7 +200,6 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     const baiBaoGroupEl = document.getElementById("baiBaoGroup");
     const phanLoaiEl = document.getElementById("phanLoai");
     const namHocEl = document.getElementById("namHoc");
-    const khoaEl = document.getElementById("khoaId");
     const soNamThucHienEl = document.getElementById("soNamThucHien");
     const xepLoaiEl = document.getElementById("xepLoai");
     const ngayNghiemThuEl = document.getElementById("ngayNghiemThu");
@@ -257,30 +254,6 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
       rerenderPhanLoaiForCurrentContext();
     }
 
-    if (khoaEl) {
-      // Giữ lại option "Cấp Học viện" nếu đã có từ EJS (BAIBAO)
-      const existingHocVienOption = khoaEl.querySelector('option[value="0"]');
-      if (existingHocVienOption) {
-        khoaEl.innerHTML = '';
-        khoaEl.appendChild(existingHocVienOption);
-      } else {
-        khoaEl.innerHTML = '<option value="">Chọn khoa</option>';
-      }
-      (khoaList || []).forEach((khoa) => {
-        const opt = document.createElement("option");
-        opt.value = khoa.id;
-        opt.textContent = `${khoa.MaPhongBan} - ${khoa.TenPhongBan}`;
-        khoaEl.appendChild(opt);
-      });
-
-      const userKhoaCode = String(localStorage.getItem("MaPhongBan") || "");
-      if (userKhoaCode) {
-        const matched = (khoaList || []).find((k) => String(k.MaPhongBan) === userKhoaCode);
-        if (matched) {
-          khoaEl.value = String(matched.id);
-        }
-      }
-    }
 
     await loadNamHoc(namHocEl);
 
@@ -556,7 +529,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         phanLoai: selectedPhanLoai,
         namHoc: String((namHocEl?.value || "")).trim(),
         tongSoTiet: tongSoTietByPhanLoai,
-        khoaId: Number(khoaEl?.value || 0) === 0 ? null : Number(khoaEl?.value),
+        tongSoTiet: tongSoTietByPhanLoai,
         soNamThucHien: Number(soNamThucHienEl?.value || 1),
         tacGiaIds: ensureArrayUniqueNumbers(state.tacGiaIds),
         thanhVienIds: ensureArrayUniqueNumbers(state.thanhVienIds),

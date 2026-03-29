@@ -87,9 +87,6 @@ const toSummaryRecord = (row) => {
     thanhVien: row.thanh_vien || "",
     namHoc: row.nam_hoc,
     tongSoTiet: round2(Number(row.tong_so_tiet || 0)),
-    khoaId: row.khoa_id !== null && row.khoa_id !== undefined ? Number(row.khoa_id) : null,
-    maPhongBan: row.MaPhongBan || null,
-    tenPhongBan: row.TenPhongBan || null,
     khoaDuyet: Number(row.khoa_duyet || 0),
     vienNcDuyet: Number(row.vien_nc_duyet || 0),
     createdAt: row.created_at || null,
@@ -167,9 +164,6 @@ const detail = async (id) => {
       ngayNghiemThu: main.ngay_nghiem_thu || null,
       namHoc: main.nam_hoc,
       tongSoTiet: round2(Number(main.tong_so_tiet || 0)),
-      khoaId: main.khoa_id !== null && main.khoa_id !== undefined ? Number(main.khoa_id) : null,
-      maPhongBan: main.MaPhongBan || null,
-      tenPhongBan: main.TenPhongBan || null,
       khoaDuyet: Number(main.khoa_duyet || 0),
       vienNcDuyet: Number(main.vien_nc_duyet || 0),
       participants: participants.map((item) => ({
@@ -228,7 +222,7 @@ const updateVienApproval = async (id, value) => {
     const current = await nckhChungRepo.findById(connection, Number(id));
     if (!current) throw new Error("Không tìm thấy công trình");
 
-    if (vienNcDuyet === 1 && current.khoa_id !== null && Number(current.khoa_duyet) !== 1) {
+    if (vienNcDuyet === 1 && Number(current.khoa_duyet) !== 1) {
       throw new Error("Không thể duyệt viện khi khoa chưa duyệt");
     }
 

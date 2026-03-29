@@ -29,12 +29,6 @@ const assertNhanVienExist = async (connection, participants) => {
   }
 };
 
-const assertKhoaExist = async (connection, khoaId) => {
-  const khoa = await phongBanRepo.findById(connection, Number(khoaId));
-  if (!khoa || Number(khoa.isKhoa) !== 1) {
-    throw new Error("khoaId không hợp lệ");
-  }
-};
 
 const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
   const assertRecordType = (record) => {
@@ -59,11 +53,6 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
       connection = await createPoolConnection();
       await connection.beginTransaction();
 
-      // BAIBAO cho phép khoaId null (cấp Học viện)
-      if (payload.khoaId != null) {
-        await assertKhoaExist(connection, payload.khoaId);
-      }
-
       const participants = formulaService.buildParticipantsByMode(
         mode,
         Number(payload.tongSoTiet),
@@ -82,7 +71,6 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         phanLoai: payload.phanLoai,
         namHoc: payload.namHoc,
         tongSoTiet: Number(payload.tongSoTiet),
-        khoaId: payload.khoaId != null ? Number(payload.khoaId) : null,
         khoaDuyet: 0,
         vienNcDuyet: 0,
         ngayNghiemThu: payload.ngayNghiemThu,
@@ -144,11 +132,6 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         throw new Error("Không được sửa công trình đã được viện duyệt");
       }
 
-      // BAIBAO cho phép khoaId null (cấp Học viện)
-      if (payload.khoaId != null) {
-        await assertKhoaExist(connection, payload.khoaId);
-      }
-
       const participants = formulaService.buildParticipantsByMode(
         mode,
         Number(payload.tongSoTiet),
@@ -167,7 +150,6 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         phanLoai: payload.phanLoai,
         namHoc: payload.namHoc,
         tongSoTiet: Number(payload.tongSoTiet),
-        khoaId: payload.khoaId != null ? Number(payload.khoaId) : null,
         ngayNghiemThu: payload.ngayNghiemThu,
         xepLoai: payload.xepLoai,
         maSo: payload.maSo,
@@ -175,6 +157,7 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
 
       await nckhSoTietRepo.deleteByNckhId(connection, Number(id));
       await nckhSoTietRepo.bulkInsert(connection, Number(id), participants);
+
 
       const total = formulaService.round2(await nckhSoTietRepo.sumHours(connection, Number(id)));
       const expected = formulaService.round2(Number(payload.tongSoTiet));

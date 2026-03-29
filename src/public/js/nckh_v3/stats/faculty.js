@@ -7,7 +7,9 @@
 
   const el = {
     namHocFilter: null,
+    khoaFilter: null,
     loadDataBtn: null,
+    exportExcelBtn: null,
     facultyTableBody: null,
     recordDetailTableBody: null,
     recordDetailModalLabel: null,
@@ -16,8 +18,8 @@
   let recordDetailModal = null;
 
   const api = {
-    async getSummary(namHoc) {
-      const query = new URLSearchParams({ namHoc }).toString();
+    async getSummary(namHoc, khoaId = "ALL") {
+      const query = new URLSearchParams({ namHoc, khoaId }).toString();
       const response = await fetch(`/v3/nckh/stats/khoa?${query}`);
       return response.json();
     },
@@ -30,7 +32,9 @@
 
   function cacheElements() {
     el.namHocFilter = document.getElementById("namHocFilter");
+    el.khoaFilter = document.getElementById("khoaFilter");
     el.loadDataBtn = document.getElementById("loadDataBtn");
+    el.exportExcelBtn = document.getElementById("exportExcelBtn");
     el.facultyTableBody = document.getElementById("facultyTableBody");
     el.recordDetailTableBody = document.getElementById("recordDetailTableBody");
     el.recordDetailModalLabel = document.getElementById("recordDetailModalLabel");
@@ -108,7 +112,9 @@
       return;
     }
 
-    const result = await api.getSummary(namHoc);
+    const khoaId = el.khoaFilter?.value || "ALL";
+
+    const result = await api.getSummary(namHoc, khoaId);
     if (!result.success) {
       throw new Error(result.message || "Không thể lấy thống kê theo khoa");
     }
@@ -148,9 +154,16 @@
   }
 
   async function initFilters() {
-    const yearResult = await window.NCKH_V3_STATS.api.getNamHoc();
-    if (yearResult?.success) {
-      window.NCKH_V3_STATS.helpers.fillNamHocOptions(el.namHocFilter, yearResult.NamHoc || []);
+    const [yearRes, filterRes] = await Promise.all([
+      window.NCKH_V3_STATS.api.getNamHoc(),
+      window.NCKH_V3_STATS.api.getFilters()
+    ]);
+
+    if (yearRes?.success) {
+      window.NCKH_V3_STATS.helpers.fillNamHocOptions(el.namHocFilter, yearRes.NamHoc || []);
+    }
+    if (filterRes?.success) {
+      window.NCKH_V3_STATS.helpers.fillKhoaOptions(el.khoaFilter, filterRes.data?.khoaList || [], true);
     }
   }
 
@@ -161,6 +174,14 @@
       } catch (error) {
         await window.NCKH_V3_STATS.helpers.showError(error, "Không thể tải dữ liệu");
       }
+    });
+
+    el.exportExcelBtn?.addEventListener("click", () => {
+      const namHoc = el.namHocFilter?.value;
+      const khoaId = el.khoaFilter?.value || "ALL";
+      if (!namHoc) return Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning");
+
+      window.location.href = `/v3/nckh/export/stats/khoa?namHoc=${encodeURIComponent(namHoc)}&khoaId=${encodeURIComponent(khoaId)}`;
     });
 
     el.facultyTableBody?.addEventListener("click", async (event) => {
