@@ -152,13 +152,7 @@
       el.khoaFilter.appendChild(option);
     });
 
-    const userKhoaCode = String(localStorage.getItem("MaPhongBan") || "");
-    if (userKhoaCode) {
-      const matched = (khoaList || []).find((k) => String(k.MaPhongBan) === userKhoaCode);
-      if (matched) {
-        el.khoaFilter.value = String(matched.id);
-      }
-    }
+    // No auto-focusing to user's department, keep 'ALL' as default.
   }
 
   function getRowClass(row) {
