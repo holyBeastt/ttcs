@@ -60,7 +60,7 @@
     if (!el.lecturerTableBody) return;
 
     if (!state.lecturers.length) {
-      el.lecturerTableBody.innerHTML = '<tr><td colspan="7" class="text-muted py-4">Không có dữ liệu</td></tr>';
+      el.lecturerTableBody.innerHTML = '<tr><td colspan="6" class="text-muted py-4">Không có dữ liệu</td></tr>';
       return;
     }
 
@@ -74,7 +74,6 @@
             <td>${index + 1}</td>
             <td class="text-start">${escapeHtml(row.tenNhanVien)}</td>
             <td>${escapeHtml(row.maPhongBan || "")}</td>
-            <td class="text-start">${escapeHtml(row.lecturerKhoaName || "")}</td>
             <td>${row.soCongTrinh}</td>
             <td>${formatHours(row.tongSoTietGiangVien)}</td>
             <td>

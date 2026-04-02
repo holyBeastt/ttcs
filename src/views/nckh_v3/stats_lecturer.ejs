@@ -70,9 +70,8 @@
         <thead>
           <tr>
             <th>STT</th>
-            <th class="text-start">Giảng viên</th>
-            <th>Mã phòng ban</th>
-            <th class="text-start">Khoa của giảng viên</th>
+            <th class="sortable text-start" data-sort="tenNhanVien" style="cursor:pointer">Giảng viên <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="maPhongBan" style="cursor:pointer">Khoa <span class="sort-indicator"></span></th>
             <th>Số công trình</th>
             <th>Tổng số tiết giảng viên</th>
             <th>Chi tiết</th>
@@ -122,6 +121,58 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
   <script src="/js/nckh_v3/stats/common.js"></script>
   <script src="/js/nckh_v3/stats/lecturer.js"></script>
+  <script>
+    (function () {
+      let currentSort = { key: null, direction: 'asc' };
+      const sortKeyToColumnIndex = {
+        'tenNhanVien': 1,
+        'maPhongBan': 2
+      };
+
+      function compareRows(a, b, key, direction) {
+        let idx = sortKeyToColumnIndex[key];
+        let tdA = a.children[idx]?.innerText.trim().toLowerCase() || '';
+        let tdB = b.children[idx]?.innerText.trim().toLowerCase() || '';
+        if (tdA < tdB) return direction === 'asc' ? -1 : 1;
+        if (tdA > tdB) return direction === 'asc' ? 1 : -1;
+        return 0;
+      }
+
+      function updateSortIndicators() {
+        document.querySelectorAll('th.sortable').forEach(th => {
+          const indicator = th.querySelector('.sort-indicator');
+          if (!indicator) return;
+          if (th.dataset.sort === currentSort.key) {
+            indicator.innerHTML = currentSort.direction === 'asc' ? '<i class="bi bi-caret-up-fill"></i>' : '<i class="bi bi-caret-down-fill"></i>';
+          } else {
+            indicator.innerHTML = '';
+          }
+        });
+      }
+
+      function sortTable(key) {
+        const tableBody = document.getElementById('lecturerTableBody');
+        if (!tableBody) return;
+        let rows = Array.from(tableBody.querySelectorAll('tr'));
+        let direction = 'asc';
+        if (currentSort.key === key) {
+          direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        }
+        rows.sort((a, b) => compareRows(a, b, key, direction));
+        rows.forEach(row => tableBody.appendChild(row));
+        currentSort = { key, direction };
+        updateSortIndicators();
+      }
+
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', function () {
+          const key = th.dataset.sort;
+          sortTable(key);
+        });
+      });
+      updateSortIndicators();
+    })();
+  </script>
 </body>
 
 </html>
