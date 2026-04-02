@@ -25,6 +25,20 @@ const detail = async (req, res) => {
   }
 };
 
+const remove = async (req, res) => {
+  try {
+    const userContext = {
+      userId: req.session?.userId || 1,
+      userName: req.session?.TenNhanVien || req.session?.username || "ADMIN",
+    };
+    const result = await recordService.removeRecord(req.params.id, userContext);
+    res.json({ success: true, message: "Xóa công trình thành công", data: result });
+  } catch (error) {
+    console.error("[NCKH V3] remove unified error:", error);
+    res.status(400).json({ success: false, message: error.message || "Không thể xóa công trình" });
+  }
+};
+
 const approveKhoa = async (req, res) => {
   try {
     const data = await recordService.updateKhoaApproval(req.params.id, req.body.khoaDuyet);
@@ -69,6 +83,7 @@ const bulkApprovals = async (req, res) => {
 module.exports = {
   list,
   detail,
+  remove,
   approveKhoa,
   approveVien,
   bulkApprovals,

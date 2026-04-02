@@ -262,6 +262,13 @@
               <i class="bi bi-eye"></i>
             </button>
           </td>
+          <td>
+            ${state.permission.canApprove ? `
+              <button class="btn btn-sm btn-outline-danger ${currentVienDuyet === 1 ? 'disabled' : ''}" data-action="delete" data-id="${row.id}" ${currentVienDuyet === 1 ? 'disabled' : ''}>
+                <i class="bi bi-trash"></i>
+              </button>
+            ` : ""}
+          </td>
         </tr>
       `;
     }).join("");
@@ -491,11 +498,58 @@
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 
+    if (button.hasAttribute('disabled') || button.classList.contains('disabled')) return;
+
     const action = button.getAttribute("data-action");
     const id = button.getAttribute("data-id");
 
     if (action === "detail") {
       showDetail(id);
+    } else if (action === "delete") {
+      deleteRecord(id);
+    }
+  }
+
+  async function deleteRecord(id) {
+    if (!id) return;
+
+    if (state.pendingApprovals.has(Number(id))) {
+      const pending = state.pendingApprovals.get(Number(id));
+      if (pending.vienNcDuyet === 1) {
+        await Swal.fire("Lỗi", "Bạn đang chuẩn bị duyệt viện công trình này. Vui lòng bỏ đánh dấu duyệt rồi thử lại.", "error");
+        return;
+      }
+    }
+
+    const confirmed = await Swal.fire({
+      title: "Xác nhận xóa?",
+      text: "Bạn có chắc chắn muốn xóa công trình này không? Hành động này không thể hoàn tác.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy"
+    });
+
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetch(`/v3/nckh/records/${id}`, {
+        method: "DELETE"
+      });
+      const result = await response.json();
+
+      if (!result.success) {
+        await Swal.fire("Thất bại", result.message || "Không thể xóa công trình", "error");
+        return;
+      }
+
+      await Swal.fire("Thành công", result.message || "Đã xóa công trình", "success");
+      await loadData();
+    } catch (error) {
+      console.error("[NCKH V3] delete error:", error);
+      await Swal.fire("Lỗi", "Đã xảy ra lỗi khi xóa công trình", "error");
     }
   }
 

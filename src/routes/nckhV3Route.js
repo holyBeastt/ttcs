@@ -94,6 +94,7 @@ router.get("/records/filters", recordController.getFilters);
 router.patch("/records/bulk-approvals", recordController.bulkApprovals);
 router.get("/records", recordController.list);
 router.get("/records/:id", recordController.detail);
+router.delete("/records/:id", recordController.remove);
 router.patch("/records/:id/khoa-duyet", recordController.approveKhoa);
 router.patch("/records/:id/vien-duyet", recordController.approveVien);
 

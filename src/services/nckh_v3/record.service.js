@@ -1,4 +1,5 @@
 const createPoolConnection = require("../../config/databasePool");
+const LogService = require("../logService");
 
 const { NCKH_TYPE_OPTIONS } = require("../../config/nckh_v3/types");
 const { validateApprovalValue } = require("../../validators/nckh_v3/approval.validator");
@@ -304,9 +305,50 @@ const updateBulkApprovals = async (updates) => {
   }
 };
 
+const removeRecord = async (id, userContext) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    await connection.beginTransaction();
+
+    const current = await nckhChungRepo.findById(connection, Number(id));
+    if (!current) {
+      throw new Error("Không tìm thấy công trình");
+    }
+
+    if (Number(current.vien_nc_duyet) === 1) {
+      throw new Error("Không được xóa công trình đã được Viện duyệt");
+    }
+
+    await nckhSoTietRepo.deleteByNckhId(connection, Number(id));
+    await nckhChungRepo.deleteById(connection, Number(id));
+
+    await connection.commit();
+
+    try {
+      await LogService.logChange(
+        userContext.userId,
+        userContext.userName,
+        "NCKH V3",
+        `Xóa công trình NCKH ID ${id} (Tên: "${current.ten_cong_trinh}") từ danh sách chung`
+      );
+    } catch (err) {
+      console.error("[NCKH V3] Log failed:", err.message);
+    }
+
+    return { id: Number(id) };
+  } catch (error) {
+    if (connection) await connection.rollback();
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 module.exports = {
   list,
   detail,
+  removeRecord,
   updateKhoaApproval,
   updateVienApproval,
   updateBulkApprovals,
