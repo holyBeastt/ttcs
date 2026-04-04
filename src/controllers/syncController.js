@@ -22,8 +22,35 @@ const yearColumnByTable = {
     course_schedule_details: 'nam_hoc',
     quychuan: 'NamHoc',
     giangday: 'NamHoc',
-    nckh_chung: 'NamHoc'
+    nckh_chung: 'nam_hoc'
 };
+
+const yearExpressionByTable = {
+    lichsunhaplieu: 'YEAR(ThoiGianThayDoi)'
+};
+
+function buildTableExportQuery(table, year) {
+    const yearColumn = yearColumnByTable[table];
+    if (year && yearColumn && yearFilteredTables.has(table)) {
+        return {
+            query: `SELECT * FROM ${table} WHERE ${yearColumn} = ?`,
+            params: [year]
+        };
+    }
+
+    const yearExpression = yearExpressionByTable[table];
+    if (year && yearExpression) {
+        return {
+            query: `SELECT * FROM ${table} WHERE ${yearExpression} = ?`,
+            params: [year]
+        };
+    }
+
+    return {
+        query: `SELECT * FROM ${table}`,
+        params: []
+    };
+}
 
 // ============================================
 // EXPORT FUNCTIONS
@@ -84,20 +111,14 @@ exports.exportTable = async (req, res) => {
 
         // Year filter support for selected tables
         const year = req.query.namhoc || req.query.year || req.query.nam || req.query.nam_hoc;
-        const yearColumn = yearColumnByTable[table];
-
         // Use custom export query if defined, otherwise use default SELECT *
         if (config.exportQuery) {
             query = config.exportQuery;
             [data] = await connection.query(query);
         } else {
-            if (year && yearColumn && yearFilteredTables.has(table)) {
-                query = `SELECT * FROM ${table} WHERE ${yearColumn} = ?`;
-                [data] = await connection.query(query, [year]);
-            } else {
-                query = `SELECT * FROM ${table}`;
-                [data] = await connection.query(query);
-            }
+            const exportQuery = buildTableExportQuery(table, year);
+            query = exportQuery.query;
+            [data] = await connection.query(query, exportQuery.params);
 
             // Only remove id column if NOT preserveId
             if (!config.preserveId) {
@@ -152,14 +173,9 @@ exports.exportAll = async (req, res) => {
                     query = config.exportQuery;
                     [data] = await connection.query(query);
                 } else {
-                    const yearColumn = yearColumnByTable[tableName];
-                    if (year && yearColumn && yearFilteredTables.has(tableName)) {
-                        query = `SELECT * FROM ${tableName} WHERE ${yearColumn} = ?`;
-                        [data] = await connection.query(query, [year]);
-                    } else {
-                        query = `SELECT * FROM ${tableName}`;
-                        [data] = await connection.query(query);
-                    }
+                    const exportQuery = buildTableExportQuery(tableName, year);
+                    query = exportQuery.query;
+                    [data] = await connection.query(query, exportQuery.params);
 
                     // Only remove id column if NOT preserveId
                     if (!config.preserveId) {
@@ -261,14 +277,9 @@ exports.exportMultiple = async (req, res) => {
                     query = config.exportQuery;
                     [data] = await connection.query(query);
                 } else {
-                    const yearColumn = yearColumnByTable[tableName];
-                    if (year && yearColumn && yearFilteredTables.has(tableName)) {
-                        query = `SELECT * FROM ${tableName} WHERE ${yearColumn} = ?`;
-                        [data] = await connection.query(query, [year]);
-                    } else {
-                        query = `SELECT * FROM ${tableName}`;
-                        [data] = await connection.query(query);
-                    }
+                    const exportQuery = buildTableExportQuery(tableName, year);
+                    query = exportQuery.query;
+                    [data] = await connection.query(query, exportQuery.params);
 
                     if (!config.preserveId) {
                         data = data.map((row) => {
@@ -1396,6 +1407,53 @@ async function importGenericTable(connection, tableName, records, config) {
         return str;
     }
 
+    if (config.importMode === "insert-only") {
+        for (const record of records) {
+            try {
+                let data;
+                if (config.preserveId && record.id !== undefined) {
+                    data = { ...record };
+                } else {
+                    const { id, ID, Id, STT, stt, MaGiangDay, ...rest } = record;
+                    data = { ...rest };
+                }
+
+                const isISODate = (val) => {
+                    return typeof val === "string" &&
+                        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val);
+                };
+
+                for (const key in data) {
+                    if (isISODate(data[key])) {
+                        const isDateOnlyColumn = /ngay|date|deadline/i.test(key);
+                        data[key] = isDateOnlyColumn
+                            ? formatDateOnlyForMySQL(data[key])
+                            : formatDateForMySQL(data[key]);
+                    }
+                }
+
+                const fields = Object.keys(data);
+                const values = Object.values(data);
+
+                if (fields.length === 0) {
+                    skipped++;
+                    continue;
+                }
+
+                const placeholders = fields.map(() => "?").join(", ");
+                await connection.query(
+                    `INSERT INTO ${tableName} (${fields.join(", ")}) VALUES (${placeholders})`,
+                    values
+                );
+                inserted++;
+            } catch (error) {
+                errors.push({ record, error: error.message });
+            }
+        }
+
+        return { inserted, updated, skipped, errors, warnings, total: records.length };
+    }
+
     for (const record of records) {
         try {
             // const missingKeys = config.uniqueKey.filter(
@@ -1626,6 +1684,7 @@ exports.importAll = async (req, res) => {
                     case "schedule":
                         result = await importCourseScheduleDetails(connection, tableData.data);
                         break;
+                    case "contract":
                     case "business":
                     case "master":
                     case "research":
