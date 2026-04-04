@@ -11,6 +11,8 @@ const { validateAndMigrateSchemaFromData } = require("../helpers/schemaValidator
 // Tables that support year-based filtering (Năm học)
 const yearFilteredTables = new Set([
     'doantotnghiep',
+    'hopdonggvmoi',
+    'exportdoantotnghiep',
     'course_schedule_details',
     'quychuan',
     'giangday',
@@ -19,6 +21,8 @@ const yearFilteredTables = new Set([
 
 const yearColumnByTable = {
     doantotnghiep: 'NamHoc',
+    hopdonggvmoi: 'NamHoc',
+    exportdoantotnghiep: 'NamHoc',
     course_schedule_details: 'nam_hoc',
     quychuan: 'NamHoc',
     giangday: 'NamHoc',
@@ -408,6 +412,7 @@ exports.importTable = async (req, res) => {
             case "schedule":
                 result = await importCourseScheduleDetails(connection, data);
                 break;
+            case "contract":
             case "business":
             case "master":
             case "research":
@@ -1379,6 +1384,8 @@ async function importGenericTable(connection, tableName, records, config) {
     const errors = [];
     const warnings = [];
 
+    console.log(`[IMPORT ${tableName}]`);
+
     const formatDateForMySQL = (value) => {
         if (!value) return null;
         const date = new Date(value);
@@ -1414,7 +1421,7 @@ async function importGenericTable(connection, tableName, records, config) {
                 if (config.preserveId && record.id !== undefined) {
                     data = { ...record };
                 } else {
-                    const { id, ID, Id, STT, stt, MaGiangDay, ...rest } = record;
+                    const { id, ID, Id, STT, stt, MaGiangDay, MaHopDong, ...rest } = record;
                     data = { ...rest };
                 }
 
@@ -1476,7 +1483,7 @@ async function importGenericTable(connection, tableName, records, config) {
             if (config.preserveId && record.id !== undefined) {
                 data = { ...record };
             } else {
-                const { id, ID, Id, STT, stt, MaGiangDay, ...rest } = record;
+                const { id, ID, Id, STT, stt, MaGiangDay, MaHopDong, ...rest } = record;
                 data = { ...rest };
             }
 
@@ -1602,7 +1609,7 @@ async function importGenericTable(connection, tableName, records, config) {
                     return false;
                 });
                 if (reallyChanged) {
-                    console.log(`[${tableName}] → updated`);
+                    // console.log(`[${tableName}] → updated`);
                     updated++;
                 } else {
                     console.log(`[${tableName}] → skipped (không có diff)`);

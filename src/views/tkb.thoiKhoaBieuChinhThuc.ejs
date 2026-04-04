@@ -801,12 +801,11 @@
             width: 60,
             cellRenderer: (params) => {
               const id = params.data.id; // Lấy ID từ dữ liệu
-              const tt = params.data.tt; // Lấy giá trị `tt` từ dữ liệu
               const dot = params.data.dot; // Lấy giá trị `dot` từ dữ liệu
               const ki_hoc = params.data.ki_hoc; // Lấy giá trị `ki_hoc` từ dữ liệu
               const nam_hoc = params.data.nam_hoc; // Lấy giá trị `nam_hoc` từ dữ liệu
               const stt = params.node.rowIndex + 1; // Lấy STT của dòng
-              return `<button onclick="deleteRow('${id}', '${tt}', '${dot}', '${ki_hoc}', '${nam_hoc}', ${stt})">Xóa</button>`;
+              return `<button onclick="deleteRow('${id}', '${dot}', '${ki_hoc}', '${nam_hoc}', ${stt})">Xóa</button>`;
             },
           });
         }
@@ -816,10 +815,6 @@
           console.log("Cell value changed:", event);
           const { data, colDef, newValue, oldValue } = event;
           const id = data.id;
-          const tt = data.tt;
-          const dot = data.dot;
-          const ki_hoc = data.ki_hoc;
-          const nam_hoc = data.nam_hoc;
 
           const field = colDef.field;
 
@@ -827,13 +822,13 @@
             const response = await fetch("/api/v1/tkb/update-row", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ tt, dot, ki_hoc, nam_hoc, field, value: newValue, oldValue, data }),
+              body: JSON.stringify({ id, field, value: newValue, oldValue, data }),
             });
 
             const updatedRow = await response.json();
 
             if (response.ok) {
-              const rowNode = gridOptions.api.getRowNode(tt); // lúc đầu là id
+              const rowNode = gridOptions.api.getRowNode(id); // lúc đầu là id
               if (rowNode) {
                 rowNode.setData(updatedRow); // Cp nhật data của row
               } else {
@@ -868,10 +863,9 @@
 
         // Tạo bảng AG Grid
         gridOptions = {
-          //getRowId: (params) => params.data.id, // Xác định dòng theo `id`
+          getRowId: (params) => params.data.id, // Xác định dòng theo `id`
           columnDefs: columnDefs,
           rowData: renderData,
-          getRowId: params => params.data.tt,
           defaultColDef: {
             resizable: true,
             sortable: true,
@@ -949,7 +943,7 @@
               ki_hoc: Ki,
               nam_hoc: Nam,
               major: Khoa,
-              course_name: "Môn học mới",
+              course_name: "",
               lecturer: "Giảng viên",
               student_quantity: 0,
               student_bonus: 0,
@@ -984,11 +978,11 @@
         }
       }
 
-      async function deleteRow(id, tt, dot, ki_hoc, nam_hoc, stt) {
+      async function deleteRow(id, dot, ki_hoc, nam_hoc, stt) {
 
         if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
           try {
-            const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
+            const response = await fetch(`/TKB-delete-row?id=${id}`, {
               method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
@@ -1001,12 +995,12 @@
 
             // XÓA ĐÚNG CÁI DÒNG TRONG AG GRID
             gridOptions.api.applyTransaction({
-              remove: [{ tt }]
+              remove: [{ id }]
             });
             console.log("Dòng đã xóa khỏi AG Grid", renderData);
 
             // XÓA TRONG RENDERDATA
-            renderData = renderData.filter(row => row.tt !== tt);
+            renderData = renderData.filter(row => row.id !== id);
 
             console.log("Dòng đã xóa thành công", renderData);
 

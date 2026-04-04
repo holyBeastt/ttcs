@@ -20,24 +20,23 @@ const getDataTKBChinhThuc = async (req, res) => {
 
   const baseSelect = `
     SELECT 
-      tt,
-      MIN(id) AS id,
-      MAX(course_id) AS course_id,
-      MAX(course_name) AS course_name,
-      MAX(major) AS major,
-      MAX(lecturer) AS lecturer,
-      MIN(start_date) AS start_date,
-      MAX(end_date) AS end_date,
-      MAX(ll_total) AS ll_total,
-      MAX(student_quantity) AS student_quantity,
-      MAX(student_bonus) AS student_bonus,
-      MAX(bonus_time) AS bonus_time,
-      MAX(qc) AS qc,
-      MAX(dot) AS dot,
-      MAX(ki_hoc) AS ki_hoc,
-      MAX(nam_hoc) AS nam_hoc,
-      MAX(note) AS note,
-      MAX(he_dao_tao) AS he_dao_tao
+      id,
+      course_id,
+      course_name,
+      major,
+      lecturer,
+      start_date,
+      end_date,
+      ll_total,
+      student_quantity,
+      student_bonus,
+      bonus_time,
+      qc,
+      dot,
+      ki_hoc,
+      nam_hoc,
+      note,
+      he_dao_tao
     FROM course_schedule_details
   `;
 
@@ -48,8 +47,7 @@ const getDataTKBChinhThuc = async (req, res) => {
 
     if (Khoa === "ALL") {
       query = `${baseSelect} 
-        WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?
-        GROUP BY tt`;
+        WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
       queryParams = [Dot, Ki, Nam];
 
     } else if (Khoa === "Khac") {
@@ -60,14 +58,12 @@ const getDataTKBChinhThuc = async (req, res) => {
 
       query = `${baseSelect} 
         WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?
-          AND major NOT IN (${khoaList.map(() => "?").join(", ")})
-        GROUP BY tt`;
+          AND major NOT IN (${khoaList.map(() => "?").join(", ")})`;
       queryParams = [Dot, Ki, Nam, ...khoaList];
 
     } else {
       query = `${baseSelect} 
-        WHERE major = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?
-        GROUP BY tt`;
+        WHERE major = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
       queryParams = [Khoa, Dot, Ki, Nam];
     }
 
@@ -139,7 +135,7 @@ const getBonusTimeForHeDaoTao = async (
 
 
 const updateRowTKB = async (req, res) => {
-  let { tt, dot, ki_hoc, nam_hoc, field, value, oldValue, data } = req.body;
+  let { id, field, value, oldValue, data } = req.body;
 
   console.log("🚀 ~ file: TKBController.js:216 ~ updateRowTKB ~ data:", req.body);
 
@@ -167,8 +163,8 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET student_quantity = ?, student_bonus = ?, qc = ? 
-        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
-      const updateValues = [value, student_bonus, qc, tt, dot, ki_hoc, nam_hoc];
+        WHERE id = ?`;
+      const updateValues = [value, student_bonus, qc, id];
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "bonus_time") {
@@ -183,8 +179,8 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET bonus_time = ?, qc = ? 
-        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
-      const updateValues = [value, qc, tt, dot, ki_hoc, nam_hoc];
+        WHERE id = ?`;
+      const updateValues = [value, qc, id];
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "ll_total") {
@@ -201,8 +197,8 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET ll_total = ?, qc = ? 
-        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
-      const updateValues = [value, qc, tt, dot, ki_hoc, nam_hoc];
+        WHERE id = ?`;
+      const updateValues = [value, qc, id];
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "qc") {
@@ -216,8 +212,8 @@ const updateRowTKB = async (req, res) => {
 
       const updateQuery = `
         UPDATE course_schedule_details SET qc = ? 
-        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
-      const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
+        WHERE id = ?`;
+      const updateValues = [value, id];
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "he_dao_tao") {
@@ -229,8 +225,8 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET he_dao_tao = ?, bonus_time = ?, qc = ? 
-        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
-      const updateValues = [value, data.bonus_time, qc, tt, dot, ki_hoc, nam_hoc];
+        WHERE id = ?`;
+      const updateValues = [value, data.bonus_time, qc, id];
 
       await connection.query(updateQuery, updateValues);
     }
@@ -243,9 +239,9 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET note = ?
-        WHERE tt = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
+        WHERE id = ?`;
 
-      const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
+      const updateValues = [value, id];
 
       await connection.query(updateQuery, updateValues);
     }
@@ -254,8 +250,8 @@ const updateRowTKB = async (req, res) => {
         value = formatDateForDB(value);
       }
 
-      const updateQuery = `UPDATE course_schedule_details SET ${field} = ? WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
-      const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
+      const updateQuery = `UPDATE course_schedule_details SET ${field} = ? WHERE id = ?`;
+      const updateValues = [value, id];
 
       await connection.query(updateQuery, updateValues);
     }
@@ -263,29 +259,27 @@ const updateRowTKB = async (req, res) => {
     // 🛠 Lấy lại dữ liệu sau khi cập nhật
     const [updatedRow] = await connection.query(
       `SELECT
-        tt,
-        MIN(id) AS id,
-        MAX(course_id) AS course_id,
-        MAX(course_name) AS course_name,
-        MAX(major) AS major,
-        MAX(lecturer) AS lecturer,
-        MIN(start_date) AS start_date,
-        MAX(end_date) AS end_date,
-        MAX(ll_code) AS ll_code,
-        MAX(ll_total) AS ll_total,
-        MAX(student_quantity) AS student_quantity,
-        MAX(student_bonus) AS student_bonus,
-        MAX(bonus_time) AS bonus_time,
-        MAX(qc) AS qc,
-        MAX(dot) AS dot,
-        MAX(ki_hoc) AS ki_hoc,
-        MAX(nam_hoc) AS nam_hoc,
-        MAX(note) AS note,
-        MAX(he_dao_tao) AS he_dao_tao
+        id,
+        course_id,
+        course_name,
+        major,
+        lecturer,
+        start_date,
+        end_date,
+        ll_code,
+        ll_total,
+        student_quantity,
+        student_bonus,
+        bonus_time,
+        qc,
+        dot,
+        ki_hoc,
+        nam_hoc,
+        note,
+        he_dao_tao
       FROM course_schedule_details 
-        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?
-        group by tt`,
-      [tt, dot, ki_hoc, nam_hoc]
+        WHERE id = ?`,
+      [id]
     );
 
     return res.json(updatedRow[0]); // ✅ Trả về toàn bộ dòng mới cập nhật
@@ -317,23 +311,23 @@ function formatDateForDB(dateStr) {
 
 // hàm xóa 1 dòng
 const deleteRow = async (req, res) => {
-  const { tt, dot, ki_hoc, nam_hoc } = req.query; // Lấy ID từ URL
+  const { id } = req.query; // Lấy ID từ URL
 
   let connection;
 
   try {
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-    // Kiểm tra xem tt có hợp lệ không
-    if (!tt) {
+    // Kiểm tra xem id có hợp lệ không
+    if (!id) {
       return res.status(400).json({ message: "ID không hợp lệ." });
     }
 
     // Chuẩn bị truy vấn DELETE
-    const deleteQuery = `DELETE FROM course_schedule_details WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
+    const deleteQuery = `DELETE FROM course_schedule_details WHERE id = ?`;
 
     // Thực thi truy vấn
-    await connection.query(deleteQuery, [tt, dot, ki_hoc, nam_hoc]);
+    await connection.query(deleteQuery, [id]);
 
     // Trả về phản hồi thành công
     return res.json({ message: "Dòng dữ liệu đã được xóa thành công." });
@@ -358,23 +352,22 @@ const themTKBVaoQCDK = async (req, res) => {
     // Lấy dữ liệu bên bảng course_schedule_details
     let getDataTKBQuery = `
     SELECT
-      min(id) AS ID,
-      tt,
-      max(major) AS Khoa,
-      max(ll_code) AS SoTietCTDT,
-      max(ll_total) AS LL,
-      max(student_quantity) AS SoSinhVien,
-      max(student_bonus) AS HeSoLopDong,
-      max(bonus_time) AS HeSoT7CN,
-      max(course_id) AS MaBoMon,
-      max(lecturer) AS GiaoVien,
-      max(credit_hours) AS SoTinChi,
-      max(course_name) AS LopHocPhan,
-      max(course_code) AS MaHocPhan,
-      min(start_date) AS NgayBatDau,
-      max(end_date) AS NgayKetThuc,
-      max(qc) AS QuyChuan,
-      max(he_dao_tao) AS HeDaoTao
+      id AS ID,
+      major AS Khoa,
+      ll_code AS SoTietCTDT,
+      ll_total AS LL,
+      student_quantity AS SoSinhVien,
+      student_bonus AS HeSoLopDong,
+      bonus_time AS HeSoT7CN,
+      course_id AS MaBoMon,
+      lecturer AS GiaoVien,
+      credit_hours AS SoTinChi,
+      course_name AS LopHocPhan,
+      course_code AS MaHocPhan,
+      start_date AS NgayBatDau,
+      end_date AS NgayKetThuc,
+      qc AS QuyChuan,
+      he_dao_tao AS HeDaoTao
     FROM course_schedule_details
     WHERE dot = ? and ki_hoc = ? and nam_hoc = ? and da_luu = 0
   `;
@@ -385,9 +378,6 @@ const themTKBVaoQCDK = async (req, res) => {
       getDataTKBQuery += " and major = ?";
       getDataTKBParams.push(major);
     }
-
-    getDataTKBQuery += " group by tt";
-
 
     const [tkbData] = await connection.query(getDataTKBQuery, getDataTKBParams);
 
@@ -549,25 +539,21 @@ const addNewRowTKB = async (req, res) => {
   const ki_hoc = data.ki_hoc;
   const nam_hoc = data.nam_hoc;
 
+  data.course_name = `Môn học mới ${Date.now()}`; // Tên lớp học phần mặc định, có thể thay đổi sau
+
 
   try {
-    // Lấy tt lớn nhất trong bảng course_schedule_details theo dot, ki_hoc, nam_hoc
-    const [maxTTResult] = await pool.query(`
-      select max(tt) as maxTT from course_schedule_details where dot = ? and ki_hoc = ? and nam_hoc = ?`,
-      [dot, ki_hoc, nam_hoc]);
-
     // Tạo câu truy vấn INSERT
     const insertQuery = `
       INSERT INTO course_schedule_details 
-      (tt, course_name, course_code, student_quantity, student_bonus, lecturer, major, ll_total, 
+      (course_name, course_code, student_quantity, student_bonus, lecturer, major, ll_total, 
        bonus_time, ll_code, start_date, end_date, he_dao_tao, dot, ki_hoc, nam_hoc, qc) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Giá trị cần chèn vào database
     const insertValues = [
-      maxTTResult[0].maxTT + 1 || -1, // Tăng tt từ giá trị lớn nhất
-      data.course_name || "",
+      data.course_name || `Môn học mới ${Date.now()}`,
       data.course_code || "",
       data.student_quantity || 0,
       data.student_bonus || 0,
@@ -588,12 +574,11 @@ const addNewRowTKB = async (req, res) => {
     // Thực hiện chèn dữ liệu vào database
     const [result] = await pool.query(insertQuery, insertValues);
     const newId = result.insertId; // Lấy ID của dòng vừa thêm
-    const newTT = insertValues[0]; // Lấy tt của dòng vừa thêm
 
     // Trả về dữ liệu đầy đủ của dòng mới
     res.status(200).json({
       message: "Dòng đã được thêm thành công",
-      data: { id: newId, tt: newTT, ...req.body }, // Gửi lại dữ liệu đã thêm
+      data: { id: newId, ...req.body }, // Gửi lại dữ liệu đã thêm
     });
   } catch (error) {
     console.error("Lỗi thêm dữ liệu:", error);
@@ -662,21 +647,19 @@ const exportMultipleWorksheets = async (req, res) => {
       // Truy vấn lấy dữ liệu theo từng major
       let query =
         `SELECT 
-        max(id) as id,
-        tt,
-        max(credit_hours) as credit_hours,
-        max(course_name) as course_name,
-        max(lecturer) as lecturer,
-        max(student_quantity) as student_quantity,
-        max(ll_total) as ll_total,
-        max(bonus_time) as bonus_time,
-        max(student_bonus) as student_bonus,
-        min(start_date) as start_date,
-        max(end_date) as end_date,
-        max(he_dao_tao) as he_dao_tao,
-        max(qc) as qc 
-        FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?
-        group by tt`;
+        id,
+        credit_hours,
+        course_name,
+        lecturer,
+        student_quantity,
+        ll_total,
+        bonus_time,
+        student_bonus,
+        start_date,
+        end_date,
+        he_dao_tao,
+        qc 
+        FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?`;
       let params = [dot, ki_hoc, nam_hoc, m];
 
       const [rows] = await connection.query(query, params);
@@ -802,21 +785,19 @@ const exportSingleWorksheets = async (req, res) => {
       // Truy vấn lấy dữ liệu theo từng major
       let query =
         `SELECT 
-        max(id) as id,
-        tt,
-        max(credit_hours) as credit_hours,
-        max(student_quantity) as student_quantity,
-        max(course_name) as course_name,
-        max(lecturer) as lecturer,
-        max(ll_total) as ll_total,
-        max(bonus_time) as bonus_time,
-        max(student_bonus) as student_bonus,
-        min(start_date) as start_date,
-        max(end_date) as end_date,
-        max(he_dao_tao) as he_dao_tao,
-        max(qc) as qc 
-        FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?
-        group by tt`;
+        id,
+        credit_hours,
+        student_quantity,
+        course_name,
+        lecturer,
+        ll_total,
+        bonus_time,
+        student_bonus,
+        start_date,
+        end_date,
+        he_dao_tao,
+        qc
+        FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?`;
       let params = [dot, ki_hoc, nam_hoc, m];
 
       const [rows] = await connection.query(query, params);
@@ -902,7 +883,7 @@ const checkDataTKBExist = async (req, res) => {
     connection = await createPoolConnection();
 
     // Câu truy vấn kiểm tra sự tồn tại của giá trị Khoa trong bảng
-    const queryCheck = `SELECT MAX(tt) AS last_tt FROM course_schedule_details WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?;`;
+    const queryCheck = `SELECT MAX(tt) AS last_tt FROM room_timetable WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?;`;
 
     // Thực hiện truy vấn
     const [results] = await connection.query(queryCheck, [dot, ki, nam]);
