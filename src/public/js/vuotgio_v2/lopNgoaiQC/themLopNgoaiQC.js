@@ -324,7 +324,7 @@ function renderTable() {
         field: 'actions',
         width: 60, editable: false,
         cellRenderer: function (params) {
-            if (!params.data || !params.data.tt) return '';
+            if (!params.data || !params.data.id) return '';
             const btn = document.createElement('button');
             btn.textContent = 'Xóa';
             btn.addEventListener('click', () => deleteRow(params.data));
@@ -335,7 +335,7 @@ function renderTable() {
     gridOptions = {
         columnDefs: columnDefs,
         rowData: renderData,
-        getRowId: params => params.data.tt,
+        getRowId: params => params.data.id,
         rowHeight: rowHeight,
         defaultColDef: {
             sortable: true,
@@ -393,8 +393,8 @@ function reFormatDateFromDB(input) {
 async function onCellValueChanged(event) {
     const data = event.data;
 
-    // Cần có tt để xác định dòng
-    if (!data.tt) return;
+    // Cần có id để xác định dòng
+    if (!data.id) return;
 
     try {
         const response = await fetch('/v2/vuotgio/lop-ngoai-quy-chuan/edit', {
@@ -440,7 +440,7 @@ async function deleteRow(rowData) {
 
     try {
         const params = new URLSearchParams({
-            tt: rowData.tt,
+            id: rowData.id,
             dot: rowData.dot,
             ki_hoc: rowData.ki_hoc,
             nam_hoc: rowData.nam_hoc
@@ -459,8 +459,8 @@ async function deleteRow(rowData) {
                 position: "right",
                 backgroundColor: "#28a745",
             }).showToast();
-            gridApi.applyTransaction({ remove: [{ tt: rowData.tt }] });
-            renderData = renderData.filter(r => r.tt !== rowData.tt);
+            gridApi.applyTransaction({ remove: [{ id: rowData.id }] });
+            renderData = renderData.filter(r => r.id !== rowData.id);
             // Refresh để cập nhật lại STT sau khi xóa dòng
             gridApi.refreshCells({ force: true });
         } else {

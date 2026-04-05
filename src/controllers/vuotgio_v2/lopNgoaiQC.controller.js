@@ -34,29 +34,22 @@ const save = async (req, res) => {
         const dot = data.dot || 1;
         const ki_hoc = data.ki_hoc || 1;
         const nam_hoc = data.nam_hoc;
+        const id = data.id || -1;
 
         if (!nam_hoc) {
             return res.status(400).json({ success: false, message: "Thiếu thông tin năm học" });
         }
 
-        // Tìm max tt hiện tại (giống addNewRowTKB)
-        const [maxTTResult] = await connection.query(
-            `SELECT MAX(tt) AS maxTT FROM course_schedule_details WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?`,
-            [dot, ki_hoc, nam_hoc]
-        );
-        const newTT = (maxTTResult[0].maxTT || 0) + 1;
-
         const insertQuery = `
             INSERT INTO course_schedule_details 
-            (tt, course_name, course_code, credit_hours, student_quantity, student_bonus,
+            (course_name, course_code, credit_hours, student_quantity, student_bonus,
              bonus_time, ll_code, ll_total, qc, lecturer, major, he_dao_tao,
              dot, ki_hoc, nam_hoc, note, course_id, class_type, da_luu)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         `;
 
         const [result] = await connection.execute(insertQuery, [
-            newTT,
-            data.course_name || '',
+            data.course_name || `Môn học mới ${Date.now()}`,
             data.course_code || '',
             data.credit_hours || 0,
             data.student_quantity || 0,
@@ -78,13 +71,13 @@ const save = async (req, res) => {
 
         try {
             await LogService.logChange(userId, userName, 'Thêm lớp ngoài QC (nháp)',
-                `Thêm "${data.course_name}" - GV: "${data.lecturer}" - tt: ${newTT}`);
+                `Thêm "${data.course_name}" - GV: "${data.lecturer}" - id: ${id}`);
         } catch (e) { console.error("Log error:", e); }
 
         res.status(200).json({
             success: true,
             message: "Thêm dòng mới thành công!",
-            data: { id: result.insertId, tt: newTT, ...data }
+            data: { id: result.insertId, ...data }
         });
 
     } catch (error) {
@@ -100,7 +93,6 @@ const save = async (req, res) => {
  */
 const getTable = async (req, res) => {
     const { Dot, KiHoc, NamHoc, Khoa } = req.params;
-    console.log(`[LopNgoaiQC] Lấy nháp - Đợt: ${Dot}, Kì: ${KiHoc}, Năm: ${NamHoc}, Khoa: ${Khoa}`);
 
     let connection;
     try {
@@ -108,27 +100,26 @@ const getTable = async (req, res) => {
 
         const baseSelect = `
             SELECT 
-                tt,
-                MIN(id) AS id,
-                MAX(course_id) AS course_id,
-                MAX(course_name) AS course_name,
-                MAX(course_code) AS course_code,
-                MAX(major) AS major,
-                MAX(lecturer) AS lecturer,
-                MIN(start_date) AS start_date,
-                MAX(end_date) AS end_date,
-                MAX(ll_total) AS ll_total,
-                MAX(credit_hours) AS credit_hours,
-                MAX(ll_code) AS ll_code,
-                MAX(student_quantity) AS student_quantity,
-                MAX(student_bonus) AS student_bonus,
-                MAX(bonus_time) AS bonus_time,
-                MAX(qc) AS qc,
-                MAX(dot) AS dot,
-                MAX(ki_hoc) AS ki_hoc,
-                MAX(nam_hoc) AS nam_hoc,
-                MAX(note) AS note,
-                MAX(he_dao_tao) AS he_dao_tao
+                id,
+                course_id,
+                course_name,
+                course_code,
+                major,
+                lecturer,
+                start_date,
+                end_date,
+                ll_total,
+                credit_hours,
+                ll_code,
+                student_quantity,
+                student_bonus,
+                bonus_time,
+                qc,
+                dot,
+                ki_hoc,
+                nam_hoc,
+                note,
+                he_dao_tao
             FROM course_schedule_details
             WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ? AND da_luu = 0 AND class_type = ?
         `;
@@ -139,10 +130,10 @@ const getTable = async (req, res) => {
             query += ` AND major = ?`;
             params.push(Khoa);
         }
-        query += ` GROUP BY tt ORDER BY lecturer, course_name`;
+        query += ` ORDER BY lecturer, course_name`;
 
         const [results] = await connection.execute(query, params);
-        console.log(`[LopNgoaiQC] Found ${results.length} rows (nháp)`);
+
         res.json(results);
 
     } catch (error) {
@@ -161,9 +152,9 @@ const edit = async (req, res) => {
     const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN';
     const data = req.body;
 
-    const { tt, dot, ki_hoc, nam_hoc } = data;
-    if (!tt || !dot || !ki_hoc || !nam_hoc) {
-        return res.status(400).json({ success: false, message: "Thiếu tt, dot, ki_hoc, nam_hoc" });
+    const { id, dot, ki_hoc, nam_hoc } = data;
+    if (!id || !dot || !ki_hoc || !nam_hoc) {
+        return res.status(400).json({ success: false, message: "Thiếu id, dot, ki_hoc, nam_hoc" });
     }
 
     let connection;
@@ -190,10 +181,10 @@ const edit = async (req, res) => {
             return res.status(400).json({ success: false, message: "Không có dữ liệu để cập nhật" });
         }
 
-        setValues.push(tt, dot, ki_hoc, nam_hoc, CLASS_TYPE);
+        setValues.push(id, dot, ki_hoc, nam_hoc, CLASS_TYPE);
 
         const [result] = await connection.execute(
-            `UPDATE course_schedule_details SET ${setClauses.join(', ')} WHERE tt = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND class_type = ?`,
+            `UPDATE course_schedule_details SET ${setClauses.join(', ')} WHERE id = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND class_type = ?`,
             setValues
         );
 
@@ -202,7 +193,7 @@ const edit = async (req, res) => {
         }
 
         try {
-            await LogService.logChange(userId, userName, 'Sửa lớp ngoài QC (nháp)', `Sửa tt: ${tt}`);
+            await LogService.logChange(userId, userName, 'Sửa lớp ngoài QC (nháp)', `Sửa id: ${id}`);
         } catch (e) { console.error("Log error:", e); }
 
         res.status(200).json({ success: true, message: "Cập nhật thành công!" });
@@ -219,20 +210,20 @@ const edit = async (req, res) => {
  * Xóa dòng nháp theo tt (giống deleteRow TKB)
  */
 const deleteRecord = async (req, res) => {
-    const { tt, dot, ki_hoc, nam_hoc } = req.query;
+    const { id, dot, ki_hoc, nam_hoc } = req.query;
     const userId = req.session?.userId || 1;
     const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN';
 
-    if (!tt) {
-        return res.status(400).json({ success: false, message: "Thiếu tt." });
+    if (!id) {
+        return res.status(400).json({ success: false, message: "Thiếu id." });
     }
 
     let connection;
     try {
         connection = await createPoolConnection();
         const [result] = await connection.query(
-            `DELETE FROM course_schedule_details WHERE tt = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND class_type = ?`,
-            [tt, dot, ki_hoc, nam_hoc, CLASS_TYPE]
+            `DELETE FROM course_schedule_details WHERE id = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND class_type = ?`,
+            [id, dot, ki_hoc, nam_hoc, CLASS_TYPE]
         );
 
         if (result.affectedRows === 0) {
@@ -240,7 +231,7 @@ const deleteRecord = async (req, res) => {
         }
 
         try {
-            await LogService.logChange(userId, userName, 'Xóa lớp ngoài QC (nháp)', `Xóa tt: ${tt}`);
+            await LogService.logChange(userId, userName, 'Xóa lớp ngoài QC (nháp)', `Xóa id: ${id}`);
         } catch (e) { console.error("Log error:", e); }
 
         res.json({ success: true, message: "Xóa thành công!" });
@@ -313,15 +304,15 @@ const confirmToMain = async (req, res) => {
         // 1. SELECT gom nhóm từ bảng nháp
         let getDataQuery = `
             SELECT
-                MIN(id) AS ID, tt,
-                MAX(major) AS Khoa, MAX(ll_code) AS SoTietCTDT, MAX(ll_total) AS LL,
-                MAX(student_quantity) AS SoSV, MAX(student_bonus) AS HeSoLopDong,
-                MAX(bonus_time) AS HeSoT7CN, MAX(course_id) AS MaBoMon,
-                MAX(lecturer) AS GiangVien, MAX(lecturer) AS GiaoVienGiangDay,
-                MAX(credit_hours) AS SoTinChi,
-                MAX(course_name) AS LopHocPhan, MAX(course_code) AS MaHocPhan,
-                MIN(start_date) AS NgayBatDau, MAX(end_date) AS NgayKetThuc,
-                MAX(qc) AS QuyChuan, MAX(he_dao_tao) AS he_dao_tao
+                id AS ID,
+                major AS Khoa, ll_code AS SoTietCTDT, ll_total AS LL,
+                student_quantity AS SoSV, student_bonus AS HeSoLopDong,
+                bonus_time AS HeSoT7CN, course_id AS MaBoMon,
+                lecturer AS GiangVien, lecturer AS GiaoVienGiangDay,
+                credit_hours AS SoTinChi,
+                course_name AS LopHocPhan, course_code AS MaHocPhan,
+                start_date AS NgayBatDau, end_date AS NgayKetThuc,
+                qc AS QuyChuan, he_dao_tao AS he_dao_tao
             FROM course_schedule_details
             WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ? AND da_luu = 0 AND class_type = ?
         `;
@@ -331,7 +322,6 @@ const confirmToMain = async (req, res) => {
             getDataQuery += ` AND major = ?`;
             params.push(major);
         }
-        getDataQuery += ` GROUP BY tt`;
 
         const [draftData] = await connection.query(getDataQuery, params);
 
