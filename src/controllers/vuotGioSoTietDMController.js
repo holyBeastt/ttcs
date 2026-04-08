@@ -8,7 +8,7 @@ const renderSoTietDM = async (req, res) => {
     const [rows] = await pool.execute(
       "SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
     );
-    res.render("vuotGioSoTietDM.ejs", {
+    res.render("vuotgio_v2/vuotGioSoTietDM.ejs", {
       currentData: rows[0] || { GiangDay: 0, GiangDayChuaNghiHuu: 280, GiangDayDaNghiHuu: 560, VuotGio: 0, NCKH: 0 },
     });
   } catch (error) {

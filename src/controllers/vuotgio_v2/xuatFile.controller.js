@@ -16,7 +16,7 @@ const ExcelJS = require("exceljs");
  * Render trang xuất file
  */
 const renderPage = (req, res) => {
-    res.render("vuotgio.xuatFile.ejs");
+    res.render("vuotgio_v2/vuotgio.xuatFile.ejs");
 };
 
 /**

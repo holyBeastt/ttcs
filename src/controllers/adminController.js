@@ -1128,7 +1128,7 @@ const AdminController = {
       const [kyTuBD] = await connection.query(
         "SELECT lop_vi_du, viet_tat, gia_tri_so_sanh, doi_tuong FROM kitubatdau"
       );
-      res.render("vuotGioKyTuBD", {
+      res.render("vuotgio_v2/vuotGioKyTuBD.ejs", {
         kyTuBD,
         message: req.query.success ? "Thêm mới thành công!" : null,
       });
@@ -1208,7 +1208,7 @@ const AdminController = {
     } catch (error) {
       console.error("Lỗi khi thêm ký tự bắt đầu:", error);
       const [kyTuBD] = await connection.query("SELECT * FROM kitubatdau");
-      res.render("vuotGioKyTuBD", {
+      res.render("vuotgio_v2/vuotGioKyTuBD.ejs", {
         kyTuBD,
         message: "Có lỗi xảy ra khi thêm mới!",
       });
