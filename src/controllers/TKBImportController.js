@@ -406,30 +406,31 @@ const importExcelTKB = async (req, res) => {
         [values]
       );
 
+      console.log("ttmin - ttmax = ", ttMin, ttMax);
+
       // Insert vào course_schedule_details
       await connection.query(
         `INSERT INTO course_schedule_details (
-        tt, id, course_name, credit_hours, ll_code, ll_total, classroom,
+        course_name, credit_hours, ll_code, ll_total, classroom,
         course_code, major, study_format, lecturer, periods_per_week,
         period_start, period_end, day_of_week, start_date, end_date,
         student_quantity, student_bonus, bonus_time, bonus_teacher,
         bonus_total, qc, class_section, course_id, semester,
         description, da_luu, dot, ki_hoc, nam_hoc, note,
-        he_dao_tao, class_id_ascending, class_type
+        he_dao_tao, class_type
     )
     SELECT
-        tt, MIN(id), MAX(course_name), MAX(credit_hours), MAX(ll_code), MAX(ll_total),
-        MAX(classroom), MAX(course_code), MAX(major), MAX(study_format), MAX(lecturer),
-        MAX(periods_per_week), MAX(period_start), MAX(period_end), MAX(day_of_week),
-        MIN(start_date), MAX(end_date), MAX(student_quantity), MAX(student_bonus),
-        MAX(bonus_time), MAX(bonus_teacher), MAX(bonus_total), MAX(qc),
-        MAX(class_section), MAX(course_id), MAX(semester), MAX(description),
-        MAX(da_luu), dot, ki_hoc, nam_hoc, MAX(note), MAX(he_dao_tao),
-        MAX(class_id_ascending), MAX(class_type)
+        MAX(course_name), MAX(credit_hours), MAX(ll_code), MAX(ll_total),MAX(classroom), 
+        MAX(course_code), MAX(major), MAX(study_format), MAX(lecturer),MAX(periods_per_week), 
+        MAX(period_start), MAX(period_end), MAX(day_of_week),MIN(start_date), MAX(end_date), 
+        MAX(student_quantity), MAX(student_bonus),MAX(bonus_time), MAX(bonus_teacher), 
+        MAX(bonus_total), MAX(qc),MAX(class_section), MAX(course_id), MAX(semester), 
+        MAX(description),MAX(da_luu), dot, ki_hoc, nam_hoc, MAX(note), 
+        MAX(he_dao_tao), MAX(class_type)
     FROM room_timetable
-    WHERE tt BETWEEN ? AND ?
+    WHERE tt BETWEEN ? AND ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?
     GROUP BY tt, dot, ki_hoc, nam_hoc`,
-        [ttMin, ttMax]
+        [ttMin, ttMax, dot, ki, nam]
       );
 
       await connection.commit();
