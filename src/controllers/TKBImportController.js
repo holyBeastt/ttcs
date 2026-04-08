@@ -406,8 +406,6 @@ const importExcelTKB = async (req, res) => {
         [values]
       );
 
-      console.log("ttmin - ttmax = ", ttMin, ttMax);
-
       // Insert vào course_schedule_details
       await connection.query(
         `INSERT INTO course_schedule_details (
