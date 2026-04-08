@@ -437,17 +437,21 @@ const importExcelTKB = async (req, res) => {
     } catch (err) {
       await connection.rollback();
 
-      // ✅ Bắt lỗi duplicate unique (course_name, dot, ki_hoc, nam_hoc)
+      // ✅ Bắt lỗi duplicate unique (bất kỳ bảng nào)
       // MySQL error code 1062 = Duplicate entry
       if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
-        // Parse tên lớp bị trùng từ message lỗi của MySQL
         // VD: "Duplicate entry 'Toán cao cấp (ĐH)-1-1-2024' for key 'unique_course'"
-        const dupMatch = err.message.match(/Duplicate entry '(.+)' for key/);
+        const dupMatch = err.message.match(/Duplicate entry '(.+)' for key '(.+)'/);
         const dupValue = dupMatch ? dupMatch[1] : "không xác định";
+        const dupKey = dupMatch ? dupMatch[2] : "unknown_key";
+
+        const entity = (err.sql && err.sql.includes("INSERT INTO room_timetable"))
+          ? "room_timetable"
+          : "course_schedule_details";
 
         return res.status(409).json({
           success: false,
-          message: `Dữ liệu bị trùng lặp trong thời khóa biểu. Lớp học phần "${dupValue}" đã tồn tại trong kỳ ${ki}, đợt ${dot}, năm học ${nam}. Vui lòng kiểm tra lại file Excel.`,
+          message: `Dữ liệu bị trùng lặp trong bảng ${entity}. Giá trị "${dupValue}" trùng với khóa unique ("${dupKey}") trong kỳ ${ki}, đợt ${dot}, năm học ${nam}. Vui lòng kiểm tra lại file Excel.`,
           errorCode: "DUPLICATE_ENTRY",
         });
       }

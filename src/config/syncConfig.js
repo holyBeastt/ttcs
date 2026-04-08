@@ -122,12 +122,16 @@ module.exports = {
     // ============================================
 
     course_schedule_details: {
-        type: 'schedule',
+        type: 'business',
         description: 'Thời khóa biểu chi tiết',
         // uniqueKey dùng để SO SÁNH (tìm record đã tồn tại chưa)
+        uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'he_dao_tao'],
+    },
+
+    room_timetable: {
+        type: 'schedule',
+        description: 'Thời khóa biểu phòng học',
         uniqueKey: ['dot', 'ki_hoc', 'nam_hoc', 'course_name', 'day_of_week', 'start_date', 'end_date', 'period_start', 'period_end'],
-        // ttGroupKey: nhóm để tính MAX(tt) khi INSERT mới
-        // ttGroupKey: ['dot', 'ki_hoc', 'nam_hoc'],
     },
 
     giangday: {
@@ -166,6 +170,13 @@ module.exports = {
         uniqueKey: ['Dot', 'Ki', 'NamHoc', 'TenDeTai', 'KhoaDaoTao', 'SinhVien'],
     },
 
+    lichsunhaplieu: {
+        type: 'business',
+        description: 'Lịch sử nhập liệu',
+        uniqueKey: ['id_User', 'LoaiThongTin', 'ThoiGianThayDoi'],
+        importMode: 'insert-only',
+    },
+
     phonghoc: {
         type: 'business',
         description: 'Phòng học',
@@ -179,14 +190,29 @@ module.exports = {
     },
 
     // ============================================
+    // CONTRACT - Hợp đồng giảng dạy
+    // ============================================
+    hopdonggvmoi: {
+        type: 'contract',
+        description: 'Hợp đồng giảng viên mời',
+        uniqueKey: ['Dot', 'KiHoc', 'NamHoc', 'CCCD'],
+    },
+
+    exportdoantotnghiep: {
+        type: 'contract',
+        description: 'Export đồ án tốt nghiệp',
+        uniqueKey: ['Dot', 'ki', 'NamHoc', 'TenDeTai', 'KhoaDaoTao', 'SinhVien', 'CCCD', 'isMoiGiang'],
+    },
+
+    // ============================================
     // RESEARCH - Nghiên cứu khoa học (NCKH)
     // ============================================
 
-    nckh_chung: {
-        type: 'research',
-        description: 'NCKH chung',
-        uniqueKey: ['LoaiNCKH', 'PhanLoai', 'TenCongTrinh', 'NamHoc'],
-    },
+    // nckh_chung: {
+    //     type: 'research',
+    //     description: 'NCKH chung',
+    //     uniqueKey: ['LoaiNCKH', 'PhanLoai', 'TenCongTrinh', 'nam_hoc'],
+    // },
 
     sotietnckhbaoluusangnam: {
         type: 'research',
@@ -226,4 +252,3 @@ module.exports = {
         uniqueKey: ['Dot', 'Ki', 'Nam', 'LopHocPhan'],
     },
 };
-
