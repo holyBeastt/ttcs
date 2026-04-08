@@ -19,6 +19,7 @@ if (isKhoa == 1) {
   }
 } else if (MaPhongBan === window.APP_DEPARTMENTS?.khaoThi) {
 }
+const BASE_URL = "/v2/vuotgio"
   let currentRow = null
   let tableRowData = []
 
@@ -235,7 +236,7 @@ if (isKhoa == 1) {
 
     try {
       showLoading(true)
-      const response = await fetch(`/vuotGioDanhSachCuoiKi/getDSCuoiKi/${maPhongBan}/${Ki}/${Nam}`, {
+      const response = await fetch(`${BASE_URL}/vuotGioDanhSachCuoiKi/getDSCuoiKi/${maPhongBan}/${Ki}/${Nam}`, {
         method: "GET",
       })
 
@@ -716,7 +717,7 @@ async function updateDataToServer() {
 
       console.log('Data to be sent:', dataTam);
 
-    const response = await fetch('/vuotGioCuoiKi/updateData', {
+    const response = await fetch(`${BASE_URL}/vuotGioCuoiKi/updateData`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -796,7 +797,7 @@ async function saveDataToServer() {
     //   return // Ngưng gửi request
     // }
 
-    const response = await fetch("/vuotGioDanhSachCuoiKi/saveData", {
+    const response = await fetch(`${BASE_URL}/vuotGioDanhSachCuoiKi/saveData`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idList }) // Gửi danh sách id đã chọn,

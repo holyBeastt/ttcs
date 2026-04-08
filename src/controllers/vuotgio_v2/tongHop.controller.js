@@ -116,8 +116,8 @@ const tongHopTheoGV = async (req, res) => {
         // Điều kiện WHERE theo khoa cho từng bảng (tên cột khác nhau)
         // -------------------------------------------------------
         const gdKhoa   = isAllKhoa ? '' : 'AND Khoa = ?';        // giangday
-        const lnqcKhoa = isAllKhoa ? '' : 'AND Khoa = ?';        // lopngoaiquychuan
-        const kthpKhoa = isAllKhoa ? '' : 'AND khoa = ?';        // ketthuchocphan
+        const lnqcKhoa = isAllKhoa ? '' : 'AND khoa = ?';        // vg_lop_ngoai_quy_chuan
+        const kthpKhoa = isAllKhoa ? '' : 'AND khoa = ?';        // vg_coi_cham_ra_de
         const daKhoa   = isAllKhoa ? '' : 'AND MaPhongBan = ?';  // exportdoantotnghiep
 
         // -------------------------------------------------------
@@ -139,36 +139,36 @@ const tongHopTheoGV = async (req, res) => {
                 SELECT id_User FROM giangday
                     WHERE NamHoc = ? AND id_User IS NOT NULL ${gdKhoa}
                 UNION
-                SELECT id_User FROM lopngoaiquychuan
-                    WHERE NamHoc = ? AND KhoaDuyet = 1 AND id_User IS NOT NULL ${lnqcKhoa}
+                SELECT id_user AS id_User FROM vg_lop_ngoai_quy_chuan
+                    WHERE nam_hoc = ? AND khoa_duyet = 1 AND id_user IS NOT NULL ${lnqcKhoa}
                 UNION
-                SELECT id_User FROM ketthuchocphan
-                    WHERE namhoc = ? AND khoaduyet = 1 AND id_User IS NOT NULL ${kthpKhoa}
+                SELECT id_user AS id_User FROM vg_coi_cham_ra_de
+                    WHERE nam_hoc = ? AND khoa_duyet = 1 AND id_user IS NOT NULL ${kthpKhoa}
                 UNION
                 SELECT id_User FROM exportdoantotnghiep
                     WHERE NamHoc = ? AND isMoiGiang = 0 AND id_User IS NOT NULL ${daKhoa}
             ) all_users
             JOIN nhanvien nv ON nv.id_User = all_users.id_User
             LEFT JOIN (
-                SELECT id_User, SUM(QuyChuan) AS soTietGiangDay
+                SELECT id_user AS id_User, SUM(QuyChuan) AS soTietGiangDay
                 FROM giangday
                 WHERE NamHoc = ? AND id_User IS NOT NULL ${gdKhoa}
-                GROUP BY id_User
+                GROUP BY id_user
             ) gd   ON gd.id_User = nv.id_User
             LEFT JOIN (
-                SELECT id_User, SUM(QuyChuan) AS soTietNgoaiQC
-                FROM lopngoaiquychuan
-                WHERE NamHoc = ? AND KhoaDuyet = 1 AND id_User IS NOT NULL ${lnqcKhoa}
-                GROUP BY id_User
+                SELECT id_user AS id_User, SUM(quy_chuan) AS soTietNgoaiQC
+                FROM vg_lop_ngoai_quy_chuan
+                WHERE nam_hoc = ? AND khoa_duyet = 1 AND id_user IS NOT NULL ${lnqcKhoa}
+                GROUP BY id_user
             ) lnqc ON lnqc.id_User = nv.id_User
             LEFT JOIN (
-                SELECT id_User, SUM(sotietqc) AS soTietKTHP
-                FROM ketthuchocphan
-                WHERE namhoc = ? AND khoaduyet = 1 AND id_User IS NOT NULL ${kthpKhoa}
-                GROUP BY id_User
+                SELECT id_user AS id_User, SUM(quy_chuan) AS soTietKTHP
+                FROM vg_coi_cham_ra_de
+                WHERE nam_hoc = ? AND khoa_duyet = 1 AND id_user IS NOT NULL ${kthpKhoa}
+                GROUP BY id_user
             ) kthp ON kthp.id_User = nv.id_User
             LEFT JOIN (
-                SELECT id_User, SUM(SoTiet) AS soTietDoAn
+                SELECT id_User AS id_User, SUM(SoTiet) AS soTietDoAn
                 FROM exportdoantotnghiep
                 WHERE NamHoc = ? AND isMoiGiang = 0 AND id_User IS NOT NULL ${daKhoa}
                 GROUP BY id_User
@@ -451,13 +451,13 @@ async function getTongHopByKhoaInternal(namHoc, Khoa, connection) {
 
     // Query lớp ngoài quy chuẩn (chỉ tính những bản ghi đã duyệt: KhoaDuyet = 1)
     const [lopNgoaiQC] = await connection.execute(`
-        SELECT SUM(QuyChuan) as total FROM lopngoaiquychuan WHERE NamHoc = ? AND Khoa = ? AND KhoaDuyet = 1
+        SELECT SUM(quy_chuan) as total FROM vg_lop_ngoai_quy_chuan WHERE nam_hoc = ? AND khoa = ? AND khoa_duyet = 1
     `, [namHoc, Khoa]);
 
     // Query KTHP
     const [kthp] = await connection.execute(`
-        SELECT SUM(sotietqc) as total FROM ketthuchocphan 
-        WHERE namhoc = ? AND khoa = ? AND khoaduyet = 1
+        SELECT SUM(quy_chuan) as total FROM vg_coi_cham_ra_de 
+        WHERE nam_hoc = ? AND khoa = ? AND khoa_duyet = 1
     `, [namHoc, Khoa]);
 
     // Query Đồ án
@@ -526,20 +526,20 @@ const chiTietGV = async (req, res) => {
         `, [namHoc, GiangVien]);
 
         // 2. Lấy lớp ngoài quy chuẩn (join bằng id_User)
-        const [lopNgoaiQC] = id_User
-            ? await connection.execute(`
-                SELECT * FROM lopngoaiquychuan 
-                WHERE NamHoc = ? AND id_User = ?
-                ORDER BY KiHoc, MaHocPhan
-              `, [namHoc, id_User])
+                const [lopNgoaiQC] = id_User
+                        ? await connection.execute(`
+                                SELECT * FROM vg_lop_ngoai_quy_chuan 
+                                WHERE nam_hoc = ? AND id_user = ?
+                                ORDER BY hoc_ky, ma_hoc_phan
+                            `, [namHoc, id_User])
             : [[] ];
 
         // 3. Lấy KTHP (join bằng id_User)
         const [kthp] = id_User
             ? await connection.execute(`
-                SELECT * FROM ketthuchocphan 
-                WHERE namhoc = ? AND id_User = ?
-                ORDER BY ki, hinhthuc
+                                SELECT * FROM vg_coi_cham_ra_de 
+                                WHERE nam_hoc = ? AND id_user = ?
+                                ORDER BY hoc_ky, hinh_thuc
               `, [namHoc, id_User])
             : [[]];
 

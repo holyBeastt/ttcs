@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const BASE_URL = '/v2/vuotgio';
+
     // Utility function for rendering tables with DataTables
     function renderTable(data, containerId, columns, tableId = containerId + "Table") {
         const container = document.getElementById(containerId);
@@ -87,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadNhanSuSuggestions() {
     try {
-        const response = await fetch("/importkthp/getSuggestions");
+        const response = await fetch(`${BASE_URL}/importkthp/getSuggestions`);
         if (!response.ok) throw new Error("Lỗi khi tải danh sách");
 
         nhanSuList = await response.json();
@@ -136,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showLoading();
 
             try {
-                const response = await fetch('/importkthp/upload', {
+                const response = await fetch(`${BASE_URL}/importkthp/upload`, {
                     method: 'POST',
                     body: formData
                 });
@@ -191,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            const response = await fetch('/importkthp/add', {
+            const response = await fetch(`${BASE_URL}/importkthp/add`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(entry)
@@ -246,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dataTam = [...raDeData, ...coiThiData, ...chamThiData];
         console.log('Data to be sent:', dataTam);
         try {
-            const response = await fetch('/importkthp/checkfile', {
+            const response = await fetch(`${BASE_URL}/importkthp/checkfile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ Ki: kiValue, Nam: namValue })
@@ -287,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Save data to server with custom messages
     async function saveDataToServer(kiValue, namValue, dataTam, messages) {
         try {
-            const response = await fetch('/importkthp/save', {
+            const response = await fetch(`${BASE_URL}/importkthp/save`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -313,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delete existing data and save new
     async function deleteFile(kiValue, namValue) {
         try {
-            const response = await fetch('/importkthp/delete', {
+            const response = await fetch(`${BASE_URL}/importkthp/delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ Ki: kiValue, Nam: namValue })
@@ -362,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('viewtam').addEventListener('click', function() {
-        window.location.href = '/vuotGioDanhGiaCuoiKi';
+        window.location.href = `${BASE_URL}/vuotGioDanhGiaCuoiKi`;
     });
 
     function extractEditedData(containerId, columns, typeLabel) {
@@ -430,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function () {
 async function getSuggestions() {
     try {
         const MaPhongBan = document.getElementById("MaPhongBan").value;
-        const response = await fetch(`/importkthp/getNameSuggestions?MaPhongBan=${MaPhongBan}`);
+        const response = await fetch(`${BASE_URL}/importkthp/getNameSuggestions?MaPhongBan=${MaPhongBan}`);
         if (!response.ok) throw new Error("Lỗi khi tải danh sách");
 
         const nhanSuList = await response.json();

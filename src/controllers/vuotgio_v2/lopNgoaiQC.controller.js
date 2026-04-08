@@ -14,6 +14,74 @@ const pool = require("../../config/Pool");
 const LogService = require("../../services/logService");
 
 const CLASS_TYPE = 'ngoai_quy_chuan';
+const LNQC_TABLE = 'vg_lop_ngoai_quy_chuan';
+
+const buildLnqcSelect = () => `
+    id AS ID,
+    id_user,
+    tt,
+    so_tin_chi AS SoTinChi,
+    so_tin_chi,
+    lop_hoc_phan AS LopHocPhan,
+    lop_hoc_phan,
+    ma_bo_mon AS MaBoMon,
+    ma_bo_mon,
+    ll AS LL,
+    so_tiet_ctdt AS SoTietCTDT,
+    so_tiet_ctdt,
+    he_so_t7cn AS HeSoT7CN,
+    he_so_t7cn,
+    so_sv AS SoSV,
+    he_so_lop_dong AS HeSoLopDong,
+    he_so_lop_dong,
+    quy_chuan AS QuyChuan,
+    quy_chuan,
+    hoc_ky AS KiHoc,
+    hoc_ky,
+    nam_hoc AS NamHoc,
+    nam_hoc,
+    ma_hoc_phan AS MaHocPhan,
+    ma_hoc_phan,
+    giang_vien AS GiangVien,
+    giang_vien,
+    giao_vien_giang_day AS GiaoVienGiangDay,
+    giao_vien_giang_day,
+    moi_giang AS MoiGiang,
+    moi_giang,
+    he_dao_tao,
+    ten_lop AS TenLop,
+    ten_lop,
+    khoa_duyet AS KhoaDuyet,
+    dao_tao_duyet AS DaoTaoDuyet,
+    tai_chinh_duyet AS TaiChinhDuyet,
+    ngay_bat_dau AS NgayBatDau,
+    ngay_ket_thuc AS NgayKetThuc,
+    khoa AS Khoa,
+    dot AS Dot,
+    ghi_chu AS GhiChu,
+    ghi_chu,
+    hoan_thanh AS HoanThanh,
+    0 AS DaLuu
+`;
+
+const pick = (source, ...keys) => {
+    for (const key of keys) {
+        if (source[key] !== undefined && source[key] !== null && source[key] !== "") {
+            return source[key];
+        }
+    }
+    return undefined;
+};
+
+const toInt = (value, fallback = 0) => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const toDecimal = (value, fallback = 0) => {
+    const parsed = Number.parseFloat(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
 
 // =====================================================
 // DRAFT OPERATIONS (course_schedule_details)
@@ -329,8 +397,60 @@ const confirmToMain = async (req, res) => {
             return res.status(200).json({ success: true, message: "Không có dữ liệu nháp để chuyển" });
         }
 
-        // 2. Chuẩn bị INSERT vào lopngoaiquychuan
+        const lecturerNames = [...new Set(draftData
+            .map(row => row.GiangVien || row.GiaoVienGiangDay)
+            .filter(Boolean))];
+
+        const lecturerMap = new Map();
+        if (lecturerNames.length > 0) {
+            const placeholders = lecturerNames.map(() => '?').join(', ');
+            const [lecturerRows] = await connection.query(
+                `SELECT id_User, TenNhanVien FROM nhanvien WHERE TenNhanVien IN (${placeholders})`,
+                lecturerNames
+            );
+            lecturerRows.forEach(row => {
+                lecturerMap.set(row.TenNhanVien, row.id_User);
+            });
+        }
+
+        // 2. Chuẩn bị INSERT vào vg_lop_ngoai_quy_chuan
         let insertValues = [];
+
+        const mapOfficialRow = (row) => {
+            const giangVien = row.GiangVien || row.GiaoVienGiangDay || null;
+            const idUser = lecturerMap.get(giangVien) || null;
+
+            return [
+                row.tt || null,
+                row.SoTinChi || 0,
+                row.LopHocPhan || '',
+                row.MaBoMon || row.MaHocPhan || '',
+                idUser,
+                row.LL || 0,
+                row.SoTietCTDT || 0,
+                row.HeSoT7CN || 1,
+                row.SoSV || 0,
+                row.HeSoLopDong || 1,
+                row.QuyChuan || 0,
+                ki_hoc,
+                nam_hoc,
+                row.MaHocPhan || '',
+                giangVien,
+                row.GiaoVienGiangDay || giangVien,
+                row.MoiGiang || 0,
+                row.he_dao_tao || null,
+                row.TenLop || row.LopHocPhan || '',
+                0,
+                0,
+                0,
+                row.NgayBatDau || null,
+                row.NgayKetThuc || null,
+                row.Khoa || null,
+                dot,
+                row.GhiChu || null,
+                row.HoanThanh || 0
+            ];
+        };
 
         if (major === 'ALL') {
             const [MaPhongBanList] = await connection.query(`SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`);
@@ -338,25 +458,13 @@ const confirmToMain = async (req, res) => {
 
             draftData.forEach(row => {
                 if (validSet.has(row.Khoa)) {
-                    insertValues.push([row.tt, row.Khoa, dot, ki_hoc, nam_hoc, row.SoTietCTDT,
-                    row.LL, row.SoSV, row.HeSoLopDong, row.HeSoT7CN, row.MaBoMon,
-                    row.GiangVien, row.GiaoVienGiangDay || row.GiangVien || null,
-                    row.SoTinChi, row.LopHocPhan, row.MaHocPhan,
-                    row.NgayBatDau || null, row.NgayKetThuc || null, row.QuyChuan,
-                    row.he_dao_tao || null, 1]);
+                    insertValues.push(mapOfficialRow(row));
                 } else {
                     maPhongBanFalse.push(row.ID);
                 }
             });
         } else {
-            insertValues = draftData.map(row => [
-                row.tt, row.Khoa, dot, ki_hoc, nam_hoc, row.SoTietCTDT,
-                row.LL, row.SoSV, row.HeSoLopDong, row.HeSoT7CN, row.MaBoMon,
-                row.GiangVien, row.GiaoVienGiangDay || row.GiangVien || null,
-                row.SoTinChi, row.LopHocPhan, row.MaHocPhan,
-                row.NgayBatDau || null, row.NgayKetThuc || null, row.QuyChuan,
-                row.he_dao_tao || null, 1
-            ]);
+            insertValues = draftData.map(mapOfficialRow);
         }
 
         if (insertValues.length === 0) {
@@ -364,13 +472,14 @@ const confirmToMain = async (req, res) => {
         }
 
         // 3. INSERT vào bảng chính thức
-        await connection.query(
-            `INSERT INTO lopngoaiquychuan 
-             (tt, Khoa, Dot, KiHoc, NamHoc, SoTietCTDT, LL, SoSV, HeSoLopDong, HeSoT7CN,
-              MaBoMon, GiangVien, GiaoVienGiangDay, SoTinChi, LopHocPhan, MaHocPhan,
-              NgayBatDau, NgayKetThuc, QuyChuan, he_dao_tao, DaLuu) VALUES ?`,
-            [insertValues]
-        );
+                await connection.query(
+                        `INSERT INTO ${LNQC_TABLE} 
+                         (tt, so_tin_chi, lop_hoc_phan, ma_bo_mon, id_user, ll, so_tiet_ctdt, he_so_t7cn,
+                            so_sv, he_so_lop_dong, quy_chuan, hoc_ky, nam_hoc, ma_hoc_phan, giang_vien,
+                            giao_vien_giang_day, moi_giang, he_dao_tao, ten_lop, khoa_duyet, dao_tao_duyet,
+                            tai_chinh_duyet, ngay_bat_dau, ngay_ket_thuc, khoa, dot, ghi_chu, hoan_thanh) VALUES ?`,
+                        [insertValues]
+                );
 
         // 4. Đánh dấu da_luu = 1 bên nháp
         let updateQuery = `UPDATE course_schedule_details SET da_luu = 1 
@@ -420,22 +529,17 @@ const getChinhThuc = async (req, res) => {
         connection = await createPoolConnection();
 
         let query = `
-            SELECT 
-                ID, tt, NamHoc, KiHoc, Dot, LopHocPhan, MaHocPhan, MaBoMon, SoTinChi,
-                TenLop, LL, SoSV, SoTietCTDT, HeSoT7CN, HeSoLopDong, QuyChuan,
-                GiangVien, GiaoVienGiangDay, MoiGiang, Khoa, he_dao_tao, GhiChu,
-                NgayBatDau, NgayKetThuc, DaLuu, HoanThanh,
-                KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet
-            FROM lopngoaiquychuan 
-            WHERE NamHoc = ?
+            SELECT ${buildLnqcSelect()}
+            FROM ${LNQC_TABLE} 
+            WHERE nam_hoc = ?
         `;
         const params = [NamHoc];
 
         if (Khoa && Khoa !== 'ALL') {
-            query += ` AND Khoa = ?`;
+            query += ` AND khoa = ?`;
             params.push(Khoa);
         }
-        query += ` ORDER BY GiangVien, LopHocPhan`;
+        query += ` ORDER BY giang_vien, lop_hoc_phan`;
 
         const [results] = await connection.execute(query, params);
         console.log(`[LopNgoaiQC] Found ${results.length} rows (chính thức)`);
@@ -459,14 +563,14 @@ const approve = async (req, res) => {
     const userId = req.session?.userId || 1;
     const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN';
 
-    const columnMap = { 'khoa': 'KhoaDuyet', 'daotao': 'DaoTaoDuyet' };
+    const columnMap = { 'khoa': 'khoa_duyet', 'daotao': 'dao_tao_duyet' };
     const column = columnMap[type];
     if (!column) return res.status(400).json({ success: false, message: "Loại duyệt không hợp lệ" });
 
     let connection;
     try {
         connection = await createPoolConnection();
-        const [result] = await connection.execute(`UPDATE lopngoaiquychuan SET ${column} = 1 WHERE ID = ?`, [ID]);
+        const [result] = await connection.execute(`UPDATE ${LNQC_TABLE} SET ${column} = 1 WHERE id = ?`, [ID]);
         if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Không tìm thấy" });
 
         try { await LogService.logChange(userId, userName, 'Duyệt lớp ngoài QC', `Duyệt ${type} ID: ${ID}`); } catch (e) { }
@@ -485,14 +589,14 @@ const unapprove = async (req, res) => {
     const userId = req.session?.userId || 1;
     const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN';
 
-    const columnMap = { 'khoa': 'KhoaDuyet', 'daotao': 'DaoTaoDuyet' };
+    const columnMap = { 'khoa': 'khoa_duyet', 'daotao': 'dao_tao_duyet' };
     const column = columnMap[type];
     if (!column) return res.status(400).json({ success: false, message: "Loại duyệt không hợp lệ" });
 
     let connection;
     try {
         connection = await createPoolConnection();
-        const [result] = await connection.execute(`UPDATE lopngoaiquychuan SET ${column} = 0 WHERE ID = ?`, [ID]);
+        const [result] = await connection.execute(`UPDATE ${LNQC_TABLE} SET ${column} = 0 WHERE id = ?`, [ID]);
         if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Không tìm thấy" });
 
         try { await LogService.logChange(userId, userName, 'Bỏ duyệt lớp ngoài QC', `Bỏ ${type} ID: ${ID}`); } catch (e) { }
@@ -522,19 +626,20 @@ const batchApprove = async (req, res) => {
         // Start transaction
         await connection.beginTransaction();
 
-        // Group IDs by their set of status: "KhoaDuyet_DaoTaoDuyet" -> [IDs]
+        // Group IDs by their set of status: "khoa_duyet_dao_tao_duyet" -> [IDs]
         const updateGroups = {};
 
         records.forEach(record => {
-            if (!record.ID) return;
-            const khoa = record.KhoaDuyet || 0;
-            const daoTao = record.DaoTaoDuyet || 0;
+            const recordId = record.ID || record.id;
+            if (!recordId) return;
+            const khoa = toInt(pick(record, 'khoa_duyet', 'KhoaDuyet', 'khoaduyet'), 0);
+            const daoTao = toInt(pick(record, 'dao_tao_duyet', 'DaoTaoDuyet', 'daotaoduyet'), 0);
 
             const key = `${khoa}_${daoTao}`;
             if (!updateGroups[key]) {
                 updateGroups[key] = [];
             }
-            updateGroups[key].push(record.ID);
+            updateGroups[key].push(recordId);
         });
 
         // Execute bulk update for each group
@@ -542,7 +647,7 @@ const batchApprove = async (req, res) => {
             const [khoa, daoTao] = key.split('_').map(Number);
 
             const [result] = await connection.query(
-                `UPDATE lopngoaiquychuan SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE ID IN (?)`,
+                `UPDATE ${LNQC_TABLE} SET khoa_duyet = ?, dao_tao_duyet = ? WHERE id IN (?)`,
                 [khoa, daoTao, ids]
             );
 
@@ -584,20 +689,42 @@ const editChinhThuc = async (req, res) => {
 
         const data = req.body;
         const query = `
-            UPDATE lopngoaiquychuan SET
-                NamHoc = ?, KiHoc = ?, LopHocPhan = ?, MaHocPhan = ?, SoTinChi = ?,
-                TenLop = ?, LL = ?, SoSV = ?, SoTietCTDT = ?, HeSoT7CN = ?,
-                HeSoLopDong = ?, QuyChuan = ?, GiangVien = ?, Khoa = ?,
-                he_dao_tao = ?, GhiChu = ?
-            WHERE ID = ?
+            UPDATE ${LNQC_TABLE} SET
+                nam_hoc = ?, hoc_ky = ?, lop_hoc_phan = ?, ma_hoc_phan = ?, so_tin_chi = ?,
+                ten_lop = ?, ll = ?, so_sv = ?, so_tiet_ctdt = ?, he_so_t7cn = ?,
+                he_so_lop_dong = ?, quy_chuan = ?, giang_vien = ?, khoa = ?,
+                he_dao_tao = ?, ghi_chu = ?, ngay_bat_dau = ?, ngay_ket_thuc = ?,
+                tt = ?, ma_bo_mon = ?, giao_vien_giang_day = ?, moi_giang = ?,
+                dot = ?, hoan_thanh = ?
+            WHERE id = ?
         `;
 
         const [result] = await connection.execute(query, [
-            data.NamHoc, data.KiHoc || 1, data.LopHocPhan || '', data.MaHocPhan || '',
-            data.SoTinChi || 0, data.TenLop || '', data.LL || 0, data.SoSV || 0,
-            data.SoTietCTDT || 0, data.HeSoT7CN || 1, data.HeSoLopDong || 1,
-            data.QuyChuan || 0, data.GiangVien || '', data.Khoa || '',
-            data.he_dao_tao || '', data.GhiChu || '', ID
+            pick(data, 'nam_hoc', 'NamHoc') || '',
+            toInt(pick(data, 'hoc_ky', 'KiHoc', 'ki'), 1),
+            pick(data, 'lop_hoc_phan', 'LopHocPhan') || '',
+            pick(data, 'ma_hoc_phan', 'MaHocPhan') || '',
+            toInt(pick(data, 'so_tin_chi', 'SoTinChi'), 0),
+            pick(data, 'ten_lop', 'TenLop') || '',
+            toDecimal(pick(data, 'll', 'LL'), 0),
+            toInt(pick(data, 'so_sv', 'SoSV'), 0),
+            toDecimal(pick(data, 'so_tiet_ctdt', 'SoTietCTDT'), 0),
+            toDecimal(pick(data, 'he_so_t7cn', 'HeSoT7CN'), 1),
+            toDecimal(pick(data, 'he_so_lop_dong', 'HeSoLopDong'), 1),
+            toDecimal(pick(data, 'quy_chuan', 'QuyChuan'), 0),
+            pick(data, 'giang_vien', 'GiangVien') || '',
+            pick(data, 'khoa', 'Khoa') || '',
+            pick(data, 'he_dao_tao', 'HeDaoTao') || '',
+            pick(data, 'ghi_chu', 'GhiChu') || '',
+            pick(data, 'ngay_bat_dau', 'NgayBatDau') || null,
+            pick(data, 'ngay_ket_thuc', 'NgayKetThuc') || null,
+            toInt(pick(data, 'tt', 'TT'), 0),
+            pick(data, 'ma_bo_mon', 'MaBoMon') || '',
+            pick(data, 'giao_vien_giang_day', 'GiaoVienGiangDay') || pick(data, 'giang_vien', 'GiangVien') || '',
+            toInt(pick(data, 'moi_giang', 'MoiGiang'), 0),
+            toInt(pick(data, 'dot', 'Dot'), 1),
+            toInt(pick(data, 'hoan_thanh', 'HoanThanh'), 0),
+            ID
         ]);
 
         if (result.affectedRows === 0) {
@@ -632,7 +759,7 @@ const deleteChinhThuc = async (req, res) => {
         connection = await createPoolConnection();
 
         const [result] = await connection.execute(
-            `DELETE FROM lopngoaiquychuan WHERE ID = ?`, [ID]
+            `DELETE FROM ${LNQC_TABLE} WHERE id = ?`, [ID]
         );
 
         if (result.affectedRows === 0) {

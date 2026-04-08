@@ -109,25 +109,25 @@ async function getExportData(NamHoc, Khoa, GiangVien, connection) {
 
     // Query lớp ngoài quy chuẩn
     let lopNgoaiQCQuery = `
-        SELECT GiangVien, SUM(QuyChuan) as soTietNgoaiQC
-        FROM lopngoaiquychuan WHERE NamHoc = ?
+        SELECT giang_vien AS GiangVien, SUM(quy_chuan) as soTietNgoaiQC
+        FROM vg_lop_ngoai_quy_chuan WHERE nam_hoc = ?
     `;
     const lopNgoaiQCParams = [NamHoc];
     if (!isAllKhoa) {
-        lopNgoaiQCQuery += ` AND Khoa = ?`;
+        lopNgoaiQCQuery += ` AND khoa = ?`;
         lopNgoaiQCParams.push(Khoa);
     }
     if (GiangVien) {
-        lopNgoaiQCQuery += ` AND GiangVien = ?`;
+        lopNgoaiQCQuery += ` AND giang_vien = ?`;
         lopNgoaiQCParams.push(GiangVien);
     }
-    lopNgoaiQCQuery += ` GROUP BY GiangVien`;
+    lopNgoaiQCQuery += ` GROUP BY giang_vien`;
     const [lopNgoaiQC] = await connection.execute(lopNgoaiQCQuery, lopNgoaiQCParams);
 
     // Query KTHP
     let kthpQuery = `
-        SELECT giangvien as GiangVien, SUM(sotietqc) as soTietKTHP
-        FROM ketthuchocphan WHERE namhoc = ? AND khoaduyet = 1
+        SELECT giang_vien AS GiangVien, SUM(quy_chuan) as soTietKTHP
+        FROM vg_coi_cham_ra_de WHERE nam_hoc = ? AND khoa_duyet = 1
     `;
     const kthpParams = [NamHoc];
     if (!isAllKhoa) {
@@ -135,10 +135,10 @@ async function getExportData(NamHoc, Khoa, GiangVien, connection) {
         kthpParams.push(Khoa);
     }
     if (GiangVien) {
-        kthpQuery += ` AND giangvien = ?`;
+        kthpQuery += ` AND giang_vien = ?`;
         kthpParams.push(GiangVien);
     }
-    kthpQuery += ` GROUP BY giangvien`;
+    kthpQuery += ` GROUP BY giang_vien`;
     const [kthp] = await connection.execute(kthpQuery, kthpParams);
 
     // Query đồ án
@@ -204,31 +204,31 @@ async function getExportData(NamHoc, Khoa, GiangVien, connection) {
     const [giangDayDetail] = await connection.execute(giangDayDetailQuery, giangDayDetailParams);
 
     // 3. Lấy chi tiết lớp ngoài quy chuẩn
-    let lopNgoaiQCDetailQuery = `SELECT * FROM lopngoaiquychuan WHERE NamHoc = ?`;
+    let lopNgoaiQCDetailQuery = `SELECT id AS ID, id_user, tt, giang_vien AS GiangVien, hoc_ky AS HocKy, hoc_ky, nam_hoc AS NamHoc, nam_hoc, lop_hoc_phan AS TenHP, lop_hoc_phan AS LopHocPhan, ma_hoc_phan AS MaHP, ma_hoc_phan, so_tin_chi AS SoTC, so_tin_chi, ten_lop AS Lop, ten_lop, so_sv AS SiSo, he_so_lop_dong AS HeSoLopDong, he_so_lop_dong, ll AS SoTiet, ll, quy_chuan AS QuyChuan, quy_chuan, ghi_chu AS GhiChu, ghi_chu, ma_bo_mon AS MaBoMon, ma_bo_mon, so_tiet_ctdt AS SoTietCTDT, so_tiet_ctdt, he_so_t7cn AS HeSoT7CN, he_so_t7cn, giao_vien_giang_day AS GiaoVienGiangDay, giao_vien_giang_day, moi_giang AS MoiGiang, moi_giang, he_dao_tao, khoa_duyet AS KhoaDuyet, dao_tao_duyet AS DaoTaoDuyet, tai_chinh_duyet AS TaiChinhDuyet, ngay_bat_dau AS NgayBatDau, ngay_ket_thuc AS NgayKetThuc, khoa AS Khoa, dot AS Dot, hoan_thanh AS HoanThanh, 0 AS DaLuu FROM vg_lop_ngoai_quy_chuan WHERE nam_hoc = ?`;
     const lopNgoaiQCDetailParams = [NamHoc];
     if (!isAllKhoa) {
-        lopNgoaiQCDetailQuery += ` AND Khoa = ?`;
+        lopNgoaiQCDetailQuery += ` AND khoa = ?`;
         lopNgoaiQCDetailParams.push(Khoa);
     }
     if (GiangVien) {
-        lopNgoaiQCDetailQuery += ` AND GiangVien = ?`;
+        lopNgoaiQCDetailQuery += ` AND giang_vien = ?`;
         lopNgoaiQCDetailParams.push(GiangVien);
     }
-    lopNgoaiQCDetailQuery += ` ORDER BY GiangVien, HocKy, TenHocPhan`;
+    lopNgoaiQCDetailQuery += ` ORDER BY giang_vien, hoc_ky, lop_hoc_phan`;
     const [lopNgoaiQCDetail] = await connection.execute(lopNgoaiQCDetailQuery, lopNgoaiQCDetailParams);
 
     // 4. Lấy chi tiết KTHP
-    let kthpDetailQuery = `SELECT * FROM ketthuchocphan WHERE namhoc = ? AND khoaduyet = 1`;
+    let kthpDetailQuery = `SELECT id, id_user, giang_vien AS GiangVien, giang_vien, khoa, hoc_ky AS HocKy, hoc_ky, nam_hoc AS NamHoc, nam_hoc, ten_hoc_phan AS TenHP, ten_hoc_phan AS TenHocPhan, ten_hoc_phan, '' AS MaHP, lop_hoc_phan AS Lop, lop_hoc_phan AS LopHocPhan, lop_hoc_phan, doi_tuong AS DoiTuong, doi_tuong, bai_cham_1 AS BaiCham1, bai_cham_1, bai_cham_2 AS BaiCham2, bai_cham_2, tong_so AS SiSo, tong_so AS TongSo, tong_so, hinh_thuc AS LoaiKTHP, hinh_thuc, quy_chuan AS SoTiet, quy_chuan AS SoTietQC, quy_chuan, ghi_chu AS GhiChu, ghi_chu, khoa AS MaKhoa, khoa_duyet AS KhoaDuyet, khoa_duyet, khao_thi_duyet AS KhaoThiDuyet, khao_thi_duyet FROM vg_coi_cham_ra_de WHERE nam_hoc = ? AND khoa_duyet = 1`;
     const kthpDetailParams = [NamHoc];
     if (!isAllKhoa) {
         kthpDetailQuery += ` AND khoa = ?`;
         kthpDetailParams.push(Khoa);
     }
     if (GiangVien) {
-        kthpDetailQuery += ` AND giangvien = ?`;
+        kthpDetailQuery += ` AND giang_vien = ?`;
         kthpDetailParams.push(GiangVien);
     }
-    kthpDetailQuery += ` ORDER BY giangvien, ki, hinhthuc`;
+    kthpDetailQuery += ` ORDER BY giang_vien, hoc_ky, hinh_thuc`;
     const [kthpDetail] = await connection.execute(kthpDetailQuery, kthpDetailParams);
 
     // 5. Lấy chi tiết đồ án

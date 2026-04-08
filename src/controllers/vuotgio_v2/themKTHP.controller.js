@@ -1,15 +1,87 @@
 /**
  * VUOT GIO V2 - Thêm Kết Thúc Học Phần Controller
- * CRUD cho bảng ketthuchocphan
- * Date: 2026-01-29
+ * CRUD cho bảng vg_coi_cham_ra_de
+ * Date: 2026-04-08
  * 
- * Cấu trúc bảng ketthuchocphan:
- * id, giangvien, khoa, ki, namhoc, hinhthuc, tenhocphan, lophocphan, 
- * doituong, baicham1, baicham2, tongso, sotietqc, ghichu, khoaduyet, khaothiduyet, daluu
+ * Cấu trúc bảng mới:
+ * id, id_user, giang_vien, khoa, hoc_ky, nam_hoc, hinh_thuc, ten_hoc_phan,
+ * lop_hoc_phan, doi_tuong, bai_cham_1, bai_cham_2, tong_so, quy_chuan,
+ * ghi_chu, khoa_duyet, khao_thi_duyet
  */
 
 const createPoolConnection = require("../../config/databasePool");
 const LogService = require("../../services/logService");
+
+const COI_CHAM_RA_DE_TABLE = "vg_coi_cham_ra_de";
+
+const buildKthpSelect = () => `
+    id,
+    id_user,
+    giang_vien AS giangvien,
+    giang_vien,
+    khoa,
+    hoc_ky AS ki,
+    hoc_ky,
+    nam_hoc AS namhoc,
+    nam_hoc,
+    hinh_thuc AS hinhthuc,
+    hinh_thuc,
+    ten_hoc_phan AS tenhocphan,
+    ten_hoc_phan,
+    lop_hoc_phan AS lophocphan,
+    lop_hoc_phan,
+    doi_tuong AS doituong,
+    doi_tuong,
+    bai_cham_1 AS baicham1,
+    bai_cham_1,
+    bai_cham_2 AS baicham2,
+    bai_cham_2,
+    tong_so AS tongso,
+    tong_so,
+    quy_chuan AS sotietqc,
+    quy_chuan,
+    ghi_chu AS ghichu,
+    ghi_chu,
+    khoa_duyet AS khoaduyet,
+    khoa_duyet,
+    khao_thi_duyet AS khaothiduyet,
+    khao_thi_duyet
+`;
+
+const toInt = (value, fallback = 0) => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const toDecimal = (value, fallback = 0) => {
+    const parsed = Number.parseFloat(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const pick = (source, ...keys) => {
+    for (const key of keys) {
+        if (source[key] !== undefined && source[key] !== null && source[key] !== "") {
+            return source[key];
+        }
+    }
+    return undefined;
+};
+
+const normalizeKthpPayload = (body) => ({
+    giang_vien: pick(body, "giang_vien", "giangvien") || "",
+    khoa: pick(body, "khoa", "Khoa") || "",
+    hoc_ky: toInt(pick(body, "hoc_ky", "ki", "HocKy"), 1),
+    nam_hoc: pick(body, "nam_hoc", "namhoc", "NamHoc") || "",
+    hinh_thuc: pick(body, "hinh_thuc", "hinhthuc", "HinhThuc") || "",
+    ten_hoc_phan: pick(body, "ten_hoc_phan", "tenhocphan", "TenHocPhan") || "",
+    lop_hoc_phan: pick(body, "lop_hoc_phan", "lophocphan", "LopHocPhan") || "",
+    doi_tuong: pick(body, "doi_tuong", "doituong", "DoiTuong") || "",
+    bai_cham_1: toInt(pick(body, "bai_cham_1", "baicham1", "BaiCham1"), 0),
+    bai_cham_2: toInt(pick(body, "bai_cham_2", "baicham2", "BaiCham2"), 0),
+    tong_so: toInt(pick(body, "tong_so", "tongso", "TongSo"), 0),
+    quy_chuan: toDecimal(pick(body, "quy_chuan", "sotietqc", "SoTietQC"), 0),
+    ghi_chu: pick(body, "ghi_chu", "ghichu", "GhiChu") || ""
+});
 
 // =====================================================
 // CRUD OPERATIONS
@@ -26,24 +98,10 @@ const save = async (req, res) => {
     try {
         connection = await createPoolConnection();
         
-        const {
-            giangvien,
-            khoa,
-            ki,
-            namhoc,
-            hinhthuc,      // Ra đề / Coi thi / Chấm thi
-            tenhocphan,
-            lophocphan,
-            doituong,
-            baicham1,
-            baicham2,
-            tongso,
-            sotietqc,
-            ghichu
-        } = req.body;
+        const data = normalizeKthpPayload(req.body);
 
         // Validate required fields
-        if (!namhoc || !tenhocphan || !giangvien || !khoa || !hinhthuc) {
+        if (!data.nam_hoc || !data.ten_hoc_phan || !data.giang_vien || !data.khoa || !data.hinh_thuc) {
             return res.status(400).json({
                 success: false,
                 message: "Thiếu thông tin bắt buộc: Năm học, Tên HP, Giảng viên, Khoa, Hình thức"
@@ -51,25 +109,26 @@ const save = async (req, res) => {
         }
 
         const query = `
-            INSERT INTO ketthuchocphan 
-            (giangvien, khoa, ki, namhoc, hinhthuc, tenhocphan, lophocphan, doituong, baicham1, baicham2, tongso, sotietqc, ghichu, khoaduyet, khaothiduyet, daluu)
+            INSERT INTO ${COI_CHAM_RA_DE_TABLE} 
+            (id_user, giang_vien, khoa, hoc_ky, nam_hoc, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, bai_cham_1, bai_cham_2, tong_so, quy_chuan, ghi_chu, khoa_duyet, khao_thi_duyet)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
         `;
 
         const [result] = await connection.execute(query, [
-            giangvien,
-            khoa,
-            ki || 1,
-            namhoc,
-            hinhthuc,
-            tenhocphan,
-            lophocphan || '',
-            doituong || '',
-            baicham1 || 0,
-            baicham2 || 0,
-            tongso || 0,
-            sotietqc || 0,
-            ghichu || ''
+            userId,
+            data.giang_vien,
+            data.khoa,
+            data.hoc_ky,
+            data.nam_hoc,
+            data.hinh_thuc,
+            data.ten_hoc_phan,
+            data.lop_hoc_phan,
+            data.doi_tuong,
+            data.bai_cham_1,
+            data.bai_cham_2,
+            data.tong_so,
+            data.quy_chuan,
+            data.ghi_chu
         ]);
 
         // Ghi log
@@ -78,7 +137,7 @@ const save = async (req, res) => {
                 userId,
                 userName,
                 'Thêm KTHP',
-                `Thêm KTHP "${hinhthuc}" - HP: "${tenhocphan}" cho GV: "${giangvien}"`
+                `Thêm KTHP "${data.hinh_thuc}" - HP: "${data.ten_hoc_phan}" cho GV: "${data.giang_vien}"`
             );
         } catch (logError) {
             console.error("Lỗi khi ghi log:", logError);
@@ -113,12 +172,9 @@ const getTable = async (req, res) => {
         connection = await createPoolConnection();
         
         let query = `
-            SELECT 
-                id, giangvien, khoa, ki, namhoc, hinhthuc, tenhocphan, 
-                lophocphan, doituong, baicham1, baicham2, tongso, sotietqc, 
-                ghichu, khoaduyet, khaothiduyet, daluu
-            FROM ketthuchocphan 
-            WHERE namhoc = ?
+            SELECT ${buildKthpSelect()}
+            FROM ${COI_CHAM_RA_DE_TABLE}
+            WHERE nam_hoc = ?
         `;
         const params = [NamHoc];
 
@@ -127,7 +183,7 @@ const getTable = async (req, res) => {
             params.push(Khoa);
         }
 
-        query += ` ORDER BY giangvien, tenhocphan, hinhthuc`;
+        query += ` ORDER BY giang_vien, ten_hoc_phan, hinh_thuc`;
 
         const [results] = await connection.execute(query, params);
         console.log(`[VuotGio V2] Found ${results.length} KTHP records`);
@@ -158,54 +214,40 @@ const edit = async (req, res) => {
     try {
         connection = await createPoolConnection();
 
-        const {
-            giangvien,
-            khoa,
-            ki,
-            namhoc,
-            hinhthuc,
-            tenhocphan,
-            lophocphan,
-            doituong,
-            baicham1,
-            baicham2,
-            tongso,
-            sotietqc,
-            ghichu
-        } = req.body;
+        const data = normalizeKthpPayload(req.body);
 
         const query = `
-            UPDATE ketthuchocphan SET
-                giangvien = ?,
+            UPDATE ${COI_CHAM_RA_DE_TABLE} SET
+                giang_vien = ?,
                 khoa = ?,
-                ki = ?,
-                namhoc = ?,
-                hinhthuc = ?,
-                tenhocphan = ?,
-                lophocphan = ?,
-                doituong = ?,
-                baicham1 = ?,
-                baicham2 = ?,
-                tongso = ?,
-                sotietqc = ?,
-                ghichu = ?
+                hoc_ky = ?,
+                nam_hoc = ?,
+                hinh_thuc = ?,
+                ten_hoc_phan = ?,
+                lop_hoc_phan = ?,
+                doi_tuong = ?,
+                bai_cham_1 = ?,
+                bai_cham_2 = ?,
+                tong_so = ?,
+                quy_chuan = ?,
+                ghi_chu = ?
             WHERE id = ?
         `;
 
         const [result] = await connection.execute(query, [
-            giangvien,
-            khoa,
-            ki || 1,
-            namhoc,
-            hinhthuc,
-            tenhocphan,
-            lophocphan || '',
-            doituong || '',
-            baicham1 || 0,
-            baicham2 || 0,
-            tongso || 0,
-            sotietqc || 0,
-            ghichu || '',
+            data.giang_vien,
+            data.khoa,
+            data.hoc_ky,
+            data.nam_hoc,
+            data.hinh_thuc,
+            data.ten_hoc_phan,
+            data.lop_hoc_phan,
+            data.doi_tuong,
+            data.bai_cham_1,
+            data.bai_cham_2,
+            data.tong_so,
+            data.quy_chuan,
+            data.ghi_chu,
             ID
         ]);
 
@@ -222,7 +264,7 @@ const edit = async (req, res) => {
                 userId,
                 userName,
                 'Sửa KTHP',
-                `Sửa KTHP ID: ${ID} - Hình thức: "${hinhthuc}"`
+                `Sửa KTHP ID: ${ID} - Hình thức: "${data.hinh_thuc}"`
             );
         } catch (logError) {
             console.error("Lỗi khi ghi log:", logError);
@@ -262,12 +304,12 @@ const deleteRecord = async (req, res) => {
 
         // Lấy thông tin trước khi xóa để ghi log
         const [existing] = await connection.execute(
-            `SELECT hinhthuc, tenhocphan, giangvien FROM ketthuchocphan WHERE id = ?`,
+            `SELECT hinh_thuc, ten_hoc_phan, giang_vien FROM ${COI_CHAM_RA_DE_TABLE} WHERE id = ?`,
             [ID]
         );
 
         const [result] = await connection.execute(
-            `DELETE FROM ketthuchocphan WHERE id = ?`,
+            `DELETE FROM ${COI_CHAM_RA_DE_TABLE} WHERE id = ?`,
             [ID]
         );
 
@@ -285,7 +327,7 @@ const deleteRecord = async (req, res) => {
                 userId,
                 userName,
                 'Xóa KTHP',
-                `Xóa KTHP: "${info.hinhthuc}" - HP: "${info.tenhocphan}" - GV: "${info.giangvien}"`
+                `Xóa KTHP: "${info.hinh_thuc}" - HP: "${info.ten_hoc_phan}" - GV: "${info.giang_vien}"`
             );
         } catch (logError) {
             console.error("Lỗi khi ghi log:", logError);

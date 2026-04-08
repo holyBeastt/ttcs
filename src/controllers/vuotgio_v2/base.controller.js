@@ -17,6 +17,10 @@ const getThemLopNgoaiQC = (req, res) => {
     res.render("vuotgio_v2/vuotgio.themLopNgoaiQC.ejs");
 };
 
+const getCoiChamRaDeThi = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.file.coiChamRaDe.ejs");
+};
+
 /**
  * Render trang Danh Sách Lớp Ngoài Quy Chuẩn
  */
@@ -187,6 +191,7 @@ module.exports = {
     getTongHopKhoa,
     getXuatFile,
     getHuongDanDATN,
+    getCoiChamRaDeThi,
 
     // API chung
     getTeachers,

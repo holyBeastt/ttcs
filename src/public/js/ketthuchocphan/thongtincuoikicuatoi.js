@@ -2,6 +2,7 @@
 const currentNoteButton = null
 let currentRow = null
 let tableRowData = []
+const BASE_URL = "/v2/vuotgio"
 
 // Initialize page
 document.addEventListener("DOMContentLoaded", () => {
@@ -153,7 +154,7 @@ async function loadExamData() {
 
   try {
     showLoading(true)
-    const response = await fetch(`/vuotGioDanhSachCuoiKi/getDataCuoiKi/${TenNhanVien}/${Ki}/${Nam}`, {
+    const response = await fetch(`${BASE_URL}/vuotGioDanhSachCuoiKi/getDataCuoiKi/${TenNhanVien}/${Ki}/${Nam}`, {
       method: "GET",
     })
 
@@ -452,7 +453,7 @@ document.getElementById('addEntryForm').addEventListener('submit', async functio
   }
 
   try {
-    const response = await fetch('/vuotGioCuoiKi/addmydata', {
+    const response = await fetch(`${BASE_URL}/vuotGioCuoiKi/addmydata`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(entry)
@@ -617,7 +618,7 @@ async function saveDataToServer() {
 
     console.log('Data to be sent:', dataTam);
 
-    const response = await fetch('/vuotGioCuoiKi/update', {
+    const response = await fetch(`${BASE_URL}/vuotGioCuoiKi/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -675,7 +676,7 @@ function extractEditedData(containerId, columnList, examType) {
 // Delete row
 function deleteRow(rowId) {
   try {
-    fetch('/vuotGioCuoiKi/delete', {
+    fetch(`${BASE_URL}/vuotGioCuoiKi/delete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: rowId })
