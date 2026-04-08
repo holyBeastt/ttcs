@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Coi chấm ra đề thi - Vượt Giờ V2</title>
+    <title>Danh Sách Lớp Ngoài Quy Chuẩn - Vượt Giờ V2</title>
 
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
@@ -66,30 +66,67 @@
             font-size: 0.85rem;
         }
 
+        .total-label {
+            margin-left: auto;
+            margin-right: 0;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 8px;
+            width: fit-content;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin-top: 15px;
+        }
+
+        .total-label label {
+            font-weight: bold;
+            color: #000;
+            margin-right: 8px;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #007BFF;
+            color: #fff;
+        }
+
+        .total-label span {
+            font-weight: bold;
+            color: #fff;
+        }
+
         .fixed-section {
             height: 500px;
             overflow-y: auto;
+        }
+
+        select.hdt-select {
+            background-color: #fff !important;
+            color: #333 !important;
+            border: 1px solid #ccc !important;
+            border-radius: 3px !important;
+            padding: 2px 4px !important;
+            font-size: 0.78rem !important;
+            box-shadow: none !important;
+            text-align: left !important;
+            width: 100%;
         }
     </style>
 </head>
 
 <body>
-    <%- include('header') %>
+    <%- include('../header') %>
 
         <div class="vuotgio-v2-container">
-            <!-- Page Header -->
-            <!-- <div class="page-header">
-                <h2 class="page-title">Duyệt Thông Tin Coi, Chấm, Ra Đề Thi</h2>
-            </div> -->
-
             <!-- Grid Section -->
             <div class="grid-container">
                 <!-- Toolbar: Dropdowns + Buttons -->
                 <div class="grid-toolbar">
-                   <select class="selectop" id="namHocXem" style="width: 130px; margin: 0; box-shadow: none;">
+                    <select class="selectop" id="namHocFilter" style="width: 130px; margin: 0; box-shadow: none;">
                         <option value="">Chọn năm học</option>
                     </select>
-                    <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
+                    <select class="selectop" id="khoaFilter" style="width: 150px; margin: 0; box-shadow: none;">
                         <option value="ALL" selected>Tất cả khoa</option>
                     </select>
                     <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
@@ -118,10 +155,14 @@
                                 <th style="width: 180px;">Giảng viên</th>
                                 <th style="width: 70px;">Khoa</th>
                                 <th style="width: 50px;">Kì</th>
-                                <th style="width: 200px;">Tên học phần</th>
-                                <th style="width: 100px;">Lớp HP</th>
-                                <th style="width: 100px;">Loại KTHP</th>
-                                <th style="width: 80px;">Số tiết QC</th>
+                                <th style="width: 50px;">Đợt</th>
+                                <th style="width: 200px;">Lớp học phần</th>
+                                <th style="width: 80px;">Mã HP</th>
+                                <th style="width: 50px;">Số TC</th>
+                                <th style="width: 130px;">Hệ ĐT</th>
+                                <th style="width: 70px;">LL</th>
+                                <th style="width: 60px;">Số SV</th>
+                                <th style="width: 60px;">QC</th>
                                 <th style="width: 80px;" id="khoaColumn">
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="check me-1" type="checkbox" id="checkAllKhoa"
@@ -129,11 +170,11 @@
                                         <label class="form-check-label" for="checkAllKhoa">Khoa</label>
                                     </div>
                                 </th>
-                                <th style="width: 80px;" id="khaoThiColumn">
+                                <th style="width: 80px;" id="daoTaoColumn">
                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                        <input class="check me-1" type="checkbox" id="checkAllKhaoThi"
-                                            onclick="checkAll('khaoThi')" />
-                                        <label class="form-check-label text-nowrap" for="checkAllKhaoThi">K.Thí</label>
+                                        <input class="check me-1" type="checkbox" id="checkAllDaoTao"
+                                            onclick="checkAll('daoTao')" />
+                                        <label class="form-check-label text-nowrap" for="checkAllDaoTao">ĐT</label>
                                     </div>
                                 </th>
                                 <th style="width: 100px;">Thao tác</th>
@@ -144,78 +185,123 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Total Labels -->
+                <div class="total-label">
+                    <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label>
+                    <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
+                </div>
             </div>
         </div>
 
         <!-- Edit Modal -->
         <div class="modal fade" id="editModal" tabindex="-1">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Sửa Kết Thúc Học Phần</h5>
+                        <h5 class="modal-title">Sửa Lớp Ngoài Quy Chuẩn</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <form id="editForm">
                             <input type="hidden" id="editID" />
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Năm học</label>
                                     <select id="editNamHoc" class="form-select"></select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Học kỳ</label>
                                     <select id="editHocKy" class="form-select">
                                         <option value="1">Học kỳ 1</option>
                                         <option value="2">Học kỳ 2</option>
-                                        <option value="3">Học kỳ hè</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Khoa</label>
                                     <select id="editKhoa" class="form-select"></select>
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Đợt</label>
+                                    <input type="number" id="editDot" class="form-control" min="1" />
+                                </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Tên học phần</label>
+                                <div class="col-md-5">
+                                    <label class="form-label">Lớp học phần</label>
                                     <input type="text" id="editTenHP" class="form-control" />
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Mã HP</label>
                                     <input type="text" id="editMaHP" class="form-control" />
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
+                                    <label class="form-label">Mã BM</label>
+                                    <input type="text" id="editMaBoMon" class="form-control" />
+                                </div>
+                                <div class="col-md-2">
                                     <label class="form-label">Số TC</label>
                                     <input type="number" id="editSoTC" class="form-control" />
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Giảng viên</label>
                                     <input type="text" id="editGiangVien" class="form-control" />
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Lớp HP</label>
-                                    <input type="text" id="editLopHP" class="form-control" />
+                                <div class="col-md-3">
+                                    <label class="form-label">GV giảng dạy</label>
+                                    <input type="text" id="editGiaoVienGiangDay" class="form-control" />
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label">Tên lớp</label>
+                                    <input type="text" id="editLop" class="form-control" />
+                                </div>
+                                <div class="col-md-2">
                                     <label class="form-label">Sĩ số</label>
-                                    <input type="number" id="editSiSo" class="form-control" />
+                                    <input type="number" id="editSoSV" class="form-control" />
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">Mời giảng</label>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="editMoiGiang" />
+                                    </div>
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Loại KTHP</label>
-                                    <select id="editLoaiKTHP" class="form-select">
-                                        <option value="Ra đề">Ra đề</option>
-                                        <option value="Coi thi">Coi thi</option>
-                                        <option value="Chấm thi">Chấm thi</option>
-                                    </select>
+                                <div class="col-md-3">
+                                    <label class="form-label">Số tiết LL</label>
+                                    <input type="number" id="editSoTietLL" class="form-control" step="0.5" />
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Số tiết QC</label>
-                                    <input type="number" id="editSoTietQC" class="form-control" step="0.5" />
+                                <div class="col-md-3">
+                                    <label class="form-label">Số tiết CTĐT</label>
+                                    <input type="number" id="editSoTietCTDT" class="form-control" step="0.5" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">HS T7CN</label>
+                                    <input type="number" id="editHeSoT7CN" class="form-control" step="0.1" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">HS Lớp đông</label>
+                                    <input type="number" id="editHeSoLopDong" class="form-control" step="0.1" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-2">
+                                    <label class="form-label">Quy chuẩn</label>
+                                    <input type="number" id="editQuyChuan" class="form-control" step="0.5" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Hệ đào tạo</label>
+                                    <select id="editHeDaoTao" class="form-select"></select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Ngày bắt đầu</label>
+                                    <input type="date" id="editNgayBatDau" class="form-control" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Ngày kết thúc</label>
+                                    <input type="date" id="editNgayKetThuc" class="form-control" />
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Ghi chú</label>
@@ -237,7 +323,7 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
-        <script src="/js/vuotgio_v2/duyetKTHP/index.js"></script>
+        <script src="/js/vuotgio_v2/lopNgoaiQC/danhSachLopNgoaiQC.js"></script>
 </body>
 
 </html>

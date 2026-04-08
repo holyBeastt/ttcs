@@ -14,56 +14,56 @@ const createPoolConnection = require("../../config/databasePool");
  * Render trang Thêm Lớp Ngoài Quy Chuẩn
  */
 const getThemLopNgoaiQC = (req, res) => {
-    res.render("vuotgio.themLopNgoaiQC.ejs");
+    res.render("vuotgio_v2/vuotgio.themLopNgoaiQC.ejs");
 };
 
 /**
  * Render trang Danh Sách Lớp Ngoài Quy Chuẩn
  */
 const getDanhSachLopNgoaiQC = (req, res) => {
-    res.render("vuotgio.danhSachLopNgoaiQC.ejs");
+    res.render("vuotgio_v2/vuotgio.danhSachLopNgoaiQC.ejs");
 };
 
 /**
  * Render trang Thêm Kết Thúc Học Phần
  */
 const getThemKTHP = (req, res) => {
-    res.render("vuotgio.themKTHP.ejs");
+    res.render("vuotgio_v2/vuotgio.themKTHP.ejs");
 };
 
 /**
  * Render trang Duyệt Kết Thúc Học Phần
  */
 const getDuyetKTHP = (req, res) => {
-    res.render("vuotgio.duyetKTHP.ejs");
+    res.render("vuotgio_v2/vuotgio.duyetKTHP.ejs");
 };
 
 /**
  * Render trang Tổng Hợp Giảng Viên
  */
 const getTongHopGV = (req, res) => {
-    res.render("vuotgio.tongHopGV.ejs");
+    res.render("vuotgio_v2/vuotgio.tongHopGV.ejs");
 };
 
 /**
  * Render trang Tổng Hợp Khoa
  */
 const getTongHopKhoa = (req, res) => {
-    res.render("vuotgio.tongHopKhoa.ejs");
+    res.render("vuotgio_v2/vuotgio.tongHopKhoa.ejs");
 };
 
 /**
  * Render trang Xuất File
  */
 const getXuatFile = (req, res) => {
-    res.render("vuotgio.xuatFile.ejs");
+    res.render("vuotgio_v2/vuotgio.xuatFile.ejs");
 };
 
 /**
  * Render trang Hướng Dẫn Đồ Án Tốt Nghiệp
  */
 const getHuongDanDATN = (req, res) => {
-    res.render("vuotgio.huongDanDATN.ejs");
+    res.render("vuotgio_v2/vuotgio.huongDanDATN.ejs");
 };
 
 // =====================================================
