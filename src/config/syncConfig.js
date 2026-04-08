@@ -138,6 +138,15 @@ module.exports = {
         type: 'business',
         description: 'Phân công giảng dạy',
         uniqueKey: ['Dot', 'HocKy', 'NamHoc', 'TenHocPhan', 'Lop'],
+        exportQuery: `
+            SELECT g.*, 
+                   t.TenDangNhap as tendangnhap_sync, 
+                   gvm.CCCD as cccd_gvmoi_sync
+            FROM giangday g
+            LEFT JOIN nhanvien n ON g.id_User = n.id_User
+            LEFT JOIN taikhoannguoidung t ON n.id_User = t.id_User
+            LEFT JOIN gvmoi gvm ON g.id_Gvm = gvm.id_Gvm
+        `,
     },
 
     quychuan: {
@@ -195,7 +204,7 @@ module.exports = {
     hopdonggvmoi: {
         type: 'contract',
         description: 'Hợp đồng giảng viên mời',
-        uniqueKey: ['Dot', 'KiHoc', 'NamHoc', 'CCCD'],
+        uniqueKey: ['Dot', 'KiHoc', 'NamHoc', 'CCCD', 'he_dao_tao', 'NgayBatDau', 'NgayKetThuc'],
     },
 
     exportdoantotnghiep: {

@@ -334,6 +334,58 @@ exports.exportMultiple = async (req, res) => {
 // ============================================
 
 /**
+ * Helper to remap id_User and id_Gvm based on natural keys (_sync fields)
+ * Uses caching for performance (handles 10,000+ records efficiently)
+ */
+async function remapIds(connection, tableName, records) {
+    // Only remap for tables that might have these fields
+    const hasSyncFields = records.some(r => r.tendangnhap_sync || r.cccd_gvmoi_sync);
+    if (!hasSyncFields) return;
+
+    console.log(`[SYNC] Remapping IDs for ${tableName} (${records.length} records)...`);
+
+    // 1. Build Caches
+    const userMap = new Map(); // tendangnhap -> id_User
+    const gvmMap = new Map();  // CCCD -> id_Gvm
+
+    // Fetch all users
+    const [users] = await connection.query("SELECT id_User, TenDangNhap FROM taikhoannguoidung WHERE TenDangNhap IS NOT NULL");
+    users.forEach(u => userMap.set(u.TenDangNhap, u.id_User));
+
+    // Fetch all gvmoi
+    const [gvms] = await connection.query("SELECT id_Gvm, CCCD FROM gvmoi WHERE CCCD IS NOT NULL");
+    gvms.forEach(g => gvmMap.set(g.CCCD, g.id_Gvm));
+
+    // 2. Perform Remapping
+    let remappedUserCount = 0;
+    let remappedGvmCount = 0;
+
+    for (const record of records) {
+        // Remap id_User
+        if (record.tendangnhap_sync) {
+            const localId = userMap.get(record.tendangnhap_sync);
+            if (localId) {
+                record.id_User = localId;
+                remappedUserCount++;
+            }
+            delete record.tendangnhap_sync;
+        }
+
+        // Remap id_Gvm
+        if (record.cccd_gvmoi_sync) {
+            const localId = gvmMap.get(record.cccd_gvmoi_sync);
+            if (localId) {
+                record.id_Gvm = localId;
+                remappedGvmCount++;
+            }
+            delete record.cccd_gvmoi_sync;
+        }
+    }
+
+    console.log(`[SYNC] Remapped: ${remappedUserCount} id_User, ${remappedGvmCount} id_Gvm`);
+}
+
+/**
  * Main import handler
  * POST /sync/import
  * Body: { table: "TABLE_NAME", data: [...] }
@@ -376,6 +428,9 @@ exports.importTable = async (req, res) => {
 
         connection = await createConnection();
         const config = syncConfig[table];
+
+        // Remap IDs via natural keys if needed
+        await remapIds(connection, table, data);
 
         // Auto schema validation & migration using import data
         // This detects missing columns by comparing data fields vs table columns
@@ -756,7 +811,7 @@ async function importGvmoi(connection, records) {
                 rest.NgaySinh = formatIsoDateToMySQLDate(rest.NgaySinh);
             }
 
-            if (rest.NgayCapCCCD){
+            if (rest.NgayCapCCCD) {
                 rest.NgayCapCCCD = formatIsoDateToMySQLDate(rest.NgayCapCCCD);
             }
 
@@ -829,27 +884,10 @@ async function importGvmoi(connection, records) {
 // IMPORT HELPERS - COURSE SCHEDULE DETAILS
 // ============================================
 
-
-/**
- * Import course_schedule_details records
- *
- * Mỗi lớp học phần (course_name) có NHIỀU dòng (nhiều buổi học),
- * phân biệt nhau bằng class_id_ascending.
- *
- * Logic:
- * - Lookup theo (dot, ki_hoc, nam_hoc, course_name, class_id_ascending)
- *   → Tìm đúng từng dòng buổi học cụ thể
- * - Nếu đã tồn tại → UPDATE các field còn lại
- * - Nếu chưa tồn tại → INSERT:
- *     tt: lấy từ data nếu có, nếu không → MAX(tt)+1 trong nhóm (dot, ki_hoc, nam_hoc)
- *     class_id_ascending: lấy từ data nếu có, nếu không → 1 (dòng đầu của tt mới)
- */
-
 async function prepareCourseScheduleTT(connection, records) {
 
     const ttCache = {};          // groupKey -> current max tt
     const courseTTCache = {};    // courseKey -> tt
-    const classIdCache = {};     // courseKey -> class_id_ascending
 
     // normalize data
     for (const r of records) {
@@ -876,7 +914,7 @@ async function prepareCourseScheduleTT(connection, records) {
 
         const [result] = await connection.query(
             `SELECT COALESCE(MAX(tt),0) as maxTt
-             FROM course_schedule_details
+             FROM room_timetable
              WHERE dot=? AND ki_hoc=? AND nam_hoc=?`,
             [dot, ki_hoc, nam_hoc]
         );
@@ -891,7 +929,7 @@ async function prepareCourseScheduleTT(connection, records) {
 
         const [existing] = await connection.query(
             `SELECT tt
-             FROM course_schedule_details
+             FROM room_timetable
              WHERE dot=? AND ki_hoc=? AND nam_hoc=? AND course_name=?
              LIMIT 1`,
             [dot, ki_hoc, nam_hoc, course_name]
@@ -917,15 +955,6 @@ async function prepareCourseScheduleTT(connection, records) {
         }
 
         record.tt = courseTTCache[courseKey];
-
-        // ===== class_id_ascending =====
-        if (!classIdCache[courseKey]) {
-            classIdCache[courseKey] = 0;
-        }
-
-        classIdCache[courseKey] += 1;
-
-        record.class_id_ascending = classIdCache[courseKey];
     }
 
     return records;
@@ -937,7 +966,7 @@ async function importCourseScheduleDetails(connection, records) {
 
     return importGenericTable(
         connection,
-        "course_schedule_details",
+        "room_timetable",
         prepared,
         {
             uniqueKey: [
@@ -1505,19 +1534,6 @@ async function importGenericTable(connection, tableName, records, config) {
                 }
             }
 
-            // for (const key in data) {
-            //     if (
-            //         typeof data[key] === "string" &&
-            //         data[key].includes("T") &&
-            //         data[key].includes("Z")
-            //     ) {
-            //         const isDateOnlyColumn = /ngay|date|deadline/i.test(key);
-            //         data[key] = isDateOnlyColumn
-            //             ? formatDateOnlyForMySQL(data[key])
-            //             : formatDateForMySQL(data[key]);
-            //     }
-            // }
-
             const fields = Object.keys(data);
             const values = Object.values(data);
 
@@ -1598,25 +1614,25 @@ async function importGenericTable(connection, tableName, records, config) {
                 } else if (result.affectedRows === 1) {
                     if (result.insertId > 0) inserted++;
                     else skipped++;
-            } else if (result.affectedRows === 2) {
-                const reallyChanged = !existingBefore || fields.some(f => {
-                    const dbVal = normalizeValue(existingBefore[f]);
-                    const newVal = normalizeValue(data[f]);
-                    if (dbVal !== newVal) {
-                        console.log(`[${tableName}] DIFF field="${f}" db=${JSON.stringify(dbVal)} new=${JSON.stringify(newVal)}`);
-                        return true;
+                } else if (result.affectedRows === 2) {
+                    const reallyChanged = !existingBefore || fields.some(f => {
+                        const dbVal = normalizeValue(existingBefore[f]);
+                        const newVal = normalizeValue(data[f]);
+                        if (dbVal !== newVal) {
+                            console.log(`[${tableName}] DIFF field="${f}" db=${JSON.stringify(dbVal)} new=${JSON.stringify(newVal)}`);
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (reallyChanged) {
+                        // console.log(`[${tableName}] → updated`);
+                        updated++;
+                    } else {
+                        console.log(`[${tableName}] → skipped (không có diff)`);
+                        skipped++;
                     }
-                    return false;
-                });
-                if (reallyChanged) {
-                    // console.log(`[${tableName}] → updated`);
-                    updated++;
-                } else {
-                    console.log(`[${tableName}] → skipped (không có diff)`);
-                    skipped++;
                 }
             }
-        }
         } catch (err) {
             errors.push({ record, error: err.message });
         }
@@ -1678,6 +1694,9 @@ exports.importAll = async (req, res) => {
                 // Start transaction for this table
                 await connection.beginTransaction();
 
+                // Remap IDs via natural keys if needed
+                await remapIds(connection, tableName, tableData.data);
+
                 let result;
 
                 // Route to appropriate handler
@@ -1707,13 +1726,13 @@ exports.importAll = async (req, res) => {
                 await connection.commit();
 
                 // ← thêm vào đây
-if (result.warnings?.length > 0) {
-    console.warn(`⚠️  [${tableName}] ${result.warnings.length} warning(s):`);
-    result.warnings.forEach((w) => {
-        console.warn(`   Code: ${w.warnings.map(x => x.code).join(", ")} | Message: ${w.warnings.map(x => x.message).join(", ")}`);
-        console.warn(`   Record:`, JSON.stringify(w.record));
-    });
-}
+                if (result.warnings?.length > 0) {
+                    console.warn(`⚠️  [${tableName}] ${result.warnings.length} warning(s):`);
+                    result.warnings.forEach((w) => {
+                        console.warn(`   Code: ${w.warnings.map(x => x.code).join(", ")} | Message: ${w.warnings.map(x => x.message).join(", ")}`);
+                        console.warn(`   Record:`, JSON.stringify(w.record));
+                    });
+                }
 
                 results[tableName] = {
                     success: true,

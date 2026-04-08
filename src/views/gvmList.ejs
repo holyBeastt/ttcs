@@ -52,7 +52,8 @@
               Thêm giảng viên mời
             </button> -->
             <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput" />
-              <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="searchBoMon" id="searchBoMon" />
+            <input type="text" placeholder="Tìm kiếm theo CCCD" class="search" id="searchCCCD" />
+            <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="searchBoMon" id="searchBoMon" />
 
             <select id="filterByDepartment" class="filter">
               <option value="all">Tất cả</option>
@@ -71,6 +72,7 @@
               // Hàm lọc chung
               function filterTable() {
                 let nameInput = document.getElementById("searchInput").value.toLowerCase();
+                let cccdInput = document.getElementById("searchCCCD").value.toLowerCase().trim();
                 let boMonInput = document.getElementById('searchBoMon').value.toLowerCase();
                 let departmentFilter = document.getElementById("filterByDepartment").value.trim();
                 let nghiHuuFilter = document.getElementById("filterNghiHuu").value.trim();
@@ -80,24 +82,27 @@
 
                 for (let i = 1; i < tr.length; i++) { // Bỏ qua hàng tiêu đề
                   let nameCell = tr[i].getElementsByTagName("td")[1]; // Tên giảng viên
+                  let cccdCell = tr[i].getElementsByTagName("td")[4]; // CCCD
                   let boMonCell = tr[i].getElementsByTagName("td")[8]; // Bộ môn
                   let departmentCell = tr[i].getElementsByTagName("td")[7]; // Khoa
                   let nghiHuuCell = tr[i].getElementsByTagName("td")[9]; // Đã nghỉ hưu (hidden)
 
                   // Lấy giá trị từ các ô
                   let nameValue = nameCell ? nameCell.textContent.toLowerCase() : '';
+                  let cccdValue = cccdCell ? cccdCell.textContent.toLowerCase().trim() : '';
                   let boMonValue = boMonCell ? boMonCell.textContent.toLowerCase() : '';
                   let departmentValue = departmentCell ? departmentCell.textContent.trim() : '';
                   let nghiHuuValue = nghiHuuCell ? nghiHuuCell.textContent.trim() : '';
 
                   // Kiểm tra điều kiện lọc
                   let nameMatch = nameValue.includes(nameInput);
+                  let cccdMatch = cccdValue.includes(cccdInput);
                   let boMonMatch = boMonValue.includes(boMonInput);
                   let departmentMatch = (departmentFilter === "all" || departmentValue === departmentFilter);
                   let nghiHuuMatch = (nghiHuuFilter === "ALL" || nghiHuuValue === nghiHuuFilter);
 
                   // Hiện hoặc ẩn hàng dựa trên các điều kiện
-                  if (nameMatch && boMonMatch && departmentMatch && nghiHuuMatch) {
+                  if (nameMatch && cccdMatch && boMonMatch && departmentMatch && nghiHuuMatch) {
                     tr[i].style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
                   } else {
                     tr[i].style.display = "none"; // Ẩn hàng nếu không khớp
@@ -107,6 +112,7 @@
 
               // Gọi hàm lọc khi có thay đổi trong các ô tìm kiếm
               document.getElementById("searchInput").addEventListener("keyup", filterTable);
+              document.getElementById("searchCCCD").addEventListener("keyup", filterTable);
               document.getElementById("searchBoMon").addEventListener("keyup", filterTable);
               document.getElementById("filterByDepartment").addEventListener("change", filterTable);
               document.getElementById("filterNghiHuu").addEventListener("change", filterTable);
