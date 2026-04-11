@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê tổng hợp - Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        .stats-card {
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .bg-invited-dhp {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .bg-invited-other {
+            background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+        }
+
+        .bg-total-invited {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .bg-total-permanent {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .bg-total-all {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stats-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .filter-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .header-title {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('header') %>
+
+        <div class="container-fluid mt-4 px-4">
+            <h2 class="header-title">THỐNG KÊ TỔNG HỢP GIẢNG DẠY</h2>
+
+            <div class="filter-container">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Năm học</label>
+                    <select id="NamHoc" class="form-select"></select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hệ đào tạo</label>
+                    <select id="HeDaoTao" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Khoa</label>
+                    <select id="Khoa" class="form-select"></select>
+                </div>
+                <div class="col-md-5 d-flex justify-content-end pb-1">
+                    <button id="btnExport" class="btn btn-success me-2">
+                        <i class="fas fa-file-excel me-1"></i> Xuất Excel
+                    </button>
+                    <button id="btnFilter" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-1"></i> Làm mới
+                    </button>
+                </div>
+            </div>
+        </div>
+
+            <div class="table-responsive mb-5">
+                <table class="table table-bordered table-striped text-center align-middle" id="statsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th rowspan="3">Khoa</th>
+                            <th colspan="6">KÌ 1</th>
+                            <th colspan="6">KÌ 2</th>
+                        </tr>
+                        <tr>
+                            <th colspan="3">Mời giảng</th>
+                            <th colspan="2">Cơ hữu</th>
+                            <th rowspan="2">Tổng tiết kì 1</th>
+                            <th colspan="3">Mời giảng</th>
+                            <th colspan="2">Cơ hữu</th>
+                            <th rowspan="2">Tổng tiết kì 2</th>
+                        </tr>
+                        <tr>
+                            <th>Hệ đóng HP</th>
+                            <th>Hệ khác</th>
+                            <th>Tổng MG</th>
+                            <th>Hệ đóng HP</th>
+                            <th>Hệ khác</th>
+                            <th>Hệ đóng HP</th>
+                            <th>Hệ khác</th>
+                            <th>Tổng MG</th>
+                            <th>Hệ đóng HP</th>
+                            <th>Hệ khác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTableBody">
+                        <tr>
+                            <td colspan="13">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                    <tfoot id="statsTableFoot" class="fw-bold bg-light">
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                // Load filters
+                loadFilters();
+
+                // Event listeners
+                $('#btnFilter').on('click', fetchData);
+                $('#btnExport').on('click', exportExcel);
+                $('.form-select').on('change', fetchData);
+
+                function loadFilters() {
+                    $.get('/api/thongketonghop-v2-filters', function (res) {
+                        if (res.success) {
+                            // Năm học
+                            $('#NamHoc').empty().append('<option value="ALL">Tất cả năm</option>');
+                            res.namhoc.forEach(n => {
+                                $('#NamHoc').append(`<option value="${n.NamHoc}" ${n.trangthai === 1 ? 'selected' : ''}>${n.NamHoc}</option>`);
+                            });
+
+                            // Hệ đào tạo
+                            $('#HeDaoTao').empty().append('<option value="ALL">Tất cả hệ</option>');
+                            res.hedaotao.forEach(h => {
+                                $('#HeDaoTao').append(`<option value="${h.id}">${h.he_dao_tao}</option>`);
+                            });
+
+                            // Khoa
+                            $('#Khoa').empty().append('<option value="ALL">Tất cả khoa</option>');
+                            res.phongban.forEach(p => {
+                                $('#Khoa').append(`<option value="${p.MaPhongBan}">${p.TenPhongBan}</option>`);
+                            });
+
+                            fetchData();
+                        }
+                    });
+                }
+
+                function fetchData() {
+                    const params = {
+                        namhoc: $('#NamHoc').val(),
+                        hedaotao: $('#HeDaoTao').val(),
+                        khoa: $('#Khoa').val()
+                    };
+
+                    $.get('/api/thongketonghop-v2-data', params, function (res) {
+                        if (res.success) {
+                            renderTable(res.data);
+                        }
+                    });
+                }
+
+                function renderTable(data) {
+                    const $body = $('#statsTableBody').empty();
+                    const $foot = $('#statsTableFoot').empty();
+
+                    if (!data || data.length === 0) {
+                        $body.append('<tr><td colspan="13">Không có dữ liệu</td></tr>');
+                        return;
+                    }
+
+                    // Process data to pivot by Khoa
+                    const pivotMap = {};
+                    data.forEach(row => {
+                        if (!pivotMap[row.Khoa]) {
+                            pivotMap[row.Khoa] = {
+                                ki1: { mg_dhp: 0, mg_khac: 0, tong_mg: 0, gd_dhp: 0, gd_khac: 0, tong_tiet: 0 },
+                                ki2: { mg_dhp: 0, mg_khac: 0, tong_mg: 0, gd_dhp: 0, gd_khac: 0, tong_tiet: 0 }
+                            };
+                        }
+                        const kiKey = row.HocKy == 1 ? 'ki1' : 'ki2';
+                        pivotMap[row.Khoa][kiKey] = {
+                            mg_dhp: parseFloat(row.mg_dhp || 0),
+                            mg_khac: parseFloat(row.mg_khac || 0),
+                            tong_mg: parseFloat(row.tong_mg || 0),
+                            gd_dhp: parseFloat(row.gd_dhp || 0),
+                            gd_khac: parseFloat(row.gd_khac || 0),
+                            tong_tiet: parseFloat(row.tong_tiet || 0)
+                        };
+                    });
+
+                    const totals = {
+                        ki1: { mg_dhp: 0, mg_khac: 0, tong_mg: 0, gd_dhp: 0, gd_khac: 0, tong_tiet: 0 },
+                        ki2: { mg_dhp: 0, mg_khac: 0, tong_mg: 0, gd_dhp: 0, gd_khac: 0, tong_tiet: 0 }
+                    };
+
+                    Object.keys(pivotMap).sort().forEach(khoa => {
+                        const d = pivotMap[khoa];
+
+                        // Accumulate totals
+                        ['ki1', 'ki2'].forEach(ki => {
+                            Object.keys(totals[ki]).forEach(key => {
+                                totals[ki][key] += d[ki][key];
+                            });
+                        });
+
+                        $body.append(`
+                        <tr>
+                            <td class="text-start pe-3">${khoa}</td>
+                            <td>${d.ki1.mg_dhp.toFixed(2)}</td>
+                            <td>${d.ki1.mg_khac.toFixed(2)}</td>
+                            <td>${d.ki1.tong_mg.toFixed(2)}</td>
+                            <td>${d.ki1.gd_dhp.toFixed(2)}</td>
+                            <td>${d.ki1.gd_khac.toFixed(2)}</td>
+                            <td class="fw-bold">${d.ki1.tong_tiet.toFixed(2)}</td>
+                            <td>${d.ki2.mg_dhp.toFixed(2)}</td>
+                            <td>${d.ki2.mg_khac.toFixed(2)}</td>
+                            <td>${d.ki2.tong_mg.toFixed(2)}</td>
+                            <td>${d.ki2.gd_dhp.toFixed(2)}</td>
+                            <td>${d.ki2.gd_khac.toFixed(2)}</td>
+                            <td class="fw-bold">${d.ki2.tong_tiet.toFixed(2)}</td>
+                        </tr>
+                    `);
+                    });
+
+                    // Footer
+                    $foot.append(`
+                    <tr>
+                        <td class="text-start">TỔNG CỘNG</td>
+                        <td>${totals.ki1.mg_dhp.toFixed(2)}</td>
+                        <td>${totals.ki1.mg_khac.toFixed(2)}</td>
+                        <td>${totals.ki1.tong_mg.toFixed(2)}</td>
+                        <td>${totals.ki1.gd_dhp.toFixed(2)}</td>
+                        <td>${totals.ki1.gd_khac.toFixed(2)}</td>
+                        <td class="table-info">${totals.ki1.tong_tiet.toFixed(2)}</td>
+                        <td>${totals.ki2.mg_dhp.toFixed(2)}</td>
+                        <td>${totals.ki2.mg_khac.toFixed(2)}</td>
+                        <td>${totals.ki2.tong_mg.toFixed(2)}</td>
+                        <td>${totals.ki2.gd_dhp.toFixed(2)}</td>
+                        <td>${totals.ki2.gd_khac.toFixed(2)}</td>
+                        <td class="table-info">${totals.ki2.tong_tiet.toFixed(2)}</td>
+                    </tr>
+                    <tr class="table-primary fw-bold">
+                        <td colspan="12" class="text-end">TỔNG TIẾT CẢ NĂM</td>
+                        <td class="text-center bg-warning text-dark">${(totals.ki1.tong_tiet + totals.ki2.tong_tiet).toFixed(2)}</td>
+                    </tr>
+                `);
+                }
+
+                function exportExcel() {
+                    const params = new URLSearchParams({
+                        namhoc: $('#NamHoc').val(),
+                        hedaotao: $('#HeDaoTao').val(),
+                        khoa: $('#Khoa').val()
+                    });
+                    window.location.href = `/api/thongketonghop-v2-export?${params.toString()}`;
+                }
+            });
+        </script>
+</body>
+
+</html>
