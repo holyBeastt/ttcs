@@ -332,7 +332,7 @@ const thongketonghopController = {
 
   exportGeneralStatsV2: async (req, res) => {
     const { namhoc, khoa, hedaotao } = req.query;
-    const XLSX = require("xlsx");
+    const ExcelJS = require("exceljs");
 
     try {
       let query = `
@@ -381,15 +381,83 @@ const thongketonghopController = {
         };
       });
 
-      const worksheetData = [
-        ["THỐNG KÊ TỔNG HỢP GIẢNG DẠY"],
-        [`Năm học: ${namhoc || 'Tất cả'}, Hệ đào tạo: ${hedaotao || 'Tất cả'}`],
-        [],
-        ["Khoa", "KÌ 1", "", "", "", "", "", "KÌ 2", "", "", "", "", ""],
-        ["", "Mời giảng", "", "", "Cơ hữu", "", "Tổng tiết kì 1", "Mời giảng", "", "", "Cơ hữu", "", "Tổng tiết kì 2"],
-        ["", "Hệ đóng HP", "Hệ khác", "Tổng MG", "Hệ đóng HP", "Hệ khác", "", "Hệ đóng HP", "Hệ khác", "Tổng MG", "Hệ đóng HP", "Hệ khác", ""],
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Thống kê tổng hợp");
+
+      // Set columns
+      worksheet.columns = [
+        { header: "Khoa", key: "khoa", width: 35 },
+        { header: "KÌ 1", key: "ki1_mg_dhp", width: 15 },
+        { header: "", key: "ki1_mg_khac", width: 15 },
+        { header: "", key: "ki1_tong_mg", width: 15 },
+        { header: "", key: "ki1_gd_dhp", width: 15 },
+        { header: "", key: "ki1_gd_khac", width: 15 },
+        { header: "", key: "ki1_tong_tiet", width: 18 },
+        { header: "KÌ 2", key: "ki2_mg_dhp", width: 15 },
+        { header: "", key: "ki2_mg_khac", width: 15 },
+        { header: "", key: "ki2_tong_mg", width: 15 },
+        { header: "", key: "ki2_gd_dhp", width: 15 },
+        { header: "", key: "ki2_gd_khac", width: 15 },
+        { header: "", key: "ki2_tong_tiet", width: 18 },
       ];
 
+      // Styling helpers
+      const titleStyle = { font: { bold: true, size: 18, color: { argb: 'FF000080' } } };
+      const subTitleStyle = { font: { italic: true, size: 12, color: { argb: 'FF555555' } } };
+      const headerStyle = {
+        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } },
+        font: { bold: true, size: 11 },
+        alignment: { vertical: 'middle', horizontal: 'center', wrapText: true },
+        border: {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        }
+      };
+
+      // Add Title
+      const titleRow = worksheet.addRow(["THỐNG KÊ TỔNG HỢP GIẢNG DẠY"]);
+      worksheet.mergeCells('A1:M1');
+      titleRow.getCell(1).style = titleStyle;
+      titleRow.getCell(1).alignment = { horizontal: 'center' };
+      titleRow.height = 30;
+
+      // Add Subtitle
+      const subTitleRow = worksheet.addRow([`Năm học: ${namhoc || 'Tất cả'}, Hệ đào tạo: ${hedaotao || 'Tất cả'}`]);
+      worksheet.mergeCells('A2:M2');
+      subTitleRow.getCell(1).style = subTitleStyle;
+      subTitleRow.getCell(1).alignment = { horizontal: 'center' };
+
+      worksheet.addRow([]); // Blank line
+
+      // Complex Header Rows
+      const h1 = ["Khoa", "KÌ 1", "", "", "", "", "", "KÌ 2", "", "", "", "", ""];
+      const h2 = ["", "Mời giảng", "", "", "Cơ hữu", "", "Tổng tiết kì 1", "Mời giảng", "", "", "Cơ hữu", "", "Tổng tiết kì 2"];
+      const h3 = ["", "Hệ đóng HP", "Hệ khác", "Tổng MG", "Hệ đóng HP", "Hệ khác", "", "Hệ đóng HP", "Hệ khác", "Tổng MG", "Hệ đóng HP", "Hệ khác", ""];
+
+      const row4 = worksheet.addRow(h1);
+      const row5 = worksheet.addRow(h2);
+      const row6 = worksheet.addRow(h3);
+
+      // Merge cells for professional header
+      worksheet.mergeCells('A4:A6'); // Khoa
+      worksheet.mergeCells('B4:G4'); // KÌ 1
+      worksheet.mergeCells('H4:M4'); // KÌ 2
+      worksheet.mergeCells('B5:D5'); // Ki 1 MG
+      worksheet.mergeCells('E5:F5'); // Ki 1 CH
+      worksheet.mergeCells('G5:G6'); // Ki 1 Total
+      worksheet.mergeCells('H5:J5'); // Ki 2 MG
+      worksheet.mergeCells('K5:L5'); // Ki 2 CH
+      worksheet.mergeCells('M5:M6'); // Ki 2 Total
+
+      [row4, row5, row6].forEach(row => {
+        row.eachCell(cell => {
+          cell.style = headerStyle;
+        });
+      });
+
+      // Data rows
       const sortedKhoas = Object.keys(pivotMap).sort();
       const totals = {
         ki1: { mg_dhp: 0, mg_khac: 0, tong_mg: 0, gd_dhp: 0, gd_khac: 0, tong_tiet: 0 },
@@ -398,11 +466,23 @@ const thongketonghopController = {
 
       sortedKhoas.forEach(khoa => {
         const d = pivotMap[khoa];
-        worksheetData.push([
+        const dataRow = [
           khoa,
           d.ki1.mg_dhp, d.ki1.mg_khac, d.ki1.tong_mg, d.ki1.gd_dhp, d.ki1.gd_khac, d.ki1.tong_tiet,
           d.ki2.mg_dhp, d.ki2.mg_khac, d.ki2.tong_mg, d.ki2.gd_dhp, d.ki2.gd_khac, d.ki2.tong_tiet
-        ]);
+        ];
+        const row = worksheet.addRow(dataRow);
+        row.eachCell((cell, colNumber) => {
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          if (colNumber > 1) {
+            cell.alignment = { horizontal: 'center' };
+            cell.numFmt = '#,##0.00';
+          }
+          if (colNumber === 7 || colNumber === 13) {
+            cell.font = { bold: true };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+          }
+        });
 
         ['ki1', 'ki2'].forEach(ki => {
           Object.keys(totals[ki]).forEach(key => {
@@ -411,40 +491,48 @@ const thongketonghopController = {
         });
       });
 
-      worksheetData.push([
+      // Totals row
+      const totalRowData = [
         "TỔNG CỘNG",
         totals.ki1.mg_dhp, totals.ki1.mg_khac, totals.ki1.tong_mg, totals.ki1.gd_dhp, totals.ki1.gd_khac, totals.ki1.tong_tiet,
         totals.ki2.mg_dhp, totals.ki2.mg_khac, totals.ki2.tong_mg, totals.ki2.gd_dhp, totals.ki2.gd_khac, totals.ki2.tong_tiet
-      ]);
-
-      worksheetData.push([
-        "TỔNG TIẾT CẢ NĂM", "", "", "", "", "", "", "", "", "", "", "",
-        (totals.ki1.tong_tiet + totals.ki2.tong_tiet)
-      ]);
-
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Thong Ke");
-
-      worksheet["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 12 } },
-        { s: { r: 3, c: 0 }, e: { r: 5, c: 0 } },
-        { s: { r: 3, c: 1 }, e: { r: 3, c: 6 } },
-        { s: { r: 3, c: 7 }, e: { r: 3, c: 12 } },
-        { s: { r: 4, c: 1 }, e: { r: 4, c: 3 } },
-        { s: { r: 4, c: 4 }, e: { r: 4, c: 5 } },
-        { s: { r: 4, c: 6 }, e: { r: 5, c: 6 } },
-        { s: { r: 4, c: 7 }, e: { r: 4, c: 9 } },
-        { s: { r: 4, c: 10 }, e: { r: 4, c: 11 } },
-        { s: { r: 4, c: 12 }, e: { r: 5, c: 12 } },
-        { s: { r: worksheetData.length - 1, c: 0 }, e: { r: worksheetData.length - 1, c: 11 } }, // Yearly Total label
       ];
+      const tRow = worksheet.addRow(totalRowData);
+      tRow.eachCell((cell, colNumber) => {
+        cell.font = { bold: true };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF99' } }; // Light yellow
+        if (colNumber > 1) {
+          cell.alignment = { horizontal: 'center' };
+          cell.numFmt = '#,##0.00';
+        }
+      });
 
-      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+      // Annual total row
+      const yearlyTotal = totals.ki1.tong_tiet + totals.ki2.tong_tiet;
+      const annualRowData = ["TỔNG TIẾT CẢ NĂM", "", "", "", "", "", "", "", "", "", "", "", yearlyTotal];
+      const aRow = worksheet.addRow(annualRowData);
+      const startRow = aRow.number;
+      worksheet.mergeCells(`A${startRow}:L${startRow}`);
+      const labelCell = aRow.getCell(1);
+      const valueCell = aRow.getCell(13);
+
+      [labelCell, valueCell].forEach(cell => {
+        cell.style = {
+          font: { bold: true, size: 14, color: { argb: 'FFFFFFFF' } },
+          fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFED7D31' } }, // Orange
+          alignment: { horizontal: 'center', vertical: 'middle' },
+          border: { top: { style: 'medium' }, left: { style: 'medium' }, bottom: { style: 'medium' }, right: { style: 'medium' } }
+        };
+      });
+      valueCell.numFmt = '#,##0.00';
+      aRow.height = 25;
 
       res.setHeader("Content-Disposition", "attachment; filename=ThongKeTongHop.xlsx");
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-      res.send(buffer);
+
+      await workbook.xlsx.write(res);
+      res.end();
 
     } catch (error) {
       console.error("Lỗi khi xuất file Excel:", error);
