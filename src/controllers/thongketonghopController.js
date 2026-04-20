@@ -586,8 +586,9 @@ const thongketonghopController = {
       });
       valueCell.numFmt = '#,##0.00';
       aRow.height = 25;
+      const fileName = `ThongKeTongHop_hedaotao-${hedaotao}_namhoc-${namhoc}_khoa-${khoa}.xlsx`;
 
-      res.setHeader("Content-Disposition", "attachment; filename=ThongKeTongHop.xlsx");
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
       await workbook.xlsx.write(res);
