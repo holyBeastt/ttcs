@@ -137,8 +137,6 @@ const getBonusTimeForHeDaoTao = async (
 const updateRowTKB = async (req, res) => {
   let { id, field, value, oldValue, data } = req.body;
 
-  console.log("🚀 ~ file: TKBController.js:216 ~ updateRowTKB ~ data:", req.body);
-
   let connection;
 
   try {

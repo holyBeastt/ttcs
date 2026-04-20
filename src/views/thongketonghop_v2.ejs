@@ -141,6 +141,10 @@
                     </tfoot>
                 </table>
             </div>
+
+            <div id="detailed-stats-container" class="mt-5 pb-5">
+                <!-- Detailed tables will be rendered here -->
+            </div>
         </div>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -189,9 +193,17 @@
                         khoa: $('#Khoa').val()
                     };
 
+                    // Summary Table
                     $.get('/api/thongketonghop-v2-data', params, function (res) {
                         if (res.success) {
                             renderTable(res.data);
+                        }
+                    });
+
+                    // Detailed Tables
+                    $.get('/api/thongketonghop-v2-detail', { namhoc: params.namhoc, khoa: params.khoa }, function (res) {
+                        if (res.success) {
+                            renderDetailedTables(res.semesters, res.allHe);
                         }
                     });
                 }
@@ -242,19 +254,19 @@
 
                         $body.append(`
                         <tr>
-                            <td class="text-start pe-3">${khoa}</td>
+                            <td class="text-start pe-3 fw-bold">${khoa}</td>
                             <td>${d.ki1.mg_dhp.toFixed(2)}</td>
                             <td>${d.ki1.mg_khac.toFixed(2)}</td>
                             <td>${d.ki1.tong_mg.toFixed(2)}</td>
                             <td>${d.ki1.gd_dhp.toFixed(2)}</td>
                             <td>${d.ki1.gd_khac.toFixed(2)}</td>
-                            <td class="fw-bold">${d.ki1.tong_tiet.toFixed(2)}</td>
+                            <td class="table-info fw-bold">${d.ki1.tong_tiet.toFixed(2)}</td>
                             <td>${d.ki2.mg_dhp.toFixed(2)}</td>
                             <td>${d.ki2.mg_khac.toFixed(2)}</td>
                             <td>${d.ki2.tong_mg.toFixed(2)}</td>
                             <td>${d.ki2.gd_dhp.toFixed(2)}</td>
                             <td>${d.ki2.gd_khac.toFixed(2)}</td>
-                            <td class="fw-bold">${d.ki2.tong_tiet.toFixed(2)}</td>
+                            <td class="table-info fw-bold">${d.ki2.tong_tiet.toFixed(2)}</td>
                         </tr>
                     `);
                     });
@@ -281,6 +293,94 @@
                         <td class="text-center bg-warning text-dark">${(totals.ki1.tong_tiet + totals.ki2.tong_tiet).toFixed(2)}</td>
                     </tr>
                 `);
+                }
+
+                function renderDetailedTables(semesters, allHe) {
+                    const $container = $('#detailed-stats-container').empty();
+
+                    if (!allHe || allHe.length === 0) return;
+
+                    Object.keys(semesters).sort().forEach(ki => {
+                        const semData = semesters[ki];
+                        
+                        let html = `
+                            <div class="card mb-5 border-0 shadow-sm">
+                                <div class="card-header bg-dark text-white py-3">
+                                    <h3 class="mb-0 text-center text-uppercase fw-bold">Thống kê chi tiết theo Khoa và Hệ - HỌC KỲ ${ki}</h3>
+                                </div>
+                                <div class="card-body p-4 bg-light">
+                        `;
+
+                        // Render two tables: Mời giảng and Cơ hữu
+                        ['mg', 'ch'].forEach(type => {
+                            const label = type === 'mg' ? 'I. DANH SÁCH MỜI GIẢNG' : 'II. DANH SÁCH CƠ HỮU';
+                            const badgeColor = type === 'mg' ? '#007bff' : '#28a745';
+                            const tableData = semData[type];
+                            const sortedKhoas = Object.keys(tableData).sort();
+
+                            html += `
+                                <div class="mb-5">
+                                    <h4 class="mb-4 text-uppercase fw-bold" style="color: ${badgeColor}; border-bottom: 3px solid ${badgeColor}; padding-bottom: 10px; display: inline-block;">
+                                        ${label}
+                                    </h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm bg-white text-center align-middle">
+                                            <thead class="${type === 'mg' ? 'table-primary' : 'table-success'}">
+                                                <tr>
+                                                    <th rowspan="2" class="align-middle">Khoa</th>
+                                                    <th colspan="${allHe.length}">Hệ đào tạo</th>
+                                                    <th rowspan="2" class="align-middle">Tổng cộng</th>
+                                                </tr>
+                                                <tr>
+                                                    ${allHe.map(he => `<th style="font-size: 0.8rem; min-width: 80px;">${he}</th>`).join('')}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                            `;
+
+                            if (sortedKhoas.length === 0) {
+                                html += `<tr><td colspan="${allHe.length + 2}" class="py-3 text-muted">Không có dữ liệu</td></tr>`;
+                            } else {
+                                // Column totals
+                                const colTotals = allHe.map(() => 0);
+                                let grandTotal = 0;
+
+                                sortedKhoas.forEach(khoa => {
+                                    let rowTotal = 0;
+                                    html += `<tr><td class="text-start fw-bold pe-3">${khoa}</td>`;
+                                    
+                                    allHe.forEach((he, idx) => {
+                                        const val = tableData[khoa][he] || 0;
+                                        html += `<td>${val > 0 ? val.toFixed(2) : '-'}</td>`;
+                                        rowTotal += val;
+                                        colTotals[idx] += val;
+                                    });
+
+                                    html += `<td class="fw-bold table-light">${rowTotal.toFixed(2)}</td></tr>`;
+                                    grandTotal += rowTotal;
+                                });
+
+                                // Append Totals row
+                                html += `
+                                    <tr class="table-secondary fw-bold">
+                                        <td class="text-start">TỔNG CỘNG</td>
+                                        ${colTotals.map(t => `<td>${t > 0 ? t.toFixed(2) : '-'}</td>`).join('')}
+                                        <td class="bg-warning text-dark">${grandTotal.toFixed(2)}</td>
+                                    </tr>
+                                `;
+                            }
+
+                            html += `
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        html += `</div></div>`;
+                        $container.append(html);
+                    });
                 }
 
                 function exportExcel() {

@@ -312,6 +312,65 @@ const thongketonghopController = {
     }
   },
 
+  getDetailedStatsV2: async (req, res) => {
+    const { namhoc, khoa } = req.query;
+    try {
+      // 1. Get all training systems
+      const [heRows] = await pool.query("SELECT he_dao_tao FROM he_dao_tao WHERE loai_hinh = 'mời giảng' ORDER BY id");
+      const allHe = heRows.map(h => h.he_dao_tao);
+
+      // 2. Get teaching data grouped by Khoa
+      const query = `
+        SELECT 
+          g.HocKy,
+          g.Khoa,
+          h.he_dao_tao AS HeDaoTao,
+          SUM(CASE WHEN g.id_User = 1 THEN g.quychuan ELSE 0 END) AS mg_tiet,
+          SUM(CASE WHEN g.id_Gvm = 1 THEN g.quychuan ELSE 0 END) AS ch_tiet
+        FROM giangday g
+        LEFT JOIN he_dao_tao h ON g.he_dao_tao = h.id
+        WHERE (? = 'ALL' OR g.NamHoc = ?)
+          AND (? = 'ALL' OR g.Khoa = ?)
+        GROUP BY g.HocKy, g.Khoa, h.he_dao_tao
+        ORDER BY g.HocKy, g.Khoa, h.he_dao_tao
+      `;
+      const params = [
+        namhoc || "ALL", namhoc || "ALL",
+        khoa || "ALL", khoa || "ALL"
+      ];
+
+      const [rows] = await pool.query(query, params);
+
+      // 3. Structure data: semesters -> lecturerType -> [ {khoa, systems: {he: tiet}} ]
+      const semesters = {};
+      const foundSemesters = [...new Set(rows.map(r => r.HocKy))];
+
+      foundSemesters.forEach(ki => {
+        semesters[ki] = {
+          mg: {}, // { khoaName: { heName: tiet } }
+          ch: {}
+        };
+      });
+
+      rows.forEach(row => {
+        if (row.HocKy && semesters[row.HocKy]) {
+          const sem = semesters[row.HocKy];
+
+          if (!sem.mg[row.Khoa]) sem.mg[row.Khoa] = {};
+          if (!sem.ch[row.Khoa]) sem.ch[row.Khoa] = {};
+
+          sem.mg[row.Khoa][row.HeDaoTao] = parseFloat(row.mg_tiet || 0);
+          sem.ch[row.Khoa][row.HeDaoTao] = parseFloat(row.ch_tiet || 0);
+        }
+      });
+
+      res.json({ success: true, semesters, allHe });
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết thống kê:", error);
+      res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+  },
+
   getFiltersV2: async (req, res) => {
     try {
       const [namhocRows] = await pool.query("SELECT * FROM namhoc ORDER BY trangthai DESC, NamHoc ASC");

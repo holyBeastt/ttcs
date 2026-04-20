@@ -15,6 +15,7 @@ router.get("/thongketonghop-v2", (req, res) => {
   res.render("thongketonghop_v2");
 });
 router.get("/api/thongketonghop-v2-data", thongketonghopController.getGeneralStatsV2);
+router.get("/api/thongketonghop-v2-detail", thongketonghopController.getDetailedStatsV2);
 router.get("/api/thongketonghop-v2-export", thongketonghopController.exportGeneralStatsV2);
 router.get("/api/thongketonghop-v2-filters", thongketonghopController.getFiltersV2);
 
