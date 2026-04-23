@@ -361,12 +361,19 @@
     // Lấy đường dẫn hiện tại
     const currentPath = window.location.pathname;
 
+    // Chuẩn hóa một số route legacy để active đúng menu hiện tại.
+    const activePathAliases = {
+      "/importkthp": "/v2/vuotgio/them-kthp",
+      "/v2/vuotgio/importkthp": "/v2/vuotgio/them-kthp",
+    };
+    const normalizedCurrentPath = activePathAliases[currentPath] || currentPath;
+
     // Lấy tất cả các liên kết trong navbar
     const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
 
     // Xử lý active cho liên kết trong navbar
     navLinks.forEach((link) => {
-      if (link.getAttribute("href") === currentPath) {
+      if (link.getAttribute("href") === normalizedCurrentPath) {
         link.classList.add("active");
       }
     });

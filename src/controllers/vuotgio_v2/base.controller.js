@@ -32,7 +32,7 @@ const getDanhSachLopNgoaiQC = (req, res) => {
  * Render trang Thêm Kết Thúc Học Phần
  */
 const getThemKTHP = (req, res) => {
-    res.render("vuotgio_v2/vuotgio.themKTHP.ejs");
+    res.render("vuotgio_v2/vuotgio.add.coiChamRaDe.ejs");
 };
 
 /**

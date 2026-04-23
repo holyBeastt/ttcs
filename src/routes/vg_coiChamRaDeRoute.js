@@ -25,7 +25,7 @@ router.get('/importkthp/getSuggestions', getSuggestions);
 router.get('/importkthp/getNameSuggestions', getNameSuggestions); // API để lấy gợi ý tên nhân viên
 
 router.get('/vuotGioDanhGiaCuoiKi', (req, res) => {
-  res.render('vuotGioDanhGiaCuoiKi'); // Render trang danh sách vuotGioCuoiKy 
+  res.render('vuotgio_v2/vuotgio.add.file.coiChamRaDe.ejs'); // Render trang danh sách vuotGioCuoiKy 
 });
 
 router.get('/vuotGioDanhSachCuoiKi/getDSCuoiKi/:MaPhongBan/:Ki/:Nam', getList); // API để lấy danh sách vuotGioCuoiKy
