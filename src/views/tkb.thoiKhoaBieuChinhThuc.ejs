@@ -849,15 +849,28 @@
             } else {
               Swal.fire({
                 title: "❌ Lỗi",
-                html: updatedRow.message,
+                html: updatedRow.message || updatedRow.error || "Có lỗi xảy ra",
                 icon: "error",
                 confirmButtonText: "OK",
                 width: "auto",
                 padding: "20px",
               });
+              
+              // ✅ Revert lại giá trị cũ nếu lỗi mà không kích hoạt lại event
+              const rowNode = gridOptions.api.getRowNode(id);
+              if (rowNode) {
+                rowNode.data[field] = oldValue;
+                gridOptions.api.refreshCells({ rowNodes: [rowNode], force: true });
+              }
             }
           } catch (error) {
             console.error("❌ Lỗi kết nối server:", error);
+            // ✅ Revert lại giá trị cũ nếu có lỗi kết nối
+            const rowNode = gridOptions.api.getRowNode(id);
+            if (rowNode) {
+              rowNode.data[field] = oldValue;
+              gridOptions.api.refreshCells({ rowNodes: [rowNode], force: true });
+            }
           }
         }
 

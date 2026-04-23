@@ -282,6 +282,9 @@ const updateRowTKB = async (req, res) => {
 
     return res.json(updatedRow[0]); // ✅ Trả về toàn bộ dòng mới cập nhật
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
+      return res.status(409).json({ message: "Dữ liệu cập nhật bị trùng lặp với một bản ghi đã tồn tại trong bảng thời khóa biểu." });
+    }
     console.error("Lỗi khi cập nhật dòng dữ liệu:", error);
     return res
       .status(500)
@@ -579,6 +582,9 @@ const addNewRowTKB = async (req, res) => {
       data: { id: newId, ...req.body }, // Gửi lại dữ liệu đã thêm
     });
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
+      return res.status(409).json({ error: "Lớp học phần bị trùng lặp với một bản ghi đã tồn tại." });
+    }
     console.error("Lỗi thêm dữ liệu:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi thêm dữ liệu" });
   }
