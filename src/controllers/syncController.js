@@ -7,6 +7,14 @@
 const createConnection = require("../config/databasePool");
 const syncConfig = require("../config/syncConfig");
 const { validateAndMigrateSchemaFromData } = require("../helpers/schemaValidator");
+const path = require("path");
+const fs = require("fs");
+const archiver = require("archiver");
+const unzipper = require("unzipper");
+const multer = require("multer");
+const appRoot = require("app-root-path");
+
+const GVM_FOLDER = path.join(appRoot.path, "Giang_Vien_Moi");
 
 // Tables that support year-based filtering (Năm học)
 const yearFilteredTables = new Set([
@@ -1838,3 +1846,194 @@ exports.clearMasterTables = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
+// ============================================
+// GVM FILE SYNC - Export / Import
+// ============================================
+
+/**
+ * Export toàn bộ thư mục Giang_Vien_Moi dưới dạng ZIP stream
+ * GET /sync/gvm-files/export
+ */
+exports.exportGvmFiles = (req, res) => {
+    if (!fs.existsSync(GVM_FOLDER)) {
+        return res.status(404).json({ success: false, message: "Thư mục Giang_Vien_Moi không tồn tại." });
+    }
+
+    const archive = archiver("zip", { zlib: { level: 6 } });
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="gvm_files_sync.zip"`);
+
+    archive.on("error", (err) => {
+        console.error("[GVM SYNC] Lỗi khi tạo ZIP:", err);
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: "Lỗi tạo file ZIP", error: err.message });
+        }
+    });
+
+    archive.pipe(res);
+
+    // Thêm toàn bộ nội dung Giang_Vien_Moi vào ZIP, giữ nguyên cấu trúc thư mục
+    archive.directory(GVM_FOLDER, false);
+
+    archive.finalize();
+
+    archive.on("end", () => {
+        console.log(`[GVM SYNC] Đã export ZIP (${archive.pointer()} bytes)`);
+    });
+};
+
+/**
+ * Import / merge file GVM từ ZIP upload vào Giang_Vien_Moi
+ * POST /sync/gvm-files/import  (multipart, field: gvmZip)
+ */
+exports.importGvmFiles = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: "Không tìm thấy file ZIP upload (field: gvmZip)." });
+    }
+
+    let filesAdded = 0;
+    let filesOverwritten = 0;
+    const errors = [];
+    
+    // Tracking details
+    const MAX_LOGS = 3000;
+    let logsCount = 0;
+    const details = {
+        departments: {},
+        logs: []
+    };
+
+    try {
+        // req.file.path từ multer diskStorage
+        const zipPath = req.file.path;
+
+        await new Promise((resolve, reject) => {
+            const fileStream = fs.createReadStream(zipPath);
+
+            fileStream
+                .pipe(unzipper.Parse())
+                .on("entry", (entry) => {
+                    let entryPath = entry.path.replace(/\\/g, "/");
+
+                    // Loại bỏ tiền tố Giang_Vien_Moi/ nếu quá trình ZIP bao gồm cả thư mục gốc
+                    if (entryPath.startsWith("Giang_Vien_Moi/")) {
+                        entryPath = entryPath.substring("Giang_Vien_Moi/".length);
+                    }
+
+                    if (!entryPath) {
+                        entry.autodrain();
+                        return;
+                    }
+
+                    const fullDestPath = path.join(GVM_FOLDER, entryPath);
+
+                    if (entry.type === "Directory") {
+                        if (!fs.existsSync(fullDestPath)) {
+                            fs.mkdirSync(fullDestPath, { recursive: true });
+                        }
+                        entry.autodrain();
+                        return;
+                    }
+
+                    // Tạo thư mục cha nếu chưa có
+                    const dirPath = path.dirname(fullDestPath);
+                    fs.mkdirSync(dirPath, { recursive: true });
+
+                    let alreadyExists = false;
+                    const baseName = path.parse(fullDestPath).name;
+                    const fileName = path.basename(fullDestPath);
+
+                    try {
+                        const existingFiles = fs.readdirSync(dirPath);
+                        for (const file of existingFiles) {
+                            // Bỏ qua thư mục con (nếu có)
+                            const stat = fs.statSync(path.join(dirPath, file));
+                            if (!stat.isDirectory() && path.parse(file).name === baseName) {
+                                alreadyExists = true;
+                                // Nếu đuôi mở rộng khác thẻ đến (VD: .png vs .jpg), xoá cái cũ đi
+                                if (file !== fileName) {
+                                    fs.unlinkSync(path.join(dirPath, file));
+                                }
+                                break;
+                            }
+                        }
+                    } catch(e) {
+                        // ignore error
+                    }
+
+                    entry.pipe(fs.createWriteStream(fullDestPath))
+                        .on("finish", () => {
+                            const isAdded = !alreadyExists;
+                            if (alreadyExists) {
+                                filesOverwritten++;
+                            } else {
+                                filesAdded++;
+                            }
+                            
+                            // Phân tích Department (Thư mục đầu tiên)
+                            const parts = entryPath.split("/");
+                            const department = parts[0] ? parts[0] : "Khác";
+                            if (!details.departments[department]) {
+                                details.departments[department] = { added: 0, overwritten: 0 };
+                            }
+                            
+                            if (isAdded) {
+                                details.departments[department].added++;
+                            } else {
+                                details.departments[department].overwritten++;
+                            }
+                            
+                            // Thu thập logs với giới hạn
+                            if (logsCount < MAX_LOGS) {
+                                details.logs.push(`[${isAdded ? 'NEW' : 'OVERWRITTEN'}] ${entryPath}`);
+                                logsCount++;
+                            }
+                        })
+                        .on("error", (err) => {
+                            errors.push({ file: entryPath, error: err.message });
+                            console.error(`[GVM SYNC] Lỗi ghi file ${entryPath}:`, err.message);
+                        });
+                })
+                .on("finish", () => {
+                    // Dọn dẹp file zip tạm
+                    if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
+                    resolve();
+                })
+                .on("error", (err) => {
+                    if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
+                    reject(err);
+                });
+        });
+
+        console.log(`[GVM SYNC] Import hoàn tất: +${filesAdded} mới, ~${filesOverwritten} ghi đè, ${errors.length} lỗi`);
+
+        return res.status(200).json({
+            success: true,
+            message: `Import GVM files thành công`,
+            filesAdded,
+            filesOverwritten,
+            details,
+            errors: errors.length > 0 ? errors : undefined,
+        });
+
+    } catch (error) {
+        console.error("[GVM SYNC] Import thất bại:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Import GVM files thất bại",
+            error: error.message,
+        });
+    }
+};
+
+const os = require('os');
+const tempDir = os.tmpdir();
+
+// multer instance dùng cho importGvmFiles (disk storage, max 2GB)
+exports.gvmUpload = multer({
+    dest: tempDir,
+    limits: { fileSize: 2048 * 1024 * 1024 }, // 2GB
+}).single("gvmZip");
+

@@ -197,8 +197,8 @@ app.use("/uy-nhiem-chi", uyNhiemChiRoute);
 app.use("/", kytubatdauKhoaRoute);
 app.use("/sync", syncRoute);
 
-app.listen(port, hostname, () => {
-  console.log(`Server running on http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on http://${hostname}:${port}`);
 });
 
 // Phục vụ các file tĩnh từ thư mục node_modules
