@@ -354,6 +354,11 @@
             <option value="">Năm học</option>
           </select>
 
+          <!-- Combo box Hệ đào tạo -->
+          <select class="form-select mx-1 selectop custom-select" id="heDaoTao" style="min-width: 140px">
+            <option value="ALL">Tất cả hệ</option>
+          </select>
+
           <button id="infoGvm" class="btn text-nowrap mx-2" style="height: 45px;">Xem dữ liệu</button>
           <button onclick="submitData()" class="btn mx-2" id="update-qc" style="display: none; height: 45px;">
             Cập nhật
@@ -597,6 +602,18 @@
             tenHe: item.he_dao_tao
           }));
           console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
+
+          // Cập nhật options của select#heDaoTao
+          const heDaoTaoSelect = document.getElementById('heDaoTao');
+          if (heDaoTaoSelect) {
+            heDaoTaoSelect.innerHTML = '<option value="ALL">Tất cả hệ</option>';
+            heDaoTaoList.forEach(item => {
+              const opt = document.createElement('option');
+              opt.value = item.id;
+              opt.textContent = item.tenHe;
+              heDaoTaoSelect.appendChild(opt);
+            });
+          }
         } else {
           console.error('API không trả về dữ liệu hợp lệ');
           heDaoTaoList = [];
@@ -671,12 +688,14 @@
         const dotValue = document.getElementById("combobox-dot").value;
         const kiValue = document.getElementById("comboboxki").value;
         const namValue = document.getElementById("NamHoc").value;
+        const heDaoTaoValue = document.getElementById("heDaoTao").value;
 
         // Tạo đối tượng dữ liệu để gửi
         const requestData = {
           Dot: dotValue,
           Ki: kiValue,
           Nam: namValue,
+          HeDaoTao: heDaoTaoValue,
         };
 
         // Fetch tên giảng viên mời

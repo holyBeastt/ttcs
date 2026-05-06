@@ -208,6 +208,9 @@
               <select class="selectop" id="MaPhongBan">
                 <option value="ALL">Tất cả khoa</option>
               </select>
+              <select class="selectop" id="heDaoTao" style="min-width: 140px">
+                <option value="ALL">Tất cả hệ</option>
+              </select>
               <button onclick="getDataTable()" class="btn text-nowrap" id="render" style="margin-top: 17px">
                 Hiển thị
               </button>
@@ -432,6 +435,18 @@
               heDaoTaoMap[item.id] = item.tenHe;
             });
             console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
+
+            // Cập nhật options của select#heDaoTao
+            const heDaoTaoSelect = document.getElementById('heDaoTao');
+            if (heDaoTaoSelect) {
+              heDaoTaoSelect.innerHTML = '<option value="ALL">Tất cả hệ</option>';
+              heDaoTaoList.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.tenHe;
+                heDaoTaoSelect.appendChild(opt);
+              });
+            }
           } else {
             console.error('API không trả về dữ liệu hợp lệ');
             heDaoTaoList = [];
@@ -452,12 +467,14 @@
         let Ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
         let Khoa = document.getElementById("MaPhongBan").value;
+        let HeDaoTao = document.getElementById("heDaoTao").value;
 
         const body = {
           Khoa: Khoa,
           Dot: Dot,
           Ki: Ki,
           Nam: Nam,
+          HeDaoTao: HeDaoTao,
         };
 
         try {
