@@ -119,5 +119,21 @@ router.get("/", requireAdmin, (req, res) => {
 // POST: Clear master tables (one-time setup)
 router.post("/clear-master-tables", requireAdmin, syncController.clearMasterTables);
 
+// ============================================
+// GVM FILE SYNC ENDPOINTS
+// ============================================
+
+/**
+ * Export toàn bộ Giang_Vien_Moi dưới dạng ZIP
+ * GET /sync/gvm-files/export
+ */
+router.get("/gvm-files/export", requireAdmin, syncController.exportGvmFiles);
+
+/**
+ * Import / merge GVM files từ ZIP (multipart, field: gvmZip)
+ * POST /sync/gvm-files/import
+ */
+router.post("/gvm-files/import", requireAdmin, syncController.gvmUpload, syncController.importGvmFiles);
+
 module.exports = router;
 

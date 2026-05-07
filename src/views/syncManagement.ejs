@@ -338,8 +338,34 @@
                 <p>Quản lý xuất/nhập dữ liệu giữa cơ sở dữ liệu PUBLIC và PRIVATE</p>
             </div>
 
-            <!-- Export Section -->
-            <div class="sync-card">
+            <!-- Override rogue CSS causing invisible text -->
+            <style>
+                .tab-content, .tab-pane { color: var(--dark-color) !important; }
+                .tab-pane .form-label, .tab-pane .form-check-label { color: #333 !important; }
+                .tab-pane .text-muted { color: #6c757d !important; }
+                .tab-pane h4, .tab-pane h5 { color: var(--dark-color) !important; }
+            </style>
+
+            <!-- Tabs Nav -->
+            <ul class="nav nav-tabs mb-4" id="syncTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold" id="data-sync-tab" data-bs-toggle="tab" data-bs-target="#data-sync" type="button" role="tab" aria-controls="data-sync" aria-selected="true" style="color: var(--primary-color);">
+                        <i class="bi bi-database"></i> Đồng bộ Dữ liệu
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold" id="file-sync-tab" data-bs-toggle="tab" data-bs-target="#file-sync" type="button" role="tab" aria-controls="file-sync" aria-selected="false" style="color: var(--warning-color);">
+                        <i class="bi bi-folder-symlink"></i> Đồng bộ File (Giảng Viên Mời)
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tabs Content -->
+            <div class="tab-content" id="syncTabsContent">
+                <!-- Data Sync Tab -->
+                <div class="tab-pane fade show active" id="data-sync" role="tabpanel" aria-labelledby="data-sync-tab">
+                    <!-- Export Section -->
+                    <div class="sync-card">
                 <h4><i class="bi bi-download text-success"></i> Xuất Dữ Liệu (Export)</h4>
 
                 <div class="row export-controls">
@@ -459,6 +485,87 @@
                         <div class="code-block" id="error-list"></div>
                     </div>
                 </div>
+            </div>
+                </div>
+                <!-- End Data Sync Tab -->
+
+                <!-- File Sync Tab -->
+                <div class="tab-pane fade" id="file-sync" role="tabpanel" aria-labelledby="file-sync-tab">
+
+                    <!-- File Sync Section -->
+                    <div class="sync-card">
+                <h4><i class="bi bi-folder-symlink text-warning"></i> Đồng Bộ File (Hồ Sơ Giảng Viên Mời)</h4>
+                
+                <div class="row">
+                    <!-- Export Column -->
+                    <div class="col-md-6 border-end">
+                        <div class="p-3">
+                            <h5 class="mb-3">Xuất File (Export)</h5>
+                            <p class="text-muted">Tải về toàn bộ thư mục hồ sơ Giảng viên mời dưới dạng file nén (.zip).</p>
+                            <a href="/sync/gvm-files/export" class="btn btn-export w-100 d-inline-flex justify-content-center align-items-center">
+                                <i class="bi bi-file-earmark-zip me-2"></i> Tải xuống toàn bộ File ZIp
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Import Column -->
+                    <div class="col-md-6">
+                        <div class="p-3">
+                            <h5 class="mb-3">Nhập File (Import)</h5>
+                            <p class="text-muted mb-2">Tải lên file nén (.zip) để hợp nhất (merge) vào hệ thống.</p>
+                            <ul class="text-muted small ps-3 mb-3">
+                                <li><b>Thêm mới:</b> Các tệp tin trước đây chưa từng có trên thư mục.</li>
+                                <li><b>Ghi đè cập nhật:</b> Các tệp tin đã tồn tại. Máy tính sẽ ghi đè cả tệp giống y hệt nhau, hoặc tệp cùng tên nhưng khác đuôi (VD: Hệ thống sẽ tự động xóa file <code style="color:var(--danger-color)">truocCCCD.png</code> cũ đi khi bạn up bản <code style="color:var(--danger-color)">truocCCCD.jpg</code> lên).</li>
+                            </ul>
+                            
+                            <div class="file-upload-area" id="gvm-file-upload-area">
+                                <i class="bi bi-file-earmark-arrow-up" style="font-size: 3rem; color: var(--warning-color);"></i>
+                                <p class="mt-2 mb-0" id="gvm-upload-text">Kéo thả file ZIP vào đây hoặc click để chọn</p>
+                                <input type="file" id="gvm-file-input" accept=".zip" style="display: none;" />
+                            </div>
+                            
+                            <div id="gvm-file-info" class="file-info mt-2" style="background-color: #fff3e0;">
+                                <p><strong>File:</strong> <span id="gvm-file-name"></span></p>
+                                <p><strong>Kích thước:</strong> <span id="gvm-file-size"></span></p>
+                            </div>
+                            
+                            <div class="mt-3 text-end">
+                                <button id="btn-import-gvm" class="btn btn-import btn-action" style="background: linear-gradient(135deg, var(--warning-color), #e65100);" disabled>
+                                    <i class="bi bi-upload"></i>
+                                    <span>Tải lên và Hợp nhất</span>
+                                </button>
+                            </div>
+                            
+                            <!-- GVM RESULT AREA -->
+                            <div id="gvm-result-area" class="result-area mt-4" style="display: none;">
+                                <h5>Kết quả hợp nhất chi tiết:</h5>
+                                <div class="stats-row mb-3">
+                                    <div class="stat-card success">
+                                        <h3 id="gvm-inserted">0</h3>
+                                        <p>File thêm mới</p>
+                                    </div>
+                                    <div class="stat-card warning">
+                                        <h3 id="gvm-updated">0</h3>
+                                        <p>File ghi đè</p>
+                                    </div>
+                                </div>
+                                
+                                <h6 class="mb-2 text-dark mt-4">Thống kê theo Phòng Ban / Khoa:</h6>
+                                <div class="accordion mb-3" id="gvmStatsAccordion">
+                                </div>
+                                
+                                <div id="gvm-logs-area"></div>
+
+                                <div id="gvm-errors" style="display: none; margin-top: 1rem;">
+                                    <h6 class="text-danger">Lỗi:</h6>
+                                    <div class="code-block" id="gvm-error-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
             </div>
         </div>
 
@@ -1052,6 +1159,162 @@
                 } finally {
                     btn.html(originalHtml);
                     $('#btn-import').prop('disabled', true);
+                }
+            }
+
+            // ==========================================
+            // GVM FILE SYNC HANDLERS
+            // ==========================================
+
+            let selectedGvmFile = null;
+
+            // Setup events
+            $(document).ready(function() {
+                // File upload area click
+                $('#gvm-file-upload-area').on('click', function (e) {
+                    document.getElementById('gvm-file-input').click();
+                });
+
+                // File input change
+                $('#gvm-file-input').change(function (e) {
+                    handleGvmFileSelect(e.target.files[0]);
+                });
+
+                // Drag and drop for GVM
+                const gvmUploadArea = document.getElementById('gvm-file-upload-area');
+
+                if (gvmUploadArea) {
+                    gvmUploadArea.addEventListener('dragover', function (e) {
+                        e.preventDefault();
+                        $(this).addClass('dragover');
+                    });
+
+                    gvmUploadArea.addEventListener('dragleave', function (e) {
+                        e.preventDefault();
+                        $(this).removeClass('dragover');
+                    });
+
+                    gvmUploadArea.addEventListener('drop', function (e) {
+                        e.preventDefault();
+                        $(this).removeClass('dragover');
+
+                        const file = e.dataTransfer.files[0];
+                        if (file && (file.type === 'application/zip' || file.type === 'application/x-zip-compressed' || file.name.endsWith('.zip'))) {
+                            handleGvmFileSelect(file);
+                        } else {
+                            Swal.fire('Lỗi', 'Vui lòng chọn file ZIP', 'warning');
+                        }
+                    });
+                }
+
+                // Import button
+                $('#btn-import-gvm').click(handleGvmImport);
+            });
+
+            function handleGvmFileSelect(file) {
+                if (!file) return;
+
+                if (!file.name.endsWith('.zip')) {
+                    Swal.fire('Lỗi', 'Vui lòng chọn file nén định dạng .zip', 'warning');
+                    return;
+                }
+
+                selectedGvmFile = file;
+                $('#gvm-file-name').text(file.name);
+                $('#gvm-file-size').text((file.size / (1024 * 1024)).toFixed(2) + ' MB');
+                $('#gvm-file-info').addClass('show');
+                $('#btn-import-gvm').prop('disabled', false);
+            }
+
+            async function handleGvmImport() {
+                if (!selectedGvmFile) return;
+
+                const btn = $('#btn-import-gvm');
+                const originalHtml = btn.html();
+                btn.html('<span class="spinner-border spinner-border-sm"></span> Đang xử lý...');
+                btn.prop('disabled', true);
+
+                try {
+                    const formData = new FormData();
+                    formData.append('gvmZip', selectedGvmFile);
+
+                    const response = await fetch('/sync/gvm-files/import', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: `Đã xử lý file Giảng Viên Mời. Kết quả hiển thị chi tiết bên dưới.`,
+                            icon: 'success'
+                        });
+
+                        $('#gvm-inserted').text(data.filesAdded || 0);
+                        $('#gvm-updated').text(data.filesOverwritten || 0);
+                        
+                        const accordionInfo = $('#gvmStatsAccordion');
+                        accordionInfo.empty();
+                        $('#gvm-logs-area').empty();
+                        
+                        if (data.details && data.details.departments) {
+                            let idx = 0;
+                            for (const [dept, stats] of Object.entries(data.details.departments)) {
+                                idx++;
+                                const item = `
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="heading-${idx}">
+                                    <div class="accordion-button collapsed px-3 py-2" style="background: #f8f9fa;">
+                                        <b class="me-3" style="min-width: 150px">${dept}</b> 
+                                        <span class="badge bg-success me-2">+${stats.added} mới</span>
+                                        <span class="badge bg-warning text-dark">~${stats.overwritten} ghi đè</span>
+                                    </div>
+                                    </h2>
+                                </div>`;
+                                accordionInfo.append(item);
+                            }
+                            
+                            // Thêm khối logs
+                            if (data.details.logs && data.details.logs.length > 0) {
+                                const logsHtml = data.details.logs.map(log => 
+                                    (log.startsWith('[NEW]') ? `<span class="text-success">${log}</span>` : `<span class="text-warning">${log}</span>`)
+                                ).join('<br/>');
+                                
+                                const logsBlock = `
+                                <div class="mt-3">
+                                    <h6 class="text-dark">Lịch sử thay đổi tệp (Tối đa hiển thị ${data.details.logs.length}):</h6>
+                                    <div class="code-block" style="max-height: 400px; overflow-y: auto;">
+                                        ${logsHtml}
+                                    </div>
+                                </div>`;
+                                $('#gvm-logs-area').html(logsBlock);
+                            }
+                        }
+                        
+                        if (data.errors && data.errors.length > 0) {
+                            $('#gvm-errors').show();
+                            $('#gvm-error-list').html(data.errors.map(e => `${e.file}: ${e.error}`).join('<br>'));
+                        } else {
+                            $('#gvm-errors').hide();
+                        }
+
+                        $('#gvm-result-area').addClass('show').show();
+
+                        // reset
+                        selectedGvmFile = null;
+                        $('#gvm-file-input').val('');
+                        $('#gvm-file-info').removeClass('show');
+                        $('#btn-import-gvm').prop('disabled', true);
+                    } else {
+                        throw new Error(data.message || 'Import failed');
+                    }
+                } catch (error) {
+                    console.error('Import GVM error:', error);
+                    Swal.fire('Lỗi', error.message || 'Không thể hợp nhất file GVM', 'error');
+                } finally {
+                    btn.html(originalHtml);
                 }
             }
         </script>
