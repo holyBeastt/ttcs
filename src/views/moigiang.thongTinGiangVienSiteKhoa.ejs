@@ -272,17 +272,20 @@
               <option value="ALL">Tất cả hệ</option>
             </select>
 
-            <button id="getData" class="btn text-nowrap mx-3" style="width: max-content;">Hiển thị</button>
-            <button id="update-qc" class="btn mx-3 luu">Cập nhật</button>
-            <!-- onclick="submitData()" -->
+            <button id="getData" class="btn-premium text-nowrap mx-3">
+              <i class="fas fa-search"></i> Hiển thị
+            </button>
+            <button id="update-qc" class="btn-premium mx-3 luu">
+              <i class="fas fa-save"></i> Cập nhật
+            </button>
             
             <button
-              class="btn text-nowrap mx-2"
+              class="btn-premium text-nowrap mx-2"
               id="export-file-btn"
-              style="display: inline-block; height: 45px;"
+              style="display: inline-block;"
               onclick="exportToExcel()"
             >
-              Xuất file
+              <i class="fas fa-file-export"></i> Xuất file
             </button>
           </div>
 

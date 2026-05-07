@@ -359,21 +359,23 @@
             <option value="ALL">Tất cả hệ</option>
           </select>
 
-          <button id="infoGvm" class="btn text-nowrap mx-2" style="height: 45px;">Xem dữ liệu</button>
-          <button onclick="submitData()" class="btn mx-2" id="update-qc" style="display: none; height: 45px;">
-            Cập nhật
+          <button id="infoGvm" class="btn-premium text-nowrap mx-2">
+            <i class="fas fa-search"></i> Xem dữ liệu
           </button>
-          <button onclick="submitData2()" class="btn mx-2" id="save-data-all" style="display: none; height: 45px;">
-            Lưu dữ liệu hợp đồng
+          <button onclick="submitData()" class="btn-premium mx-2" id="update-qc" style="display: none;">
+            <i class="fas fa-save"></i> Cập nhật
+          </button>
+          <button onclick="submitData2()" class="btn-premium mx-2" id="save-data-all" style="display: none;">
+            <i class="fas fa-file-contract"></i> Lưu dữ liệu hợp đồng
           </button>
           
           <button
-            class="btn text-nowrap mx-2"
+            class="btn-premium text-nowrap mx-2"
             id="export-file-btn"
-            style="display: none; height: 45px;"
+            style="display: none;"
             onclick="exportToExcel()"
           >
-            Xuất file
+            <i class="fas fa-file-export"></i> Xuất file
           </button>
         </div>
       </div>
