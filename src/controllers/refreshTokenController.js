@@ -6,7 +6,7 @@ require("dotenv").config();
  * Controller xử lý cấp lại Access Token từ Refresh Token
  */
 const refresh = async (req, res) => {
-  const refreshToken = req.cookies && req.cookies.refresh_token;
+  const refreshToken = (req.cookies && req.cookies.refresh_token) || req.body.refreshToken;
 
   if (!refreshToken) {
     return res.status(401).json({ message: "Không tìm thấy refresh token" });
@@ -84,7 +84,8 @@ const refresh = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: "Làm mới token thành công"
+      message: "Làm mới token thành công",
+      accessToken: token
     });
 
   } catch (err) {
