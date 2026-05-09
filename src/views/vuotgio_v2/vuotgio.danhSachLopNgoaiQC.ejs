@@ -112,6 +112,75 @@
             text-align: left !important;
             width: 100%;
         }
+
+        /* Summary Popup Styles */
+        .summary {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .summary.collapsed {
+            transform: translateY(calc(100% + 10px));
+        }
+
+        .summary-toggle {
+            position: absolute;
+            top: -35px;
+            right: 0;
+            width: 35px;
+            height: 35px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 10px 0 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .summary.collapsed .summary-toggle {
+            transform: translateY(5px);
+            border-radius: 10px 10px 0 0;
+            right: 10px;
+            top: -40px;
+        }
+
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            min-width: 200px;
+            padding: 4px 0;
+        }
+
+        .summary-box .label {
+            color: #516078;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .summary-box .value {
+            color: #007BFF;
+            font-weight: 700;
+            font-size: 1rem;
+        }
     </style>
 </head>
 
@@ -119,6 +188,24 @@
     <%- include('../header') %>
 
         <div class="vuotgio-v2-container">
+            <div class="summary" id="summaryBox">
+                <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="summary-box">
+                    <div class="label">Tổng giảng viên</div>
+                    <div class="value" id="totalTeachers">0</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Tổng tiết Lên Lớp</div>
+                    <div class="value" id="popupTotalLL">0</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Tổng tiết Quy Chuẩn</div>
+                    <div class="value" id="popupTotalQC">0</div>
+                </div>
+            </div>
+
             <!-- Grid Section -->
             <div class="grid-container">
                 <!-- Toolbar: Dropdowns + Buttons -->
@@ -187,7 +274,7 @@
                 </div>
 
                 <!-- Total Labels -->
-                <div class="total-label">
+                <div class="total-label d-none">
                     <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label>
                     <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
                 </div>
@@ -293,7 +380,7 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label">Hệ đào tạo</label>
-                                    <select id="editHeDaoTao" class="form-select"></select>
+                                    <select id="editHeDaoTaoId" class="form-select"></select>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label">Ngày bắt đầu</label>

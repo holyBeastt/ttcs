@@ -1,0 +1,111 @@
+{
+  "schema": [
+    {
+      "field": "id",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "PRI",
+      "default": null
+    },
+    {
+      "field": "MaPhongBan",
+      "type": "char(20)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "TenPhongBan",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "GhiChu",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "isKhoa",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    }
+  ],
+  "rows": [
+    {
+      "id": 1,
+      "MaPhongBan": "ATTT",
+      "TenPhongBan": "An toàn thông tin",
+      "GhiChu": "Khoa An toàn thông tin",
+      "isKhoa": 1
+    },
+    {
+      "id": 2,
+      "MaPhongBan": "CNTT",
+      "TenPhongBan": "Công nghệ thông tin",
+      "GhiChu": "Khoa Công nghệ thông tin",
+      "isKhoa": 1
+    },
+    {
+      "id": 3,
+      "MaPhongBan": "DAOTAO",
+      "TenPhongBan": "Đào Tạo",
+      "GhiChu": "Phòng Đào tạo",
+      "isKhoa": 0
+    },
+    {
+      "id": 4,
+      "MaPhongBan": "BGĐ",
+      "TenPhongBan": "Ban giám đốc",
+      "GhiChu": "",
+      "isKhoa": 0
+    },
+    {
+      "id": 5,
+      "MaPhongBan": "NC&HTPT",
+      "TenPhongBan": "Viện nghiên cứu và hợp tác phát triển",
+      "GhiChu": "",
+      "isKhoa": 0
+    },
+    {
+      "id": 6,
+      "MaPhongBan": "VP",
+      "TenPhongBan": "Văn phòng",
+      "GhiChu": null,
+      "isKhoa": 0
+    },
+    {
+      "id": 7,
+      "MaPhongBan": "ĐTVM",
+      "TenPhongBan": "Điện tử vi mạch",
+      "GhiChu": "Khoa Điện tử vi mạch",
+      "isKhoa": 1
+    },
+    {
+      "id": 9,
+      "MaPhongBan": "ĐTPH",
+      "TenPhongBan": "Đào tạo tại phân hiệu",
+      "GhiChu": "Cơ sở tại Tp. Hồ Chí Minh",
+      "isKhoa": 1
+    },
+    {
+      "id": 10,
+      "MaPhongBan": "KT&ĐBCL",
+      "TenPhongBan": "Khảo thí và đảm bảo chất lượng",
+      "GhiChu": "",
+      "isKhoa": 0
+    },
+    {
+      "id": 11,
+      "MaPhongBan": "CB",
+      "TenPhongBan": "Cơ bản",
+      "GhiChu": null,
+      "isKhoa": 1
+    }
+  ]
+}

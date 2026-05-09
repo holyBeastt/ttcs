@@ -54,10 +54,7 @@
             font-size: 14px;
             height: 50px;
         }
-        .fixed-section {
-            height: 500px;
-            overflow-y: auto;
-        }
+        /* Bỏ CSS cũ */
         .total-row {
             background-color: #e9ecef;
             font-weight: bold;
@@ -91,6 +88,76 @@
         }
         .table th, .table td {
             vertical-align: middle;
+            text-align: center;
+        }
+
+        /* Summary Popup Styles */
+        .summary {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .summary.collapsed {
+            transform: translateY(calc(100% + 10px));
+        }
+
+        .summary-toggle {
+            position: absolute;
+            top: -35px;
+            right: 0;
+            width: 35px;
+            height: 35px;
+            background: #198754;
+            color: white;
+            border: none;
+            border-radius: 10px 0 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .summary.collapsed .summary-toggle {
+            transform: translateY(5px);
+            border-radius: 10px 10px 0 0;
+            right: 10px;
+            top: -40px;
+        }
+
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            min-width: 200px;
+            padding: 4px 0;
+        }
+
+        .summary-box .label {
+            color: #516078;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .summary-box .value {
+            color: #198754;
+            font-weight: 700;
+            font-size: 1rem;
         }
     </style>
 </head>
@@ -100,13 +167,23 @@
 
     <div class="vuotgio-v2-container">
         <!-- Page Header -->
-        <!-- <div class="page-header">
-            <h2 class="page-title">
-                <i class="fas fa-graduation-cap text-success me-2"></i>
-                Hướng Dẫn Đồ Án Tốt Nghiệp
-            </h2>
-            <p class="text-muted mb-0">Thống kê số tiết hướng dẫn ĐATN theo giảng viên (cơ hữu)</p>
-        </div> -->
+        <div class="summary" id="summaryBox">
+            <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="summary-box">
+                <div class="label">Tổng giảng viên</div>
+                <div class="value" id="totalTeachers">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tổng sinh viên</div>
+                <div class="value" id="totalStudents">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tổng số tiết</div>
+                <div class="value" id="totalHours">0</div>
+            </div>
+        </div>
 
         <!-- Grid Section -->
         <div class="grid-container">
@@ -142,15 +219,18 @@
             </div>
 
             <!-- Table Section -->
-            <div id="renderInfo" class="fixed-section">
+            <div id="renderInfo">
                 <table class="table table-bordered table-hover text-center" style="width: 100%">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 60px;">STT</th>
-                            <th style="width: 300px;">Giảng viên</th>
-                            <th style="width: 120px;">Khoa</th>
-                            <th style="width: 120px;">Số tiết</th>
-                            <th style="width: 100px;">Chi tiết</th>
+                            <th style="width: 50px;">STT</th>
+                            <th style="width: 180px;">Giảng viên</th>
+                            <th style="width: 100px;">Khoa</th>
+                            <th style="width: 180px;">Sinh viên</th>
+                            <th style="width: 80px;">Khóa</th>
+                            <th style="width: 250px;">Tên đề tài</th>
+                            <th style="width: 70px;">Số tiết</th>
+                            <th style="width: 70px;">Chi tiết</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -158,7 +238,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="total-row">
-                            <td colspan="3" class="text-end"><strong>Tổng số tiết:</strong></td>
+                            <td colspan="6" class="text-end"><strong>Tổng số tiết:</strong></td>
                             <td id="tongSoTiet"><strong>0</strong></td>
                             <td></td>
                         </tr>

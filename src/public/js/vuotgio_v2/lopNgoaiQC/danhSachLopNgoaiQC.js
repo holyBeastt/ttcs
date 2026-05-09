@@ -14,12 +14,17 @@ const userKhoa = localStorage.getItem('MaPhongBan') || '';
 
 // ==================== INITIALIZATION ====================
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     console.log('[DanhSachLopNgoaiQC] Init - chính thức (cột mới)');
 
-    loadNamHocOptions();
-    loadKhoaOptions();
-    loadHeDaoTaoOptions();
+    // Load dropdowns và tự động tải dữ liệu
+    await Promise.all([
+        loadNamHocOptions(),
+        loadKhoaOptions(),
+        loadHeDaoTaoOptions()
+    ]);
+
+    loadData();
 
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
     document.getElementById('saveEditBtn').addEventListener('click', handleEditSubmit);
@@ -132,14 +137,14 @@ async function loadHeDaoTaoOptions() {
             heDaoTaoList = result.data;
         }
 
-        const editHeDaoTao = document.getElementById('editHeDaoTao');
-        if (editHeDaoTao) {
-            editHeDaoTao.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
+        const editHeDaoTaoId = document.getElementById('editHeDaoTaoId');
+        if (editHeDaoTaoId) {
+            editHeDaoTaoId.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
             heDaoTaoList.forEach(item => {
                 const option = document.createElement('option');
-                option.value = item.he_dao_tao;
+                option.value = item.id; // Dùng ID thay vì tên nếu có thể, hoặc giữ tính nhất quán
                 option.textContent = item.he_dao_tao;
-                editHeDaoTao.appendChild(option);
+                editHeDaoTaoId.appendChild(option);
             });
         }
     } catch (error) {
@@ -198,6 +203,9 @@ function renderTable(data) {
         const tableRow = document.createElement('tr');
         tableRow.setAttribute('data-id', row.ID);
         tableRow.setAttribute('data-index', index);
+        tableRow.setAttribute('data-giangvien', row.GiangVien || '');
+        tableRow.setAttribute('data-ll', row.LL || 0);
+        tableRow.setAttribute('data-qc', row.QuyChuan || 0);
 
         // STT
         const sttTd = document.createElement('td');
@@ -243,24 +251,24 @@ function renderTable(data) {
         const heDTTd = document.createElement('td');
         const heDTSelect = document.createElement('select');
         heDTSelect.className = 'hdt-select';
-        heDTSelect.name = 'he_dao_tao';
+        heDTSelect.name = 'he_dao_tao_id';
 
         const emptyOpt = document.createElement('option');
         emptyOpt.value = '';
         emptyOpt.textContent = '';
         heDTSelect.appendChild(emptyOpt);
 
-        const currentHeDT = String(row.he_dao_tao || '').trim();
+        const currentHeDT = String(row.he_dao_tao_id || '').trim();
         heDaoTaoList.forEach(item => {
             const opt = document.createElement('option');
-            opt.value = item.he_dao_tao;
+            opt.value = item.id;
             opt.textContent = item.he_dao_tao;
             if (String(item.id) === currentHeDT || item.he_dao_tao === currentHeDT) opt.selected = true;
             heDTSelect.appendChild(opt);
         });
 
         heDTSelect.addEventListener('change', () => {
-            if (globalData[index]) globalData[index].he_dao_tao = heDTSelect.value;
+            if (globalData[index]) globalData[index].he_dao_tao_id = heDTSelect.value;
         });
 
         heDTTd.appendChild(heDTSelect);
@@ -365,18 +373,36 @@ function filterTable() {
 function calculateTotals() {
     let totalLL = 0;
     let totalQC = 0;
+    const uniqueGVs = new Set();
 
     const rows = document.querySelectorAll('#tableBody tr');
     rows.forEach(row => {
         if (row.style.display === 'none') return;
-        const llCell = row.querySelector('td:nth-child(10)');
-        const qcCell = row.querySelector('td:nth-child(12)');
-        totalLL += parseFloat(llCell?.textContent) || 0;
-        totalQC += parseFloat(qcCell?.textContent) || 0;
+        
+        const gv = row.getAttribute('data-giangvien');
+        if (gv) uniqueGVs.add(gv);
+        
+        const llVal = parseFloat(row.getAttribute('data-ll')) || 0;
+        const qcVal = parseFloat(row.getAttribute('data-qc')) || 0;
+        
+        totalLL += llVal;
+        totalQC += qcVal;
     });
 
-    document.getElementById('totalLL').textContent = totalLL.toFixed(2);
-    document.getElementById('totalQC').textContent = totalQC.toFixed(2);
+    // Cập nhật footer cũ (nếu còn)
+    const oldTotalLL = document.getElementById('totalLL');
+    const oldTotalQC = document.getElementById('totalQC');
+    if (oldTotalLL) oldTotalLL.textContent = totalLL.toFixed(2);
+    if (oldTotalQC) oldTotalQC.textContent = totalQC.toFixed(2);
+    
+    // Cập nhật popup mới
+    const popTeachers = document.getElementById('totalTeachers');
+    const popTotalLL = document.getElementById('popupTotalLL');
+    const popTotalQC = document.getElementById('popupTotalQC');
+    
+    if (popTeachers) popTeachers.textContent = uniqueGVs.size;
+    if (popTotalLL) popTotalLL.textContent = totalLL.toFixed(2);
+    if (popTotalQC) popTotalQC.textContent = totalQC.toFixed(2);
 }
 
 // ==================== CHECK ALL ====================
@@ -429,7 +455,7 @@ function editRecord(id) {
     document.getElementById('editHeSoT7CN').value = record.HeSoT7CN || 1;
     document.getElementById('editHeSoLopDong').value = record.HeSoLopDong || 1;
     document.getElementById('editQuyChuan').value = record.QuyChuan || 0;
-    document.getElementById('editHeDaoTao').value = record.he_dao_tao || '';
+    document.getElementById('editHeDaoTaoId').value = record.he_dao_tao_id || '';
     document.getElementById('editNgayBatDau').value = record.NgayBatDau || '';
     document.getElementById('editNgayKetThuc').value = record.NgayKetThuc || '';
     document.getElementById('editGhiChu').value = record.GhiChu || '';
@@ -461,7 +487,7 @@ async function handleEditSubmit() {
         HeSoT7CN: document.getElementById('editHeSoT7CN').value,
         HeSoLopDong: document.getElementById('editHeSoLopDong').value,
         QuyChuan: document.getElementById('editQuyChuan').value,
-        he_dao_tao: document.getElementById('editHeDaoTao').value,
+        he_dao_tao_id: document.getElementById('editHeDaoTaoId').value,
         NgayBatDau: document.getElementById('editNgayBatDau').value,
         NgayKetThuc: document.getElementById('editNgayKetThuc').value,
         GhiChu: document.getElementById('editGhiChu').value
@@ -568,3 +594,20 @@ async function submitApprovals() {
         Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật', 'error');
     }
 }
+
+// ==================== TOGGLE SUMMARY ====================
+document.addEventListener('DOMContentLoaded', function() {
+    const btnToggle = document.getElementById('btnToggleSummary');
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function() {
+            const summaryBox = document.getElementById('summaryBox');
+            summaryBox.classList.toggle('collapsed');
+            const icon = this.querySelector('i');
+            if (summaryBox.classList.contains('collapsed')) {
+                icon.className = 'bi bi-chevron-up';
+            } else {
+                icon.className = 'bi bi-chevron-down';
+            }
+        });
+    }
+});

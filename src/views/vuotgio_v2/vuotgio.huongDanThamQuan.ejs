@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hướng Dẫn Tham Quan Thực Tế - Vượt Giờ V2</title>
+
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/table.css" />
+    
+    <style>
+        .page-wrap {
+            padding: 20px;
+        }
+        .panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .loc {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .search {
+            height: 45px !important;
+            padding: 0 1rem !important;
+            box-sizing: border-box;
+        }
+        .btn {
+            height: 45px !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.5rem !important;
+            box-sizing: border-box;
+            margin-bottom: 0 !important;
+        }
+        .table-wrap {
+            margin-top: 14px;
+            overflow: auto;
+        }
+        table.class-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .class-table th,
+        .class-table td {
+            border: 1px solid #dbe3f0;
+            padding: 8px;
+            font-size: 0.9rem;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .class-table th {
+            background: #1f4ea8;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        /* Searchable Select Styles */
+        .searchable-select {
+            position: relative;
+        }
+        .searchable-select .dropdown-menu {
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            width: 100%;
+        }
+        .searchable-select .dropdown-menu.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../header') %>
+
+    <div class="page-wrap">
+        <div class="panel">
+            <div class="title">Hướng dẫn tham quan thực tế</div>
+
+            <!-- Toolbar -->
+            <div class="header-actions" style="height: 45px">
+                <div class="loc d-flex">
+                    <select class="selectop" id="namHocFilter" style="width: 130px;"></select>
+                    <select class="selectop" id="kiFilter" style="width: 100px;">
+                        <option value="1">Kì 1</option>
+                        <option value="2">Kì 2</option>
+                    </select>
+                    <select class="selectop" id="dotFilter" style="width: 100px;">
+                        <option value="1">Đợt 1</option>
+                        <option value="2">Đợt 2</option>
+                    </select>
+                    <select class="selectop" id="khoaFilter" style="width: 200px;">
+                        <option value="ALL">Tất cả khoa</option>
+                    </select>
+                    
+                    <button id="loadDataBtn" class="btn text-nowrap mx-2">Hiển thị</button>
+                </div>
+
+                <button id="addNewBtn" class="btn btn-success text-nowrap">Thêm mới</button>
+            </div>
+
+            <!-- Table Section -->
+            <div class="table-wrap">
+                <table class="class-table" id="mainTable">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Giảng viên</th>
+                            <th>Khoa</th>
+                            <th>Hệ Đào Tạo</th>
+                            <th>Ngành học</th>
+                            <th>Mô tả hoạt động</th>
+                            <th>Số ngày</th>
+                            <th>Số tiết quy đổi</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dữ liệu sẽ được chèn vào đây -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal fade" id="formModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Thêm mới hướng dẫn tham quan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="dataForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="recordId" name="id">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Giảng viên <span class="text-danger">*</span></label>
+                                <div class="searchable-select">
+                                    <input type="text" class="form-control" id="teacherSearch" placeholder="Nhập tên giảng viên..." autocomplete="off" required>
+                                    <input type="hidden" id="id_User" name="id_User">
+                                    <ul class="dropdown-menu" id="teacherList"></ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Khoa (Đơn vị) <span class="text-danger">*</span></label>
+                                <select class="form-select" id="khoa" name="khoa" required></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Năm học <span class="text-danger">*</span></label>
+                                <select class="form-select" id="nam_hoc" name="nam_hoc" required></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Kỳ học</label>
+                                <select class="form-select" id="hoc_ky" name="hoc_ky">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Đợt</label>
+                                <select class="form-select" id="dot" name="dot">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Hệ đào tạo <span class="text-danger">*</span></label>
+                                <select class="form-select" id="he_dao_tao_id" name="he_dao_tao_id" required></select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Ngành học</label>
+                                <input type="text" class="form-control" name="nganh_hoc">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Theo QĐ</label>
+                                <input type="text" class="form-control" name="theo_qd">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Mô tả hoạt động</label>
+                                <textarea class="form-control" name="mo_ta_hoat_dong" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Số ngày <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="so_ngay" name="so_ngay" required min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Số tiết quy đổi</label>
+                                <input type="text" class="form-control bg-light" id="so_tiet_quy_doi" readonly value="0">
+                                <small class="text-muted">(1 ngày = 3 tiết)</small>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Ghi chú</label>
+                                <textarea class="form-control" name="ghi_chu" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu dữ liệu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+    <script src="/js/vuotgio_v2/huongDanThamQuan/index.js"></script>
+</body>
+
+</html>

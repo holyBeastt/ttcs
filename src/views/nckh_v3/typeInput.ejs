@@ -50,12 +50,14 @@
           </div>
         <% } %>
 
-        <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'DETAI_DUAN') { %>
+        <% if (selectedTypeMeta && selectedTypeMeta.showMaSo) { %>
           <div class="form-col">
-            <label class="form-label">Mã số <span class="required">*</span></label>
+            <label class="form-label"><%= selectedTypeMeta.maSoLabel || 'Mã số' %> <span class="required">*</span></label>
             <input id="maSo" type="text" class="form-control" required placeholder="Nhập mã số" />
           </div>
+        <% } %>
 
+        <% if (selectedTypeMeta && selectedTypeMeta.showSoNamThucHien) { %>
           <div class="form-col">
             <label class="form-label">Số năm thực hiện</label>
             <input id="soNamThucHien" type="number" min="1" step="1" value="1" class="form-control" />
@@ -79,6 +81,17 @@
           <button type="button" id="addTacGiaBtn" class="btn btn-secondary mt-2">Thêm</button>
           <div id="tacGia-suggestions" class="suggestions-list"></div>
         </div>
+
+        <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'HOIDONG') { %>
+          <div class="form-col">
+            <label class="form-label">Vai trò <span class="required">*</span></label>
+            <select id="vaiTroHoiDong" class="form-select" required>
+              <option value="chu_tich">Chủ tịch</option>
+              <option value="phan_bien">Phản biện</option>
+              <option value="uy_vien">Ủy viên</option>
+            </select>
+          </div>
+        <% } %>
 
         <div class="form-col" id="tacGiaDonViGroup">
           <label class="form-label">Đơn vị công tác</label>

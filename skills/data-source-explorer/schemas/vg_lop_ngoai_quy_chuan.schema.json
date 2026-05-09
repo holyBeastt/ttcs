@@ -1,0 +1,205 @@
+[
+  {
+    "field": "id",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "PRI",
+    "default": null
+  },
+  {
+    "field": "tt",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "so_tin_chi",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "lop_hoc_phan",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ma_bo_mon",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "id_User",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "MUL",
+    "default": null
+  },
+  {
+    "field": "ll",
+    "type": "float",
+    "nullable": true,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "so_tiet_ctdt",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "he_so_t7cn",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "so_sv",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "he_so_lop_dong",
+    "type": "float",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "quy_chuan",
+    "type": "decimal(10,2)",
+    "nullable": true,
+    "key": "",
+    "default": "0.00"
+  },
+  {
+    "field": "hoc_ky",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": "1"
+  },
+  {
+    "field": "nam_hoc",
+    "type": "varchar(20)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ma_hoc_phan",
+    "type": "varchar(20)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "giang_vien",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "giao_vien_giang_day",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "moi_giang",
+    "type": "tinyint(1)",
+    "nullable": true,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "he_dao_tao_id",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ten_lop",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "khoa_duyet",
+    "type": "tinyint(1)",
+    "nullable": true,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "dao_tao_duyet",
+    "type": "tinyint(1)",
+    "nullable": true,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "tai_chinh_duyet",
+    "type": "tinyint(1)",
+    "nullable": true,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "ngay_bat_dau",
+    "type": "date",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ngay_ket_thuc",
+    "type": "date",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "khoa",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "dot",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": "1"
+  },
+  {
+    "field": "ghi_chu",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "hoan_thanh",
+    "type": "tinyint(1)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  }
+]

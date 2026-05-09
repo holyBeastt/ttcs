@@ -1,0 +1,333 @@
+{
+  "schema": [
+    {
+      "field": "id",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "PRI",
+      "default": null
+    },
+    {
+      "field": "tt",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "so_tin_chi",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "lop_hoc_phan",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "ma_bo_mon",
+      "type": "varchar(50)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "id_User",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "MUL",
+      "default": null
+    },
+    {
+      "field": "ll",
+      "type": "float",
+      "nullable": true,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "so_tiet_ctdt",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "he_so_t7cn",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "so_sv",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "he_so_lop_dong",
+      "type": "float",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "quy_chuan",
+      "type": "decimal(10,2)",
+      "nullable": true,
+      "key": "",
+      "default": "0.00"
+    },
+    {
+      "field": "hoc_ky",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": "1"
+    },
+    {
+      "field": "nam_hoc",
+      "type": "varchar(20)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "ma_hoc_phan",
+      "type": "varchar(20)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "giang_vien",
+      "type": "varchar(50)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "giao_vien_giang_day",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "moi_giang",
+      "type": "tinyint(1)",
+      "nullable": true,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "he_dao_tao_id",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "ten_lop",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "khoa_duyet",
+      "type": "tinyint(1)",
+      "nullable": true,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "dao_tao_duyet",
+      "type": "tinyint(1)",
+      "nullable": true,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "tai_chinh_duyet",
+      "type": "tinyint(1)",
+      "nullable": true,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "ngay_bat_dau",
+      "type": "date",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "ngay_ket_thuc",
+      "type": "date",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "khoa",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "dot",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": "1"
+    },
+    {
+      "field": "ghi_chu",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "hoan_thanh",
+      "type": "tinyint(1)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    }
+  ],
+  "rows": [
+    {
+      "id": 95,
+      "tt": null,
+      "so_tin_chi": 2,
+      "lop_hoc_phan": "Kiến trúc máy tính-2-25 (C8D701)",
+      "ma_bo_mon": "ATCTHT",
+      "id_User": null,
+      "ll": 35,
+      "so_tiet_ctdt": 0,
+      "he_so_t7cn": "1.00",
+      "so_sv": 60,
+      "he_so_lop_dong": 1.2000000476837158,
+      "quy_chuan": "42.00",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "ma_hoc_phan": "ATCTHT2",
+      "giang_vien": "Lê Đức Thuận ; Giảng viên mời",
+      "giao_vien_giang_day": "Lê Đức Thuận ; Giảng viên mời",
+      "moi_giang": 0,
+      "he_dao_tao_id": "1",
+      "ten_lop": "Kiến trúc máy tính-2-25 (C8D701)",
+      "khoa_duyet": 1,
+      "dao_tao_duyet": 1,
+      "tai_chinh_duyet": 0,
+      "ngay_bat_dau": "2026-05-03T17:00:00.000Z",
+      "ngay_ket_thuc": "2026-06-27T17:00:00.000Z",
+      "khoa": "ATTT",
+      "dot": 1,
+      "ghi_chu": null,
+      "hoan_thanh": 0
+    },
+    {
+      "id": 96,
+      "tt": null,
+      "so_tin_chi": 2,
+      "lop_hoc_phan": "Kiến trúc máy tính-2-25 (C8D702)",
+      "ma_bo_mon": "ATCTHT",
+      "id_User": null,
+      "ll": 35,
+      "so_tiet_ctdt": 0,
+      "he_so_t7cn": "1.00",
+      "so_sv": 60,
+      "he_so_lop_dong": 1.2000000476837158,
+      "quy_chuan": "42.00",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "ma_hoc_phan": "ATCTHT2",
+      "giang_vien": "Lê Đức Thuận ; Giảng viên mời",
+      "giao_vien_giang_day": "Lê Đức Thuận ; Giảng viên mời",
+      "moi_giang": 0,
+      "he_dao_tao_id": "1",
+      "ten_lop": "Kiến trúc máy tính-2-25 (C8D702)",
+      "khoa_duyet": 1,
+      "dao_tao_duyet": 1,
+      "tai_chinh_duyet": 0,
+      "ngay_bat_dau": "2026-05-03T17:00:00.000Z",
+      "ngay_ket_thuc": "2026-06-27T17:00:00.000Z",
+      "khoa": "ATTT",
+      "dot": 1,
+      "ghi_chu": null,
+      "hoan_thanh": 0
+    },
+    {
+      "id": 97,
+      "tt": null,
+      "so_tin_chi": 2,
+      "lop_hoc_phan": "Kiến trúc máy tính-2-25 (C8D703)",
+      "ma_bo_mon": "ATCTHT",
+      "id_User": null,
+      "ll": 35,
+      "so_tiet_ctdt": 0,
+      "he_so_t7cn": "1.00",
+      "so_sv": 60,
+      "he_so_lop_dong": 1.2000000476837158,
+      "quy_chuan": "42.00",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "ma_hoc_phan": "ATCTHT2",
+      "giang_vien": "Lê Đức Thuận ; Giảng viên mời",
+      "giao_vien_giang_day": "Lê Đức Thuận ; Giảng viên mời",
+      "moi_giang": 0,
+      "he_dao_tao_id": "1",
+      "ten_lop": "Kiến trúc máy tính-2-25 (C8D703)",
+      "khoa_duyet": 1,
+      "dao_tao_duyet": 1,
+      "tai_chinh_duyet": 0,
+      "ngay_bat_dau": "2026-05-03T17:00:00.000Z",
+      "ngay_ket_thuc": "2026-06-27T17:00:00.000Z",
+      "khoa": "ATTT",
+      "dot": 1,
+      "ghi_chu": null,
+      "hoan_thanh": 0
+    },
+    {
+      "id": 252,
+      "tt": 0,
+      "so_tin_chi": 0,
+      "lop_hoc_phan": "Môn học mới 1777344681706",
+      "ma_bo_mon": "",
+      "id_User": null,
+      "ll": 0,
+      "so_tiet_ctdt": 0,
+      "he_so_t7cn": "1",
+      "so_sv": 0,
+      "he_so_lop_dong": 1,
+      "quy_chuan": "0.00",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "ma_hoc_phan": "",
+      "giang_vien": "Lê Đức Thuận",
+      "giao_vien_giang_day": "Lê Đức Thuận",
+      "moi_giang": 0,
+      "he_dao_tao_id": "",
+      "ten_lop": "Môn học mới 1777344681706",
+      "khoa_duyet": 0,
+      "dao_tao_duyet": 0,
+      "tai_chinh_duyet": 0,
+      "ngay_bat_dau": null,
+      "ngay_ket_thuc": null,
+      "khoa": "CNTT",
+      "dot": 1,
+      "ghi_chu": "",
+      "hoan_thanh": 0
+    }
+  ]
+}

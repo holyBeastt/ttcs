@@ -7,12 +7,16 @@ let globalData = []; // Biến toàn cục để lưu dữ liệu từ server
 
 // ==================== INITIALIZATION ====================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('[DuyetKTHP] Init - HTML Table Version');
     
-    // Load dropdowns
-    loadNamHocOptions();
-    loadKhoaOptions();
+    // Load dropdowns và tự động tải dữ liệu
+    await Promise.all([
+        loadNamHocOptions(),
+        loadKhoaOptions()
+    ]);
+    
+    loadData();
 
     // Event listeners
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
@@ -124,6 +128,8 @@ function renderTable(data) {
         const tableRow = document.createElement('tr');
         tableRow.setAttribute('data-id', row.id);
         tableRow.setAttribute('data-index', index);
+        tableRow.setAttribute('data-giangvien', row.giangvien || '');
+        tableRow.setAttribute('data-qc', row.sotietqc || 0);
 
         // STT
         const sttTd = document.createElement('td');
@@ -208,9 +214,34 @@ function renderTable(data) {
         tableBody.appendChild(tableRow);
     });
 
+    updateSummary();
+
     // Update Check All states
     updateCheckAll('khoa');
     updateCheckAll('khaoThi');
+}
+
+// ==================== UPDATE SUMMARY ====================
+function updateSummary() {
+    const rows = document.querySelectorAll('#tableBody tr');
+    const uniqueGVs = new Set();
+    let totalQC = 0;
+
+    rows.forEach(row => {
+        if (row.style.display !== 'none') {
+            const gv = row.getAttribute('data-giangvien');
+            if (gv) uniqueGVs.add(gv);
+            
+            const qcVal = parseFloat(row.getAttribute('data-qc')) || 0;
+            totalQC += qcVal;
+        }
+    });
+
+    const popTeachers = document.getElementById('totalTeachers');
+    const popTotalQC = document.getElementById('totalQC');
+    
+    if (popTeachers) popTeachers.textContent = uniqueGVs.size;
+    if (popTotalQC) popTotalQC.textContent = totalQC.toFixed(2);
 }
 
 // ==================== FILTER ====================
@@ -237,6 +268,8 @@ function filterTable() {
             row.style.display = 'none';
         }
     });
+
+    updateSummary();
 }
 
 // ==================== CHECK ALL ====================
@@ -476,3 +509,20 @@ async function submitApprovals() {
         Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật', 'error');
     }
 }
+
+// ==================== TOGGLE SUMMARY ====================
+document.addEventListener('DOMContentLoaded', function() {
+    const btnToggle = document.getElementById('btnToggleSummary');
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function() {
+            const summaryBox = document.getElementById('summaryBox');
+            summaryBox.classList.toggle('collapsed');
+            const icon = this.querySelector('i');
+            if (summaryBox.classList.contains('collapsed')) {
+                icon.className = 'bi bi-chevron-up';
+            } else {
+                icon.className = 'bi bi-chevron-down';
+            }
+        });
+    }
+});

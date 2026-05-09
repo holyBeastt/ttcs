@@ -1,0 +1,256 @@
+{
+  "schema": [
+    {
+      "field": "id",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "PRI",
+      "default": null
+    },
+    {
+      "field": "id_User",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "MUL",
+      "default": null
+    },
+    {
+      "field": "giang_vien",
+      "type": "varchar(255)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "khoa",
+      "type": "varchar(255)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "hoc_ky",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "nam_hoc",
+      "type": "varchar(20)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "hinh_thuc",
+      "type": "varchar(255)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "ten_hoc_phan",
+      "type": "varchar(255)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "lop_hoc_phan",
+      "type": "varchar(255)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "so_sv",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "so_tc",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "he_dao_tao_id",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "MUL",
+      "default": null
+    },
+    {
+      "field": "doi_tuong",
+      "type": "varchar(255)",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "bai_cham_1",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "bai_cham_2",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "tong_so",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "quy_chuan",
+      "type": "decimal(10,2)",
+      "nullable": false,
+      "key": "",
+      "default": "0.00"
+    },
+    {
+      "field": "ghi_chu",
+      "type": "varchar(255)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "khoa_duyet",
+      "type": "tinyint(1)",
+      "nullable": false,
+      "key": "",
+      "default": "0"
+    },
+    {
+      "field": "khao_thi_duyet",
+      "type": "tinyint(1)",
+      "nullable": false,
+      "key": "",
+      "default": "0"
+    }
+  ],
+  "rows": [
+    {
+      "id": 5,
+      "id_User": 11,
+      "giang_vien": "Lê Đức Thuận",
+      "khoa": "CNTT",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "hinh_thuc": "Ra đề",
+      "ten_hoc_phan": "test",
+      "lop_hoc_phan": "test",
+      "so_sv": 0,
+      "so_tc": 0,
+      "he_dao_tao_id": 1,
+      "doi_tuong": "Việt Nam",
+      "bai_cham_1": 0,
+      "bai_cham_2": 0,
+      "tong_so": 0,
+      "quy_chuan": "7.25",
+      "ghi_chu": "",
+      "khoa_duyet": 1,
+      "khao_thi_duyet": 1
+    },
+    {
+      "id": 6,
+      "id_User": 11,
+      "giang_vien": "Lê Đức Thuận",
+      "khoa": "CNTT",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "hinh_thuc": "Coi thi",
+      "ten_hoc_phan": "test",
+      "lop_hoc_phan": "test",
+      "so_sv": 0,
+      "so_tc": 0,
+      "he_dao_tao_id": 1,
+      "doi_tuong": "Việt Nam",
+      "bai_cham_1": 0,
+      "bai_cham_2": 0,
+      "tong_so": 0,
+      "quy_chuan": "3.60",
+      "ghi_chu": "",
+      "khoa_duyet": 1,
+      "khao_thi_duyet": 1
+    },
+    {
+      "id": 7,
+      "id_User": 11,
+      "giang_vien": "Lê Đức Thuận",
+      "khoa": "CNTT",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "hinh_thuc": "Chấm thi",
+      "ten_hoc_phan": "test",
+      "lop_hoc_phan": "test",
+      "so_sv": 0,
+      "so_tc": 0,
+      "he_dao_tao_id": 1,
+      "doi_tuong": "Việt Nam",
+      "bai_cham_1": 0,
+      "bai_cham_2": 0,
+      "tong_so": 0,
+      "quy_chuan": "1.43",
+      "ghi_chu": "",
+      "khoa_duyet": 1,
+      "khao_thi_duyet": 1
+    },
+    {
+      "id": 8,
+      "id_User": 11,
+      "giang_vien": "Lê Đức Thuận",
+      "khoa": "CNTT",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "hinh_thuc": "Ngân hàng câu hỏi",
+      "ten_hoc_phan": "test",
+      "lop_hoc_phan": "test",
+      "so_sv": 0,
+      "so_tc": 0,
+      "he_dao_tao_id": 1,
+      "doi_tuong": "Việt Nam",
+      "bai_cham_1": 0,
+      "bai_cham_2": 0,
+      "tong_so": 0,
+      "quy_chuan": "42.00",
+      "ghi_chu": "",
+      "khoa_duyet": 1,
+      "khao_thi_duyet": 1
+    },
+    {
+      "id": 10,
+      "id_User": 11,
+      "giang_vien": "Lê Đức Thuận",
+      "khoa": "CNTT",
+      "hoc_ky": 1,
+      "nam_hoc": "2025 - 2026",
+      "hinh_thuc": "Ra đề",
+      "ten_hoc_phan": "test2",
+      "lop_hoc_phan": "AA",
+      "so_sv": 33,
+      "so_tc": 3,
+      "he_dao_tao_id": 2,
+      "doi_tuong": "ĐH Mật mã Việt Nam",
+      "bai_cham_1": 0,
+      "bai_cham_2": 0,
+      "tong_so": 33,
+      "quy_chuan": "44.00",
+      "ghi_chu": "",
+      "khoa_duyet": 1,
+      "khao_thi_duyet": 1
+    }
+  ]
+}

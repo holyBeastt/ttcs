@@ -181,7 +181,7 @@ const buildParticipantsWithEqualHours = (
   return participants;
 };
 
-const buildParticipantsWithFixedHours = (tongSoTiet, tacGiaIds, tacGiaNgoai = []) => {
+const buildParticipantsWithFixedHours = (tongSoTiet, tacGiaIds, tacGiaNgoai = [], vaiTro = "tac_gia") => {
   const uniqueTacGia = [...new Set((tacGiaIds || []).map(Number))];
   const ngoaiTacGia = Array.isArray(tacGiaNgoai) ? tacGiaNgoai : [];
   const tongSoNguoi = uniqueTacGia.length + ngoaiTacGia.length;
@@ -191,10 +191,11 @@ const buildParticipantsWithFixedHours = (tongSoTiet, tacGiaIds, tacGiaNgoai = []
   }
 
   const fixedHours = quyDoiSoTietCoDinh(Number(tongSoTiet));
+  const normalizedRole = vaiTro || "tac_gia";
 
   return [
-    ...uniqueTacGia.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "tac_gia", soTiet: fixedHours })),
-    ...ngoaiTacGia.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "tac_gia", soTiet: fixedHours })),
+    ...uniqueTacGia.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: normalizedRole, soTiet: fixedHours })),
+    ...ngoaiTacGia.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: normalizedRole, soTiet: fixedHours })),
   ];
 };
 
@@ -205,7 +206,8 @@ const buildParticipantsByMode = (
   thanhVienIds,
   tacGiaNgoai = [],
   thanhVienNgoai = [],
-  soNamThucHien = 1
+  soNamThucHien = 1,
+  vaiTro = null
 ) => {
   if (mode === "equal") {
     return buildParticipantsWithEqualHours(
@@ -219,7 +221,7 @@ const buildParticipantsByMode = (
   }
 
   if (mode === "fixed") {
-    return buildParticipantsWithFixedHours(tongSoTiet, tacGiaIds, tacGiaNgoai);
+    return buildParticipantsWithFixedHours(tongSoTiet, tacGiaIds, tacGiaNgoai, vaiTro);
   }
 
   return buildParticipantsWithHours(

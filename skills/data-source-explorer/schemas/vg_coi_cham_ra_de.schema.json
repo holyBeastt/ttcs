@@ -1,0 +1,142 @@
+[
+  {
+    "field": "id",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "PRI",
+    "default": null
+  },
+  {
+    "field": "id_User",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "MUL",
+    "default": null
+  },
+  {
+    "field": "giang_vien",
+    "type": "varchar(255)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "khoa",
+    "type": "varchar(255)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "hoc_ky",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "nam_hoc",
+    "type": "varchar(20)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "hinh_thuc",
+    "type": "varchar(255)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ten_hoc_phan",
+    "type": "varchar(255)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "lop_hoc_phan",
+    "type": "varchar(255)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "so_sv",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "so_tc",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "he_dao_tao_id",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "MUL",
+    "default": null
+  },
+  {
+    "field": "doi_tuong",
+    "type": "varchar(255)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "bai_cham_1",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "bai_cham_2",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "tong_so",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "quy_chuan",
+    "type": "decimal(10,2)",
+    "nullable": false,
+    "key": "",
+    "default": "0.00"
+  },
+  {
+    "field": "ghi_chu",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "khoa_duyet",
+    "type": "tinyint(1)",
+    "nullable": false,
+    "key": "",
+    "default": "0"
+  },
+  {
+    "field": "khao_thi_duyet",
+    "type": "tinyint(1)",
+    "nullable": false,
+    "key": "",
+    "default": "0"
+  }
+]

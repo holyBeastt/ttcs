@@ -1,0 +1,30 @@
+[
+  {
+    "field": "id",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "PRI",
+    "default": null
+  },
+  {
+    "field": "he_dao_tao",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "cap_do",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "loai_hinh",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  }
+]
