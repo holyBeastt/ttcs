@@ -355,16 +355,24 @@ const renderInfo = async (req, res) => {
   const isKhoa = req.session.isKhoa;
   const MaPhongBan = req.session.MaPhongBan;
 
-  const { Dot, Ki, Nam } = req.body; // Lấy giá trị Dot, Ki, Nam từ body của yêu cầu
+  const { Dot, Ki, Nam, HeDaoTao } = req.body; // Lấy giá trị Dot, Ki, Nam, HeDaoTao từ body của yêu cầu
   const tableName = process.env.DB_TABLE_QC;
   let query = "";
-
+  let queryParams = [];
 
   // Xác định query SQL dựa trên isKhoa
   if (isKhoa == 1) {
-    query = `SELECT * FROM ${tableName} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND Khoa = ?;`;
+    query = `SELECT * FROM ${tableName} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND Khoa = ?`;
+    queryParams = [Dot, Ki, Nam, MaPhongBan];
   } else {
-    query = `SELECT * FROM ${tableName} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?;`;
+    query = `SELECT * FROM ${tableName} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?`;
+    queryParams = [Dot, Ki, Nam];
+  }
+
+  // Thêm filter HeDaoTao nếu có
+  if (HeDaoTao && HeDaoTao !== "ALL") {
+    query += ` AND he_dao_tao = ?`;
+    queryParams.push(HeDaoTao);
   }
 
   let connection;
@@ -378,10 +386,7 @@ const renderInfo = async (req, res) => {
     const TaiChinhCheck = await TaiChinhCheckAll(req, connection, Dot, Ki, Nam);
 
     // Thực hiện truy vấn với tham số an toàn
-    const [results] = await connection.query(
-      query,
-      isKhoa == 0 ? [Dot, Ki, Nam] : [Dot, Ki, Nam, MaPhongBan]
-    );
+    const [results] = await connection.query(query, queryParams);
 
     if (results.length === 0) {
       return res.status(404).json({ message: "No data found" });

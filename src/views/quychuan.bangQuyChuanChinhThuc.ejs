@@ -137,6 +137,11 @@
             <option value="">Chọn năm học</option>
           </select>
 
+          <!-- Combo box Hệ đào tạo -->
+          <select class="form-select mx-1 selectop" id="heDaoTao" style="width: max-content">
+            <option value="ALL">Tất cả hệ đào tạo</option>
+          </select>
+
           <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
           <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
             <option value="">Chọn khoa</option>
@@ -455,14 +460,23 @@
           
           if (result.success && result.data) {
             // Chuyển đổi data từ API sang format phù hợp
-            // API trả về: {id: 1, he_dao_tao: "Tên hệ"}
-            // Chuyển thành: {id: 1, tenHe: "Tên hệ"}
-            // Đảm bảo id luôn là số để so sánh chính xác
             heDaoTaoList = result.data.map(item => ({
               id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
               tenHe: item.he_dao_tao
             }));
             console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
+
+            // Cập nhật options của select#heDaoTao
+            const heDaoTaoSelect = document.getElementById('heDaoTao');
+            if (heDaoTaoSelect) {
+              heDaoTaoSelect.innerHTML = '<option value="ALL">Tất cả hệ đào tạo</option>';
+              heDaoTaoList.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.tenHe;
+                heDaoTaoSelect.appendChild(opt);
+              });
+            }
           } else {
             console.error('API không trả về dữ liệu hợp lệ');
             heDaoTaoList = [];
@@ -508,6 +522,7 @@
           let kiValue = document.getElementById("comboboxki").value;
           let namValue = document.getElementById("NamHoc").value;
           let khoaValue = document.getElementById("MaPhongBan").value;
+          let heDaoTaoValue = document.getElementById("heDaoTao").value;
 
           // Đối tượng dữ liệu gửi đi
           const requestData = {
@@ -515,6 +530,7 @@
             Dot: dotValue,
             Ki: kiValue,
             Nam: namValue,
+            HeDaoTao: heDaoTaoValue,
           };
 
           console.log("Dữ liệu gửi đi:", requestData);

@@ -266,6 +266,12 @@
             <select class="selectop mx-1 " id="NamHoc" style="width: 150px;">
               <option value="">Năm học</option>
             </select>
+
+            <!-- Combo box Hệ đào tạo -->
+            <select class="selectop mx-1" id="heDaoTao" style="min-width:140px">
+              <option value="ALL">Tất cả hệ</option>
+            </select>
+
             <button id="getData" class="btn text-nowrap mx-3" style="width: max-content;">Hiển thị</button>
             <button id="update-qc" class="btn mx-3 luu">Cập nhật</button>
             <!-- onclick="submitData()" -->
@@ -644,15 +650,23 @@
           const result = await response.json();
           
           if (result.success && result.data) {
-            // Chuyển đổi data từ API sang format phù hợp
-            // API trả về: {id: 1, he_dao_tao: "Tên hệ"}
-            // Chuyển thành: {id: 1, tenHe: "Tên hệ"}
-            // Đảm bảo id luôn là số để so sánh chính xác
             heDaoTaoList = result.data.map(item => ({
               id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
               tenHe: item.he_dao_tao
             }));
             console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
+
+            // Cập nhật options của select#heDaoTao
+            const heDaoTaoSelect = document.getElementById('heDaoTao');
+            if (heDaoTaoSelect) {
+              heDaoTaoSelect.innerHTML = '<option value="ALL">Tất cả hệ</option>';
+              heDaoTaoList.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.tenHe;
+                heDaoTaoSelect.appendChild(opt);
+              });
+            }
           } else {
             console.error('API không trả về dữ liệu hợp lệ');
             heDaoTaoList = [];
@@ -829,12 +843,14 @@
           const dotValue = document.getElementById('combobox-dot').value;
           const kiValue = document.getElementById('comboboxki').value;
           const namValue = document.getElementById('NamHoc').value;
+          const heDaoTaoValue = document.getElementById('heDaoTao').value;
 
           // Tạo đối tượng dữ liệu để gửi
           const requestData = {
             Dot: dotValue,
             Ki: kiValue,
             Nam: namValue,
+            HeDaoTao: heDaoTaoValue,
           };
           const teachingResponse = await fetch('/api/v1/qc/thong-tin-giang-day', {
             method: 'POST',
@@ -935,12 +951,14 @@
             const dotValue = document.getElementById('combobox-dot').value;
             const kiValue = document.getElementById('comboboxki').value;
             const namValue = document.getElementById('NamHoc').value;
+            const heDaoTaoValue = document.getElementById('heDaoTao').value;
 
             // Tạo đối tượng dữ liệu để gửi
             const requestData = {
               Dot: dotValue,
               Ki: kiValue,
               Nam: namValue,
+              HeDaoTao: heDaoTaoValue,
             };
 
             // Gọi API đầu tiên
