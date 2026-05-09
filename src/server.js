@@ -4,6 +4,8 @@ const path = require("path");
 // require("dotenv").config();
 require("dotenv").config({ path: path.join(__dirname, '../.env') });
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const login = require("./routes/loginRoute");
 //const importFile = require("./routes/importRoute");
 
@@ -82,6 +84,7 @@ const hostname = process.env.HOST_NAME;
 
 // Gọi middleware lấy roles và departments
 app.use(constantsMiddleware);
+app.use(cookieParser());
 
 app.use(bodyParser.json({ limit: "500mb" }));
 app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
@@ -127,15 +130,41 @@ app.use(express.static(path.join(__dirname, "public/js"))); // tệp js
 app.use("/", login);
 
 app.use((req, res, next) => {
-  const publicRoutes = ["/", "/login"];
+  const publicRoutes = ["/", "/login", "/api/mobile/v1/refresh"];
 
-  // Nếu session không tồn tại & route hiện tại không thuộc danh sách public => Chuyển hướng đến /login
-  if (!req.session.userId && !publicRoutes.includes(req.path)) {
-    return res.redirect("/?sessionExpired=true");
-    //return res.redirect("/");
+  if (publicRoutes.includes(req.path)) {
+    return next();
   }
 
-  next(); // Tiếp tục xử lý route tiếp theo nếu session hợp lệ
+  // 1. Try session (standard EJS)
+  if (req.session && req.session.userId) {
+    return next();
+  }
+
+  // 2. Try JWT from HttpOnly Cookie (for API-ready EJS)
+  const token = req.cookies && req.cookies.access_token;
+  if (token) {
+    try {
+      const secret = process.env.JWT_SECRET || "your-secret-key";
+      const decoded = jwt.verify(token, secret);
+      
+      // Populate session-like data from decoded token
+      req.session.userId = decoded.userId;
+      req.session.username = decoded.username;
+      req.session.role = decoded.role;
+      req.session.MaPhongBan = decoded.MaPhongBan;
+      req.session.isKhoa = decoded.isKhoa;
+      req.session.TenNhanVien = decoded.TenNhanVien;
+      
+      return next();
+    } catch (err) {
+      console.warn("Invalid JWT cookie:", err.message);
+      res.clearCookie("access_token");
+    }
+  }
+
+  // Neither session nor valid token
+  return res.redirect("/?sessionExpired=true");
 });
 // config res.body
 //app.use(express.json()); // for json
@@ -196,6 +225,10 @@ app.use("/", phongHocRoute);
 app.use("/uy-nhiem-chi", uyNhiemChiRoute);
 app.use("/", kytubatdauKhoaRoute);
 app.use("/sync", syncRoute);
+
+// Mobile API Routes
+const refreshTokenRoute = require("./routes/refreshTokenRoute");
+app.use("/api/mobile/v1", refreshTokenRoute);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on http://${hostname}:${port}`);

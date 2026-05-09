@@ -8,9 +8,9 @@ let tableTam = process.env.DB_TABLE_TAM;
 let tableQC = process.env.DB_TABLE_QC;
 
 const getTableQC = async (req, res) => {
-  const { Khoa, Dot, Ki, Nam } = req.body;
+  const { Khoa, Dot, Ki, Nam, HeDaoTao } = req.body;
 
-  console.log("Lấy dữ liệu bảng tạm Khoa Đợt Kì Năm:", Khoa, Dot, Ki, Nam);
+  console.log("Lấy dữ liệu bảng tạm Khoa Đợt Kì Năm Hệ:", Khoa, Dot, Ki, Nam, HeDaoTao);
 
   let connection;
   try {
@@ -26,6 +26,12 @@ const getTableQC = async (req, res) => {
     } else {
       query = `SELECT * FROM ${tableQC} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?`;
       queryParams.push(Dot, Ki, Nam);
+    }
+
+    // Thêm filter he_dao_tao nếu có
+    if (HeDaoTao && HeDaoTao !== "ALL") {
+      query += ` AND he_dao_tao = ?`;
+      queryParams.push(HeDaoTao);
     }
 
     // Thực hiện truy vấn
@@ -44,9 +50,9 @@ const getTableQC = async (req, res) => {
 };
 
 const getTableTam = async (req, res) => {
-  const { Khoa, Dot, Ki, Nam } = req.body;
+  const { Khoa, Dot, Ki, Nam, HeDaoTao } = req.body;
 
-  console.log("Lấy dữ liệu bảng tạm Khoa Đợt Kì Năm:", Khoa, Dot, Ki, Nam);
+  console.log("Lấy dữ liệu bảng tạm Khoa Đợt Kì Năm Hệ:", Khoa, Dot, Ki, Nam, HeDaoTao);
 
   let connection;
   try {
@@ -62,6 +68,12 @@ const getTableTam = async (req, res) => {
     } else {
       query = `SELECT * FROM tam WHERE Dot = ? AND Ki = ? AND Nam = ?`;
       queryParams.push(Dot, Ki, Nam);
+    }
+
+    // Thêm filter he_dao_tao nếu có
+    if (HeDaoTao && HeDaoTao !== "ALL") {
+      query += ` AND he_dao_tao = ?`;
+      queryParams.push(HeDaoTao);
     }
 
     // Thực hiện truy vấn
