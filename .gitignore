@@ -11,3 +11,6 @@ test/
 docs/
 rule/
 .agent/
+
+# AGENTS
+Automation_coding_agent.md
