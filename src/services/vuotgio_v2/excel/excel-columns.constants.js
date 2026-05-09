@@ -1,6 +1,6 @@
 const columnsA1 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên học phần", align: "left" },
+  { label: "Tên học phần", align: "center" },
   { label: "Số TC (HT)", align: "center", isNumeric: true },
   { label: "Lớp học phần", align: "center" },
   { label: "Đối tượng", align: "center", highlightColumn: true },
@@ -10,7 +10,7 @@ const columnsA1 = () => [
 
 const columnsA2 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên học phần", align: "left" },
+  { label: "Tên học phần", align: "center" },
   { label: "Ra đề/ Coi thi/ Chấm thi kết thúc học phần", align: "center" },
   { label: "Lớp học phần", align: "center" },
   { label: "Đối tượng", align: "center", highlightColumn: true },
@@ -25,7 +25,7 @@ const columnsA2 = () => [
 
 const columnsB = () => [
   { label: "TT", align: "center" },
-  { label: "Họ tên NCS, Học viên, Sinh viên", align: "left" },
+  { label: "Họ tên NCS, Học viên, Sinh viên", align: "center" },
   { label: "Khóa đào tạo", align: "center" },
   { label: "Số QĐ Giao Luận án, Luận văn, đồ án", align: "center" },
   { label: "Số người HD", align: "center", isNumeric: true },
@@ -35,7 +35,7 @@ const columnsB = () => [
 
 const columnsC = () => [
   { label: "TT", align: "center" },
-  { label: "Mô tả hoạt động", align: "left" },
+  { label: "Mô tả hoạt động", align: "center" },
   { label: "Khóa đào tạo", align: "center" },
   { label: "Theo QĐ", align: "center" },
   { label: "Số ngày", align: "center", isNumeric: true },
@@ -45,7 +45,7 @@ const columnsC = () => [
 
 const columnsD1 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên đề tài, dự án (mã số đề tài, dự án)", align: "left" },
+  { label: "Tên đề tài, dự án (mã số đề tài, dự án)", align: "center" },
   { label: "Chủ trì/ thành viên", align: "center" },
   { label: "Cấp đề tài", align: "center" },
   { label: "Ngày nghiệm thu", align: "center" },
@@ -55,7 +55,7 @@ const columnsD1 = () => [
 
 const columnsD2 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên sáng kiến (mã số sáng kiến nếu có)", align: "left" },
+  { label: "Tên sáng kiến (mã số sáng kiến nếu có)", align: "center" },
   { label: "Chủ trì/ thành viên", align: "center" },
   { label: "Sáng kiến", align: "center" },
   { label: "Ngày nghiệm thu", align: "center" },
@@ -65,7 +65,7 @@ const columnsD2 = () => [
 
 const columnsD3 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên giải pháp khoa học, giải thưởng; Bằng sáng chế", align: "left" },
+  { label: "Tên giải pháp khoa học, giải thưởng; Bằng sáng chế", align: "center" },
   { label: "Số QĐ công nhận", align: "center" },
   { label: "Ngày QĐ công nhận", align: "center" },
   { label: "Số người", align: "center", isNumeric: true },
@@ -75,7 +75,7 @@ const columnsD3 = () => [
 
 const columnsD4 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên đề xuất (mã số nếu có)", align: "left" },
+  { label: "Tên đề xuất (mã số nếu có)", align: "center" },
   { label: "Chủ trì/ thành viên", align: "center" },
   { label: "Cấp quốc gia, quốc tế; cấp Bộ và tương đương; cấp cơ sở", align: "center" },
   { label: "Ngày nghiệm thu", align: "center" },
@@ -85,7 +85,7 @@ const columnsD4 = () => [
 
 const columnsD5 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên sách, giáo trình", align: "left" },
+  { label: "Tên sách, giáo trình", align: "center" },
   { label: "Số xuất bản", align: "center" },
   { label: "Số trang", align: "center" },
   { label: "Số người", align: "center", isNumeric: true },
@@ -95,7 +95,7 @@ const columnsD5 = () => [
 
 const columnsD6 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên bài báo", align: "left" },
+  { label: "Tên bài báo", align: "center" },
   { label: "Loại tạp chí/ hội nghị", align: "center" },
   { label: "Chỉ số tạp chí/ hội nghị", align: "center" },
   { label: "Số người", align: "center", isNumeric: true },
@@ -105,7 +105,7 @@ const columnsD6 = () => [
 
 const columnsD7 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên đề tài", align: "left" },
+  { label: "Tên đề tài", align: "center" },
   { label: "Số QĐ giao nhiệm vụ", align: "center" },
   { label: "Ngày ký QĐ giao nhiệm vụ", align: "center" },
   { label: "Kết quả bảo vệ cấp Khoa", align: "center" },
@@ -115,7 +115,7 @@ const columnsD7 = () => [
 
 const columnsD8 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên hội đồng khoa học", align: "left" },
+  { label: "Tên hội đồng khoa học", align: "center" },
   { label: "Hội đồng cấp", align: "center" },
   { label: "Hội đồng cấp", align: "center" },
   { label: "Chức danh (chủ tịch, phản biện, ủy viên)", align: "center" },
@@ -125,7 +125,7 @@ const columnsD8 = () => [
 
 const columnsD9 = () => [
   { label: "TT", align: "center" },
-  { label: "Tên nhiệm vụ", align: "left" },
+  { label: "Tên nhiệm vụ", align: "center" },
   { label: "Số QĐ giao nhiệm vụ", align: "center" },
   { label: "Ngày kí QĐ", align: "center" },
   { label: "Nghiệm vụ được phân công theo quyết định", align: "center" },

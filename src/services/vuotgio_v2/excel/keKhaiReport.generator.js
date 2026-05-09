@@ -10,7 +10,7 @@ const {
   filterA1, mapA1Row, filterA2, mapA2Row,
   filterB, bFilterMatMa, bFilterDongHP, mapBRow,
   filterC, cFilterMatMa, cFilterDongHP, mapCRow,
-  filterD, mapDRow, ensureRows, numberRows, toNum,
+  filterD, mapDRow, ensureRows, numberRows, toNum, normDate,
 } = require("./sdo-data.helpers");
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -29,10 +29,10 @@ const buildHeader = (summary) => ({
     "(Căn cứ theo QĐ 1267/QĐ-HVM ngày 04 tháng 12 năm 2025 về việc ban hành Quy định mức giờ chuẩn giảng dạy và nghiên cứu khoa học đối với nhà giáo và trợ lý nghiên cứu tại Học viện Kỹ thuật mật mã)",
   personalFields: [
     { label: "Họ và tên:", value: summary?.giangVien || "" },
-    { label: "Ngày sinh:", value: summary?.ngaySinh || "" },
+    { label: "Ngày sinh:", value: normDate(summary?.ngaySinh || "") },
     { label: "Học hàm/ Học vị:", value: summary?.hocVi || "", fullWidth: true },
     { label: "Chức vụ hiện nay (Đảng, CQ, đoàn thể):", value: summary?.chucVu || "", fullWidth: true },
-    { label: "Hệ số lương:", value: summary?.hsl ? String(summary.hsl) : "", fullWidth: true, highlightValue: true },
+    { label: "Hệ số lương:", value: summary?.hsl ? Number(Number(summary.hsl).toFixed(2)).toString() : "", fullWidth: true, highlightValue: true },
     { label: "Thu nhập (lương thực nhận, không tính phụ cấp học hàm, học vị):", value: "", fullWidth: true },
   ],
   totalCols: EXCEL_GLOBAL_BLOCKS_LAYOUT.totalCols,
@@ -180,15 +180,25 @@ const renderSummarySectionE = (sheet, startRow, summary) => {
     { tt: "VI", label: "Tổng số tiết vượt giờ đề nghị thanh toán", value: E.vi || 0 },
   ];
 
+  const dataStartRow = row;
   rows.forEach((item) => {
     sheet.getCell(row, 1).value = item.tt;
     styleCell(sheet.getCell(row, 1), { hAlign: "center" });
-    mergeAndStyle(sheet, row, 2, row, 4, item.label, { hAlign: "left" });
+    mergeAndStyle(sheet, row, 2, row, 4, item.label, { hAlign: "center" });
     sheet.getCell(row, 5).value = item.value;
     sheet.getCell(row, 5).numFmt = "#,##0.00";
     styleCell(sheet.getCell(row, 5), { hAlign: "center", fontColor: COLOR.BLUE, bold: true });
-    mergeAndStyle(sheet, row, 6, row, 7, item.tt === "IV" ? (E.ly_do || "") : "", { hAlign: "left" });
+    // Apply borders for the empty reason columns
+    styleCell(sheet.getCell(row, 6), {});
+    styleCell(sheet.getCell(row, 7), {});
     row += 1;
+  });
+
+  // Now merge columns 6-7 across all summary rows
+  mergeAndStyle(sheet, dataStartRow, 6, row - 1, 7, E.ly_do || "", {
+    hAlign: "center",
+    vAlign: "middle",
+    wrapText: true,
   });
 
   return row;
@@ -220,7 +230,7 @@ const renderStatsTableF = (sheet, startRow, summary, useFormulas) => {
     sheet.getCell(row, 1).value = item.tt;
     styleCell(sheet.getCell(row, 1), { hAlign: "center" });
     sheet.getCell(row, 2).value = item.doi_tuong || "";
-    styleCell(sheet.getCell(row, 2), { hAlign: "left" });
+    styleCell(sheet.getCell(row, 2), { hAlign: "center" });
     sheet.getCell(row, 3).value = item.hk1 || 0;
     sheet.getCell(row, 4).value = item.hk2 || 0;
     sheet.getCell(row, 5).value = item.do_an || 0;
@@ -260,7 +270,7 @@ const renderSignatures = (sheet, startRow, summary) => {
   let row = startRow + 1;
 
   const signatures = [
-    { title: "CHỦ NHIỆM KHOA", subtitle: "(ký, ghi rõ họ tên)", name: "", colStart: 1, colEnd: 3 },
+    { title: "CHỦ NHIỆM KHOA", subtitle: "(ký, ghi rõ họ tên)", name: summary?.chuNhiemKhoa || "", colStart: 1, colEnd: 3 },
     { title: "NGƯỜI KÊ KHAI", subtitle: "(ký, ghi rõ họ tên)", name: summary?.giangVien || "", colStart: 5, colEnd: 7 },
   ];
 
@@ -300,7 +310,7 @@ const renderKeKhaiWorksheet = (workbook, summary, sheetName, renderOptions = {})
   const groups = [buildAGroup(summary), buildBGroup(summary), buildCGroup(summary), buildDGroup(summary)];
 
   const sheet = workbook.addWorksheet(sheetName, {
-    pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1 },
+    pageSetup: { orientation: "portrait", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
   });
 
   const headerRow = require("./excel-header.renderer").renderDocumentHeader(sheet, header, 1, 1);
@@ -313,8 +323,8 @@ const renderKeKhaiWorksheet = (workbook, summary, sheetName, renderOptions = {})
     sectionSubtotalGap: 1,
   };
 
-  // Render groups A, B, C
-  const abcResults = renderBlockGroups(sheet, groups.slice(0, 3), nextRow, 1, 0, EXCEL_GLOBAL_BLOCKS_LAYOUT, renderOpts);
+  // Render groups A, B, C (with rowGap = 1)
+  const abcResults = renderBlockGroups(sheet, groups.slice(0, 3), nextRow, 1, 1, EXCEL_GLOBAL_BLOCKS_LAYOUT, renderOpts);
   if (abcResults.length) {
     // renderBlockGroups returns block-level nextRow, but also renders group-level finalTotal rows after.
     // The last group's finalTotal sits on the returned nextRow, so we skip past it.
@@ -331,16 +341,16 @@ const renderKeKhaiWorksheet = (workbook, summary, sheetName, renderOptions = {})
   styleCell(abcCell, { bgColor: COLOR.FINAL_TOTAL_BG, bold: true, hAlign: "center", borders: BORDERS.allMedium() });
   nextRow += 2;
 
-  // Render group D
-  const dResults = renderBlockGroups(sheet, groups.slice(3), nextRow, 1, 0, EXCEL_GLOBAL_BLOCKS_LAYOUT, renderOpts);
+  // Render group D (with rowGap = 1)
+  const dResults = renderBlockGroups(sheet, groups.slice(3), nextRow, 1, 1, EXCEL_GLOBAL_BLOCKS_LAYOUT, renderOpts);
   if (dResults.length) {
     nextRow = dResults[dResults.length - 1].nextRow + 1;
   }
 
-  // E & F & Signatures
-  nextRow = renderSummarySectionE(sheet, nextRow + 1, summary);
-  nextRow = renderStatsTableF(sheet, nextRow + 1, summary, renderOptions.useFormulas);
-  renderSignatures(sheet, nextRow + 1, summary);
+  // E & F & Signatures (add spacing between them)
+  nextRow = renderSummarySectionE(sheet, nextRow + 2, summary);
+  nextRow = renderStatsTableF(sheet, nextRow + 2, summary, renderOptions.useFormulas);
+  renderSignatures(sheet, nextRow + 2, summary);
 
   return sheet;
 };

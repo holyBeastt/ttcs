@@ -8,9 +8,31 @@
 
 let globalData = [];
 let heDaoTaoList = [];
+let currentEditId = null;
 
 const userRole = localStorage.getItem('userRole') || '';
 const userKhoa = localStorage.getItem('MaPhongBan') || '';
+
+function toDateInputValue(value) {
+    if (!value) return '';
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().slice(0, 10);
+}
+
+function toDateDisplay(value) {
+    const input = toDateInputValue(value);
+    if (!input) return '';
+    const [year, month, day] = input.split('-');
+    return `${day}/${month}/${year}`;
+}
+
+function toFixedInput(value, decimals) {
+    const num = parseFloat(value);
+    if (Number.isNaN(num)) return '';
+    return num.toFixed(decimals);
+}
 
 // ==================== INITIALIZATION ====================
 
@@ -32,6 +54,20 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
     document.getElementById('filterHocPhan').addEventListener('input', filterTable);
+
+    const editHeDaoTaoId = document.getElementById('editHeDaoTaoId');
+    if (editHeDaoTaoId) {
+        editHeDaoTaoId.addEventListener('change', () => {
+            const prevValue = editHeDaoTaoId.dataset.prevValue || '';
+            const nextValue = editHeDaoTaoId.value;
+            console.log('[LNQC][he_dao_tao] modal change', {
+                id: currentEditId,
+                prev: prevValue,
+                next: nextValue
+            });
+            editHeDaoTaoId.dataset.prevValue = nextValue;
+        });
+    }
 
     setupUpdateButtonVisibility();
 });
@@ -73,7 +109,7 @@ function canApprove(type) {
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'lanhDao_khoa';
 
     if (MaPhongBan === banGiamDoc) return true;
-    if (type === 'khoa') return role === lanhDaoKhoa;
+    if (type === 'khoa') return role === lanhDaoKhoa || role === lanhDaoPhong;
     if (type === 'daoTao') return MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong);
     return false;
 }
@@ -133,8 +169,12 @@ async function loadHeDaoTaoOptions() {
         const response = await fetch('/api/gvm/v1/he-dao-tao');
         const result = await response.json();
 
-        if (result.success && result.data) {
+        if (Array.isArray(result)) {
+            heDaoTaoList = result;
+        } else if (result.success && Array.isArray(result.data)) {
             heDaoTaoList = result.data;
+        } else {
+            heDaoTaoList = [];
         }
 
         const editHeDaoTaoId = document.getElementById('editHeDaoTaoId');
@@ -142,8 +182,8 @@ async function loadHeDaoTaoOptions() {
             editHeDaoTaoId.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
             heDaoTaoList.forEach(item => {
                 const option = document.createElement('option');
-                option.value = item.id; // Dùng ID thay vì tên nếu có thể, hoặc giữ tính nhất quán
-                option.textContent = item.he_dao_tao;
+                option.value = item.id;
+                option.textContent = item.he_dao_tao || item.ten || '';
                 editHeDaoTaoId.appendChild(option);
             });
         }
@@ -253,22 +293,58 @@ function renderTable(data) {
         heDTSelect.className = 'hdt-select';
         heDTSelect.name = 'he_dao_tao_id';
 
-        const emptyOpt = document.createElement('option');
-        emptyOpt.value = '';
-        emptyOpt.textContent = '';
-        heDTSelect.appendChild(emptyOpt);
+        const placeholderOpt = document.createElement('option');
+        placeholderOpt.value = '';
+        placeholderOpt.textContent = '-- Chọn hệ đào tạo --';
+        heDTSelect.appendChild(placeholderOpt);
 
-        const currentHeDT = String(row.he_dao_tao_id || '').trim();
-        heDaoTaoList.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.id;
-            opt.textContent = item.he_dao_tao;
-            if (String(item.id) === currentHeDT || item.he_dao_tao === currentHeDT) opt.selected = true;
-            heDTSelect.appendChild(opt);
-        });
+        const currentHeDT = String(
+            row.he_dao_tao_id ?? row.HeDaoTaoId ?? row.he_dao_tao ?? row.HeDaoTao ?? ''
+        ).trim();
 
+        if (heDaoTaoList.length === 0) {
+            const emptyOpt = document.createElement('option');
+            emptyOpt.value = '';
+            emptyOpt.textContent = 'Chưa có dữ liệu';
+            heDTSelect.appendChild(emptyOpt);
+            heDTSelect.disabled = true;
+        } else {
+            let matched = false;
+            heDaoTaoList.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.he_dao_tao || item.ten || '';
+                if (String(item.id) === currentHeDT || String(item.he_dao_tao) === currentHeDT) {
+                    opt.selected = true;
+                    matched = true;
+                }
+                heDTSelect.appendChild(opt);
+            });
+
+            if (!matched && currentHeDT) {
+                const opt = document.createElement('option');
+                opt.value = currentHeDT;
+                opt.textContent = currentHeDT;
+                opt.selected = true;
+                heDTSelect.appendChild(opt);
+            }
+        }
+
+        if (currentHeDT) {
+            heDTSelect.value = currentHeDT;
+        }
+
+        heDTSelect.dataset.prevValue = currentHeDT;
         heDTSelect.addEventListener('change', () => {
-            if (globalData[index]) globalData[index].he_dao_tao_id = heDTSelect.value;
+            const prevValue = heDTSelect.dataset.prevValue || '';
+            const nextValue = heDTSelect.value;
+            console.log('[LNQC][he_dao_tao] table change', {
+                id: row.ID,
+                prev: prevValue,
+                next: nextValue
+            });
+            heDTSelect.dataset.prevValue = nextValue;
+            if (globalData[index]) globalData[index].he_dao_tao_id = nextValue;
         });
 
         heDTTd.appendChild(heDTSelect);
@@ -290,6 +366,21 @@ function renderTable(data) {
         qcTd.textContent = isNaN(qcVal) ? '' : qcVal.toFixed(2);
         tableRow.appendChild(qcTd);
 
+        // Ngày bắt đầu
+        const startDateTd = document.createElement('td');
+        startDateTd.textContent = toDateDisplay(row.NgayBatDau);
+        tableRow.appendChild(startDateTd);
+
+        // Ngày kết thúc
+        const endDateTd = document.createElement('td');
+        endDateTd.textContent = toDateDisplay(row.NgayKetThuc);
+        tableRow.appendChild(endDateTd);
+
+        // Ghi chú
+        const ghiChuTd = document.createElement('td');
+        ghiChuTd.textContent = row.GhiChu || '';
+        tableRow.appendChild(ghiChuTd);
+
         // Checkbox Khoa
         const khoaCheckTd = document.createElement('td');
         const khoaCheckbox = document.createElement('input');
@@ -298,10 +389,11 @@ function renderTable(data) {
         khoaCheckbox.checked = row.KhoaDuyet === 1;
         khoaCheckbox.onchange = () => updateCheckAll('khoa');
 
-        if (MaPhongBan === banGiamDoc || role === lanhDaoKhoa) {
-            khoaCheckbox.disabled = false;
-        } else {
+        if (row.DaoTaoDuyet === 1) {
+            khoaCheckbox.checked = true;
             khoaCheckbox.disabled = true;
+        } else {
+            khoaCheckbox.disabled = !canApprove('khoa');
         }
         khoaCheckTd.appendChild(khoaCheckbox);
         tableRow.appendChild(khoaCheckTd);
@@ -314,9 +406,7 @@ function renderTable(data) {
         dtCheckbox.checked = row.DaoTaoDuyet === 1;
         dtCheckbox.onchange = () => updateCheckAll('daoTao');
 
-        if (MaPhongBan === banGiamDoc) {
-            dtCheckbox.disabled = false;
-        } else if (MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong)) {
+        if (canApprove('daoTao')) {
             dtCheckbox.disabled = row.KhoaDuyet !== 1;
         } else {
             dtCheckbox.disabled = true;
@@ -437,6 +527,7 @@ function editRecord(id) {
 
     // Fill modal với tên cột mới
     document.getElementById('editID').value = record.ID;
+    currentEditId = record.ID;
     document.getElementById('editNamHoc').value = record.NamHoc;
     document.getElementById('editHocKy').value = record.KiHoc || '';
     document.getElementById('editKhoa').value = record.Khoa || '';
@@ -452,12 +543,16 @@ function editRecord(id) {
     document.getElementById('editMoiGiang').checked = record.MoiGiang === 1;
     document.getElementById('editSoTietLL').value = record.LL || 0;
     document.getElementById('editSoTietCTDT').value = record.SoTietCTDT || 0;
-    document.getElementById('editHeSoT7CN').value = record.HeSoT7CN || 1;
-    document.getElementById('editHeSoLopDong').value = record.HeSoLopDong || 1;
+    document.getElementById('editHeSoT7CN').value = toFixedInput(record.HeSoT7CN ?? 1, 2);
+    document.getElementById('editHeSoLopDong').value = toFixedInput(record.HeSoLopDong ?? 1, 2);
     document.getElementById('editQuyChuan').value = record.QuyChuan || 0;
-    document.getElementById('editHeDaoTaoId').value = record.he_dao_tao_id || '';
-    document.getElementById('editNgayBatDau').value = record.NgayBatDau || '';
-    document.getElementById('editNgayKetThuc').value = record.NgayKetThuc || '';
+    const editHeDaoTaoId = document.getElementById('editHeDaoTaoId');
+    if (editHeDaoTaoId) {
+        editHeDaoTaoId.value = record.he_dao_tao || record.he_dao_tao_id || record.HeDaoTaoId || '';
+        editHeDaoTaoId.dataset.prevValue = editHeDaoTaoId.value;
+    }
+    document.getElementById('editNgayBatDau').value = toDateInputValue(record.NgayBatDau);
+    document.getElementById('editNgayKetThuc').value = toDateInputValue(record.NgayKetThuc);
     document.getElementById('editGhiChu').value = record.GhiChu || '';
 
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
@@ -493,6 +588,8 @@ async function handleEditSubmit() {
         GhiChu: document.getElementById('editGhiChu').value
     };
 
+    console.log('[LNQC][edit] submit payload:', { id, formData });
+
     try {
         // API edit chính thức - cần API riêng cho bảng lopngoaiquychuan
         // Tạm thời dùng endpoint cũ tương thích
@@ -503,6 +600,7 @@ async function handleEditSubmit() {
         });
 
         const result = await response.json();
+        console.log('[LNQC][edit] response:', { status: response.status, result });
 
         if (result.success) {
             Swal.fire('Thành công', result.message, 'success');
@@ -569,8 +667,15 @@ async function submitApprovals() {
         const dtCheckbox = row.querySelector('input[name="daoTao"]');
 
         if (globalData[dataIndex]) {
+            const currentDaoTao = dtCheckbox?.checked ? 1 : 0;
+            const lockedByDaoTao = globalData[dataIndex].DaoTaoDuyet === 1 || currentDaoTao === 1;
+
+            if (lockedByDaoTao && khoaCheckbox) {
+                khoaCheckbox.checked = true;
+            }
+
             globalData[dataIndex].KhoaDuyet = khoaCheckbox?.checked ? 1 : 0;
-            globalData[dataIndex].DaoTaoDuyet = dtCheckbox?.checked ? 1 : 0;
+            globalData[dataIndex].DaoTaoDuyet = currentDaoTao;
         }
     });
 
@@ -584,14 +689,14 @@ async function submitApprovals() {
         const result = await response.json();
 
         if (result.success) {
-            Swal.fire('Thành công', result.message || 'Cập nhật thành công', 'success');
+            Swal.fire('Thành công', 'Cập nhật thành công', 'success');
             loadData();
         } else {
-            Swal.fire('Lỗi', result.message, 'error');
+            Swal.fire('Lỗi', 'Cập nhật thất bại', 'error');
         }
     } catch (error) {
         console.error('Error submitting approvals:', error);
-        Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật', 'error');
+        Swal.fire('Lỗi', 'Cập nhật thất bại', 'error');
     }
 }
 

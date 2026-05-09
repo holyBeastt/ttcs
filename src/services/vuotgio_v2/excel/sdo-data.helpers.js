@@ -48,14 +48,13 @@ const filterA1 = (summary, hocKy, isMatMa) => {
 
 const mapA1Row = (r) => {
   const ten = r.ten_he_dao_tao || r.he_dao_tao || r.HeDaoTao || "";
-  const { vungMien } = classifyHeDaoTao(ten);
   return {
     cells: [
       0, // stt placeholder
       r.TenHocPhan || r.ten_hoc_phan || "",
       toNum(r.SoTC ?? r.so_tc),
       r.Lop || r.lop || r.ten_lop || r.lop_hoc_phan || "",
-      vungMienLabel(vungMien),
+      ten,
       toNum(r.SoTietCTDT ?? r.so_tiet_ctdt ?? r.SoTiet ?? r.so_tiet ?? r.ll),
       toNum(r.QuyChuan ?? r.quy_chuan),
     ],
@@ -76,14 +75,13 @@ const filterA2 = (summary, hocKy, isMatMa) => {
 
 const mapA2Row = (r) => {
   const ten = r.ten_he_dao_tao || r.he_dao_tao || r.HeDaoTao || "";
-  const { vungMien } = classifyHeDaoTao(ten);
   return {
     cells: [
       0,
       r.ten_hoc_phan || r.TenHocPhan || "",
       r.hinh_thuc || r.HinhThuc || "",
       r.lop_hoc_phan || r.Lop || r.ten_lop || "",
-      vungMienLabel(vungMien),
+      ten,
       toNum(r.so_sv ?? r.tong_so ?? r.SoSV),
       toNum(r.quy_chuan ?? r.QuyChuan),
     ],

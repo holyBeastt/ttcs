@@ -217,7 +217,7 @@ async function loadHeDaoTaoOptions() {
 
         const doiTuongSelect = document.getElementById('doiTuongForm');
         if (doiTuongSelect) {
-            doiTuongSelect.innerHTML = '<option value="">-- Chọn đối tượng --</option>';
+            doiTuongSelect.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
             heDaoTaoList.forEach((item) => {
                 const option = document.createElement('option');
                 option.value = String(item.value);

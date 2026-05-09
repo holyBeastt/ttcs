@@ -365,8 +365,8 @@ const batchApprove = async (req, res) => {
         records.forEach((record) => {
             const recordId = record.ID || record.id;
             if (!recordId) return;
-            const khoa = toInt(pick(record, "khoa_duyet", "KhoaDuyet", "khoaduyet"), 0);
-            const daoTao = toInt(pick(record, "dao_tao_duyet", "DaoTaoDuyet", "daotaoduyet"), 0);
+            const khoa = baseMapper.toInt(baseMapper.pick(record, "khoa_duyet", "KhoaDuyet", "khoaduyet"), 0);
+            const daoTao = baseMapper.toInt(baseMapper.pick(record, "dao_tao_duyet", "DaoTaoDuyet", "daotaoduyet"), 0);
             const key = `${khoa}_${daoTao}`;
             if (!updateGroups[key]) updateGroups[key] = [];
             updateGroups[key].push(recordId);
@@ -393,8 +393,17 @@ const editChinhThuc = async (req, res) => {
 
     let connection;
     try {
+        console.log("[LNQC][editChinhThuc] params:", { ID });
+        console.log("[LNQC][editChinhThuc] body:", {
+            he_dao_tao_id: req.body?.he_dao_tao_id,
+            HeDaoTaoId: req.body?.HeDaoTaoId,
+            he_dao_tao: req.body?.he_dao_tao,
+            HeDaoTao: req.body?.HeDaoTao
+        });
+
         connection = await createPoolConnection();
         const data = mapper.toEntity(req.body);
+        console.log("[LNQC][editChinhThuc] mapped he_dao_tao:", data.he_dao_tao);
         const values = [
             data.nam_hoc,
             data.ki_hoc,
@@ -421,6 +430,7 @@ const editChinhThuc = async (req, res) => {
             data.dot,
             baseMapper.toInt(req.body.hoan_thanh, 0),
         ];
+        console.log("[LNQC][editChinhThuc] update values he_dao_tao:", values[14]);
 
         const [result] = await repo.updateOfficial(connection, ID, values);
         if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Không tìm thấy bản ghi" });

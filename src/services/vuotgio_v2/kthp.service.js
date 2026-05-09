@@ -3,6 +3,8 @@ const LogService = require("../logService");
 const repo = require("../../repositories/vuotgio_v2/kthp.repo");
 
 const mapper = require("../../mappers/vuotgio_v2/kthp.mapper");
+const baseMapper = require("../../mappers/vuotgio_v2/base.mapper");
+const { pick, toInt, toDecimal } = baseMapper;
 
 const getUserContext = (req) => ({
     userId: req.session?.userId || 1,
@@ -402,4 +404,4 @@ module.exports = {
     deleteByFilter,
     checkExistence,
     updateBatch
-};
+};

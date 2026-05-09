@@ -21,7 +21,7 @@ const toEntity = (body) => {
         qc: base.toDecimal(base.pick(body, "qc", "QuyChuan", "quy_chuan"), 0),
         lecturer: base.pick(body, "lecturer", "GiangVien", "GiaoVienGiangDay") || "",
         major: base.pick(body, "major", "Khoa", "khoa") || "",
-        he_dao_tao: base.pick(body, "he_dao_tao", "HeDaoTao") || "",
+        he_dao_tao: base.pick(body, "he_dao_tao", "he_dao_tao_id", "HeDaoTaoId", "HeDaoTao") || "",
         dot: base.toInt(base.pick(body, "dot", "Dot"), 1),
         ki_hoc: base.toInt(base.pick(body, "ki_hoc", "KiHoc", "hoc_ky"), 1),
         nam_hoc: base.pick(body, "nam_hoc", "NamHoc", "nam_hoc") || "",

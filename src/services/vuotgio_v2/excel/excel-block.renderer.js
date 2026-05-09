@@ -682,15 +682,28 @@ const renderBlockGroups = (sheet, groups, startRow = 1, startCol = 1, rowGap = 0
     }
 
     const blockResults = [];
-    const suppressBlockGrandTotalRow = !hasMultipleBlocks && Boolean(group.finalTotal);
     for (let blockIndex = 0; blockIndex < group.blocks.length; blockIndex += 1) {
       const blockCode = hasMultipleBlocks ? `${groupCode}.${blockIndex + 1}` : groupCode;
-      const result = renderBlock(sheet, group.blocks[blockIndex], currentRow, startCol, layout, {
-        blockCode,
-        sectionBaseCode: hasMultipleBlocks ? blockCode : groupCode,
-        prefixBlockTitle: hasMultipleBlocks,
-        suppressGrandTotalRow: suppressBlockGrandTotalRow,
-      }, options);
+      const block = group.blocks[blockIndex];
+      const suppressBlockGrandTotalRow =
+        (!hasMultipleBlocks && Boolean(group.finalTotal)) ||
+        (block.sections.length === 1 && !block.finalTotal) ||
+        Boolean(block.finalTotal);
+
+      const result = renderBlock(
+        sheet,
+        block,
+        currentRow,
+        startCol,
+        layout,
+        {
+          blockCode,
+          sectionBaseCode: hasMultipleBlocks ? blockCode : groupCode,
+          prefixBlockTitle: hasMultipleBlocks,
+          suppressGrandTotalRow: suppressBlockGrandTotalRow,
+        },
+        options,
+      );
       blockResults.push(result);
       currentRow = result.nextRow + (blockIndex < group.blocks.length - 1 ? (group.rowGap ?? rowGap) : 0);
     }

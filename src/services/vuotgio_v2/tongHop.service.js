@@ -45,17 +45,18 @@ const getAtomicSDO = async (namHocInput, id_User, connection) => withConnection(
     const nv = await repo.getNhanVienById(activeConnection, id_User);
     if (!nv) return null;
 
-    const [giangDay, lopNgoaiQC, kthp, doAn, hdtq, nckhRecords, dinhMuc] = await Promise.all([
+    const [giangDay, lopNgoaiQC, kthp, doAn, hdtq, nckhRecords, dinhMuc, chuNhiemKhoa] = await Promise.all([
         repo.getGiangDayByIdUser(activeConnection, { namHoc, idUser: id_User }),
         repo.getLopNgoaiQCByIdUser(activeConnection, { namHoc, idUser: id_User }),
         repo.getKthpByIdUser(activeConnection, { namHoc, idUser: id_User }),
         repo.getDoAnByIdUser(activeConnection, { namHoc, idUser: id_User }),
         repo.getHuongDanThamQuanByIdUser(activeConnection, { namHoc, idUser: id_User }),
         id_User ? statsService.getLecturerRecords(id_User, namHoc) : [],
-        repo.getDinhMuc(activeConnection)
+        repo.getDinhMuc(activeConnection),
+        repo.getChuNhiemKhoaByKhoa(activeConnection, nv.maKhoa)
     ]);
 
-    return mapper.toAtomicSDO(nv, { giangDay, lopNgoaiQC, kthp, doAn, hdtq, nckhRecords }, namHoc, dinhMuc);
+    return mapper.toAtomicSDO(nv, { giangDay, lopNgoaiQC, kthp, doAn, hdtq, nckhRecords }, namHoc, dinhMuc, { chuNhiemKhoa });
 });
 
 /**

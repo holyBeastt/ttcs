@@ -141,7 +141,7 @@ const buildTableF = (rawData) => {
 /**
  * Ánh xạ dữ liệu thô từ DB thành Atomic SDO cho 1 giảng viên
  */
-const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc) => {
+const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc, extraInfo = {}) => {
     if (!nv) return null;
 
     const dmChuan = base.toDecimal(globalDinhMuc?.GiangDay) || 280;
@@ -168,6 +168,7 @@ const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc) => {
         maKhoa: nv.maKhoa,
         khoa: nv.khoa,
         chucVu: nv.chucVu,
+        chuNhiemKhoa: extraInfo.chuNhiemKhoa || "",
         phanTramMienGiam: nv.phanTramMienGiam,
         lyDoMienGiam: nv.lyDoMienGiam,
         ...stats,

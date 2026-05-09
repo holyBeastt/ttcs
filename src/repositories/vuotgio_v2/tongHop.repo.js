@@ -169,6 +169,17 @@ const getDuLieuThoTongHop = async (connection, { namHoc, khoa }) => {
     }));
 };
 
+const getChuNhiemKhoaByKhoa = async (connection, maKhoa) => {
+    if (!maKhoa) return "";
+    const [rows] = await connection.execute(
+        `SELECT TenNhanVien FROM nhanvien 
+         WHERE MaPhongBan = ? AND (ChucVu = 'Lãnh đạo khoa' OR ChucVu = 'Chủ nhiệm khoa')
+         LIMIT 1`,
+        [maKhoa]
+    );
+    return rows[0]?.TenNhanVien || "";
+};
+
 module.exports = {
     getDinhMuc,
     getNhanVienById,
@@ -177,5 +188,6 @@ module.exports = {
     getKthpByIdUser,
     getDoAnByIdUser,
     getHuongDanThamQuanByIdUser,
-    getDuLieuThoTongHop
+    getDuLieuThoTongHop,
+    getChuNhiemKhoaByKhoa
 };

@@ -200,11 +200,13 @@
                                 <th style="width: 40px;">STT</th>
                                 <th style="width: 180px;">Giảng viên</th>
                                 <th style="width: 70px;">Khoa</th>
+                                <th style="width: 140px;">Hệ đào tạo</th>
                                 <th style="width: 50px;">Kì</th>
                                 <th style="width: 200px;">Tên học phần</th>
                                 <th style="width: 100px;">Lớp HP</th>
                                 <th style="width: 100px;">Loại KTHP</th>
                                 <th style="width: 80px;">Số tiết QC</th>
+                                <th style="width: 160px;">Ghi chú</th>
                                 <th style="width: 80px;" id="khoaColumn">
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="check me-1" type="checkbox" id="checkAllKhoa"
@@ -288,7 +290,11 @@
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label">Hệ đào tạo</label>
+                                    <select id="editHeDaoTao" class="form-select"></select>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label">Loại KTHP</label>
                                     <select id="editLoaiKTHP" class="form-select">
                                         <option value="Ra đề">Ra đề</option>
@@ -297,11 +303,11 @@
                                         <option value="Ngân hàng câu hỏi">Ngân hàng câu hỏi</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Số tiết QC</label>
                                     <input type="number" id="editSoTietQC" class="form-control" step="0.5" />
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Ghi chú</label>
                                     <input type="text" id="editGhiChu" class="form-control" />
                                 </div>
