@@ -245,7 +245,9 @@ app.use("/sync", syncRoute);
 
 // Mobile API Routes
 const refreshTokenRoute = require("./routes/refreshTokenRoute");
+const notificationRoute = require("./routes/notificationRoute");
 app.use("/api/mobile/v1", refreshTokenRoute);
+app.use("/api/mobile/v1/notification", notificationRoute);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on http://${hostname}:${port}`);

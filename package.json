@@ -29,6 +29,7 @@
     "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "express-session": "^1.18.0",
+    "firebase-admin": "^13.9.0",
     "fs": "^0.0.1-security",
     "jquery-ui": "^1.14.0",
     "jsonwebtoken": "^9.0.3",

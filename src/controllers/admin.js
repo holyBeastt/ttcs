@@ -4,6 +4,7 @@ const pool = require("../config/Pool");
 const router = express.Router();
 const mysql = require("mysql2/promise");
 const { getBoMon } = require("./adminController");
+const notificationService = require("../services/notificationService");
 const app = express();
 
 let accountLists;
@@ -356,10 +357,32 @@ const addMessage = async (req, res) => {
     await connection.query(query, [MaPhongBan, Title, LoiNhan, DeadlineConvert]);
 
     // Redirect về trang thay đổi thông báo
-    return res.status(200).send({
+    res.status(200).send({
       success: true,
       message: "Thêm thông báo thành công",
-    })
+    });
+
+    // --- INTEGRATION: Send Push Notification (Global Broadcast) ---
+    try {
+      // Logic: MaPhongBan is the author department, but messages always send to all users
+      const tokenQuery = "SELECT token FROM user_device_tokens";
+      const [tokenRows] = await connection.query(tokenQuery);
+      
+      if (tokenRows.length > 0) {
+        const tokens = tokenRows.map(r => r.token);
+        await notificationService.sendPushNotification(tokens, {
+          title: Title || "Thông báo mới",
+          body: LoiNhan || "Bạn có một thông báo mới từ hệ thống.",
+        }, {
+          type: "NEW_MESSAGE",
+          authorDept: MaPhongBan
+        });
+        console.log(`Push notification broadcast to ${tokens.length} devices for announcement from ${MaPhongBan}`);
+      }
+    } catch (pushError) {
+      console.error("Error broadcasting push notification:", pushError);
+    }
+    // ------------------------------------------
   } catch (error) {
     console.error("Lỗi khi thêm thông báo:", error);
     return res.status(500).send("Lỗi hệ thống. Không thể thêm thông báo.");
@@ -419,8 +442,19 @@ const getshowMessage = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const query = `SELECT * FROM thongbao WHERE MaPhongBan = ?`;
-    const [rows] = await connection.query(query, [MaPhongBan]);
+    const status = req.query.status || 'active'; // active, history, all
+    let query = `SELECT * FROM thongbao WHERE MaPhongBan = ?`;
+    let params = [MaPhongBan];
+
+    if (status === 'active') {
+      query += ` AND HetHan = 0`;
+    } else if (status === 'history') {
+      query += ` AND HetHan = 1`;
+    }
+
+    query += ` ORDER BY TimeTao DESC LIMIT 50`;
+
+    const [rows] = await connection.query(query, params);
     res.json({
       success: true,
       Message: rows,
@@ -472,8 +506,19 @@ const getMessage = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const query = `SELECT * FROM thongbao`;
-    const [results] = await connection.query(query);
+    const status = req.query.status || 'active'; // active, history, all
+    let query = `SELECT * FROM thongbao`;
+    let params = [];
+
+    if (status === 'active') {
+      query += ` WHERE HetHan = 0`;
+    } else if (status === 'history') {
+      query += ` WHERE HetHan = 1`;
+    }
+
+    query += ` ORDER BY TimeTao DESC LIMIT 50`;
+
+    const [results] = await connection.query(query, params);
     res.json({
       success: true,
       Message: results,
