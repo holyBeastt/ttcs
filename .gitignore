@@ -10,3 +10,6 @@ local_file/
 test/
 docs/
 rule/
+
+# agent docs
+AGENTS.md
