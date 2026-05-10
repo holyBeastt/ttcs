@@ -55,20 +55,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
     document.getElementById('filterHocPhan').addEventListener('input', filterTable);
 
-    const editHeDaoTaoId = document.getElementById('editHeDaoTaoId');
-    if (editHeDaoTaoId) {
-        editHeDaoTaoId.addEventListener('change', () => {
-            const prevValue = editHeDaoTaoId.dataset.prevValue || '';
-            const nextValue = editHeDaoTaoId.value;
-            console.log('[LNQC][he_dao_tao] modal change', {
-                id: currentEditId,
-                prev: prevValue,
-                next: nextValue
-            });
-            editHeDaoTaoId.dataset.prevValue = nextValue;
-        });
-    }
-
     setupUpdateButtonVisibility();
 });
 
@@ -287,67 +273,23 @@ function renderTable(data) {
         soTCTd.textContent = row.SoTinChi || '';
         tableRow.appendChild(soTCTd);
 
-        // Hệ đào tạo (he_dao_tao - select dropdown)
+        // Hệ đào tạo (he_dao_tao - display only, edit via modal)
         const heDTTd = document.createElement('td');
-        const heDTSelect = document.createElement('select');
-        heDTSelect.className = 'hdt-select';
-        heDTSelect.name = 'he_dao_tao_id';
-
-        const placeholderOpt = document.createElement('option');
-        placeholderOpt.value = '';
-        placeholderOpt.textContent = '-- Chọn hệ đào tạo --';
-        heDTSelect.appendChild(placeholderOpt);
-
+        
         const currentHeDT = String(
             row.he_dao_tao_id ?? row.HeDaoTaoId ?? row.he_dao_tao ?? row.HeDaoTao ?? ''
         ).trim();
 
-        if (heDaoTaoList.length === 0) {
-            const emptyOpt = document.createElement('option');
-            emptyOpt.value = '';
-            emptyOpt.textContent = 'Chưa có dữ liệu';
-            heDTSelect.appendChild(emptyOpt);
-            heDTSelect.disabled = true;
-        } else {
-            let matched = false;
-            heDaoTaoList.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.id;
-                opt.textContent = item.he_dao_tao || item.ten || '';
-                if (String(item.id) === currentHeDT || String(item.he_dao_tao) === currentHeDT) {
-                    opt.selected = true;
-                    matched = true;
-                }
-                heDTSelect.appendChild(opt);
-            });
-
-            if (!matched && currentHeDT) {
-                const opt = document.createElement('option');
-                opt.value = currentHeDT;
-                opt.textContent = currentHeDT;
-                opt.selected = true;
-                heDTSelect.appendChild(opt);
-            }
-        }
-
+        // Find display text from heDaoTaoList
+        let displayText = '';
         if (currentHeDT) {
-            heDTSelect.value = currentHeDT;
+            const foundItem = heDaoTaoList.find(item => 
+                String(item.id) === currentHeDT || String(item.he_dao_tao) === currentHeDT
+            );
+            displayText = foundItem ? (foundItem.he_dao_tao || foundItem.ten || currentHeDT) : currentHeDT;
         }
 
-        heDTSelect.dataset.prevValue = currentHeDT;
-        heDTSelect.addEventListener('change', () => {
-            const prevValue = heDTSelect.dataset.prevValue || '';
-            const nextValue = heDTSelect.value;
-            console.log('[LNQC][he_dao_tao] table change', {
-                id: row.ID,
-                prev: prevValue,
-                next: nextValue
-            });
-            heDTSelect.dataset.prevValue = nextValue;
-            if (globalData[index]) globalData[index].he_dao_tao_id = nextValue;
-        });
-
-        heDTTd.appendChild(heDTSelect);
+        heDTTd.textContent = displayText;
         tableRow.appendChild(heDTTd);
 
         // Số tiết LL (LL - tên mới, trước là LenLop)
@@ -549,7 +491,6 @@ function editRecord(id) {
     const editHeDaoTaoId = document.getElementById('editHeDaoTaoId');
     if (editHeDaoTaoId) {
         editHeDaoTaoId.value = record.he_dao_tao || record.he_dao_tao_id || record.HeDaoTaoId || '';
-        editHeDaoTaoId.dataset.prevValue = editHeDaoTaoId.value;
     }
     document.getElementById('editNgayBatDau').value = toDateInputValue(record.NgayBatDau);
     document.getElementById('editNgayKetThuc').value = toDateInputValue(record.NgayKetThuc);

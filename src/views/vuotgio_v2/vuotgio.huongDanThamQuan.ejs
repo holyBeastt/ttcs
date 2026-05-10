@@ -64,6 +64,7 @@
         .table-wrap {
             margin-top: 14px;
             overflow: auto;
+            height: 500px;
         }
         table.class-table {
             width: 100%;
@@ -73,7 +74,7 @@
         .class-table td {
             border: 1px solid #dbe3f0;
             padding: 8px;
-            font-size: 0.9rem;
+            font-size: 0.78rem;
             vertical-align: middle;
             text-align: center;
         }
@@ -83,6 +84,10 @@
             position: sticky;
             top: 0;
             z-index: 1;
+            font-weight: 600;
+        }
+        .class-table tbody tr:hover {
+            background-color: #f8f9fa;
         }
         /* Searchable Select Styles */
         .searchable-select {
@@ -96,6 +101,15 @@
         }
         .searchable-select .dropdown-menu.show {
             display: block;
+        }
+        /* Action Button Styles */
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 0.85rem;
+            border-radius: 4px;
+        }
+        .btn-action i {
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -126,7 +140,7 @@
                     <button id="loadDataBtn" class="btn text-nowrap mx-2">Hiển thị</button>
                 </div>
 
-                <button id="addNewBtn" class="btn btn-success text-nowrap">Thêm mới</button>
+                <a href="/v2/vuotgio/huong-dan-tham-quan/add" class="btn btn-success text-nowrap">Thêm mới</a>
             </div>
 
             <!-- Table Section -->
