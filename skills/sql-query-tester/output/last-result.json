@@ -1,0 +1,11 @@
+{
+  "executedAt": "2026-05-09T08:51:56.900Z",
+  "durationMs": 3,
+  "sql": "SELECT 1 AS ping LIMIT 200",
+  "rowCount": 1,
+  "rows": [
+    {
+      "ping": 1
+    }
+  ]
+}

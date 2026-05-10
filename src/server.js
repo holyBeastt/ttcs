@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path");
 // require("dotenv").config();
@@ -84,6 +85,10 @@ const hostname = process.env.HOST_NAME;
 
 // Gọi middleware lấy roles và departments
 app.use(constantsMiddleware);
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(cookieParser());
 
 app.use(bodyParser.json({ limit: "500mb" }));
@@ -131,6 +136,7 @@ app.use("/", login);
 
 app.use((req, res, next) => {
   const publicRoutes = ["/", "/login", "/api/mobile/v1/refresh"];
+  const isApiRequest = req.path.startsWith('/api/') || req.headers['accept'] === 'application/json';
 
   if (publicRoutes.includes(req.path)) {
     return next();
@@ -141,8 +147,13 @@ app.use((req, res, next) => {
     return next();
   }
 
-  // 2. Try JWT from HttpOnly Cookie (for API-ready EJS)
-  const token = req.cookies && req.cookies.access_token;
+  // 2. Try JWT from HttpOnly Cookie OR Authorization header
+  let token = req.cookies && req.cookies.access_token;
+  
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
   if (token) {
     try {
       const secret = process.env.JWT_SECRET || "your-secret-key";
@@ -158,12 +169,18 @@ app.use((req, res, next) => {
       
       return next();
     } catch (err) {
-      console.warn("Invalid JWT cookie:", err.message);
+      console.warn("Invalid JWT:", err.message);
+      if (isApiRequest) {
+        return res.status(401).json({ message: "Phiên đăng nhập hết hạn hoặc không hợp lệ" });
+      }
       res.clearCookie("access_token");
     }
   }
 
   // Neither session nor valid token
+  if (isApiRequest) {
+    return res.status(401).json({ message: "Vui lòng đăng nhập để tiếp tục" });
+  }
   return res.redirect("/?sessionExpired=true");
 });
 // config res.body

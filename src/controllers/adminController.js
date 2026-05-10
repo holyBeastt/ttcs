@@ -4,6 +4,13 @@ const createPoolConnection = require("../config/databasePool");
 const transferFacultyFileGvm = require("../middlewares/transferFacultyFileGvmMiddleware");
 const mergeFacultyFileGvm = require("../middlewares/mergeFacultyFileGvmMiddleware");
 
+const parseWholeHsl = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const normalizedValue = typeof value === "string" ? value.replace(",", ".") : value;
+  const parsedValue = Number(normalizedValue);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+};
+
 const AdminController = {
   index: (req, res) => {
     res.render("admin", { title: "Trang admin" });
@@ -88,11 +95,11 @@ const AdminController = {
             "Tên đăng nhập đã tồn tại. Vui lòng nhập tên đăng nhập khác.",
         });
       }
-      const ModeHSL = parseFloat(HSL); // Chuyển thành số thực
-      if (isNaN(ModeHSL) || ModeHSL < 0) {
+      const ModeHSL = parseWholeHsl(HSL);
+      if (ModeHSL === null || ModeHSL < 0) {
         connection.release();
         return res.status(400).json({
-          message: "Hệ số lương phải là số lớn hơn 0. Vui lòng kiểm tra lại.",
+          message: "Hệ số lương phải là số hợp lệ không âm. Vui lòng kiểm tra lại.",
         });
       }
       if (!/^\d*$/.test(Luong)) {
@@ -170,7 +177,7 @@ const AdminController = {
         ChiNhanh,
         MonGiangDayChinh || "",
         CacMonLienQuan,
-        HSL,
+        ModeHSL,
         Luong,
         phanTram,
         LyDo,
@@ -1061,7 +1068,7 @@ const AdminController = {
         NgaySinh,
         HocVi,
         ChucVu,
-        HSL,
+        ModeHSL,
         Luong,
         phanTram,
         LyDo,
@@ -1088,8 +1095,8 @@ const AdminController = {
         if (oldRecord.ChucVu !== ChucVu) {
           changes.push(`ChucVu: "${oldRecord.ChucVu}" -> "${ChucVu}"`);
         }
-        if (oldRecord.HSL !== HSL) {
-          changes.push(`HSL: "${oldRecord.HSL}" -> "${HSL}"`);
+          if (oldRecord.HSL !== ModeHSL) {
+            changes.push(`HSL: "${oldRecord.HSL}" -> "${ModeHSL}"`);
         }
         if (oldRecord.Luong !== Luong) {
           changes.push(`Luong: "${oldRecord.Luong}" -> "${Luong}"`);

@@ -1,0 +1,289 @@
+[
+  {
+    "field": "ID",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "PRI",
+    "default": null
+  },
+  {
+    "field": "SinhVien",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "MaSV",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "KhoaDaoTao",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "SoQD",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "SoHopDong",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "SoThanhLyHopDong",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "CoSoDaoTao",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "TenDeTai",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "SoNguoi",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "isHDChinh",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "GiangVien",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "CCCD",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "MUL",
+    "default": null
+  },
+  {
+    "field": "SoTiet",
+    "type": "decimal(10,2)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NgayBatDau",
+    "type": "date",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NgayKetThuc",
+    "type": "date",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NamHoc",
+    "type": "varchar(15)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "isMoiGiang",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "MaPhongBan",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "Dot",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ki",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "TT",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "GioiTinh",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NgaySinh",
+    "type": "date",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NgayCapCCCD",
+    "type": "date",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NoiCapCCCD",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "DiaChi",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "DienThoai",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "Email",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "MaSoThue",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "HocVi",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "MonGiangDayChinh",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "HSL",
+    "type": "decimal(10,2)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NganHang",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "NoiCongTac",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ChucVu",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "STK",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "he_dao_tao",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "khoa_sinh_vien",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "nganh",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "id_User",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "MUL",
+    "default": null
+  }
+]

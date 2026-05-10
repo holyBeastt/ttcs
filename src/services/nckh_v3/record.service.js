@@ -14,6 +14,12 @@ const typeMetaByLoai = new Map(
 
 const round2 = (value) => Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 
+const HOI_DONG_ROLE_LABELS = {
+  chu_tich: "Chủ tịch",
+  phan_bien: "Phản biện",
+  uy_vien: "Ủy viên",
+};
+
 const toParticipantDisplay = (participant) => {
   const isExternal = participant.nhanvien_id === null || participant.nhanvien_id === undefined;
   const soTiet = round2(Number(participant.so_tiet || 0)).toFixed(2);
@@ -70,6 +76,26 @@ const mergeParticipantsByRole = (participantRows, role) => {
   return Array.from(map.values()).sort((a, b) => a.sortId - b.sortId);
 };
 
+const buildHoiDongSummary = (participantRows) => {
+  const roleOrder = ["chu_tich", "phan_bien", "uy_vien"];
+  const names = [];
+  const displays = [];
+
+  roleOrder.forEach((role) => {
+    const label = HOI_DONG_ROLE_LABELS[role] || role;
+    const merged = mergeParticipantsByRole(participantRows, role);
+    merged.forEach((item) => {
+      names.push(`${item.nameOnly} (${label})`);
+      displays.push(`${item.display} - ${label}`);
+    });
+  });
+
+  return {
+    nameText: names.join(", "),
+    displayText: displays.join("\n"),
+  };
+};
+
 const toSummaryRecord = (row) => {
   const meta = typeMetaByLoai.get(String(row.loai_nckh || "")) || null;
   const rawId = row.id ?? row.ID;
@@ -124,6 +150,17 @@ const list = async (namHoc, khoaId) => {
 
     return records.map((record) => {
       const recordParticipants = participantsByRecordId.get(record.id) || [];
+      if (record.loaiNckh === "HOIDONG") {
+        const hoiDongSummary = buildHoiDongSummary(recordParticipants);
+        return {
+          ...record,
+          tacGiaChinh: hoiDongSummary.nameText,
+          thanhVien: "",
+          tacGiaChinhDisplay: hoiDongSummary.displayText,
+          thanhVienDisplay: "",
+        };
+      }
+
       const tacGia = mergeParticipantsByRole(recordParticipants, "tac_gia");
       const thanhVien = mergeParticipantsByRole(recordParticipants, "thanh_vien");
 

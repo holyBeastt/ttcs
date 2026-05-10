@@ -6,16 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Coi chấm ra đề thi - Vượt Giờ V2</title>
 
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Playfair+Display:wght@500&display=swap"
+        rel="stylesheet" />
+
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-
-    <!-- AG Grid Styles -->
-    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css" />
-    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css" />
 
     <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
@@ -25,95 +25,428 @@
     <link rel="stylesheet" href="/css/styles.css" />
 
     <style>
-        .vuotgio-v2-container {
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f5f4f0;
+            --surface: #ffffff;
+            --surface2: #f9f8f5;
+            --border: #e2e0d8;
+            --border2: #d0cdbb;
+            --text: #1a1916;
+            --text2: #6b6860;
+            --text3: #9a9890;
+            --accent: #2d5a3d;
+            --accent-light: #eaf3de;
+            --accent-text: #1b3d27;
+            --blue: #1a3f6f;
+            --blue-light: #e6eff9;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .page-header {
-            margin-bottom: 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 24px 28px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
         }
 
-        .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-section {
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-section-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #70AD47;
-            color: #70AD47;
-        }
-
-        .form-row {
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
             display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
         }
 
-        .form-col {
-            flex: 1;
+        .header-title-group h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 4px;
         }
 
-        .form-col-2 {
-            flex: 2;
+        .header-title-group p {
+            font-size: 12px;
+            color: var(--text3);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .header-total {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .total-label {
+            font-size: 11px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .total-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--accent);
+            line-height: 1.1;
+        }
+
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 28px 48px;
+        }
+
+        .meta-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        .meta-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .meta-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .meta-grid-2 {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .meta-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .required {
             color: #dc3545;
         }
 
-        .grid-toolbar {
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .sum-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 14px 16px;
+        }
+
+        .sc-label {
+            font-size: 11px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .sc-val {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .sc-unit {
+            color: var(--text3);
+            font-size: 12px;
+        }
+
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 14px;
+            transition: box-shadow 0.2s;
+        }
+
+        .section:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-header {
             display: flex;
-            gap: 15px;
-            align-items: flex-end;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 20px;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
         }
 
-        .grid-container {
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .sec-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+        .sec-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--text);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sec-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .sec-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sec-total-pill {
+            background: var(--accent-light);
+            color: var(--accent-text);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 20px;
+            padding: 4px 12px;
+        }
+
+        .sec-arrow {
+            font-size: 11px;
+            color: var(--text3);
+            transition: transform 0.2s;
+        }
+
+        .sec-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .col-headers,
+        .item-row {
+            display: grid;
+            grid-template-columns: 1fr 90px 110px 90px 90px;
+            padding: 0 20px;
+            align-items: center;
+        }
+
+        .col-headers {
+            border-bottom: 1px solid var(--border);
+            background: #fafaf7;
+        }
+
+        .col-headers span {
+            font-size: 10px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            font-weight: 600;
+            text-align: center;
+            padding: 8px 6px;
+        }
+
+        .col-headers span:first-child {
+            text-align: left;
+            padding-left: 0;
+        }
+
+        .item-row {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-row:hover {
+            background: #fcfbf8;
+        }
+
+        .i-label {
+            padding: 10px 0;
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.45;
+            padding-right: 10px;
+        }
+
+        .i-dvt,
+        .i-gio,
+        .i-result {
+            font-size: 12px;
+            text-align: center;
+            padding: 10px 6px;
+        }
+
+        .i-dvt {
+            color: var(--text2);
+        }
+
+        .i-gio {
+            color: var(--blue);
             font-weight: 500;
         }
 
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
+        .i-input {
+            text-align: center;
+            padding: 7px 6px;
         }
 
-        .status-approved {
-            background: #d4edda;
-            color: #155724;
+        .i-input input {
+            width: 74px;
+            text-align: center;
+            border: 1px solid var(--border2);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            padding: 6px 8px;
+            font-weight: 500;
+            color: var(--text);
+            appearance: textfield;
+            -moz-appearance: textfield;
         }
 
-        .status-rejected {
-            background: #f8d7da;
-            color: #721c24;
+        .i-input input::-webkit-inner-spin-button,
+        .i-input input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
-        /* Autocomplete styles */
+        .i-input input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.12);
+        }
+
+        .i-input input.has-val {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent-text);
+        }
+
+        .i-result {
+            color: var(--accent-text);
+            font-weight: 600;
+        }
+
+        .i-result.zero {
+            color: var(--text3);
+            font-weight: 400;
+        }
+
+        .coeff-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            background: var(--blue-light);
+            padding: 10px 20px;
+        }
+
+        .coeff-text {
+            font-size: 12px;
+            color: var(--blue);
+            font-style: italic;
+            flex: 1;
+        }
+
+        .coeff-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--blue);
+            cursor: pointer;
+        }
+
+        .coeff-label input[type=checkbox] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--blue);
+            cursor: pointer;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            background: #fafaf7;
+            padding: 9px 20px;
+        }
+
+        .info-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--text3);
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: var(--text3);
+            font-style: italic;
+        }
+
         .autocomplete-container {
             position: relative;
         }
@@ -140,11 +473,85 @@
             padding: 8px 12px;
             cursor: pointer;
             color: #333;
-            text-align: left;
         }
 
         .suggestion-item:hover {
             background: #f0f0f0;
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 992px) {
+            .meta-grid,
+            .meta-grid-2,
+            .meta-grid-3,
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .page-header {
+                padding: 16px;
+            }
+
+            .main {
+                padding: 16px 12px 40px;
+            }
+
+            .header-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .meta-grid,
+            .meta-grid-2,
+            .meta-grid-3,
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .col-headers {
+                display: none;
+            }
+
+            .item-row {
+                grid-template-columns: 1fr auto;
+                grid-template-rows: auto auto;
+                gap: 0;
+            }
+
+            .i-dvt,
+            .i-gio {
+                display: none;
+            }
+
+            .i-label {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .i-input {
+                grid-column: 2;
+                grid-row: 1 / 3;
+                padding-left: 8px;
+            }
+
+            .i-result {
+                grid-column: 1;
+                grid-row: 2;
+                text-align: left;
+                padding: 0 0 8px;
+            }
         }
     </style>
 </head>
@@ -152,120 +559,140 @@
 <body>
     <%- include('../header') %>
 
-        <div class="vuotgio-v2-container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h2 class="page-title">
-                    <i class="fas fa-file-alt text-success me-2"></i>
-                    Coi, Chấm, Ra đề thi
-                </h2>
-                <p class="text-muted mb-0">Kê khai số tiết Ra đề / Coi thi / Chấm thi</p>
+    <header class="page-header">
+        <div class="header-inner">
+            <div class="header-title-group">
+                <h1>Bảng Tính Vượt Giờ</h1>
+                <p>Coi thi · Chấm thi · Ra đề · Ngân hàng câu hỏi</p>
             </div>
+            <div class="header-total">
+                <div class="total-label">Tổng giờ vượt</div>
+                <div class="total-value" id="grandTotal">0,00 giờ</div>
+            </div>
+        </div>
+    </header>
 
-            <!-- Form thêm mới -->
-            <div class="form-section">
-                <div class="form-section-title d-flex justify-content-between align-items-center">
-                    <span>
-                        <i class="fas fa-plus-circle me-2"></i>Thêm Mới Thủ Công
-                    </span>
+    <main class="main">
+        <form id="themKTHPForm">
+            <div class="meta-card">
+                <div class="meta-top">
+                    <h3 class="meta-title">
+                        <i class="fas fa-plus-circle me-2"></i>Thông tin kê khai
+                    </h3>
                     <a href="/v2/vuotgio/importkthp" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-file-import me-1"></i>Thêm bằng file
                     </a>
                 </div>
 
-                <form id="themKTHPForm">
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label class="form-label">Năm học <span class="required">*</span></label>
-                            <select id="namHocForm" class="form-select namHoc" required></select>
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Học kỳ</label>
-                            <select id="hocKyForm" class="form-select">
-                                <option value="1">Học kỳ 1</option>
-                                <option value="2">Học kỳ 2</option>
-                                <option value="3">Học kỳ hè</option>
-                            </select>
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Khoa <span class="required">*</span></label>
-                            <select id="khoaForm" class="form-select khoa" required></select>
-                        </div>
+                <div class="meta-grid">
+                    <div>
+                        <label class="form-label">Năm học <span class="required">*</span></label>
+                        <select id="namHocForm" class="form-select namHoc" required></select>
                     </div>
+                    <div>
+                        <label class="form-label">Học kỳ</label>
+                        <select id="hocKyForm" class="form-select">
+                            <option value="1">Học kỳ 1</option>
+                            <option value="2">Học kỳ 2</option>
+                            <option value="3">Học kỳ hè</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Khoa <span class="required">*</span></label>
+                        <select id="khoaForm" class="form-select khoa" required></select>
+                    </div>
+                </div>
 
-                    <div class="form-row">
-                        <div class="form-col-2">
-                            <label class="form-label">Tên học phần <span class="required">*</span></label>
-                            <input type="text" id="tenHPForm" class="form-control" placeholder="Nhập tên học phần"
-                                required />
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Mã HP</label>
-                            <input type="text" id="maHPForm" class="form-control" placeholder="Mã học phần" />
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Số TC</label>
-                            <input type="number" id="soTCForm" class="form-control" value="0" min="0" />
-                        </div>
+                <div class="meta-grid-2">
+                    <div>
+                        <label class="form-label">Tên học phần <span class="required">*</span></label>
+                        <input type="text" id="tenHPForm" class="form-control" placeholder="Nhập tên học phần" required />
                     </div>
+                    <div>
+                        <label class="form-label">Mã HP</label>
+                        <input type="text" id="maHPForm" class="form-control" placeholder="Mã học phần" />
+                    </div>
+                    <div>
+                        <label class="form-label">Số TC</label>
+                        <input type="number" id="soTCForm" class="form-control" value="0" min="0" />
+                    </div>
+                </div>
 
-                    <div class="form-row">
-                        <div class="form-col autocomplete-container">
-                            <label class="form-label">Giảng viên <span class="required">*</span></label>
-                            <input type="text" id="giangVienForm" class="form-control"
-                                placeholder="Nhập tên giảng viên..." autocomplete="off" required />
-                            <div id="suggestionContainer" class="suggestion-list"></div>
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Lớp</label>
-                            <input type="text" id="lopForm" class="form-control" placeholder="VD: CNTT01" />
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Sĩ số</label>
-                            <input type="number" id="siSoForm" class="form-control" value="0" min="0" />
-                        </div>
+                <div class="meta-grid-3">
+                    <div class="autocomplete-container">
+                        <label class="form-label">Giảng viên <span class="required">*</span></label>
+                        <input type="text" id="giangVienForm" class="form-control" placeholder="Nhập tên giảng viên..."
+                            autocomplete="off" required />
+                        <div id="suggestionContainer" class="suggestion-list"></div>
                     </div>
+                    <div>
+                        <label class="form-label">Lớp</label>
+                        <input type="text" id="lopForm" class="form-control" placeholder="VD: CNTT01" />
+                    </div>
+                    <div>
+                        <label class="form-label">Số SV</label>
+                        <input type="number" id="siSoForm" class="form-control" value="0" min="0" />
+                    </div>
+                </div>
 
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label class="form-label">Loại KTHP <span class="required">*</span></label>
-                            <select id="loaiKTHPForm" class="form-select" required>
-                                <option value="">-- Chọn loại --</option>
-                                <option value="Ra đề">Ra đề</option>
-                                <option value="Coi thi">Coi thi</option>
-                                <option value="Chấm thi">Chấm thi</option>
-                            </select>
-                        </div>
-                        <div class="form-col">
-                            <label class="form-label">Số tiết <span class="required">*</span></label>
-                            <input type="number" id="soTietForm" class="form-control" value="0" min="0" step="0.5"
-                                required />
-                        </div>
-                        <div class="form-col-2">
-                            <label class="form-label">Ghi chú</label>
-                            <input type="text" id="ghiChuForm" class="form-control" placeholder="Ghi chú (nếu có)" />
-                        </div>
+                <div class="meta-grid-3">
+                    <div>
+                        <label class="form-label">Hệ đào tạo <span class="required">*</span></label>
+                        <select id="doiTuongForm" class="form-select" required>
+                            <option value="">-- Chọn hệ đào tạo --</option>
+                        </select>
                     </div>
+                </div>
 
-                    <div class="text-end mt-3">
-                        <button type="reset" class="btn btn-secondary me-2">
-                            <i class="fas fa-redo me-1"></i> Làm mới
-                        </button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save me-1"></i> Lưu lại
-                        </button>
-                    </div>
-                </form>
+                <div>
+                    <label class="form-label">Ghi chú</label>
+                    <input type="text" id="ghiChuForm" class="form-control" placeholder="Ghi chú (nếu có)" />
+                </div>
             </div>
 
-        </div>
+            <div class="summary-grid">
+                <div class="sum-card">
+                    <div class="sc-label">Ra đề thi</div>
+                    <div><span class="sc-val" id="sum1">0,00</span> <span class="sc-unit">giờ</span></div>
+                </div>
+                <div class="sum-card">
+                    <div class="sc-label">Coi thi, giám sát</div>
+                    <div><span class="sc-val" id="sum2">0,00</span> <span class="sc-unit">giờ</span></div>
+                </div>
+                <div class="sum-card">
+                    <div class="sc-label">Chấm thi</div>
+                    <div><span class="sc-val" id="sum3">0,00</span> <span class="sc-unit">giờ</span></div>
+                </div>
+                <div class="sum-card">
+                    <div class="sc-label">Ngân hàng câu hỏi</div>
+                    <div><span class="sc-val" id="sum4">0,00</span> <span class="sc-unit">giờ</span></div>
+                </div>
+            </div>
 
-        <!-- Scripts -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+            <div id="app"></div>
 
-        <script src="/js/vuotgio_v2/themKTHP/index.js"></script>
+            <div class="action-bar">
+                <button type="button" id="resetCalculatorBtn" class="btn btn-outline-danger">
+                    <i class="fas fa-trash me-1"></i>Xóa toàn bộ
+                </button>
+                <div class="d-flex gap-2">
+                    <!-- <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>In / Xuất PDF
+                    </button> -->
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i>Lưu lại
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+    <script src="/js/vuotgio_v2/themKTHP/index.js"></script>
 </body>
 
 </html>

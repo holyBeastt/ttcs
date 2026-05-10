@@ -139,7 +139,9 @@ const login = async (req, res) => {
       isKhoa,
       TenNhanVien,
       username,
-      id_User: user.id_User
+      id_User: user.id_User,
+      accessToken: token,
+      refreshToken: refreshToken
     });
   } catch (err) {
     console.error("Login error:", err);

@@ -11,6 +11,8 @@ const formulaService = require("./formula.service");
 const validator = require("../../validators/nckh_v3/typeInput.validator");
 const quyDinhService = require("./quyDinh.service");
 
+const HOI_DONG_ROLES = new Set(["chu_tich", "phan_bien", "uy_vien"]);
+
 const getPhanLoaiOptions = async (loaiNckh) => {
   return quyDinhService.getQuyDinhSoGioByLoai(loaiNckh);
 };
@@ -47,6 +49,16 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
 
     validator.validatePeopleInput(tacGiaIds, thanhVienIds, tacGiaNgoai, thanhVienNgoai);
     const soNamThucHien = Number(payload.soNamThucHien || 1);
+    const vaiTroHoiDong = mode === "fixed" ? String(payload.vaiTro || "").trim() : null;
+
+    if (mode === "fixed") {
+      if (!vaiTroHoiDong) {
+        throw new Error("Thiếu vai trò hội đồng");
+      }
+      if (!HOI_DONG_ROLES.has(vaiTroHoiDong)) {
+        throw new Error("Vai trò hội đồng không hợp lệ");
+      }
+    }
 
     let connection;
     try {
@@ -60,7 +72,8 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         thanhVienIds,
         tacGiaNgoai,
         thanhVienNgoai,
-        soNamThucHien
+        soNamThucHien,
+        vaiTroHoiDong
       );
 
       await assertNhanVienExist(connection, participants);
@@ -119,6 +132,16 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
 
     validator.validatePeopleInput(tacGiaIds, thanhVienIds, tacGiaNgoai, thanhVienNgoai);
     const soNamThucHien = Number(payload.soNamThucHien || 1);
+    const vaiTroHoiDong = mode === "fixed" ? String(payload.vaiTro || "").trim() : null;
+
+    if (mode === "fixed") {
+      if (!vaiTroHoiDong) {
+        throw new Error("Thiếu vai trò hội đồng");
+      }
+      if (!HOI_DONG_ROLES.has(vaiTroHoiDong)) {
+        throw new Error("Vai trò hội đồng không hợp lệ");
+      }
+    }
 
     let connection;
     try {
@@ -139,7 +162,8 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         thanhVienIds,
         tacGiaNgoai,
         thanhVienNgoai,
-        soNamThucHien
+        soNamThucHien,
+        vaiTroHoiDong
       );
 
       await assertNhanVienExist(connection, participants);

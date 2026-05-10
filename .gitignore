@@ -10,6 +10,8 @@ local_file/
 test/
 docs/
 rule/
+.agent  
+.vscode
 .agent/
 
 # AGENTS
