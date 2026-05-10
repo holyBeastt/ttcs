@@ -6,7 +6,6 @@ $(document).ready(function () {
 
     // Event Handlers
     $('#loadDataBtn').on('click', loadTable);
-    $('#addNewBtn').on('click', openAddModal);
     $('#so_ngay').on('input', updateQuyDoi);
     $('#dataForm').on('submit', handleFormSubmit);
 
@@ -196,8 +195,12 @@ $(document).ready(function () {
                     <td>${row.so_ngay}</td>
                     <td>${row.so_tiet_quy_doi}</td>
                     <td>
-                        <button class="btn btn-sm btn-warning edit-btn" title="Sửa">Sửa</button>
-                        <button class="btn btn-sm btn-danger delete-btn" title="Xóa">Xóa</button>
+                        <button class="btn btn-sm btn-outline-primary btn-action me-1 edit-btn" title="Sửa">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-action delete-btn" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
             `);
@@ -213,28 +216,6 @@ $(document).ready(function () {
             const rowData = $(this).closest('tr').data('row');
             handleDelete(rowData.id);
         });
-    }
-
-    /**
-     * Open Modal for Adding
-     */
-    function openAddModal() {
-        $('#modalTitle').text('Thêm mới hướng dẫn tham quan');
-        $('#recordId').val('');
-        $('#dataForm')[0].reset();
-        $('#id_User').val('');
-        $('#teacherSearch').val('');
-        $('#so_tiet_quy_doi').val(0);
-        
-        // Set default filters to form
-        $('#nam_hoc').val($('#namHocFilter').val());
-        $('#hoc_ky').val($('#kiFilter').val());
-        $('#dot').val($('#dotFilter').val());
-        if ($('#khoaFilter').val() !== 'ALL') {
-            $('#khoa').val($('#khoaFilter').val());
-        }
-
-        $('#formModal').modal('show');
     }
 
     /**

@@ -125,6 +125,7 @@ router.get("/huong-dan-datn/chi-tiet/:GiangVien", huongDanDATNController.getChiT
 const huongDanThamQuanController = require("../controllers/vuotgio_v2/huongDanThamQuan.controller");
 
 router.get("/huong-dan-tham-quan", baseController.getHuongDanThamQuan);
+router.get("/huong-dan-tham-quan/add", baseController.getHuongDanThamQuanAdd);
 router.get("/huong-dan-tham-quan/filters", huongDanThamQuanController.getFilters);
 router.get("/huong-dan-tham-quan/table", huongDanThamQuanController.getTable);
 router.post("/huong-dan-tham-quan/save", huongDanThamQuanController.save);

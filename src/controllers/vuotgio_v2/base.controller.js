@@ -79,6 +79,13 @@ const getHuongDanThamQuan = (req, res) => {
 };
 
 /**
+ * Render trang Thêm Hướng Dẫn Tham Quan Thực Tế
+ */
+const getHuongDanThamQuanAdd = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.huongDanThamQuan.add.ejs");
+};
+
+/**
  * Render trang Thong Ke Giang Day (Co huu)
  */
 const getThongKeGiangDay = (req, res) => {
@@ -179,6 +186,7 @@ module.exports = {
     getXuatFile,
     getHuongDanDATN,
     getHuongDanThamQuan,
+    getHuongDanThamQuanAdd,
     getThongKeGiangDay,
     getCoiChamRaDeThi,
 
