@@ -633,16 +633,13 @@
     }
 
     //  Hàm khởi động ứng dụng
-    function init() {
+    async function init() {
+      await loadHeDaoTaoFromAPI();
       document.getElementById("infoGvm").addEventListener("click", loadData);
     }
 
     async function loadData() {
-
       const MaPhongBan = localStorage.getItem("MaPhongBan");
-
-      // Load danh sách hệ đào tạo từ API
-      await loadHeDaoTaoFromAPI();
 
       // Lấy dữ liệu bộ môn
       try {
