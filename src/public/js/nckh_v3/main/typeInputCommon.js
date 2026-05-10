@@ -143,7 +143,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     }
   }
 
-  function validatePayload(payload, hasSecondaryMembers) {
+  function validatePayload(payload, hasSecondaryMembers, config) {
     const missing = [];
     if (!payload.tenCongTrinh) missing.push("Tên công trình");
     if (!payload.phanLoai) missing.push("Phân loại");
@@ -151,7 +151,8 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     if (!payload.tongSoTiet || Number(payload.tongSoTiet) <= 0) missing.push("Tổng số tiết");
     if (!payload.xepLoai) missing.push("Xếp loại");
     if (payload.loaiNckh !== "BAIBAO" && !payload.ngayNghiemThu) missing.push("Ngày nghiệm thu");
-    if (payload.loaiNckh === "DETAI_DUAN" && !payload.maSo) missing.push("Mã số");
+    if (config.showMaSo && !payload.maSo) missing.push(config.maSoLabel || "Mã số");
+    if (config.mode === "fixed" && !payload.vaiTro) missing.push("Vai trò");
 
     const hasTacGia = (payload.tacGiaIds || []).length > 0 || (payload.tacGiaNgoai || []).length > 0;
     if (!hasTacGia) {
@@ -169,7 +170,10 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     };
   }
 
-  window.NCKH_V3_TypeInputCommon.init = async function init(config) {
+  window.NCKH_V3_TypeInputCommon.init = async function init(initOptions) {
+    const meta = window.NCKH_V3_SELECTED_TYPE_META || {};
+    const config = { ...meta, ...initOptions };
+
     const api = createApi(config.slug);
     const formEl = document.getElementById("typeInputForm");
     if (!formEl) return;
@@ -204,6 +208,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     const xepLoaiEl = document.getElementById("xepLoai");
     const ngayNghiemThuEl = document.getElementById("ngayNghiemThu");
     const maSoEl = document.getElementById("maSo");
+    const vaiTroHoiDongEl = document.getElementById("vaiTroHoiDong");
 
     const tacGiaInput = document.getElementById("tacGiaInput");
     const tacGiaSuggestions = document.getElementById("tacGia-suggestions");
@@ -507,6 +512,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         if (xepLoaiEl) xepLoaiEl.value = "Đạt";
         if (ngayNghiemThuEl) ngayNghiemThuEl.value = "";
         if (maSoEl) maSoEl.value = "";
+        if (vaiTroHoiDongEl) vaiTroHoiDongEl.value = "chu_tich";
 
         rerenderPhanLoaiForCurrentContext();
       });
@@ -538,6 +544,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         xepLoai: xepLoaiEl ? xepLoaiEl.value : null,
         ngayNghiemThu: ngayNghiemThuEl ? ngayNghiemThuEl.value : null,
         maSo: maSoEl ? maSoEl.value : null,
+        vaiTro: vaiTroHoiDongEl ? String(vaiTroHoiDongEl.value || "").trim() : null,
       };
 
       if (config.mode === "fixed") {
@@ -545,7 +552,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         payload.thanhVienNgoai = [];
       }
 
-      const validation = validatePayload(payload, hasSecondaryMembers);
+      const validation = validatePayload(payload, hasSecondaryMembers, config);
       if (!validation.isValid) {
         Swal.fire("Thiếu thông tin", `Vui lòng bổ sung: ${validation.missing.join(", ")}`, "warning");
         return;

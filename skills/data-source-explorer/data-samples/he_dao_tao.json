@@ -1,0 +1,94 @@
+{
+  "schema": [
+    {
+      "field": "id",
+      "type": "int(11)",
+      "nullable": false,
+      "key": "PRI",
+      "default": null
+    },
+    {
+      "field": "he_dao_tao",
+      "type": "varchar(50)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "cap_do",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "loai_hinh",
+      "type": "varchar(50)",
+      "nullable": true,
+      "key": "",
+      "default": null
+    }
+  ],
+  "rows": [
+    {
+      "id": 1,
+      "he_dao_tao": "ĐH Đóng học phí",
+      "cap_do": 1,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 2,
+      "he_dao_tao": "ĐH Mật mã Việt Nam",
+      "cap_do": 1,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 3,
+      "he_dao_tao": "ĐH Mật mã Lào",
+      "cap_do": 1,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 4,
+      "he_dao_tao": "ĐH Mật mã Cuba",
+      "cap_do": 1,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 5,
+      "he_dao_tao": "ĐH Mật mã Campuchia (quân đội)",
+      "cap_do": 1,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 6,
+      "he_dao_tao": "CH Đóng học phí",
+      "cap_do": 2,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 7,
+      "he_dao_tao": "NCS Đóng học phí",
+      "cap_do": 3,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 8,
+      "he_dao_tao": "ĐH Mật mã Campuchia (công an)",
+      "cap_do": 1,
+      "loai_hinh": "mời giảng"
+    },
+    {
+      "id": 9,
+      "he_dao_tao": "Đồ án ĐH Việt Nam",
+      "cap_do": 1,
+      "loai_hinh": "đồ án"
+    },
+    {
+      "id": 10,
+      "he_dao_tao": "Đồ án ĐH Lào",
+      "cap_do": 1,
+      "loai_hinh": "đồ án"
+    }
+  ]
+}

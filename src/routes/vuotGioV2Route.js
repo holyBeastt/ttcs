@@ -15,6 +15,8 @@ const themKTHPController = require("../controllers/vuotgio_v2/themKTHP.controlle
 const duyetKTHPController = require("../controllers/vuotgio_v2/duyetKTHP.controller");
 const tongHopController = require("../controllers/vuotgio_v2/tongHop.controller");
 const xuatFileController = require("../controllers/vuotgio_v2/xuatFile.controller");
+const thongKeGiangDayController = require("../controllers/vuotgio_v2/thongKeGiangDay.controller");
+const previewController = require("../controllers/vuotgio_v2/preview.controller");
 
 // Middleware
 const { uploadSingleFile } = require("../middlewares/TKBImportMiddleware");
@@ -27,6 +29,9 @@ router.get("/api/teachers", baseController.getTeachers);
 router.get("/api/hocphan", baseController.getHocPhan);
 router.get("/api/lophoc", baseController.getLopHoc);
 router.get("/api/dinhmuc", baseController.getDinhMuc);
+router.get("/thong-ke-giang-day", baseController.getThongKeGiangDay);
+router.get("/thong-ke-giang-day/filters", thongKeGiangDayController.getFilters);
+router.post("/thong-ke-giang-day/data", thongKeGiangDayController.getData);
 
 // =====================================================
 // LỚP NGOÀI QUY CHUẨN
@@ -63,6 +68,7 @@ router.post("/lop-ngoai-qc/check-data-exist", lopNgoaiQCImportController.checkDa
 
 router.get("/them-kthp", baseController.getThemKTHP);
 router.post("/them-kthp", themKTHPController.save);
+router.post("/them-kthp/batch", themKTHPController.saveBatch);
 router.get("/them-kthp/:NamHoc/:Khoa", themKTHPController.getTable);
 router.post("/them-kthp/edit/:ID", themKTHPController.edit);
 router.delete("/them-kthp/:ID", themKTHPController.delete);
@@ -87,6 +93,13 @@ router.get("/tong-hop/giang-vien", tongHopController.tongHopTheoGV);
 router.get("/tong-hop-khoa", baseController.getTongHopKhoa);
 router.get("/tong-hop/khoa", tongHopController.tongHopTheoKhoa);
 router.get("/tong-hop/chi-tiet/:MaGV", tongHopController.chiTietGV);
+router.get("/tong-hop/preview/:MaGV", previewController.getPreviewData);
+router.get("/tong-hop/data-chuan/:MaGV", tongHopController.getStandardSummaryData);
+
+// Snapshot (Chốt dữ liệu)
+router.post("/tong-hop/chot-du-lieu", tongHopController.chotDuLieu);
+router.get("/tong-hop/lich-su-chot", tongHopController.getLichSuChot);
+router.get("/tong-hop/snapshot-data", tongHopController.getSnapshotData);
 
 // =====================================================
 // XUẤT FILE
@@ -104,5 +117,18 @@ const huongDanDATNController = require("../controllers/vuotgio_v2/huongDanDATN.c
 router.get("/huong-dan-datn", baseController.getHuongDanDATN);
 router.get("/huong-dan-datn/table", huongDanDATNController.getTable);
 router.get("/huong-dan-datn/chi-tiet/:GiangVien", huongDanDATNController.getChiTiet);
+
+// =====================================================
+// HƯỚNG DẪN THAM QUAN THỰC TẾ
+// =====================================================
+
+const huongDanThamQuanController = require("../controllers/vuotgio_v2/huongDanThamQuan.controller");
+
+router.get("/huong-dan-tham-quan", baseController.getHuongDanThamQuan);
+router.get("/huong-dan-tham-quan/filters", huongDanThamQuanController.getFilters);
+router.get("/huong-dan-tham-quan/table", huongDanThamQuanController.getTable);
+router.post("/huong-dan-tham-quan/save", huongDanThamQuanController.save);
+router.post("/huong-dan-tham-quan/edit/:id", huongDanThamQuanController.edit);
+router.delete("/huong-dan-tham-quan/:id", huongDanThamQuanController.delete);
 
 module.exports = router;

@@ -20,25 +20,44 @@
     <link rel="stylesheet" href="/css/admin.css" />
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/table.css" />
-    
+
     <style>
+        /* Fix sticky thead */
+        #mainTable {
+            border-collapse: separate;
+            /* đổi từ collapse sang separate */
+            border-spacing: 0;
+            /* giữ giao diện như cũ */
+        }
+
+        #mainTable thead th {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: #4472C4;
+        }
+
         .vuotgio-v2-container {
             padding: 20px;
         }
+
         .page-header {
             margin-bottom: 20px;
         }
+
         .page-title {
             font-size: 1.5rem;
             font-weight: 600;
             color: #333;
         }
+
         .grid-container {
             background: #fff;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .section-title {
             font-weight: 600;
             font-size: 1.1rem;
@@ -47,6 +66,7 @@
             border-bottom: 2px solid #4472C4;
             color: #4472C4;
         }
+
         .grid-toolbar {
             display: flex;
             gap: 15px;
@@ -54,6 +74,7 @@
             margin-bottom: 15px;
             flex-wrap: wrap;
         }
+
         .formula-info {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
@@ -61,58 +82,92 @@
             padding: 15px 20px;
             margin-bottom: 20px;
         }
+
         .formula-info h6 {
             font-weight: 600;
             margin-bottom: 10px;
         }
+
         .formula-info .formula {
             font-family: 'Courier New', monospace;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 8px 12px;
             border-radius: 4px;
             font-size: 0.9rem;
         }
+
         .formula-info .note {
             font-size: 0.85rem;
             margin-top: 10px;
             opacity: 0.9;
         }
-        .summary-row {
+
+        .summary {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        .summary.collapsed {
+            transform: translateY(calc(100% + 10px));
+        }
+
+        .summary-toggle {
+            position: absolute;
+            top: -35px;
+            right: 0;
+            width: 35px;
+            height: 35px;
+            background: #1f4ea8;
+            color: white;
+            border: none;
+            border-radius: 10px 0 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .summary.collapsed .summary-toggle {
+            transform: translateY(5px);
+            border-radius: 10px 10px 0 0;
+            right: 10px;
+            top: -40px;
+        }
+
         .summary-box {
-            flex: 1;
-            min-width: 180px;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            min-width: 220px;
+            padding: 4px 0;
         }
-        .summary-box.primary {
-            background: linear-gradient(135deg, #4472C4 0%, #2c5282 100%);
-            color: #fff;
-        }
-        .summary-box.success {
-            background: linear-gradient(135deg, #48bb78 0%, #276749 100%);
-            color: #fff;
-        }
-        .summary-box.warning {
-            background: linear-gradient(135deg, #ed8936 0%, #c05621 100%);
-            color: #fff;
-        }
-        .summary-box.info {
-            background: linear-gradient(135deg, #38b2ac 0%, #234e52 100%);
-            color: #fff;
-        }
-        .summary-box .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
+
         .summary-box .label {
+            color: #516078;
             font-size: 0.85rem;
-            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .summary-box .value {
+            color: #1f4ea8;
+            font-weight: 700;
+            font-size: 1.1rem;
         }
 
         .search {
@@ -123,51 +178,64 @@
             font-size: 14px;
             height: 50px;
         }
+
         .highlight-vuotgio {
             background-color: #d4edda !important;
         }
+
         .text-danger-bold {
             color: red;
             font-weight: bold;
         }
+
         .text-success-bold {
             color: green;
             font-weight: bold;
         }
+
+        /* Column Hover Effect */
+        .column-hover {
+            background-color: rgba(0, 0, 0, 0.03) !important;
+        }
+
+        /* Cảnh báo dòng thiếu tiết */
+        .row-warning-danger {
+            background-color: rgba(255, 0, 0, 0.08) !important;
+        }
+        .row-warning-danger td {
+            color: #b91c1c !important; /* Chuyển màu chữ toàn dòng sang đỏ đậm cho đồng bộ */
+        }
+
+        /* Đảm bảo row hover vẫn hoạt động và nổi bật hơn */
+        #mainTable tbody tr:hover td {
+            background-color: #f5f5f5 !important;
+        }
+
         /* Header cố định: cho tbody cuộn độc lập, thead đứng yên */
         #mainTable {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
         }
-        #mainTable thead tr {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-        }
+
         #mainTable thead th {
             background-color: #4472C4;
             color: #fff;
-            padding: 8px 6px;
+            padding: 10px 6px;
             border: 1px solid #2c5282;
+            vertical-align: middle;
         }
-        #mainTable tbody {
-            display: block;
-            max-height: 450px;
-            overflow-y: auto;
-            width: 100%;
-            scrollbar-gutter: stable; /* dự trữ chỗ scrollbar — tránh lệch cột */
+
+        #mainTable tbody td {
+            padding: 8px 6px;
+            border: 1px solid #dee2e6;
+            vertical-align: middle;
         }
-        #mainTable tfoot {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-        }
-        #mainTable tbody tr,
-        #mainTable tfoot tr {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
+
+        #mainTable tfoot td {
+            background-color: #e9ecef;
+            font-weight: bold;
+            padding: 10px 6px;
+            border: 1px solid #dee2e6;
         }
     </style>
 </head>
@@ -175,50 +243,67 @@
 <body>
     <%- include('../header') %>
 
-    <div class="vuotgio-v2-container">
-        <!-- Page Header -->
-        <!-- <div class="page-header">
+        <div class="vuotgio-v2-container">
+            <!-- Page Header -->
+            <!-- <div class="page-header">
             <h2 class="page-title">Tổng Hợp Vượt Giờ Theo Giảng Viên</h2>
         </div> -->
 
 
 
-        <!-- Grid -->
-        <div class="grid-container">
-            <div class="section-title">
-                <i class="fas fa-table me-2"></i>Bảng Tổng Hợp Vượt Giờ
-            </div>
-
-            <div class="grid-toolbar">
-                <select class="selectop" id="namHocXem" style="width: 130px; margin: 0; box-shadow: none;">
-                    <option value="">Chọn năm học</option>
-                </select>
-                <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
-                    <option value="ALL">Tất cả khoa</option>
-                </select>
-                <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
-                    Hiển thị
-                </button>
-            </div>
-
-            <!-- Summary Boxes -->
-            <div class="summary-row" id="summaryRow" style="display: none;">
-                <div class="summary-box primary">
-                    <div class="value" id="totalGV">0</div>
-                    <div class="label">Tổng giảng viên</div>
+            <!-- Grid -->
+            <div class="grid-container">
+                <div class="section-title">
+                    <i class="fas fa-table me-2"></i>Bảng Tổng Hợp Vượt Giờ
                 </div>
-                <div class="summary-box success">
-                    <div class="value" id="gvCoVuotGio">0</div>
-                    <div class="label">GV có vượt giờ</div>
-                </div>
-                <div class="summary-box warning">
-                    <div class="value" id="totalVuotGio">0</div>
-                    <div class="label">Tổng tiết vượt giờ</div>
-                </div>
-            </div>
 
-            <!-- Công thức tính vượt giờ -->
-            <!-- <div class="formula-info" id="formulaInfo" style="display: none;">
+                <div class="grid-toolbar">
+                    <select class="selectop" id="namHocXem" style="width: 130px; margin: 0; box-shadow: none;">
+                        <option value="">Chọn năm học</option>
+                    </select>
+                    <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
+                        <option value="ALL">Tất cả khoa</option>
+                    </select>
+                    <select class="selectop" id="versionSelect" style="width: 220px; margin: 0; box-shadow: none;">
+                        <option value="LIVE">Phiên bản (Live)</option>
+                    </select>
+                    <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
+                        Hiển thị
+                    </button>
+                    <button id="btnSwitchToKhoa" class="btn btn-primary" style="height: 45px; width: 180px; margin: 0; margin-left: 5px;">
+                        Thống kê khoa
+                    </button>
+
+                    <!-- Snapshot Actions -->
+                    <div class="d-flex align-items-end ms-auto gap-2">
+                        <button id="chotDuLieuBtn" class="btn btn-success"
+                            style="height: 45px; width: 100px; margin: 0;">
+                            Lưu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Boxes -->
+                <div class="summary" id="summaryBox" style="display: none;">
+                    <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="summary-box">
+                        <div class="label">Tổng giảng viên</div>
+                        <div class="value" id="totalGV">0</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="label">GV có vượt giờ</div>
+                        <div class="value" id="gvCoVuotGio">0</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="label">Tổng tiết vượt giờ</div>
+                        <div class="value" id="totalVuotGio">0</div>
+                    </div>
+                </div>
+
+                <!-- Công thức tính vượt giờ -->
+                <!-- <div class="formula-info" id="formulaInfo" style="display: none;">
                 <h6><i class="fas fa-calculator me-2"></i>Công thức tính số tiết vượt giờ</h6>
                 <div class="formula">
                     Tổng số tiết thực hiện = Ngoài QC + Coi chấm ra đề thi + Hướng dẫn ĐATN
@@ -238,68 +323,57 @@
                 <div class="note">※ Số tiết giảng dạy theo TKB được dùng để bù cho phần NCKH nếu chưa hoàn thành, không tính vào tổng thực hiện.</div>
             </div> -->
 
-            <!-- Filter Row -->
-            <div class="d-flex my-3" style="height: 70px">
-                <input type="text" id="filterGiangVien" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search" />
-            </div>
-
-            <!-- Table Section -->
-            <div id="renderInfo" class="fixed-section">
-                <table class="text-center" style="width: 100%" id="mainTable">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;">STT</th>
-                            <th style="width: 180px;">Họ tên</th>
-                            <th style="width: 70px;">Khoa</th>
-                            <th style="width: 70px;">% Miễn giảm</th>
-                            <th style="width: 110px;">Giảng dạy TKB</th>
-                            <th style="width: 120px;">Tổng số tiết thực hiện</th>
-                            <th style="width: 120px;">Định mức phải giảng</th>
-                            <th style="width: 140px;">Tổng số tiết chưa hoàn thành NCKH</th>
-                            <th style="width: 100px;">Vượt giờ</th>
-                            <th style="width: 90px;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Dữ liệu sẽ được chèn vào đây -->
-                    </tbody>
-                    <tfoot id="tableFoot">
-                        <!-- Tổng cộng -->
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Detail Modal -->
-    <div class="modal fade" id="detailModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-user me-2"></i>
-                        Chi Tiết Vượt Giờ: <span id="detailGVName"></span>
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <!-- Filter Row -->
+                <div class="d-flex my-3" style="height: 70px">
+                    <input type="text" id="filterGiangVien" placeholder="Tìm theo tên giảng viên"
+                        class="form-control m-2 search" />
                 </div>
-                <div class="modal-body" id="detailModalBody">
-                    <!-- Content loaded via AJAX -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+
+                <!-- Table Section -->
+                <div id="renderInfo">
+                    <table class="text-center" style="width: 100%" id="mainTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">STT</th>
+                                <th style="width: 180px;">Họ tên</th>
+                                <th style="width: 100px;">Khoa/Phòng</th>
+                                <th style="width: 70px;">% Miễn giảm</th>
+                                <th style="width: 120px;">Chức vụ</th>
+                                <th style="width: 150px;">Lý do miễn giảm</th>
+                                <th style="width: 80px;">Giảng dạy</th>
+                                <th style="width: 80px;">Đồ án</th>
+                                <th style="width: 80px;">Tham quan TT</th>
+                                <th style="width: 80px;">KTHP</th>
+                                <th style="width: 80px;">Ngoài QC</th>
+                                <th style="width: 90px;">Tổng thực hiện</th>
+                                <th style="width: 90px;">Định mức chuẩn</th>
+                                <th style="width: 90px;">Giảm trừ</th>
+                                <th style="width: 90px;">Định mức sau giảm trừ</th>
+                                <th style="width: 90px;">Số tiết nợ NCKH</th>
+                                <th style="width: 80px;">Thiếu tiết giảng dạy</th>
+                                <th style="width: 90px;">Vượt giờ thanh toán</th>
+                                <th style="width: 70px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Dữ liệu sẽ được chèn vào đây -->
+                        </tbody>
+                        <tfoot id="tableFoot">
+                            <!-- Tổng cộng -->
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
 
-    
+        <!-- Scripts -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
-    <!-- Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+        <script src="/js/vuotgio_v2/tongHop/giangVien.js"></script>
 
-    <script src="/js/vuotgio_v2/tongHop/giangVien.js"></script>
+        
 </body>
 
 </html>

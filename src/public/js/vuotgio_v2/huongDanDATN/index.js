@@ -10,7 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // KHỞI TẠO
     // =====================================================
     
-    initDropdowns();
+    // Khởi tạo và tự động tải dữ liệu
+    initDropdowns().then(() => {
+        loadData();
+    });
     
     // Event listeners
     document.getElementById("loadDataBtn").addEventListener("click", loadData);
@@ -114,14 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         
         try {
-            // Show loading
-            Swal.fire({
-                title: "Đang tải dữ liệu...",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            // Show loading (Đã bỏ)
             
             const params = new URLSearchParams({
                 NamHoc: namHoc,
@@ -138,7 +134,6 @@ document.addEventListener("DOMContentLoaded", function () {
             
             if (result.success) {
                 renderTable(result.data);
-                document.getElementById("tongSoTiet").innerHTML = `<strong>${result.tongSoTiet || 0}</strong>`;
             } else {
                 Swal.fire({
                     icon: "error",
@@ -168,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!data || data.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                         <i class="fas fa-inbox fa-2x mb-2"></i><br>
                         Không có dữ liệu
                     </td>
@@ -177,26 +172,96 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
         
+        let currentGVKey = "";
+        let stt = 0;
+
         data.forEach((row, index) => {
             const tr = document.createElement("tr");
+            // Sử dụng key kết hợp Khoa + Tên giảng viên để tránh trùng lặp
+            const gvKey = `${row.Khoa}_${row.GiangVien}`;
             tr.setAttribute("data-giangvien", row.GiangVien || "");
+            tr.setAttribute("data-sotiet", row.SoTiet || 0);
             
-            tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td class="text-start">${row.GiangVien || ""}</td>
-                <td>${row.Khoa || ""}</td>
-                <td>${row.TongSoTiet || 0}</td>
-                <td>
-                    <button class="btn btn-info btn-view" onclick="viewChiTiet('${encodeURIComponent(row.GiangVien || "")}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            `;
+            // Kiểm tra xem giảng viên này có phải là giảng viên mới không (để gộp dòng)
+            const isNewGV = gvKey !== currentGVKey;
+            
+            if (isNewGV) {
+                currentGVKey = gvKey;
+                stt++;
+                
+                // Đếm số lượng bản ghi liên tiếp của giảng viên này để đặt rowspan
+                let gvCount = 0;
+                for (let i = index; i < data.length; i++) {
+                    const nextKey = `${data[i].Khoa}_${data[i].GiangVien}`;
+                    if (nextKey === gvKey) {
+                        gvCount++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                tr.innerHTML = `
+                    <td rowspan="${gvCount}">${stt}</td>
+                    <td rowspan="${gvCount}">${row.GiangVien || ""}</td>
+                    <td rowspan="${gvCount}">${row.Khoa || ""}</td>
+                    <td>${row.SinhVien || ""}</td>
+                    <td>${row.KhoaSV || ""}</td>
+                    <td>${row.TenDeTai || ""}</td>
+                    <td>${row.SoTiet || 0}</td>
+                    <td rowspan="${gvCount}">
+                        <button class="btn btn-info btn-view" onclick="viewChiTiet('${encodeURIComponent(row.GiangVien || "")}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+            } else {
+                // Đối với các dòng tiếp theo của cùng một giảng viên, chỉ hiển thị thông tin sinh viên
+                tr.innerHTML = `
+                    <td>${row.SinhVien || ""}</td>
+                    <td>${row.KhoaSV || ""}</td>
+                    <td>${row.TenDeTai || ""}</td>
+                    <td>${row.SoTiet || 0}</td>
+                `;
+            }
             
             tableBody.appendChild(tr);
         });
+
+        updateSummary();
     }
+
+    // =====================================================
+    // UPDATE SUMMARY
+    // =====================================================
     
+    function updateSummary() {
+        const rows = document.querySelectorAll("#tableBody tr");
+        const uniqueGVs = new Set();
+        let totalStudents = 0;
+        let totalHours = 0;
+
+        rows.forEach(row => {
+            if (row.style.display !== "none") {
+                const gv = row.getAttribute("data-giangvien");
+                if (gv) uniqueGVs.add(gv);
+                
+                // Mỗi dòng dữ liệu ứng với 1 sinh viên
+                totalStudents++;
+                totalHours += parseFloat(row.getAttribute("data-sotiet")) || 0;
+            }
+        });
+
+        document.getElementById("totalTeachers").textContent = uniqueGVs.size;
+        document.getElementById("totalStudents").textContent = totalStudents;
+        document.getElementById("totalHours").textContent = totalHours.toFixed(2);
+        
+        // Cập nhật cả phần footer cũ nếu còn tồn tại
+        const footerTotal = document.getElementById("tongSoTiet");
+        if (footerTotal) {
+            footerTotal.innerHTML = `<strong>${totalHours.toFixed(2)}</strong>`;
+        }
+    }
+
     // =====================================================
     // FILTER TABLE
     // =====================================================
@@ -213,7 +278,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 row.style.display = "none";
             }
         });
+
+        updateSummary();
     }
+
+    // =====================================================
+    // TOGGLE SUMMARY
+    // =====================================================
+    document.getElementById("btnToggleSummary").addEventListener("click", function() {
+        document.getElementById("summaryBox").classList.toggle("collapsed");
+        const icon = this.querySelector("i");
+        if (document.getElementById("summaryBox").classList.contains("collapsed")) {
+            icon.className = "bi bi-chevron-up";
+        } else {
+            icon.className = "bi bi-chevron-down";
+        }
+    });
 });
 
 // =====================================================
@@ -230,14 +310,7 @@ async function viewChiTiet(giangVienEncoded) {
     const heDaoTao = document.getElementById("heDaoTaoFilter").value;
     
     try {
-        // Show loading
-        Swal.fire({
-            title: "Đang tải chi tiết...",
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+        // Show loading (Đã bỏ)
         
         const params = new URLSearchParams({
             NamHoc: namHoc,

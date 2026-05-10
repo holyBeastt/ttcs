@@ -5,6 +5,7 @@
  */
 
 const createPoolConnection = require("../../config/databasePool");
+const sharedRepo = require("../../repositories/vuotgio_v2/shared.repo");
 
 // =====================================================
 // RENDER VIEWS
@@ -39,7 +40,7 @@ const getThemKTHP = (req, res) => {
  * Render trang Duyệt Kết Thúc Học Phần
  */
 const getDuyetKTHP = (req, res) => {
-    res.render("vuotgio_v2/vuotgio.duyetKTHP.ejs");
+    res.render("vuotgio_v2/vuotgio.duyet.coiChamRaDe.ejs");
 };
 
 /**
@@ -70,6 +71,20 @@ const getHuongDanDATN = (req, res) => {
     res.render("vuotgio_v2/vuotgio.huongDanDATN.ejs");
 };
 
+/**
+ * Render trang Hướng Dẫn Tham Quan Thực Tế
+ */
+const getHuongDanThamQuan = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.huongDanThamQuan.ejs");
+};
+
+/**
+ * Render trang Thong Ke Giang Day (Co huu)
+ */
+const getThongKeGiangDay = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.thongKeGiangDay.ejs");
+};
+
 // =====================================================
 // API DÙNG CHUNG
 // =====================================================
@@ -82,18 +97,8 @@ const getTeachers = async (req, res) => {
     try {
         connection = await createPoolConnection();
         const { Khoa } = req.query;
-        
-        let query = `SELECT TenNhanVien AS HoTen, MaPhongBan AS Khoa FROM nhanvien WHERE 1=1`;
-        const params = [];
-        
-        if (Khoa && Khoa !== 'ALL') {
-            query += ` AND MaPhongBan = ?`;
-            params.push(Khoa);
-        }
-        
-        query += ` ORDER BY TenNhanVien`;
-        
-        const [results] = await connection.execute(query, params);
+
+        const results = await sharedRepo.getTeachers(connection, Khoa);
         res.json(results);
     } catch (error) {
         console.error("Error fetching teachers:", error);
@@ -110,14 +115,8 @@ const getHocPhan = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        
-        const query = `
-            SELECT DISTINCT TenHP, MaHP, SoTC 
-            FROM quychuan 
-            ORDER BY TenHP
-        `;
-        
-        const [results] = await connection.execute(query);
+
+        const results = await sharedRepo.getHocPhan(connection);
         res.json(results);
     } catch (error) {
         console.error("Error fetching hoc phan:", error);
@@ -135,18 +134,8 @@ const getLopHoc = async (req, res) => {
     try {
         connection = await createPoolConnection();
         const { NamHoc } = req.query;
-        
-        let query = `SELECT DISTINCT MaLop FROM giangday WHERE 1=1`;
-        const params = [];
-        
-        if (NamHoc) {
-            query += ` AND NamHoc = ?`;
-            params.push(NamHoc);
-        }
-        
-        query += ` ORDER BY MaLop`;
-        
-        const [results] = await connection.execute(query, params);
+
+        const results = await sharedRepo.getLopHoc(connection, NamHoc);
         res.json(results);
     } catch (error) {
         console.error("Error fetching lop hoc:", error);
@@ -163,12 +152,10 @@ const getDinhMuc = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        
-        const [results] = await connection.execute(
-            `SELECT GiangDay, NCKH FROM sotietdinhmuc LIMIT 1`
-        );
-        
-        res.json(results[0] || { GiangDay: 280, NCKH: 280 });
+
+        const result = await sharedRepo.getDinhMuc(connection);
+
+        res.json(result || { GiangDay: 280, NCKH: 280 });
     } catch (error) {
         console.error("Error fetching dinh muc:", error);
         res.status(500).json({ message: "Lỗi khi lấy định mức" });
@@ -191,6 +178,8 @@ module.exports = {
     getTongHopKhoa,
     getXuatFile,
     getHuongDanDATN,
+    getHuongDanThamQuan,
+    getThongKeGiangDay,
     getCoiChamRaDeThi,
 
     // API chung
