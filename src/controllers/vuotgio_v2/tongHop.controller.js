@@ -10,11 +10,16 @@ const thongKeService = require("../../services/vuotgio_v2/thongKe.service");
  * API Tổng hợp vượt giờ theo Giảng viên
  */
 const tongHopTheoGV = async (req, res) => {
-    const { namHoc, khoa } = req.query;
+    const { namHoc, khoa, detail } = req.query;
     if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
 
     try {
-        const data = await tongHopService.getCollectionSDO(namHoc, khoa);
+        const isDetail = String(detail) === "1";
+        console.info("[tongHopTheoGV] request", { namHoc, khoa, detail: isDetail });
+        const data = isDetail
+            ? await tongHopService.getCollectionSDODetail(namHoc, khoa)
+            : await tongHopService.getCollectionSDO(namHoc, khoa);
+        console.info("[tongHopTheoGV] response", { count: Array.isArray(data) ? data.length : 0, detail: isDetail });
         res.json({ success: true, data });
     } catch (error) {
         console.error("Lỗi khi tổng hợp vượt giờ theo GV:", error);

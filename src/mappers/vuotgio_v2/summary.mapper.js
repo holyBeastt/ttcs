@@ -4,6 +4,7 @@
  */
 
 const base = require("./base.mapper");
+const PaymentCalculator = require("../../services/vuotgio_v2/department_excel/data/calculator");
 
 /**
  * Công thức tính toán các chỉ số vượt giờ cốt lõi
@@ -57,29 +58,34 @@ const calculateOvertime = (params) => {
     };
 };
 
+const trainingSystemMapper = require("./trainingSystem.mapper");
+
 /**
  * Xây dựng bảng tổng hợp theo hệ đào tạo (Mục F)
  */
 const buildTableF = (rawData) => {
     const { giangDay = [], lopNgoaiQC = [], kthp = [], doAn = [], hdtq = [] } = rawData;
+
+    // Dùng normalized category key thay vì raw tên hệ đào tạo
+    // → doAn "Hệ Mật mã" và giangDay "Hệ Mật mã VN (ĐTKTKM)" đều map về "vn"
     const groups = new Map();
 
-    const getGroup = (name) => {
-        const key = name || "Hệ đào tạo khác";
+    const getGroup = (tenHeDaoTao) => {
+        const key = trainingSystemMapper.getCategoryKey(tenHeDaoTao);
         if (!groups.has(key)) {
-            groups.set(key, { 
-                doi_tuong: key, 
-                hk1: 0, 
-                hk2: 0, 
-                do_an: 0, 
-                tham_quan: 0, 
-                tong: 0 
+            groups.set(key, {
+                doi_tuong: trainingSystemMapper.getLabel(key),
+                hk1: 0,
+                hk2: 0,
+                do_an: 0,
+                tham_quan: 0,
+                tong: 0
             });
         }
         return groups.get(key);
     };
 
-    // 1. Giang dạy
+    // 1. Giảng dạy
     giangDay.forEach(r => {
         const g = getGroup(r.ten_he_dao_tao);
         const val = base.toDecimal(r.QuyChuan);
@@ -103,19 +109,19 @@ const buildTableF = (rawData) => {
         else g.hk1 += val;
     });
 
-    // 4. Đồ án
+    // 4. Đồ án (không có HK → dồn vào hk1)
     doAn.forEach(r => {
-        const g = getGroup(r.ten_he_dao_tao);
+        const g = getGroup(r.ten_he_dao_tao || r.he_dao_tao);
         g.do_an += base.toDecimal(r.SoTiet);
     });
 
-    // 5. Tham quan
+    // 5. Tham quan (không có HK → dồn vào hk1)
     hdtq.forEach(r => {
-        const g = getGroup(r.ten_he_dao_tao);
+        const g = getGroup(r.ten_he_dao_tao || r.he_dao_tao);
         g.tham_quan += base.toDecimal(r.so_tiet_quy_doi);
     });
 
-    // Chuyển Map sang Array và làm tròn
+    // Chuyển Map sang Array, làm tròn, tính tong
     const rows = Array.from(groups.values()).map((row, idx) => ({
         tt: idx + 1,
         doi_tuong: row.doi_tuong,
@@ -159,14 +165,21 @@ const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc, extraInfo = {}) => {
         dinhMucNCKH: dmNCKH
     });
 
+    const tableF = buildTableF(rawData);
+    const breakdown = PaymentCalculator.computeSdoBreakdown(tableF, stats.thanhToan);
+
     return {
         id_User: nv.id_User,
         giangVien: nv.giangVien,
         ngaySinh: nv.ngaySinh,
         hocVi: nv.hocVi,
         hsl: nv.hsl,
+        luong: nv.luong,
+        soTaiKhoan: nv.soTaiKhoan,
+        nganHang: nv.nganHang,
         maKhoa: nv.maKhoa,
         khoa: nv.khoa,
+        isKhoa: nv.isKhoa ?? 1,   // 0 = phòng/ban, 1 = khoa — drives sheet grouping
         chucVu: nv.chucVu,
         chuNhiemKhoa: extraInfo.chuNhiemKhoa || "",
         phanTramMienGiam: nv.phanTramMienGiam,
@@ -188,13 +201,14 @@ const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc, extraInfo = {}) => {
             vi: stats.thanhToan,
             ly_do: nv.lyDoMienGiam
         },
-        tableF: buildTableF(rawData),
+        tableF,
+        breakdown,
         raw: rawData
     };
 };
 
 /**
- * Ánh xạ dữ liệu thô từ DB thành Collection SDO cho danh sách giảng viên
+ * Ánh xạ dữ liệu thô từ DB thành Collection SDO cho danh sách giảng viên (tổng hợp Khoa)
  */
 const toCollectionSDO = (rawDataList, nckhMap, namHoc, globalDinhMuc) => {
     const dmChuan = base.toDecimal(globalDinhMuc?.GiangDay) || 280;
@@ -215,8 +229,13 @@ const toCollectionSDO = (rawDataList, nckhMap, namHoc, globalDinhMuc) => {
             dinhMucNCKH: dmNCKH
         });
 
+        // Với collectionSDO (không có tableF chi tiết), breakdown sẽ trống —
+        // được bổ sung đầy đủ ở getCollectionSDODetail qua toAtomicSDO.
         return {
             ...r,
+            soTaiKhoan: r.soTaiKhoan,
+            nganHang: r.nganHang,
+            luong: r.luong,
             ...stats,
             soTietNCKH,
             nam_hoc: namHoc

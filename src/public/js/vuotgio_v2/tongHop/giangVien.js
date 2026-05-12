@@ -6,6 +6,69 @@
 let globalData = []; // Biến toàn cục để lưu dữ liệu từ server
 let previewPdfObjectUrl = null;
 
+const REQUIRED_FIELDS = [
+    "id_User",
+    "giangVien",
+    "maKhoa",
+    "dinhMucChuan",
+    "dinhMucSauMienGiam",
+    "thieuNCKH",
+    "thanhToan",
+    "tableF"
+];
+
+const logMissingFields = (rows, context) => {
+    const missingMap = new Map();
+    const maxSamples = 20;
+    let sampleCount = 0;
+
+    rows.forEach((row, index) => {
+        const missing = REQUIRED_FIELDS.filter((key) => {
+            const value = row?.[key];
+            if (value === null || value === undefined) return true;
+            if (key === "tableF" && !value?.rows) return true;
+            if (typeof value === "number" && Number.isNaN(value)) return true;
+            return false;
+        });
+
+        if (missing.length) {
+            missing.forEach((key) => {
+                missingMap.set(key, (missingMap.get(key) || 0) + 1);
+            });
+
+            if (sampleCount < maxSamples) {
+                console.warn("[tongHopGV] Missing fields", {
+                    context,
+                    index,
+                    id_User: row?.id_User,
+                    giangVien: row?.giangVien,
+                    missing
+                });
+                sampleCount += 1;
+            }
+        }
+    });
+
+    if (missingMap.size) {
+        const summary = Array.from(missingMap.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([key, count]) => ({ key, count }));
+        console.warn("[tongHopGV] Missing fields summary", { context, summary });
+    } else {
+        console.info("[tongHopGV] Missing fields summary", { context, summary: [] });
+    }
+};
+
+const logFirstRowDetails = (rows, context) => {
+    if (!Array.isArray(rows) || rows.length === 0) {
+        console.info("[tongHopGV] First row details", { context, message: "no rows" });
+        return;
+    }
+
+    const firstRow = rows[0];
+    console.info("[tongHopGV] First row raw data", { context, row: firstRow });
+};
+
 // ==================== INITIALIZATION ====================
 
 document.addEventListener('DOMContentLoaded', async function () {
@@ -144,13 +207,23 @@ async function loadData() {
     try {
         let url = '';
         if (version === 'LIVE') {
-            url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}`;
+            url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}&detail=1`;
         } else {
             url = `/v2/vuotgio/tong-hop/snapshot-data?namHoc=${namHoc}&version=${version}`;
         }
 
+        console.info('[tongHopGV] loadData request', { namHoc, khoa, version, url });
         const response = await fetch(url);
         const result = await response.json();
+
+        console.info('[tongHopGV] loadData response', {
+            status: response.status,
+            ok: response.ok,
+            success: result?.success,
+            message: result?.message,
+            dataType: Array.isArray(result?.data) ? 'array' : typeof result?.data,
+            dataCount: Array.isArray(result?.data) ? result.data.length : null
+        });
 
         if (!result.success) {
             Swal.fire('Lỗi', result.message || 'Không thể tải dữ liệu', 'error');
@@ -165,9 +238,15 @@ async function loadData() {
         }
 
         globalData = data;
+        console.info('[tongHopGV] loadData final', {
+            count: data.length,
+            sample: data.slice(0, 3)
+        });
+
+        logMissingFields(data, { namHoc, khoa, version });
+        logFirstRowDetails(data, { namHoc, khoa, version });
         renderTable(globalData);
         updateSummary(globalData);
-        initStickyHeader();
 
 
         if (data.length === 0) {
@@ -190,69 +269,105 @@ function renderTable(data) {
 
     let STT = 1;
 
-    let totalGiangDay = 0;
-    let totalDoAn = 0;
-    let totalHDTQ = 0;
-    let totalKTHP = 0;
-    let totalNgoaiQC = 0;
-    let totalTongTiet = 0;
-    let totalDinhMuc = 0;
-    let totalMienGiam = 0;
-    let totalDinhMucSauGiamTru = 0;
-    let totalThieuTiet = 0;
-    let totalNoNCKH = 0;
-    let totalThanhToan = 0;
+    // Initialize totals for all columns
+    let totals = {
+        dinhMucChuan: 0, mienGiam: 0, thieuNCKH: 0, dinhMucSauGiamTru: 0,
+        hk1_vn: 0, hk1_lao: 0, hk1_cuba: 0, hk1_cpc: 0, hk1_dongHP: 0,
+        hk2_vn: 0, hk2_lao: 0, hk2_cuba: 0, hk2_cpc: 0, hk2_dongHP: 0,
+        year_vn: 0, year_lao: 0, year_cuba: 0, year_cpc: 0, year_dongHP: 0,
+        vuot_vn: 0, vuot_lao: 0, vuot_cuba: 0, vuot_cpc: 0, vuot_dongHP: 0, vuot_tong: 0,
+        mucTT: 0,
+        tien_vn: 0, tien_lao: 0, tien_cuba: 0, tien_cpc: 0, tien_dongHP: 0, tien_tong: 0,
+        thucNhan: 0,
+        luong: 0
+    };
+
+    let lastKhoa = null;
 
     data.forEach((row, index) => {
+        if (index < 5) console.log(`[renderTable] Row ${index}:`, row);
+        // Thêm dòng tiêu đề nhóm nếu khoa thay đổi
+        if (row.khoa !== lastKhoa) {
+            const groupRow = document.createElement('tr');
+            groupRow.className = 'group-header table-light fw-bold';
+            groupRow.innerHTML = `
+                <td colspan="37" class="text-start px-3 py-2">
+                    <i class="fas fa-university me-2"></i> ${row.khoa || 'Khác'}
+                </td>
+            `;
+            tableBody.appendChild(groupRow);
+            lastKhoa = row.khoa;
+        }
+
         const tableRow = document.createElement('tr');
         tableRow.setAttribute('data-index', index);
-        
-        // Nếu thiếu tiết giảng dạy (> 0) thì cảnh báo cả dòng
+        tableRow.setAttribute('data-khoa', row.khoa || ''); // Phục vụ filter
+
         if (row.thieuTietGiangDay > 0) {
             tableRow.classList.add('row-warning-danger');
         }
 
-        // 1. STT
-        // 2. Họ tên
-        // 3. Khoa/Phòng
-        // 4. % Miễn giảm
-        // 5. Chức vụ
-        // 6. Lý do miễn giảm
-        // 7. Số tiết giảng dạy (soTietGiangDay)
-        // 8. Định mức chuẩn (dinhMucChuan)
-        // 9. Số tiết được giảm trừ (mienGiam)
-        // 10. Định mức sau giảm trừ (dinhMucSauMienGiam)
-        // 11. Số tiết Nợ NCKH (thieuNCKH)
-        // 12. Thiếu tiết (thieuTietGiangDay)
-        // 13. Tổng số tiết (tongThucHien)
-        // 14. Số tiết được thanh toán (thanhToan)
+        // Ưu tiên dùng breakdown đã tính sẵn từ Backend (single source of truth).
+        // Fallback: tự tính nếu là snapshot cũ chưa có breakdown.
+        const bd = row.breakdown || getBdFallback(row);
+
+        const mucTT  = bd.mucTT || 0;
+        const thucNhan = bd.thucNhan || 0;
 
         tableRow.innerHTML = `
-            <td style="text-align: center;">${STT++}</td>
-            <td style="text-align: center;">${row.giangVien || ''}</td>
-            <td style="text-align: center;">${row.maKhoa || ''}</td>
-            <td style="text-align: center; color: ${row.phanTramMienGiam > 0 ? '#e67e22' : 'inherit'}">
-                ${row.phanTramMienGiam || 0}%
-            </td>
-            <td style="text-align: center;">${row.chucVu || ''}</td>
-            <td style="text-align: center;">${row.lyDoMienGiam || ''}</td>
-            <td style="text-align: center;">${formatNumber(row.soTietGiangDay)}</td>
-            <td style="text-align: center;">${formatNumber(row.soTietDoAn)}</td>
-            <td style="text-align: center;">${formatNumber(row.soTietHDTQ)}</td>
-            <td style="text-align: center;">${formatNumber(row.soTietKTHP)}</td>
-            <td style="text-align: center;">${formatNumber(row.soTietNgoaiQC)}</td>
-            <td style="text-align: center; font-weight: bold;">${formatNumber(row.tongThucHien)}</td>
-            <td style="text-align: center;">${formatNumber(row.dinhMucChuan)}</td>
-            <td style="text-align: center;">${formatNumber(row.mienGiam)}</td>
-            <td style="text-align: center;">${formatNumber(row.dinhMucSauMienGiam)}</td>
-            <td style="text-align: center;" class="${row.thieuNCKH > 0 ? 'text-danger-bold' : ''}">
-                ${formatNumber(row.thieuNCKH)}
-            </td>
-            <td style="text-align: center; ${row.thieuTietGiangDay > 0 ? 'color: red; font-weight: bold;' : ''}">
-                ${formatNumber(row.thieuTietGiangDay)}
-            </td>
-            <td style="text-align: center; color: green; font-weight: bold;">${formatNumber(row.thanhToan)}</td>
-            <td style="text-align: center;">
+            <td>${STT++}</td>
+            <td style="text-align: left; padding-left: 8px;">${row.giangVien || ''}</td>
+            <td>${formatNumber(row.luong)}</td>
+            <td>${formatNumber(row.dinhMucChuan)}</td>
+            <td>${formatNumber(row.mienGiam)}</td>
+            <td class="${row.thieuNCKH > 0 ? 'text-danger-bold' : ''}">${formatNumber(row.thieuNCKH)}</td>
+            <td>${formatNumber(row.dinhMucSauMienGiam)}</td>
+
+            <!-- HK1 -->
+            <td>${formatNumber(bd.hk1.vn)}</td>
+            <td>${formatNumber(bd.hk1.lao)}</td>
+            <td>${formatNumber(bd.hk1.cuba)}</td>
+            <td>${formatNumber(bd.hk1.cpc)}</td>
+            <td>${formatNumber(bd.hk1.dongHP)}</td>
+
+            <!-- HK2 -->
+            <td>${formatNumber(bd.hk2.vn)}</td>
+            <td>${formatNumber(bd.hk2.lao)}</td>
+            <td>${formatNumber(bd.hk2.cuba)}</td>
+            <td>${formatNumber(bd.hk2.cpc)}</td>
+            <td>${formatNumber(bd.hk2.dongHP)}</td>
+
+            <!-- Cả năm -->
+            <td>${formatNumber(bd.year.vn)}</td>
+            <td>${formatNumber(bd.year.lao)}</td>
+            <td>${formatNumber(bd.year.cuba)}</td>
+            <td>${formatNumber(bd.year.cpc)}</td>
+            <td>${formatNumber(bd.year.dongHP)}</td>
+
+            <!-- Vượt giờ -->
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.vn)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.lao)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.cuba)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.cpc)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.dongHP)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.total)}</td>
+
+            <!-- Mức TT -->
+            <td>${formatNumber(mucTT)}</td>
+
+            <!-- Thành tiền -->
+            <td>${formatNumber(bd.money.vn)}</td>
+            <td>${formatNumber(bd.money.lao)}</td>
+            <td>${formatNumber(bd.money.cuba)}</td>
+            <td>${formatNumber(bd.money.cpc)}</td>
+            <td>${formatNumber(bd.money.dongHP)}</td>
+            <td style="font-weight: bold;">${formatNumber(bd.money.total)}</td>
+
+            <!-- Thực nhận -->
+            <td style="font-weight: bold; color: #1a5276;">${formatNumber(thucNhan)}</td>
+
+            <!-- Actions -->
+            <td>
                 <button class="btn btn-sm btn-success" onclick="previewExcel('${row.id_User}', '${row.giangVien}')" title="Xem preview Excel">
                     <i class="fas fa-file-excel"></i>
                 </button>
@@ -261,65 +376,220 @@ function renderTable(data) {
 
         tableBody.appendChild(tableRow);
 
-        // Sum totals
-        totalGiangDay += row.soTietGiangDay || 0;
-        totalDoAn += row.soTietDoAn || 0;
-        totalHDTQ += row.soTietHDTQ || 0;
-        totalKTHP += row.soTietKTHP || 0;
-        totalNgoaiQC += row.soTietNgoaiQC || 0;
-        totalTongTiet += row.tongThucHien || 0;
-        totalDinhMuc += row.dinhMucChuan || 0;
-        totalMienGiam += row.mienGiam || 0;
-        totalDinhMucSauGiamTru += row.dinhMucSauMienGiam || 0;
-        totalThieuTiet += row.thieuTietGiangDay || 0;
-        totalNoNCKH += row.thieuNCKH || 0;
-        totalThanhToan += row.thanhToan || 0;
+        // Accumulate totals
+        totals.luong            += row.luong || 0;
+        totals.dinhMucChuan     += row.dinhMucChuan || 0;
+        totals.mienGiam         += row.mienGiam || 0;
+        totals.thieuNCKH        += row.thieuNCKH || 0;
+        totals.dinhMucSauGiamTru += row.dinhMucSauMienGiam || 0;
+        totals.hk1_vn     += bd.hk1.vn;    totals.hk1_lao    += bd.hk1.lao;
+        totals.hk1_cuba   += bd.hk1.cuba;  totals.hk1_cpc    += bd.hk1.cpc;
+        totals.hk1_dongHP += bd.hk1.dongHP;
+        totals.hk2_vn     += bd.hk2.vn;    totals.hk2_lao    += bd.hk2.lao;
+        totals.hk2_cuba   += bd.hk2.cuba;  totals.hk2_cpc    += bd.hk2.cpc;
+        totals.hk2_dongHP += bd.hk2.dongHP;
+        totals.year_vn    += bd.year.vn;   totals.year_lao   += bd.year.lao;
+        totals.year_cuba  += bd.year.cuba; totals.year_cpc   += bd.year.cpc;
+        totals.year_dongHP += bd.year.dongHP;
+        totals.vuot_vn    += bd.vuot.vn;   totals.vuot_lao   += bd.vuot.lao;
+        totals.vuot_cuba  += bd.vuot.cuba; totals.vuot_cpc   += bd.vuot.cpc;
+        totals.vuot_dongHP += bd.vuot.dongHP; totals.vuot_tong += bd.vuot.total;
+        totals.tien_vn    += bd.money.vn;  totals.tien_lao   += bd.money.lao;
+        totals.tien_cuba  += bd.money.cuba; totals.tien_cpc  += bd.money.cpc;
+        totals.tien_dongHP += bd.money.dongHP; totals.tien_tong += bd.money.total;
+        totals.thucNhan   += thucNhan;
     });
 
     // Render footer
+    renderFooter(totals);
+}
+
+/**
+ * Fallback: tự tính breakdown cho dữ liệu snapshot cũ không có sẵn breakdown từ server.
+ * Cấu trúc trả về giống hệt computeSdoBreakdown() ở backend.
+ */
+function getBdFallback(row) {
+    const GROUPS = ['vn', 'lao', 'cuba', 'cpc', 'dongHP'];
+    const RATE = 100000;
+
+    const raw = parseTrainingSystemBreakdown(row.tableF);
+    const vuot = distributeOvertimeProportionally(raw, row.thanhToan || 0);
+
+    const money = {};
+    let moneyTotal = 0;
+    GROUPS.forEach(g => {
+        money[g] = Number(Number((vuot[`vuot_${g}`] || 0) * RATE).toFixed(2));
+        moneyTotal += money[g];
+    });
+
+    const sum = (prefix) => GROUPS.reduce((s, g) => s + (raw[`${prefix}_${g}`] || 0), 0);
+
+    return {
+        hk1:  { vn: raw.hk1_vn,  lao: raw.hk1_lao,  cuba: raw.hk1_cuba,  cpc: raw.hk1_cpc,  dongHP: raw.hk1_dongHP,  total: sum('hk1') },
+        hk2:  { vn: raw.hk2_vn,  lao: raw.hk2_lao,  cuba: raw.hk2_cuba,  cpc: raw.hk2_cpc,  dongHP: raw.hk2_dongHP,  total: sum('hk2') },
+        year: { vn: raw.year_vn, lao: raw.year_lao, cuba: raw.year_cuba, cpc: raw.year_cpc, dongHP: raw.year_dongHP, total: sum('year') },
+        vuot: { vn: vuot.vuot_vn, lao: vuot.vuot_lao, cuba: vuot.vuot_cuba, cpc: vuot.vuot_cpc, dongHP: vuot.vuot_dongHP, total: Number(Number(row.thanhToan || 0).toFixed(2)) },
+        money: { ...money, total: Number(moneyTotal.toFixed(2)) },
+        thucNhan: Number(moneyTotal.toFixed(2)),
+        mucTT: RATE,
+    };
+}
+
+
+/**
+ * Parse tableF data to extract training system breakdown
+ */
+function parseTrainingSystemBreakdown(tableF) {
+    const breakdown = {
+        hk1_vn: 0, hk1_lao: 0, hk1_cuba: 0, hk1_cpc: 0, hk1_dongHP: 0,
+        hk2_vn: 0, hk2_lao: 0, hk2_cuba: 0, hk2_cpc: 0, hk2_dongHP: 0,
+        year_vn: 0, year_lao: 0, year_cuba: 0, year_cpc: 0, year_dongHP: 0
+    };
+
+    if (!tableF || !tableF.rows) return breakdown;
+
+    tableF.rows.forEach(row => {
+        const doiTuong = row.doi_tuong || '';
+        
+        /**
+         * Backend classification logic (from sdo-data.helpers.js):
+         * - Check if name contains "mật mã" → isMatMa = true/false
+         * - Check region: "lào" → lao, "campuchia" → campuchia, "cuba" → cuba, default → viet_nam
+         * - If isMatMa = false → đóng học phí (dongHP)
+         * - If isMatMa = true → use region (vn, lao, cuba, cpc for campuchia)
+         */
+        const classifyHeDaoTao = (tenHeDaoTao) => {
+            const name = String(tenHeDaoTao || "").toLowerCase();
+            const isMatMa = name.includes("mật mã");
+            
+            let vungMien = "viet_nam";
+            if (name.includes("lào")) vungMien = "lao";
+            else if (name.includes("campuchia")) vungMien = "campuchia"; 
+            else if (name.includes("cuba")) vungMien = "cuba";
+            
+            return { isMatMa, vungMien };
+        };
+
+        // Map backend regions to frontend categories
+        const regionToCategory = {
+            "viet_nam": "vn",
+            "lao": "lao", 
+            "cuba": "cuba",
+            "campuchia": "cpc"  // Campuchia maps to CPC column
+        };
+        
+        const classification = classifyHeDaoTao(doiTuong);
+        
+        let category;
+        if (!classification.isMatMa) {
+            // Not "mật mã" → đóng học phí
+            category = 'dongHP';
+        } else {
+            // Is "mật mã" → use region mapping
+            category = regionToCategory[classification.vungMien] || 'vn';
+        }
+
+        // Đồ án & tham quan không có thông tin HK → mặc định tính vào HK1
+        breakdown[`hk1_${category}`] += (row.hk1 || 0) + (row.do_an || 0) + (row.tham_quan || 0);
+        breakdown[`hk2_${category}`] += row.hk2 || 0;
+        breakdown[`year_${category}`] += row.tong || 0;
+    });
+
+    return breakdown;
+}
+
+/**
+ * Distribute overtime hours proportionally across training systems
+ */
+function distributeOvertimeProportionally(breakdown, totalOvertime) {
+    const yearTotal = breakdown.year_vn + breakdown.year_lao + breakdown.year_cuba + 
+                     breakdown.year_cpc + breakdown.year_dongHP;
+    
+    if (yearTotal === 0) {
+        return {
+            vuot_vn: 0, vuot_lao: 0, vuot_cuba: 0, vuot_cpc: 0, vuot_dongHP: 0
+        };
+    }
+
+    return {
+        vuot_vn: (breakdown.year_vn / yearTotal) * totalOvertime,
+        vuot_lao: (breakdown.year_lao / yearTotal) * totalOvertime,
+        vuot_cuba: (breakdown.year_cuba / yearTotal) * totalOvertime,
+        vuot_cpc: (breakdown.year_cpc / yearTotal) * totalOvertime,
+        vuot_dongHP: (breakdown.year_dongHP / yearTotal) * totalOvertime
+    };
+}
+
+/**
+ * Render footer with totals
+ */
+function renderFooter(totals) {
+    const tableFoot = document.getElementById('tableFoot');
+    tableFoot.innerHTML = '';
+    
     const footRow = document.createElement('tr');
     footRow.style.fontWeight = 'bold';
     footRow.style.backgroundColor = '#e9ecef';
 
     footRow.innerHTML = `
-        <td colspan="6" style="text-align: center;">TỔNG CỘNG</td>
-        <td style="text-align: center;">${formatNumber(totalGiangDay)}</td>
-        <td style="text-align: center;">${formatNumber(totalDoAn)}</td>
-        <td style="text-align: center;">${formatNumber(totalHDTQ)}</td>
-        <td style="text-align: center;">${formatNumber(totalKTHP)}</td>
-        <td style="text-align: center;">${formatNumber(totalNgoaiQC)}</td>
-        <td style="text-align: center;">${formatNumber(totalTongTiet)}</td>
-        <td style="text-align: center;">${formatNumber(totalDinhMuc)}</td>
-        <td style="text-align: center;">${formatNumber(totalMienGiam)}</td>
-        <td style="text-align: center;">${formatNumber(totalDinhMucSauGiamTru)}</td>
-        <td style="text-align: center;">${formatNumber(totalNoNCKH)}</td>
-        <td style="text-align: center;">${formatNumber(totalThieuTiet)}</td>
-        <td style="text-align: center;">${formatNumber(totalThanhToan)}</td>
+        <td colspan="2" style="text-align: center;">TỔNG CỘNG</td>
+        <td>${formatNumber(totals.luong)}</td>
+        <td>${formatNumber(totals.dinhMucChuan)}</td>
+        <td>${formatNumber(totals.mienGiam)}</td>
+        <td>${formatNumber(totals.thieuNCKH)}</td>
+        <td>${formatNumber(totals.dinhMucSauGiamTru)}</td>
+        
+        <!-- HK1 -->
+        <td>${formatNumber(totals.hk1_vn)}</td>
+        <td>${formatNumber(totals.hk1_lao)}</td>
+        <td>${formatNumber(totals.hk1_cuba)}</td>
+        <td>${formatNumber(totals.hk1_cpc)}</td>
+        <td>${formatNumber(totals.hk1_dongHP)}</td>
+        
+        <!-- HK2 -->
+        <td>${formatNumber(totals.hk2_vn)}</td>
+        <td>${formatNumber(totals.hk2_lao)}</td>
+        <td>${formatNumber(totals.hk2_cuba)}</td>
+        <td>${formatNumber(totals.hk2_cpc)}</td>
+        <td>${formatNumber(totals.hk2_dongHP)}</td>
+        
+        <!-- Cả năm -->
+        <td>${formatNumber(totals.year_vn)}</td>
+        <td>${formatNumber(totals.year_lao)}</td>
+        <td>${formatNumber(totals.year_cuba)}</td>
+        <td>${formatNumber(totals.year_cpc)}</td>
+        <td>${formatNumber(totals.year_dongHP)}</td>
+        
+        <!-- Vượt giờ -->
+        <td>${formatNumber(totals.vuot_vn)}</td>
+        <td>${formatNumber(totals.vuot_lao)}</td>
+        <td>${formatNumber(totals.vuot_cuba)}</td>
+        <td>${formatNumber(totals.vuot_cpc)}</td>
+        <td>${formatNumber(totals.vuot_dongHP)}</td>
+        <td>${formatNumber(totals.vuot_tong)}</td>
+        
+        <!-- Mức TT -->
+        <td></td>
+        
+        <!-- Thành tiền -->
+        <td>${formatNumber(totals.tien_vn)}</td>
+        <td>${formatNumber(totals.tien_lao)}</td>
+        <td>${formatNumber(totals.tien_cuba)}</td>
+        <td>${formatNumber(totals.tien_cpc)}</td>
+        <td>${formatNumber(totals.tien_dongHP)}</td>
+        <td>${formatNumber(totals.tien_tong)}</td>
+        
+        <!-- Thực nhận -->
+        <td>${formatNumber(totals.thucNhan)}</td>
+        
+        <!-- Actions -->
         <td></td>
     `;
 
     tableFoot.appendChild(footRow);
 }
 
-/**
- * Đọc chiều rộng thực của td đầu tiên trong tbody và áp lại cho th tương ứng.
- * Giải quyết lệch cột khi scrollbar xuất hiện (scrollbar-gutter fallback).
- */
-function syncTableColumnWidths() {
-    const firstBodyRow = document.querySelector('#tableBody tr');
-    if (!firstBodyRow) return;
 
-    const bodyTds = firstBodyRow.querySelectorAll('td');
-    const headThs = document.querySelectorAll('#mainTable thead th');
-
-    bodyTds.forEach((td, i) => {
-        if (headThs[i]) {
-            const w = td.getBoundingClientRect().width;
-            headThs[i].style.width = w + 'px';
-            headThs[i].style.minWidth = w + 'px';
-        }
-    });
-}
 
 // ==================== UPDATE SUMMARY ====================
 
@@ -345,19 +615,22 @@ function updateSummary(data) {
 
 function filterTable() {
     const gvFilter = document.getElementById('filterGiangVien').value.toLowerCase();
-    const tableRows = document.querySelectorAll('#tableBody tr');
-
-    tableRows.forEach(row => {
-        const hoTenCell = row.querySelector('td:nth-child(2)'); // Họ tên
-        const hoTenValue = hoTenCell ? hoTenCell.textContent.toLowerCase() : '';
-
-        if (hoTenValue.includes(gvFilter)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+    
+    // 1. Lọc dữ liệu từ globalData
+    const filteredData = globalData.filter(row => {
+        const hoTen = (row.giangVien || '').toLowerCase();
+        return hoTen.includes(gvFilter);
     });
+
+    // 2. Render lại toàn bộ bảng dựa trên dữ liệu đã lọc
+    // Việc gọi renderTable sẽ tự động xử lý lại STT và Group Header cho Khoa
+    renderTable(filteredData);
+
+    // 3. Cập nhật Summary box
+    updateSummary(filteredData);
 }
+
+// Remove old updateFooterTotals function as it's replaced by renderFooter
 
 // ==================== EXCEL PREVIEW (PDF) ====================
 
@@ -455,6 +728,7 @@ function renderExcelPdfPreview(serverData, hoTen, namHoc, khoa) {
     const escapedTitle = escapeHtml(`Xem trước: ${hoTen || ''}`);
     const escapedNamHoc = escapeHtml(namHoc || '');
     const escapedKhoa = escapeHtml(khoa === 'ALL' ? 'Tất cả' : (khoa || ''));
+    
     previewWindow.document.open();
     previewWindow.document.write(`
         <!DOCTYPE html>
@@ -463,6 +737,7 @@ function renderExcelPdfPreview(serverData, hoTen, namHoc, khoa) {
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>${escapedTitle}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
             <style>
                 html, body {
                     margin: 0;
@@ -471,58 +746,105 @@ function renderExcelPdfPreview(serverData, hoTen, namHoc, khoa) {
                     background: #fff;
                     overflow: hidden;
                     font-family: Arial, sans-serif;
-                    user-select: none;
+                }
+                .header {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 56px;
+                    background: #f1f5f9;
+                    color: #1e293b;
+                    display: flex;
+                    align-items: center;
+                    padding: 0 20px;
+                    gap: 20px;
+                    z-index: 1000;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                .header .info-group {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    font-size: 14px;
+                }
+                .header .info-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 4px 10px;
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 6px;
+                    white-space: nowrap;
+                }
+                .header .info-item strong {
+                    color: #64748b;
+                }
+                .header button {
+                    height: 36px;
+                    width: 36px;
+                    border: 1px solid #e2e8f0;
+                    background: #fff;
+                    color: #64748b;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    transition: all 0.2s ease;
+                }
+                .header button:hover {
+                    background: #f8fafc;
+                    color: #1e293b;
+                }
+                .header button.close-btn {
+                    margin-left: auto;
+                }
+                .header button.close-btn:hover {
+                    background: #fee2e2;
+                    color: #ef4444;
+                    border-color: #fecaca;
+                }
+                .header .title {
+                    font-weight: 600;
+                    font-size: 16px;
+                    color: #0f172a;
                 }
                 .layout {
                     display: flex;
                     width: 100%;
                     height: 100%;
+                    padding-top: 56px;
                 }
                 .sidebar {
                     width: 260px;
                     min-width: 260px;
                     border-right: 1px solid #e5e7eb;
                     background: #f8fafc;
-                    box-sizing: border-box;
                     padding: 16px;
                     display: flex;
                     flex-direction: column;
                     gap: 12px;
                 }
-                .sidebar h1 {
-                    margin: 0;
-                    font-size: 18px;
-                    line-height: 1.3;
-                    color: #0f172a;
+                .sidebar.hidden {
+                    display: none;
                 }
                 .sidebar .meta {
                     display: flex;
                     flex-direction: column;
                     gap: 10px;
-                    align-items: stretch;
                     font-size: 14px;
                     color: #334155;
                 }
                 .meta-item {
                     background: #fff;
                     border: 1px solid #e2e8f0;
-                    border-radius: 10px;
+                    border-radius: 6px;
                     padding: 10px 12px;
                     line-height: 1.4;
-                    word-break: break-word;
-                }
-                .sidebar .actions {
-                    display: flex;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                    margin-top: auto;
-                }
-                .sidebar button {
-                    padding: 8px 12px;
-                    border: 1px solid #94a3b8;
-                    background: #fff;
-                    border-radius: 6px;
-                    cursor: pointer;
                 }
                 .viewer {
                     flex: 1;
@@ -531,29 +853,25 @@ function renderExcelPdfPreview(serverData, hoTen, namHoc, khoa) {
                 }
             </style>
             <script>
-                // Chặn chuột phải
-                document.addEventListener('contextmenu', e => e.preventDefault());
-                
-                // Chặn phím tắt Ctrl+S, Ctrl+P
-                document.addEventListener('keydown', e => {
-                    if (e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'S' || e.key === 'P')) {
-                        e.preventDefault();
-                    }
-                });
+                // Sidebar toggle removed as sidebar is gone
             </script>
         </head>
         <body>
+            <div class="header">
+                <div class="title">${escapedTitle}</div>
+                <div class="info-group">
+                    <div class="info-item">
+                        <strong>Năm học:</strong> ${escapedNamHoc}
+                    </div>
+                    <div class="info-item">
+                        <strong>Khoa:</strong> ${escapedKhoa}
+                    </div>
+                </div>
+                <button class="close-btn" onclick="window.close()" title="Đóng">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             <div class="layout">
-                <aside class="sidebar">
-                    <h1>${escapedTitle}</h1>
-                    <div class="meta">
-                        <div class="meta-item"><strong>Năm học</strong><br>${escapedNamHoc}</div>
-                        <div class="meta-item"><strong>Khoa</strong><br>${escapedKhoa}</div>
-                    </div>
-                    <div class="actions">
-                        <button onclick="window.close()">Đóng</button>
-                    </div>
-                </aside>
                 <iframe class="viewer" src="${previewPdfObjectUrl}#toolbar=0&navpanes=0" title="Excel PDF Preview"></iframe>
             </div>
         </body>
@@ -659,106 +977,4 @@ async function chotDuLieu() {
 }
 
 
-
-// Thêm vào cuối file giangVien.js hoặc trong <script> cuối trang
-function initStickyHeader() {
-    const table = document.getElementById('mainTable');
-    if (!table) return;
-
-    // 1. Xóa header cũ nếu đã tồn tại để tránh trùng lặp khi ấn Hiển thị nhiều lần
-    const existingWrapper = table.parentElement.querySelector('.sticky-header-wrapper');
-    if (existingWrapper) {
-        existingWrapper.remove();
-    }
-
-    const thead = table.querySelector('thead');
-    
-    // 2. Reset lại style của thead gốc trước khi clone (để không clone trạng thái đang ẩn)
-    thead.style.cssText = '';
-    const origThs = thead.querySelectorAll('th');
-    origThs.forEach(th => th.style.cssText = '');
-
-    // 3. Tạo wrapper và clone table
-    const wrapper = document.createElement('div');
-    wrapper.className = 'sticky-header-wrapper'; // Thêm class để dễ nhận diện và xóa
-    wrapper.style.cssText = 'position:sticky;top:0;z-index:100;overflow:hidden;box-shadow: 0 2px 5px rgba(0,0,0,0.15);';
-
-    const cloneTable = document.createElement('table');
-    cloneTable.className = table.className;
-    cloneTable.style.cssText = 'width:100%;margin:0;border-collapse:collapse;table-layout:fixed;';
-
-    const cloneThead = thead.cloneNode(true);
-    const cloneThs = cloneThead.querySelectorAll('th');
-    cloneThs.forEach(th => {
-        th.style.padding = '14px 8px';
-    });
-
-    cloneTable.appendChild(cloneThead);
-    wrapper.appendChild(cloneTable);
-
-    // 4. Ẩn thead gốc bằng height = 0 nhưng vẫn giữ cấu trúc để đồng bộ độ rộng cột
-    thead.style.cssText = 'height:0;line-height:0;visibility:hidden;';
-    origThs.forEach(th => {
-        th.style.cssText = 'height:0;padding:0 8px;border:0;line-height:0;';
-    });
-    
-    // Chèn sticky header vào trước table
-    table.parentElement.insertBefore(wrapper, table);
-
-    // 5. Đồng bộ độ rộng cột
-    const syncWidths = () => {
-        const currentOrigThs = thead.querySelectorAll('th');
-        const currentCloneThs = cloneThead.querySelectorAll('th');
-        currentOrigThs.forEach((th, i) => {
-            if (currentCloneThs[i]) {
-                const width = th.getBoundingClientRect().width + 'px';
-                currentCloneThs[i].style.width = width;
-                currentCloneThs[i].style.minWidth = width;
-            }
-        });
-        cloneTable.style.width = table.getBoundingClientRect().width + 'px';
-    };
-
-    syncWidths();
-    
-    // 6. Quản lý resize listener: xóa cái cũ trước khi thêm cái mới
-    if (window._stickyResizeHandler) {
-        window.removeEventListener('resize', window._stickyResizeHandler);
-    }
-    window._stickyResizeHandler = syncWidths;
-    window.addEventListener('resize', window._stickyResizeHandler);
-
-    // 7. Khởi tạo hover effect (chỉ chạy một lần duy nhất qua delegation)
-    initTableHover();
-}
-
-/**
- * Hiệu ứng hover theo cột cho bảng (Dùng delegation để tránh trùng lặp event listener)
- */
-function initTableHover() {
-    const container = document.getElementById('renderInfo');
-    if (!container || container._hoverInitialized) return;
-    container._hoverInitialized = true;
-
-    container.addEventListener('mouseover', function(e) {
-        const cell = e.target.closest('td, th');
-        if (!cell) return;
-        const index = cell.cellIndex;
-        
-        // Tìm tất cả table trong container (bao gồm table chính và sticky clone)
-        const allTables = container.querySelectorAll('table');
-        allTables.forEach(t => {
-            const cells = t.querySelectorAll(`tbody tr td:nth-child(${index + 1})`);
-            cells.forEach(c => c.classList.add('column-hover'));
-        });
-    });
-
-    container.addEventListener('mouseout', function(e) {
-        const cell = e.target.closest('td, th');
-        if (!cell) return;
-        container.querySelectorAll('.column-hover').forEach(c => c.classList.remove('column-hover'));
-    });
-}
-
-// Gọi sau khi render xong dữ liệu
-// Thêm initStickyHeader() vào cuối hàm render bảng của mày
+
