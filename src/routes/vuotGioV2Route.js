@@ -94,6 +94,9 @@ router.get("/tong-hop-khoa", baseController.getTongHopKhoa);
 router.get("/tong-hop/khoa", tongHopController.tongHopTheoKhoa);
 router.get("/tong-hop/chi-tiet/:MaGV", tongHopController.chiTietGV);
 router.get("/tong-hop/preview/:MaGV", previewController.getPreviewData);
+router.get("/tong-hop/preview-khoa/:khoa", previewController.getPreviewKhoaData);
+router.get("/tong-hop/preview-consolidated", previewController.getConsolidatedPreviewData);
+router.get("/tong-hop/consolidated-data", previewController.getConsolidatedData);
 router.get("/tong-hop/data-chuan/:MaGV", tongHopController.getStandardSummaryData);
 
 // Snapshot (Chốt dữ liệu)
@@ -107,6 +110,7 @@ router.get("/tong-hop/snapshot-data", tongHopController.getSnapshotData);
 
 router.get("/xuat-file", xuatFileController.renderPage);
 router.get("/xuat-file/excel", xuatFileController.exportExcel);
+router.get("/xuat-file/tong-hop", xuatFileController.exportConsolidated);
 
 // =====================================================
 // HƯỚNG DẪN ĐỒ ÁN TỐT NGHIỆP

@@ -1,0 +1,11 @@
+{
+  "skill_name": "excel-payment-generator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Sheet 'Tiền chuyển khoản' lấy dữ liệu từ đâu và tổng số tiền được tính như thế nào?",
+      "expected_output": "Xác định nguồn tiền từ sheet Master, mô tả logic SUM theo đơn vị để chi trả.",
+      "files": ["thống kê chung vượt giờ.xlsx"]
+    }
+  ]
+}

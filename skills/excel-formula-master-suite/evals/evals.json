@@ -1,0 +1,8 @@
+[
+  {
+    "task": "E2E: Phân tích Khoa CNTT -> Chốt số tiền tại Tiền chuyển khoản -> Xuất HTML",
+    "expected_outcome": "HTML hiển thị đúng 357,012,249.96 VND cho Khoa CNTT và khớp với logic trần 176 tiết.",
+    "status": "PASS",
+    "sub_skills_involved": ["excel-dept-analyzer", "excel-payment-generator", "excel-to-html-converter"]
+  }
+]

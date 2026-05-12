@@ -1,0 +1,11 @@
+{
+  "skill_name": "excel-master-consolidator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Làm thế nào để dữ liệu từ các sheet Khoa được tập hợp vào sheet 'TỔNG HỢP 2025'? Hãy chỉ ra các vùng tham chiếu chính.",
+      "expected_output": "Mô tả cách Master sheet liên kết với các Dept sheets (ví dụ: 'CNTT-092025'!A15), xác định các khối dòng cho từng đơn vị.",
+      "files": ["thống kê chung vượt giờ.xlsx"]
+    }
+  ]
+}
