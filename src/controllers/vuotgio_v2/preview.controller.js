@@ -54,6 +54,103 @@ const getPreviewData = async (req, res) => {
     }
 };
 
+/**
+ * Lấy preview theo khoa (một sheet tổng hợp cho cả khoa)
+ */
+const getPreviewKhoaData = async (req, res) => {
+    const { khoa } = req.params;
+    const { namHoc } = req.query;
+
+    if (!namHoc || !khoa) {
+        return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học hoặc Khoa" });
+    }
+
+    try {
+        const khoaDecoded = decodeURIComponent(khoa);
+        const summaries = await tongHopService.getCollectionSDODetail(namHoc, khoaDecoded);
+
+        if (!summaries || summaries.length === 0) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu cho khoa này" });
+        }
+
+        const previewResult = await templatePreviewService.buildDepartmentPreviewPdf({
+            summaries,
+            khoa: khoaDecoded,
+            namHoc,
+        });
+
+        res.json({
+            success: true,
+            data: {
+                pdfBase64: previewResult.pdfBase64,
+                warnings: previewResult.warnings || [],
+                meta: previewResult.meta,
+            },
+        });
+    } catch (error) {
+        console.error("Error in getPreviewKhoaData:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Lấy preview tổng hợp theo khoa (consolidated export với nhiều sheet)
+ */
+const getConsolidatedPreviewData = async (req, res) => {
+    const { namHoc } = req.query;
+
+    if (!namHoc) {
+        return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
+    }
+
+    try {
+        console.info(`[ConsolidatedPreview] Năm học: ${namHoc}`);
+
+        const previewResult = await templatePreviewService.buildConsolidatedPreviewPdf({
+            namHoc,
+        });
+
+        res.json({
+            success: true,
+            data: {
+                pdfBase64: previewResult.pdfBase64,
+                warnings: previewResult.warnings || [],
+                meta: previewResult.meta,
+            },
+        });
+    } catch (error) {
+        console.error("Error in getConsolidatedPreviewData:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Lấy dữ liệu tổng hợp theo khoa (structured data, không phải PDF)
+ */
+const getConsolidatedData = async (req, res) => {
+    const { namHoc } = req.query;
+
+    if (!namHoc) {
+        return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
+    }
+
+    try {
+        const consolidatedService = require("../../services/vuotgio_v2/consolidatedExport.service");
+        const data = await consolidatedService.getConsolidatedPreviewData(namHoc);
+
+        res.json({
+            success: true,
+            data
+        });
+    } catch (error) {
+        console.error("Error in getConsolidatedData:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
-    getPreviewData
+    getPreviewData,
+    getPreviewKhoaData,
+    getConsolidatedPreviewData,
+    getConsolidatedData
 };

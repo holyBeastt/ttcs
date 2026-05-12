@@ -3,8 +3,10 @@ const os = require("os");
 const fs = require("fs");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
+const ExcelJS = require("exceljs");
 const { buildWorkbook } = require("./excel/keKhaiReport.generator");
-
+const { ConsolidatedGenerator, DepartmentGenerator } = require("./department_excel");
+const { PDFConverter } = require("./shared_excel");
 
 const execFileAsync = promisify(execFile);
 
@@ -118,38 +120,7 @@ const getAvailableSofficePath = () => {
 };
 
 const convertXlsxBufferToPdf = async (xlsxBuffer) => {
-  const sofficePath = getAvailableSofficePath();
-  if (!sofficePath) {
-    throw new Error("Không tìm thấy LibreOffice (soffice.exe) để render preview PDF");
-  }
-
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "vg-preview-"));
-  const xlsxPath = path.join(tempDir, "preview.xlsx");
-  const pdfPath = path.join(tempDir, "preview.pdf");
-
-  try {
-    fs.writeFileSync(xlsxPath, xlsxBuffer);
-
-    await execFileAsync(
-      sofficePath,
-      ["--headless", "--convert-to", "pdf", "--outdir", tempDir, xlsxPath],
-      { timeout: 60000 },
-    );
-
-    if (!fs.existsSync(pdfPath)) {
-      throw new Error("LibreOffice không sinh ra file PDF");
-    }
-
-    return fs.readFileSync(pdfPath);
-  } finally {
-    try {
-      if (fs.existsSync(xlsxPath)) fs.unlinkSync(xlsxPath);
-      if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    } catch (_cleanupError) {
-      // Ignore cleanup errors.
-    }
-  }
+  return PDFConverter.convertXlsxBufferToPdf(xlsxBuffer);
 };
 
 const buildWorkbookFromSummary = (summary, useFormulas) => {
@@ -159,6 +130,129 @@ const buildWorkbookFromSummary = (summary, useFormulas) => {
     throw new Error("Workbook không có worksheet");
   }
   return { workbook, worksheet };
+};
+
+const sanitizeWorksheetName = (value, fallback) => {
+  const trimmed = String(value || fallback || "Sheet1")
+    .replace(/[\\/?*:[\]]/g, " ")
+    .trim();
+  return (trimmed || fallback || "Sheet1").slice(0, 31);
+};
+
+const PAYMENT_RATE = 100000;
+
+const trainingSystemMapper = require("../../mappers/vuotgio_v2/trainingSystem.mapper");
+
+const parseTrainingSystemBreakdown = (tableF) => {
+  const breakdown = {
+    hk1_vn: 0, hk1_lao: 0, hk1_cuba: 0, hk1_cpc: 0, hk1_dongHP: 0,
+    hk2_vn: 0, hk2_lao: 0, hk2_cuba: 0, hk2_cpc: 0, hk2_dongHP: 0,
+    year_vn: 0, year_lao: 0, year_cuba: 0, year_cpc: 0, year_dongHP: 0,
+  };
+
+  if (!tableF || !Array.isArray(tableF.rows)) {
+    return breakdown;
+  }
+
+  tableF.rows.forEach((row) => {
+    const category = trainingSystemMapper.getCategoryKey(
+      row.doi_tuong || row.DoiTuong || row.ten_he_dao_tao || row.he_dao_tao
+    );
+
+    // Đồ án & tham quan không có thông tin HK → mặc định tính vào HK1
+    breakdown[`hk1_${category}`] += Number(row.hk1 || 0) + Number(row.do_an || 0) + Number(row.tham_quan || 0);
+    breakdown[`hk2_${category}`] += Number(row.hk2 || 0);
+    breakdown[`year_${category}`] += Number(row.tong || 0);
+  });
+
+  return breakdown;
+};
+
+const distributeOvertimeProportionally = (breakdown, totalOvertime) => {
+  const yearTotal =
+    breakdown.year_vn +
+    breakdown.year_lao +
+    breakdown.year_cuba +
+    breakdown.year_cpc +
+    breakdown.year_dongHP;
+
+  if (yearTotal === 0) {
+    return {
+      vuot_vn: 0,
+      vuot_lao: 0,
+      vuot_cuba: 0,
+      vuot_cpc: 0,
+      vuot_dongHP: 0,
+    };
+  }
+
+  return {
+    vuot_vn: (breakdown.year_vn / yearTotal) * totalOvertime,
+    vuot_lao: (breakdown.year_lao / yearTotal) * totalOvertime,
+    vuot_cuba: (breakdown.year_cuba / yearTotal) * totalOvertime,
+    vuot_cpc: (breakdown.year_cpc / yearTotal) * totalOvertime,
+    vuot_dongHP: (breakdown.year_dongHP / yearTotal) * totalOvertime,
+  };
+};
+
+const excelNumber = (value) => Number(Number(value || 0).toFixed(2));
+
+const buildPaymentWorksheet = (workbook, summaries, khoa, namHoc) => {
+  // Use the new PaymentGenerator from department_excel module
+  const { PaymentGenerator } = require("./department_excel");
+  
+  return PaymentGenerator.createPaymentSheet(workbook, {
+    summaries,
+    khoa,
+    namHoc
+  });
+};
+
+const attachDepartmentSheet = (workbook, { summaries, khoa, namHoc }) => {
+  // Use the new DepartmentGenerator from department_excel module
+  return DepartmentGenerator.createDepartmentSheet(workbook, {
+    summaries,
+    khoa,
+    namHoc
+  });
+};
+
+const buildDepartmentWorkbook = ({ summaries, khoa, namHoc }) => {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "VuotGioV2";
+  workbook.created = new Date();
+  attachDepartmentSheet(workbook, { summaries, khoa, namHoc });
+  return workbook;
+};
+
+const buildDepartmentPreviewPdf = async ({ summaries, khoa, namHoc }) => {
+  const workbook = DepartmentGenerator.generateDepartmentWorkbook({ summaries, khoa, namHoc });
+  let xlsxBuffer;
+  try {
+    xlsxBuffer = await workbook.xlsx.writeBuffer();
+  } catch (error) {
+    throw wrapStageError("write-xlsx-buffer", error);
+  }
+
+  let pdfBuffer;
+  try {
+    pdfBuffer = await convertXlsxBufferToPdf(Buffer.from(xlsxBuffer));
+  } catch (error) {
+    throw wrapStageError("convert-pdf-libreoffice", error);
+  }
+
+  return {
+    previewType: "pdf",
+    pdfBase64: pdfBuffer.toString("base64"),
+    warnings: [],
+    intermediateJson: null,
+    meta: {
+      khoa,
+      namHoc,
+      sheetName: sanitizeWorksheetName(khoa, "PreviewKhoa"),
+      totalSummaries: summaries.length,
+    },
+  };
 };
 
 const buildTemplatePreview = async ({ summary }) => {
@@ -220,7 +314,46 @@ const buildTemplatePreviewPdf = async ({ summary }) => {
   };
 };
 
+const buildConsolidatedPreviewPdf = async ({ namHoc }) => {
+  let workbook;
+  try {
+    workbook = await ConsolidatedGenerator.generateConsolidatedWorkbook(namHoc);
+  } catch (error) {
+    throw wrapStageError("build-consolidated-workbook", error);
+  }
+
+  let xlsxBuffer;
+  try {
+    xlsxBuffer = await workbook.xlsx.writeBuffer();
+  } catch (error) {
+    throw wrapStageError("write-xlsx-buffer", error);
+  }
+
+  let pdfBuffer;
+  try {
+    pdfBuffer = await convertXlsxBufferToPdf(Buffer.from(xlsxBuffer));
+  } catch (error) {
+    throw wrapStageError("convert-pdf-libreoffice", error);
+  }
+
+  return {
+    previewType: "pdf",
+    pdfBase64: pdfBuffer.toString("base64"),
+    warnings: [],
+    intermediateJson: null,
+    meta: {
+      namHoc,
+      previewType: "consolidated",
+      totalSheets: workbook.worksheets.length,
+      sheetNames: workbook.worksheets.map(ws => ws.name),
+    },
+  };
+};
+
 module.exports = {
+  attachDepartmentSheet,
   buildTemplatePreview,
   buildTemplatePreviewPdf,
+  buildDepartmentPreviewPdf,
+  buildConsolidatedPreviewPdf,
 };

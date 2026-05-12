@@ -4,6 +4,9 @@
  */
 
 const tongHopService = require("./tongHop.service");
+const { NON_KHOA_GROUP_CODE } = require("../../repositories/vuotgio_v2/tongHop.repo");
+
+const NON_KHOA_GROUP_NAME = "Ban giám đốc & các phòng";
 
 const getThongKeKhoa = async (namHoc, khoaId) => {
     // Nếu khoaId là ALL hoặc không có, chúng ta sẽ lấy toàn trường và nhóm theo Khoa
@@ -18,13 +21,16 @@ const getThongKeKhoa = async (namHoc, khoaId) => {
         
         sdoList.forEach(r => {
             // Kiểm tra cả maKhoa (alias) và MaPhongBan (tên gốc trong DB)
-            const unitCode = r.maKhoa || r.MaPhongBan || "KHAC";
+            const isNonKhoa = Number(r.isKhoa) === 0;
+            const unitCode = isNonKhoa
+                ? NON_KHOA_GROUP_CODE
+                : (r.maKhoa || r.MaPhongBan || "KHAC");
             const key = unitCode;
             
             if (!groupMap.has(key)) {
                 groupMap.set(key, {
                     maKhoa: unitCode,
-                    tenKhoa: r.khoa || "Khác/Chưa xác định",
+                    tenKhoa: isNonKhoa ? NON_KHOA_GROUP_NAME : (r.khoa || "Khác/Chưa xác định"),
                     tongSoGV: 0,
                     soTietGiangDay: 0,
                     soTietNgoaiQC: 0,
