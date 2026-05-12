@@ -25,6 +25,7 @@ let chartDonut   = null;
 let chartStacked = null;
 let currentTab   = 'all';
 let cachedData   = [];
+let previewPdfObjectUrl = null;
 
 /* ════════════════════════════════════════════
    Khởi tạo
@@ -81,6 +82,15 @@ function fmt(val) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
+}
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /* ════════════════════════════════════════════
@@ -224,6 +234,13 @@ function renderTable(mode, data) {
             title="Xem chi tiết giảng viên"
           >
             <i class="fas fa-eye"></i>
+          </button>
+          <button
+            class="btn-eye ms-1"
+            onclick="previewDepartment('${maKhoaEncoded}', '${escapeHtml(row.tenKhoa || row.maKhoa || code || '')}')"
+            title="Xem preview khoa"
+          >
+            <i class="fas fa-file-pdf"></i>
           </button>
         </td>
       </tr>
@@ -428,4 +445,217 @@ function viewDepartmentDetail(maKhoa) {
   window.location.href = `/v2/vuotgio/tong-hop-giang-vien?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
 }
 
+function previewDepartment(maKhoa, tenKhoa) {
+  const namHoc = document.getElementById('namHocXem')?.value;
+  if (!namHoc) {
+    Swal.fire('Thông báo', 'Vui lòng chọn năm học', 'warning');
+    return;
+  }
+
+  const previewLabel = tenKhoa || decodeURIComponent(maKhoa || '');
+  Swal.showLoading();
+
+  fetch(`/v2/vuotgio/tong-hop/preview-khoa/${maKhoa}?namHoc=${encodeURIComponent(namHoc)}`)
+    .then((response) => response.json())
+    .then((result) => {
+      if (!result.success) {
+        throw new Error(result.message || 'Không thể tải preview khoa');
+      }
+
+      if (!result.data?.pdfBase64) {
+        throw new Error('Không tạo được bản PDF preview');
+      }
+
+      openPdfPreviewWindow(result.data.pdfBase64, previewLabel, namHoc, maKhoa);
+    })
+    .catch((error) => {
+      console.error('Error loading khoa preview:', error);
+      Swal.fire('Lỗi', error.message || 'Không thể tải preview khoa', 'error');
+    })
+    .finally(() => Swal.close());
+}
+
+function openPdfPreviewWindow(pdfBase64, title, namHoc, maKhoa) {
+  if (previewPdfObjectUrl) {
+    URL.revokeObjectURL(previewPdfObjectUrl);
+    previewPdfObjectUrl = null;
+  }
+
+  const pdfBytes = atob(pdfBase64);
+  const byteNumbers = new Array(pdfBytes.length);
+  for (let i = 0; i < pdfBytes.length; i += 1) {
+    byteNumbers[i] = pdfBytes.charCodeAt(i);
+  }
+  const pdfBlob = new Blob([new Uint8Array(byteNumbers)], { type: 'application/pdf' });
+  previewPdfObjectUrl = URL.createObjectURL(pdfBlob);
+
+  const previewWindow = window.open('', '_blank');
+  if (!previewWindow) {
+    Swal.fire('Lỗi', 'Trình duyệt đã chặn cửa sổ preview mới. Vui lòng cho phép popup.', 'error');
+    return;
+  }
+
+  const escapeHtml = (text) => String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const escapedTitle = escapeHtml(`Xem trước khoa: ${title || ''}`);
+  const escapedNamHoc = escapeHtml(namHoc || '');
+  const escapedKhoa = escapeHtml(title || decodeURIComponent(maKhoa || ''));
+
+  previewWindow.document.open();
+  previewWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>${escapedTitle}</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+      <style>
+        html, body {
+          margin: 0;
+          width: 100%;
+          height: 100%;
+          background: #fff;
+          overflow: hidden;
+          font-family: Arial, sans-serif;
+        }
+        .header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 56px;
+          background: #f1f5f9;
+          color: #1e293b;
+          display: flex;
+          align-items: center;
+          padding: 0 20px;
+          gap: 20px;
+          z-index: 1000;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .header .info-group {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          font-size: 14px;
+        }
+        .header .info-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          white-space: nowrap;
+        }
+        .header .info-item strong {
+          color: #64748b;
+        }
+        .header button {
+          height: 36px;
+          width: 36px;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          color: #64748b;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          transition: all 0.2s ease;
+        }
+        .header button:hover {
+          background: #f8fafc;
+          color: #1e293b;
+        }
+        .header button.close-btn {
+          margin-left: auto;
+        }
+        .header button.close-btn:hover {
+          background: #fee2e2;
+          color: #ef4444;
+          border-color: #fecaca;
+        }
+        .header .title {
+          font-weight: 600;
+          font-size: 16px;
+          color: #0f172a;
+        }
+        .layout {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          padding-top: 56px;
+        }
+        .sidebar {
+          width: 260px;
+          min-width: 260px;
+          border-right: 1px solid #e5e7eb;
+          background: #f8fafc;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .sidebar.hidden {
+          display: none;
+        }
+        .sidebar .meta {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          font-size: 14px;
+          color: #334155;
+        }
+        .meta-item {
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          padding: 10px 12px;
+          line-height: 1.4;
+        }
+        .viewer {
+          flex: 1;
+          height: 100%;
+          border: 0;
+        }
+      </style>
+      <script>
+        // Sidebar toggle removed as sidebar is gone
+      </script>
+    </head>
+    <body>
+      <div class="header">
+        <div class="title">${escapedTitle}</div>
+        <div class="info-group">
+          <div class="info-item">
+            <strong>Năm học:</strong> ${escapedNamHoc}
+          </div>
+          <div class="info-item">
+            <strong>Khoa:</strong> ${escapedKhoa}
+          </div>
+        </div>
+        <button class="close-btn" onclick="window.close()" title="Đóng">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="layout">
+        <iframe class="viewer" src="${previewPdfObjectUrl}#toolbar=0&navpanes=0" title="Khoa Preview PDF"></iframe>
+      </div>
+    </body>
+    </html>
+  `);
+  previewWindow.document.close();
+}
+
 window.viewDepartmentDetail = viewDepartmentDetail;
+window.previewDepartment = previewDepartment;

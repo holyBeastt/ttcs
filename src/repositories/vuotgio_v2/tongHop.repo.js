@@ -25,7 +25,11 @@ const getNhanVienById = async (connection, idUser) => {
             nv.ChucVu AS chucVu,
             nv.PhanTramMienGiam AS phanTramMienGiam,
             nv.LyDoMienGiam AS lyDoMienGiam,
-            pb.TenPhongBan AS khoa
+            nv.SoTaiKhoan AS soTaiKhoan,
+            nv.NganHang AS nganHang,
+            nv.Luong AS luong,
+            pb.TenPhongBan AS khoa,
+            COALESCE(pb.isKhoa, 0) AS isKhoa
         FROM nhanvien nv
         LEFT JOIN phongban pb ON pb.id = nv.phongban_id
         WHERE nv.id_User = ?`,
@@ -36,7 +40,8 @@ const getNhanVienById = async (connection, idUser) => {
 
 const getGiangDayByIdUser = async (connection, { namHoc, idUser }) => {
     const [rows] = await connection.execute(
-        `SELECT gd.*, hdt.he_dao_tao AS ten_he_dao_tao
+        `SELECT gd.*, 
+                COALESCE(hdt.he_dao_tao, gd.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
          FROM giangday gd
          LEFT JOIN he_dao_tao hdt ON hdt.id = gd.he_dao_tao
          WHERE gd.NamHoc = ? AND gd.id_User = ?
@@ -48,10 +53,11 @@ const getGiangDayByIdUser = async (connection, { namHoc, idUser }) => {
 
 const getLopNgoaiQCByIdUser = async (connection, { namHoc, idUser }) => {
     const [rows] = await connection.execute(
-        `SELECT lnqc.*, hdt.he_dao_tao AS ten_he_dao_tao
+        `SELECT lnqc.*, 
+                COALESCE(hdt.he_dao_tao, lnqc.he_dao_tao_id, 'Không xác định') AS ten_he_dao_tao
          FROM vg_lop_ngoai_quy_chuan lnqc
          LEFT JOIN he_dao_tao hdt ON hdt.id = lnqc.he_dao_tao_id
-         WHERE lnqc.nam_hoc = ? AND lnqc.id_User = ?
+         WHERE lnqc.nam_hoc = ? AND lnqc.id_User = ? AND lnqc.khoa_duyet = 1
          ORDER BY lnqc.hoc_ky, lnqc.ma_hoc_phan`,
         [namHoc, idUser]
     );
@@ -60,10 +66,11 @@ const getLopNgoaiQCByIdUser = async (connection, { namHoc, idUser }) => {
 
 const getKthpByIdUser = async (connection, { namHoc, idUser }) => {
     const [rows] = await connection.execute(
-        `SELECT kthp.*, hdt.he_dao_tao AS ten_he_dao_tao
+        `SELECT kthp.*, 
+                COALESCE(hdt.he_dao_tao, kthp.doi_tuong, 'Không xác định') AS ten_he_dao_tao
          FROM vg_coi_cham_ra_de kthp
          LEFT JOIN he_dao_tao hdt ON hdt.id = kthp.he_dao_tao_id
-         WHERE kthp.nam_hoc = ? AND kthp.id_User = ?
+         WHERE kthp.nam_hoc = ? AND kthp.id_User = ? AND kthp.khoa_duyet = 1
          ORDER BY kthp.hoc_ky, kthp.hinh_thuc`,
         [namHoc, idUser]
     );
@@ -72,7 +79,8 @@ const getKthpByIdUser = async (connection, { namHoc, idUser }) => {
 
 const getDoAnByIdUser = async (connection, { namHoc, idUser }) => {
     const [rows] = await connection.execute(
-        `SELECT da.*, hdt.he_dao_tao AS ten_he_dao_tao
+        `SELECT da.*, 
+                COALESCE(hdt.he_dao_tao, da.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
          FROM exportdoantotnghiep da
          LEFT JOIN he_dao_tao hdt ON hdt.id = da.he_dao_tao
          WHERE da.NamHoc = ? AND da.id_User = ? AND da.isMoiGiang = 0`,
@@ -83,7 +91,8 @@ const getDoAnByIdUser = async (connection, { namHoc, idUser }) => {
 
 const getHuongDanThamQuanByIdUser = async (connection, { namHoc, idUser }) => {
     const [rows] = await connection.execute(
-        `SELECT t.*, hdt.he_dao_tao AS ten_he_dao_tao
+        `SELECT t.*, 
+                COALESCE(hdt.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
          FROM vg_huong_dan_tham_quan_thuc_te t
          LEFT JOIN he_dao_tao hdt ON hdt.id = t.he_dao_tao_id
          WHERE t.nam_hoc = ? AND t.id_User = ?`,
@@ -95,8 +104,11 @@ const getHuongDanThamQuanByIdUser = async (connection, { namHoc, idUser }) => {
 /**
  * SQL lấy dữ liệu thô để tổng hợp cho tất cả GV trong khoa
  */
+const NON_KHOA_GROUP_CODE = "BGĐ&PHONG";
+
 const getDuLieuThoTongHop = async (connection, { namHoc, khoa }) => {
     const isAllKhoa = !khoa || khoa === "ALL";
+    const isNonKhoaGroup = khoa === NON_KHOA_GROUP_CODE;
     const params = [];
     
     let lecturersQuery = `
@@ -105,9 +117,13 @@ const getDuLieuThoTongHop = async (connection, { namHoc, khoa }) => {
             nv.TenNhanVien AS giangVien, 
             nv.MaPhongBan AS maKhoa,
             pb.TenPhongBan AS khoa,
+            pb.isKhoa AS isKhoa,
             nv.ChucVu AS chucVu,
             nv.LyDoMienGiam AS lyDoMienGiam,
-            nv.PhanTramMienGiam AS phanTramMienGiam
+            nv.PhanTramMienGiam AS phanTramMienGiam,
+            nv.SoTaiKhoan AS soTaiKhoan,
+            nv.NganHang AS nganHang,
+            nv.Luong AS luong
         FROM nhanvien nv
         LEFT JOIN phongban pb ON pb.id = nv.phongban_id
         WHERE nv.id_User IN (
@@ -121,10 +137,14 @@ const getDuLieuThoTongHop = async (connection, { namHoc, khoa }) => {
     `;
     params.push(namHoc, namHoc, namHoc, namHoc, namHoc);
 
-    if (!isAllKhoa) {
+    if (isNonKhoaGroup) {
+        lecturersQuery += " AND COALESCE(pb.isKhoa, 0) = 0";
+    } else if (!isAllKhoa) {
         lecturersQuery += " AND nv.MaPhongBan = ?";
         params.push(khoa);
     }
+
+    lecturersQuery += " ORDER BY pb.isKhoa DESC, pb.TenPhongBan, nv.TenNhanVien";
 
     const [lecturers] = await connection.execute(lecturersQuery, params);
     if (lecturers.length === 0) return [];
@@ -181,6 +201,7 @@ const getChuNhiemKhoaByKhoa = async (connection, maKhoa) => {
 };
 
 module.exports = {
+    NON_KHOA_GROUP_CODE,
     getDinhMuc,
     getNhanVienById,
     getGiangDayByIdUser,
