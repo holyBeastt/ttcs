@@ -1,8 +1,4 @@
-/**
- * SDO Data Helpers
- * Filter & classify raw SDO data directly for Excel generation.
- * Replaces the intermediate.builder.js mapping layer.
- */
+const trainingSystemMapper = require("../../../mappers/vuotgio_v2/trainingSystem.mapper");
 
 const toNum = (v) => {
   if (v === null || v === undefined || v === "") return 0;
@@ -20,18 +16,11 @@ const normDate = (v) => {
 // ── Hệ đào tạo classification ──────────────────────────────────────────────
 
 const classifyHeDaoTao = (tenHeDaoTao) => {
-  const name = String(tenHeDaoTao || "").toLowerCase();
-  const isMatMa = name.includes("mật mã");
-  let vungMien = "viet_nam";
-  if (name.includes("lào")) vungMien = "lao";
-  else if (name.includes("campuchia")) vungMien = "campuchia";
-  else if (name.includes("cuba")) vungMien = "cuba";
-  return { isMatMa, vungMien };
+  return trainingSystemMapper.classify(tenHeDaoTao);
 };
 
 const vungMienLabel = (v) => {
-  const m = { viet_nam: "Việt Nam", lao: "Lào", campuchia: "Campuchia", cuba: "Cuba" };
-  return m[v] || v;
+  return trainingSystemMapper.getLabel(v === "viet_nam" ? "vn" : v);
 };
 
 // ── A1: Giảng dạy ──────────────────────────────────────────────────────────

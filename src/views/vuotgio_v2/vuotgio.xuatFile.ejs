@@ -4,285 +4,437 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Xuất File - Vượt Giờ V2</title>
+    <title>Xuất File Vượt Giờ V2</title>
+    <meta name="description" content="Xuất báo cáo vượt giờ dạng file Excel — kê khai cá nhân hoặc tổng hợp theo khoa/phòng." />
 
-    <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-
-    <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Custom Styles -->
     <link rel="stylesheet" href="/css/admin.css" />
     <link rel="stylesheet" href="/css/styles.css" />
-    
+
     <style>
-        .vuotgio-v2-container {
-            padding: 20px;
-            max-width: 900px;
+        :root {
+            --color-primary: #1a56db;
+            --color-primary-light: #e8f0fe;
+            --color-success: #059669;
+            --color-success-light: #d1fae5;
+            --color-warning: #b45309;
+            --color-warning-light: #fef3c7;
+            --color-surface: #ffffff;
+            --color-bg: #f0f4f8;
+            --color-text: #1e293b;
+            --color-muted: #64748b;
+            --color-border: #e2e8f0;
+            --color-typeA: #1a56db;
+            --color-typeA-light: #dbeafe;
+            --color-typeB: #7c3aed;
+            --color-typeB-light: #ede9fe;
+            --radius-card: 16px;
+            --radius-sm: 8px;
+            --shadow-card: 0 4px 24px rgba(0,0,0,.08);
+            --transition: all .22s ease;
+        }
+
+        * { font-family: 'Inter', sans-serif; }
+        body { background: var(--color-bg); color: var(--color-text); }
+
+        /* ── Page layout ── */
+        .xf-page {
+            padding: 32px 24px;
+            max-width: 860px;
             margin: 0 auto;
         }
-        .page-header {
-            margin-bottom: 30px;
-            text-align: center;
+
+        /* ── Page header ── */
+        .xf-page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
         }
-        .page-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #333;
-        }
-        .export-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .export-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .export-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            border-radius: 50%;
+        .xf-page-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #1a56db, #6366f1);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(26,86,219,.3);
         }
-        .export-icon i {
-            font-size: 2.5rem;
+        .xf-page-icon i { font-size: 1.4rem; color: #fff; }
+        .xf-page-header h1 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .xf-page-header p { color: var(--color-muted); font-size: .9rem; margin: 4px 0 0; }
+        .xf-v2-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1, #7c3aed);
             color: #fff;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .03em;
+            margin-left: 8px;
+            vertical-align: middle;
         }
-        .form-section {
-            margin-bottom: 25px;
-        }
-        .form-section-title {
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 15px;
-            color: #495057;
+
+        /* ── Info strip ── */
+        .xf-info-strip {
+            background: var(--color-primary-light);
+            border-left: 4px solid var(--color-primary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 12px 16px;
+            font-size: .87rem;
+            color: var(--color-primary);
+            margin-bottom: 24px;
             display: flex;
-            align-items: center;
+            gap: 10px;
+            align-items: flex-start;
         }
-        .form-section-title i {
-            margin-right: 10px;
-            color: #28a745;
+        .xf-info-strip i { flex-shrink: 0; margin-top: 2px; }
+
+        /* ── Type toggle ── */
+        .xf-type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
         }
-        .export-options {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        .option-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            margin-bottom: 10px;
+        .xf-type-btn {
+            position: relative;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-card);
+            padding: 18px 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            background: var(--color-surface);
+            text-align: left;
+            transition: var(--transition);
+            outline: none;
         }
-        .option-item:hover {
-            border-color: #28a745;
-            background: #f0fff4;
+        .xf-type-btn:hover {
+            border-color: #94a3b8;
+            box-shadow: var(--shadow-card);
         }
-        .option-item.selected {
-            border-color: #28a745;
-            background: #d4edda;
+        .xf-type-btn.active-typeA {
+            border-color: var(--color-typeA);
+            background: var(--color-typeA-light);
         }
-        .option-item input[type="radio"] {
-            margin-right: 15px;
+        .xf-type-btn.active-typeB {
+            border-color: var(--color-typeB);
+            background: var(--color-typeB-light);
         }
-        .option-item .option-content {
-            flex: 1;
+        .xf-type-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
         }
-        .option-item .option-title {
-            font-weight: 600;
-            color: #333;
-        }
-        .option-item .option-desc {
-            font-size: 0.85rem;
-            color: #666;
-        }
-        .btn-export {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 8px;
+        .type-icon-A { background: linear-gradient(135deg, #1a56db, #3b82f6); color: #fff; }
+        .type-icon-B { background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; }
+        .xf-type-btn .type-label { font-weight: 700; font-size: .98rem; }
+        .xf-type-btn .type-desc { font-size: .82rem; color: var(--color-muted); margin-top: 4px; line-height: 1.4; }
+        .xf-type-btn .check-badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
             color: #fff;
+        }
+        .xf-type-btn.active-typeA .check-badge { display: flex; background: var(--color-typeA); }
+        .xf-type-btn.active-typeB .check-badge { display: flex; background: var(--color-typeB); }
+
+        /* ── Card ── */
+        .xf-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+        .xf-section-title {
+            font-size: .85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--color-muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .xf-section-title i { font-size: 1rem; }
+
+        /* ── Scope radio group for type A ── */
+        .xf-scope-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .xf-scope-item {
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 12px 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .xf-scope-item:hover { border-color: var(--color-primary); }
+        .xf-scope-item.selected {
+            border-color: var(--color-typeA);
+            background: var(--color-typeA-light);
+        }
+        .xf-scope-item i { font-size: 1.3rem; display: block; margin-bottom: 6px; color: var(--color-muted); }
+        .xf-scope-item.selected i { color: var(--color-typeA); }
+        .xf-scope-item .scope-label { font-weight: 600; font-size: .84rem; }
+        .xf-scope-item .scope-desc { font-size: .74rem; color: var(--color-muted); margin-top: 3px; }
+
+        /* ── Filters ── */
+        .xf-filter-row { display: grid; gap: 14px; }
+        .xf-filter-row.cols-2 { grid-template-columns: 1fr 1fr; }
+        .xf-filter-row.cols-1 { grid-template-columns: 1fr; }
+        .xf-label {
+            font-size: .84rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 6px;
+        }
+        .xf-label .req { color: #ef4444; }
+        .xf-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: .9rem;
+            font-family: 'Inter', sans-serif;
+            background: var(--color-surface);
+            color: var(--color-text);
+            transition: var(--transition);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+        .xf-select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(26,86,219,.12);
+        }
+        .xf-form-hint { font-size: .78rem; color: var(--color-muted); margin-top: 5px; }
+
+        /* ── Type B description ── */
+        .xf-typeB-note {
+            background: var(--color-typeB-light);
+            border-left: 4px solid var(--color-typeB);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 12px 16px;
+            font-size: .87rem;
+            color: #5b21b6;
+        }
+        .xf-typeB-note strong { font-weight: 700; display: block; margin-bottom: 6px; }
+        .xf-typeB-note ul { margin: 0; padding-left: 18px; line-height: 1.8; }
+
+        /* ── Export button ── */
+        .xf-btn-export {
+            width: 100%;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            width: 100%;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: var(--transition);
+            letter-spacing: .02em;
         }
-        .btn-export:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-            color: #fff;
+        .xf-btn-export.btn-typeA {
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            box-shadow: 0 4px 14px rgba(26,86,219,.35);
         }
-        .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #4472C4;
-            padding: 15px;
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 20px;
+        .xf-btn-export.btn-typeB {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            box-shadow: 0 4px 14px rgba(124,58,237,.35);
         }
-        .info-box i {
-            color: #4472C4;
-            margin-right: 10px;
-        }
-        .v2-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 10px;
-        }
+        .xf-btn-export:hover { transform: translateY(-2px); filter: brightness(1.07); }
+        .xf-btn-export:active { transform: none; }
+
+        /* ── Hidden classes ── */
+        .hidden { display: none !important; }
     </style>
 </head>
 
 <body>
     <%- include('../header') %>
 
-    <div class="vuotgio-v2-container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h2 class="page-title">
-                <i class="fas fa-file-export text-success me-2"></i>
-                Xuất File Vượt Giờ
-                <span class="v2-badge">V2</span>
-            </h2>
-            <p class="text-muted">Xuất báo cáo vượt giờ ra file Excel</p>
+    <div class="xf-page">
+        <!-- Page header -->
+        <div class="xf-page-header">
+            <div class="xf-page-icon">
+                <i class="fas fa-file-export"></i>
+            </div>
+            <div>
+                <h1>
+                    Xuất File Vượt Giờ
+                    <span class="xf-v2-badge">V2</span>
+                </h1>
+                <p>Xuất báo cáo Excel — kê khai cá nhân hoặc tổng hợp Khoa/Phòng</p>
+            </div>
         </div>
 
-        <!-- Export Card -->
-        <div class="export-card">
-            <div class="export-header">
-                <div class="export-icon">
-                    <i class="fas fa-file-excel"></i>
+        <!-- Info strip -->
+        <!-- <div class="xf-info-strip">
+            <i class="fas fa-circle-info"></i>
+            <span>
+                <strong>Vượt Giờ V2:</strong> Không tính tiết giữa kỳ, không bảo lưu NCKH sang năm sau.
+                Đơn giá thanh toán: <strong>100,000 VND/tiết</strong>.
+            </span>
+        </div> -->
+
+        <!-- Report type toggle -->
+        <div class="xf-type-toggle">
+            <button class="xf-type-btn active-typeA" id="btnTypeA" type="button" onclick="setType('A')">
+                <span class="check-badge"><i class="fas fa-check"></i></span>
+                <div class="xf-type-icon type-icon-A"><i class="fas fa-user-graduate"></i></div>
+                <div class="type-label">Kê khai cá nhân</div>
+                <div class="type-desc">Xuất file chi tiết cho từng giảng viên — theo tên, theo khoa hoặc toàn bộ</div>
+            </button>
+            <button class="xf-type-btn" id="btnTypeB" type="button" onclick="setType('B')">
+                <span class="check-badge"><i class="fas fa-check"></i></span>
+                <div class="xf-type-icon type-icon-B"><i class="fas fa-layer-group"></i></div>
+                <div class="type-label">Tổng hợp Khoa/Phòng</div>
+                <div class="type-desc">Workbook đa-sheet: Tổng hợp + Tiền thanh toán + Chi tiết từng Khoa</div>
+            </button>
+        </div>
+
+        <!-- ╔══════════════════════════════════════╗ -->
+        <!--   Type A: Kê khai cá nhân              -->
+        <!-- ╚══════════════════════════════════════╝ -->
+        <div id="panelTypeA">
+            <div class="xf-card">
+                <!-- Scope selector -->
+                <div class="xf-section-title">
+                    <i class="fas fa-sliders"></i> Phạm vi xuất
                 </div>
-                <h5>Tạo Báo Cáo Vượt Giờ</h5>
-                <p class="text-muted mb-0">Chọn các tùy chọn bên dưới và nhấn Xuất File</p>
-            </div>
-
-            <!-- Info Box -->
-            <div class="info-box">
-                <i class="fas fa-info-circle"></i>
-                <strong>Vượt Giờ V2:</strong> Không tính tiết giữa kỳ, không bảo lưu NCKH sang năm sau. 
-                File Excel sẽ bao gồm nhiều sheet chi tiết.
-            </div>
-
-            <form id="exportForm">
-                <!-- Năm học & Khoa -->
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-calendar-alt"></i>
-                        Thời Gian & Đơn Vị
+                <div class="xf-scope-group">
+                    <div class="xf-scope-item selected" id="scopeAll" onclick="setScope('all')">
+                        <i class="fas fa-users"></i>
+                        <div class="scope-label">Toàn bộ</div>
+                        <div class="scope-desc">Tất cả giảng viên</div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Năm học <span class="text-danger">*</span></label>
-                            <select id="namHocExport" class="form-select namHoc" required></select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Khoa</label>
-                            <select id="khoaExport" class="form-select khoa">
-                                <option value="ALL">Tất cả các Khoa</option>
-                            </select>
-                        </div>
+                    <div class="xf-scope-item" id="scopeKhoa" onclick="setScope('khoa')">
+                        <i class="fas fa-building"></i>
+                        <div class="scope-label">Theo Khoa</div>
+                        <div class="scope-desc">Chọn 1 khoa/phòng</div>
                     </div>
-                </div>
-
-                <!-- Giảng viên (optional) -->
-                <div class="form-section">
-                    <div class="form-section-title">
+                    <div class="xf-scope-item" id="scopeGV" onclick="setScope('gv')">
                         <i class="fas fa-user"></i>
-                        Giảng Viên (Tùy chọn)
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <select id="giangVienExport" class="form-select">
-                                <option value="">Tất cả giảng viên</option>
-                            </select>
-                            <div class="form-text">Để trống để xuất tất cả giảng viên</div>
-                        </div>
+                        <div class="scope-label">Theo Giảng viên</div>
+                        <div class="scope-desc">Chọn 1 người cụ thể</div>
                     </div>
                 </div>
 
-                <!-- Export Options -->
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-cog"></i>
-                        Nội Dung Xuất
-                    </div>
-                    <div class="export-options">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="includeSummary" checked>
-                            <label class="form-check-label" for="includeSummary">
-                                <strong>Sheet Tổng hợp vượt giờ</strong>
-                                <small class="d-block text-muted">Bảng tổng hợp số tiết theo giảng viên</small>
-                            </label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="includeGiangDay" checked>
-                            <label class="form-check-label" for="includeGiangDay">
-                                <strong>Sheet Chi tiết giảng dạy TKB</strong>
-                                <small class="d-block text-muted">Danh sách lớp từ thời khóa biểu</small>
-                            </label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="includeLopNgoaiQC" checked>
-                            <label class="form-check-label" for="includeLopNgoaiQC">
-                                <strong>Sheet Lớp ngoài quy chuẩn</strong>
-                                <small class="d-block text-muted">Các lớp kê khai thủ công</small>
-                            </label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="includeKTHP" checked>
-                            <label class="form-check-label" for="includeKTHP">
-                                <strong>Sheet Kết thúc học phần</strong>
-                                <small class="d-block text-muted">Ra đề / Coi thi / Chấm thi</small>
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="includeDoAn" checked>
-                            <label class="form-check-label" for="includeDoAn">
-                                <strong>Sheet Đồ án tốt nghiệp</strong>
-                                <small class="d-block text-muted">Hướng dẫn ĐATN</small>
-                            </label>
-                        </div>
+                <!-- Năm học -->
+                <div class="xf-filter-row cols-1 mb-3">
+                    <div>
+                        <div class="xf-label">Năm học <span class="req">*</span></div>
+                        <select id="namHocA" class="xf-select namHoc"></select>
                     </div>
                 </div>
 
-                <!-- Export Button -->
-                <button type="submit" class="btn btn-export">
+                <!-- Khoa filter (ẩn khi scope = 'all') -->
+                <div class="xf-filter-row cols-1 mb-3" id="khoaFilterRow">
+                    <div>
+                        <div class="xf-label">Khoa / Phòng ban</div>
+                        <select id="khoaA" class="xf-select khoa">
+                            <option value="ALL">Tất cả các Khoa</option>
+                        </select>
+                        <div class="xf-form-hint">Chọn khoa để lọc danh sách giảng viên bên dưới</div>
+                    </div>
+                </div>
+
+                <!-- GV filter (chỉ hiện khi scope = 'gv') -->
+                <div class="xf-filter-row cols-1 mb-3 hidden" id="gvFilterRow">
+                    <div>
+                        <div class="xf-label">Giảng viên <span class="req">*</span></div>
+                        <select id="giangVienA" class="xf-select">
+                            <option value="">— Chọn giảng viên —</option>
+                        </select>
+                        <div class="xf-form-hint">Danh sách được lọc theo Khoa đã chọn ở trên</div>
+                    </div>
+                </div>
+
+                <button class="xf-btn-export btn-typeA" id="btnExportA" onclick="exportTypeA()">
                     <i class="fas fa-download"></i>
-                    XUẤT FILE EXCEL
+                    XUẤT FILE KÊ KHAI
                 </button>
-            </form>
+            </div>
+        </div>
+
+        <!-- ╔══════════════════════════════════════╗ -->
+        <!--   Type B: Tổng hợp Khoa/Phòng          -->
+        <!-- ╚══════════════════════════════════════╝ -->
+        <div id="panelTypeB" class="hidden">
+            <div class="xf-card">
+                <!-- Note about sheets -->
+                <div class="xf-typeB-note mb-4">
+                    <strong><i class="fas fa-table me-2"></i>File Excel xuất ra gồm các sheet:</strong>
+                    <ul>
+                        <li><strong>Sheet TỔNG HỢP</strong> — Danh sách tổng quan tất cả khoa/phòng</li>
+                        <li><strong>Sheet TIỀN THANH TOÁN</strong> — Bảng kê tiền chuyển khoản toàn trường</li>
+                        <li><strong>Các Sheet Khoa/Phòng</strong> — Chi tiết từng đơn vị</li>
+                    </ul>
+                </div>
+
+                <!-- Năm học -->
+                <div class="xf-section-title">
+                    <i class="fas fa-calendar-alt"></i> Thông tin báo cáo
+                </div>
+                <div class="xf-filter-row cols-1 mb-3">
+                    <div>
+                        <div class="xf-label">Năm học <span class="req">*</span></div>
+                        <select id="namHocB" class="xf-select namHoc"></select>
+                        <div class="xf-form-hint">File sẽ bao gồm toàn bộ khoa/phòng có dữ liệu vượt giờ</div>
+                    </div>
+                </div>
+
+                <button class="xf-btn-export btn-typeB" id="btnExportB" onclick="exportTypeB()">
+                    <i class="fas fa-layer-group me-1"></i>
+                    XUẤT FILE TỔNG HỢP
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-
     <script src="/js/vuotgio_v2/xuatFile/index.js"></script>
 </body>
 
