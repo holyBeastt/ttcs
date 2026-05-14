@@ -64,39 +64,14 @@ const getSuggestions = async (req, res) => {
     }
 };
 
-/**
- * Gợi ý tên nhân viên
- */
-const getNameSuggestions = async (req, res) => {
-    let connection;
-    try {
-        const pool = require("../../config/databasePool");
-        connection = await pool();
-        const [rows] = await connection.execute("SELECT DISTINCT TenNhanVien AS value FROM nhanvien ORDER BY TenNhanVien");
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json([]);
-    } finally {
-        if (connection) connection.release();
-    }
-};
 
 // --- Export các hàm từ service để giữ tương thích Route ---
 module.exports = {
     getWorkload: (req, res) => res.json({ raDe: [], coiThi: [], chamThi: [] }), // Placeholder cho client cũ
     readFileExcel,
-    addWorkloadEntry: (req, res) => res.json(req.body), // Proxy
     importWorkloadToDB,
     deleteWorkloadData: service.deleteByFilter,
     saveWorkloadData,
     checkDataExistence: service.checkExistence,
-    getList: service.getList,
-    saveData: service.batchApprove, // Map 'saveData' sang 'batchApprove'
-    insertMyData: service.save,
-    getMyList: service.getMyList,
-    updateMyData: service.updateBatch,
-    deleteMyData: service.delete,
-    updateData: service.updateBatch,
     getSuggestions,
-    getNameSuggestions
 };

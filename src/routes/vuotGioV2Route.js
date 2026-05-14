@@ -13,6 +13,7 @@ const lopNgoaiQCController = require("../controllers/vuotgio_v2/lopNgoaiQC.contr
 const lopNgoaiQCImportController = require("../controllers/vuotgio_v2/lopNgoaiQCImport.controller");
 const themKTHPController = require("../controllers/vuotgio_v2/themKTHP.controller");
 const duyetKTHPController = require("../controllers/vuotgio_v2/duyetKTHP.controller");
+const kthpImportController = require("../controllers/vuotgio_v2/coiChamRaDe.file.controller");
 const tongHopController = require("../controllers/vuotgio_v2/tongHop.controller");
 const xuatFileController = require("../controllers/vuotgio_v2/xuatFile.controller");
 const thongKeGiangDayController = require("../controllers/vuotgio_v2/thongKeGiangDay.controller");
@@ -20,6 +21,8 @@ const previewController = require("../controllers/vuotgio_v2/preview.controller"
 
 // Middleware
 const { uploadSingleFile } = require("../middlewares/TKBImportMiddleware");
+const multer = require("multer");
+const uploadMemory = multer({ storage: multer.memoryStorage() });
 
 // =====================================================
 // API DÙNG CHUNG
@@ -72,6 +75,19 @@ router.post("/them-kthp/batch", themKTHPController.saveBatch);
 router.get("/them-kthp/:NamHoc/:Khoa", themKTHPController.getTable);
 router.post("/them-kthp/edit/:ID", themKTHPController.edit);
 router.delete("/them-kthp/:ID", themKTHPController.delete);
+
+// =====================================================
+// IMPORT KẾT THÚC HỌC PHẦN (FILE EXCEL)
+// =====================================================
+
+router.get("/import-kthp", baseController.getCoiChamRaDeThi);
+router.get("/import-kthp/api", kthpImportController.getWorkload);
+router.post("/import-kthp/upload", uploadMemory.single('file'), kthpImportController.readFileExcel);
+router.post("/import-kthp/import", kthpImportController.importWorkloadToDB);
+router.post("/import-kthp/checkfile", kthpImportController.checkDataExistence);
+router.post("/import-kthp/delete", kthpImportController.deleteWorkloadData);
+router.post("/import-kthp/save", kthpImportController.saveWorkloadData);
+router.get("/import-kthp/getSuggestions", kthpImportController.getSuggestions);
 
 // =====================================================
 // DUYỆT KẾT THÚC HỌC PHẦN
