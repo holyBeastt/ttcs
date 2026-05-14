@@ -120,11 +120,11 @@ class FormulaGenerator {
    *   1-7   (STT, Name, luong, dinhMucChuan, mienGiam, thieuNCKH, dinhMucSauMienGiam)
    *   8-17  (HK1 and HK2 breakdown per training system)
    *   28    (vuot_total / thanhToan — pre-calculated by SDO engine, source of truth)
-   *   29    (mucTT — constant 100,000 VND)
    *
    * Columns written as formulas here:
    *   18-22 (year per group) — sum of HK1+HK2
    *   23-27 (vuot per group) — proportional distribution with last-remainder
+   *   29    (mucTT)           — TRUNC(luong / 176, 1)
    *   30-34 (money per group) — TRUNC(vuot * mucTT, 2)
    *   35    (money total)     — SUM(AD:AH)
    *   36    (thucNhan)        — same as money total for now
@@ -180,6 +180,14 @@ class FormulaGenerator {
       ws.getCell(`${C.vuot_dhp}${r}`),
       vuotLastGroupFormula(C.vuot_total, C.vuot_vn, C.vuot_cpc, r),
       bd.vuot.dongHP,
+      { numFmt, hAlign: 'center', vAlign: 'middle' }
+    );
+
+    // Mức TT chuẩn (col 29): TRUNC(luong / 176, 1) theo tài liệu đặc tả
+    CellFormatter.applyFormula(
+      ws.getCell(`${C.mucTT}${r}`),
+      `TRUNC(${C.luong}${r}/176,1)`,
+      bd.mucTT,
       { numFmt, hAlign: 'center', vAlign: 'middle' }
     );
 

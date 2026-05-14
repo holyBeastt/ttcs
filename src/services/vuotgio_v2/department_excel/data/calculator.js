@@ -8,8 +8,9 @@ class PaymentCalculator {
   /**
    * Calculate payment amount from overtime hours
    */
-  static calculatePaymentAmount(overtimeHours) {
-    return this.truncDecimals((overtimeHours || 0) * this.PAYMENT_RATE, 2);
+  static calculatePaymentAmount(overtimeHours, luong = 0) {
+    const rate = this.truncDecimals((luong || 0) / 176, 1);
+    return this.truncDecimals((overtimeHours || 0) * rate, 2);
   }
 
   /**
@@ -60,9 +61,9 @@ class PaymentCalculator {
         row.doi_tuong || row.DoiTuong || row.ten_he_dao_tao || row.he_dao_tao
       );
 
-      // Đồ án & tham quan không có thông tin HK → mặc định tính vào HK1
-      breakdown[`hk1_${category}`] += Number(row.hk1 || 0) + Number(row.do_an || 0) + Number(row.tham_quan || 0);
-      breakdown[`hk2_${category}`] += Number(row.hk2 || 0);
+      // Đồ án & tham quan không có thông tin HK → mặc định tính vào HK2
+      breakdown[`hk1_${category}`] += Number(row.hk1 || 0);
+      breakdown[`hk2_${category}`] += Number(row.hk2 || 0) + Number(row.do_an || 0) + Number(row.tham_quan || 0);
       breakdown[`year_${category}`] += Number(row.tong || 0);
     });
 
@@ -123,7 +124,7 @@ class PaymentCalculator {
    * }
    * ============================================================
    */
-  static computeSdoBreakdown(tableF, totalOvertime) {
+  static computeSdoBreakdown(tableF, totalOvertime, luong = 0) {
     const R = (v) => this.excelNumber(v);
     const GROUPS = ["vn", "lao", "cuba", "cpc", "dongHP"];
     const vuotTong = R(totalOvertime || 0);
@@ -135,7 +136,9 @@ class PaymentCalculator {
     const vuot = this.distributeOvertimeProportionally(raw, vuotTong);
 
     // Bước 3: Tính thành tiền từng nhóm
-    const rate = this.PAYMENT_RATE;
+    // Công thức tính Mức TT chuẩn: TRUNC(luong / 176, 1) theo EXCEL_FORMULA_SPEC.md
+    // Luôn áp dụng công thức, nếu luong = 0 thì đơn giá là 0 (không fallback)
+    const rate = this.truncDecimals((luong || 0) / 176, 1);
     const moneyByGroup = {};
     let moneyTotal = 0;
     GROUPS.forEach(g => {

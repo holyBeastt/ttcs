@@ -1,4 +1,4 @@
-const { BORDERS, COLOR, mergeAndStyle, richText } = require("./excel-style.utils");
+const { BORDERS, COLOR, mergeAndStyle, richText } = require("../utils/excel-style.utils");
 
 const estimateWrappedRowHeight = (text, charsPerLine, lineHeight = 16) => {
   const normalized = text.replace(/\r\n/g, "\n");

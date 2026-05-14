@@ -45,7 +45,7 @@ class SummaryComponent {
       // Nếu chưa có (dữ liệu cũ / snapshot), mới fallback tính lại tại chỗ.
       const bd = summary.breakdown
         ? summary.breakdown
-        : PaymentCalculator.computeSdoBreakdown(summary.tableF, summary.thanhToan);
+        : PaymentCalculator.computeSdoBreakdown(summary.tableF, summary.thanhToan, summary.luong);
 
       const tien_vn    = bd.money.vn;
       const tien_lao   = bd.money.lao;
@@ -95,7 +95,7 @@ class SummaryComponent {
         33: tien_cpc,                                                                   // AG - Tiền CPC
         34: tien_dongHP,                                                                // AH - Tiền Đóng HP
         35: tien_tong,                                                                  // AI - Tổng tiền
-        36: 0,                                                                          // AJ - Thực nhận (Tạm thời để 0)
+        36: bd.thucNhan,                                                                // AJ - Thực nhận
       };
 
       // ── Write static input columns (always written as values) ────────────
@@ -106,7 +106,7 @@ class SummaryComponent {
         8: rowValues[8], 9: rowValues[9], 10: rowValues[10], 11: rowValues[11], 12: rowValues[12], // HK1
        13: rowValues[13],14: rowValues[14],15: rowValues[15],16: rowValues[16],17: rowValues[17], // HK2
        28: rowValues[28], // vuot_total (thanhToan — SDO engine source of truth)
-       29: rowValues[29], // mucTT (constant)
+       29: rowValues[29], // mucTT (được tính linh hoạt theo lương)
       };
       Object.entries(staticCols).forEach(([colKey, value]) => {
         row.getCell(Number(colKey)).value = value;
@@ -182,7 +182,7 @@ class SummaryComponent {
       totals.tien_cpc   += tien_cpc;
       totals.tien_dongHP += tien_dongHP;
       totals.tien_tong  += tien_tong;
-      totals.thucNhan   += 0;
+      totals.thucNhan   += (bd.thucNhan || tien_tong || 0);
       totals.luong      += PaymentCalculator.excelNumber(summary?.luong || 0);
 
       row.height = 22;

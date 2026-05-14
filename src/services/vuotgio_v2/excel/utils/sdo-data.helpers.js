@@ -1,4 +1,4 @@
-const trainingSystemMapper = require("../../../mappers/vuotgio_v2/trainingSystem.mapper");
+const { classifyHeDaoTao, normalizeDoiTuongLabel, getLabel } = require("../normalizers/training-system.normalizer");
 
 const toNum = (v) => {
   if (v === null || v === undefined || v === "") return 0;
@@ -15,12 +15,8 @@ const normDate = (v) => {
 
 // ── Hệ đào tạo classification ──────────────────────────────────────────────
 
-const classifyHeDaoTao = (tenHeDaoTao) => {
-  return trainingSystemMapper.classify(tenHeDaoTao);
-};
-
 const vungMienLabel = (v) => {
-  return trainingSystemMapper.getLabel(v === "viet_nam" ? "vn" : v);
+  return getLabel(v === "viet_nam" ? "vn" : v);
 };
 
 // ── A1: Giảng dạy ──────────────────────────────────────────────────────────
@@ -37,13 +33,14 @@ const filterA1 = (summary, hocKy, isMatMa) => {
 
 const mapA1Row = (r) => {
   const ten = r.ten_he_dao_tao || r.he_dao_tao || r.HeDaoTao || "";
+  const doiTuongLabel = normalizeDoiTuongLabel(ten);
   return {
     cells: [
       0, // stt placeholder
       r.TenHocPhan || r.ten_hoc_phan || "",
       toNum(r.SoTC ?? r.so_tc),
       r.Lop || r.lop || r.ten_lop || r.lop_hoc_phan || "",
-      ten,
+      doiTuongLabel,
       toNum(r.SoTietCTDT ?? r.so_tiet_ctdt ?? r.SoTiet ?? r.so_tiet ?? r.ll),
       toNum(r.QuyChuan ?? r.quy_chuan),
     ],
@@ -64,13 +61,14 @@ const filterA2 = (summary, hocKy, isMatMa) => {
 
 const mapA2Row = (r) => {
   const ten = r.ten_he_dao_tao || r.he_dao_tao || r.HeDaoTao || "";
+  const doiTuongLabel = normalizeDoiTuongLabel(ten);
   return {
     cells: [
       0,
       r.ten_hoc_phan || r.TenHocPhan || "",
       r.hinh_thuc || r.HinhThuc || "",
       r.lop_hoc_phan || r.Lop || r.ten_lop || "",
-      ten,
+      doiTuongLabel,
       toNum(r.so_sv ?? r.tong_so ?? r.SoSV),
       toNum(r.quy_chuan ?? r.QuyChuan),
     ],

@@ -47,7 +47,9 @@ class DataAggregator {
             group.summaries.push(sdo);
             group.tongThucHien  += (sdo.tongThucHien || 0);
             group.totalVuot     += (sdo.thanhToan     || 0);
-            group.totalThanhToan += PaymentCalculator.calculatePaymentAmount(sdo.thanhToan || 0);
+            const bd = sdo.breakdown || PaymentCalculator.computeSdoBreakdown(sdo.tableF, sdo.thanhToan, sdo.luong);
+            const tien = bd.thucNhan ?? bd.money?.total ?? PaymentCalculator.calculatePaymentAmount(sdo.thanhToan || 0, sdo.luong || 0);
+            group.totalThanhToan += tien;
             group.dataRowCount  += 1;
         });
 

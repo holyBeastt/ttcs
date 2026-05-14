@@ -1,6 +1,6 @@
 const { renderDocumentHeader } = require("./excel-header.renderer");
 const { renderBlockGroups } = require("./excel-block.renderer");
-const { EXCEL_GLOBAL_BLOCKS_LAYOUT } = require("./excel-global-layout.config");
+const { EXCEL_GLOBAL_BLOCKS_LAYOUT } = require("../layouts/excel-global-layout.config");
 
 const renderDocument = (sheet, doc, startRow = 1, startCol = 1, renderOptions = {}) => {
   let row = startRow;
