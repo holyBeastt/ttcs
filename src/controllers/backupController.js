@@ -84,6 +84,11 @@ const backupAndDownload = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối
 }
 };
+
+/**
+ * @deprecated Chức năng này đã bị deprecated và không còn được sử dụng.
+ * Route đã bị vô hiệu hóa trong backupRoute.js
+ */
 const resetDatabase = async (req, res) => {
     let connection;
   try {

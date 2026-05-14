@@ -103,13 +103,21 @@
     <%- include('adminHeader') %>
     
     <div class="container my-5 box" style="height: 100%;">
-        <h2 class="mb-3">🛠️ Reset Database</h2>
+        <h2 class="mb-3">🛠️ Quản lý Database</h2>
+
+        <!-- Deprecated notice for Reset Database -->
+        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>
+                <strong>⚠️ Chức năng Reset Database đã bị deprecated.</strong> Tính năng "Tải lên file" và "Sử dụng file có sẵn" (reset toàn bộ DB) không còn khả dụng.
+            </div>
+        </div>
 
         <div class="d-flex  justify-content-center align-items-center align-items-stretch">
             <!-- Tabs -->
             <div class="tab flex-column h-100">
-                <button class="contactButton tab-link active" onclick="openTab(event, 'tab1')">
-                    Tải lên file
+                <button class="contactButton tab-link" onclick="openTab(event, 'tab1')" disabled style="opacity: 0.5; cursor: not-allowed; text-decoration: line-through;">
+                    Tải lên file (deprecated)
                     <div class="iconButton">
                       <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M0 0h24v24H0z" fill="none"></path>
@@ -120,8 +128,8 @@
                       </svg>
                     </div>
                 </button>
-                <button class="contactButton tab-link" onclick="openTab(event, 'tab2')">
-                    Sử dụng file có sẵn
+                <button class="contactButton tab-link" onclick="openTab(event, 'tab2')" disabled style="opacity: 0.5; cursor: not-allowed; text-decoration: line-through;">
+                    Sử dụng file có sẵn (deprecated)
                     <div class="iconButton">
                       <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M0 0h24v24H0z" fill="none"></path>
@@ -132,7 +140,7 @@
                       </svg>
                     </div>
                 </button>
-                <button class="contactButton tab-link" onclick="openTab(event, 'tab3')">
+                <button class="contactButton tab-link active" onclick="openTab(event, 'tab3')">
                     Nhập lệnh csdl
                     <div class="iconButton">
                       <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -172,24 +180,18 @@
 
             <!-- Nội dung của Tabs -->
             <div style="height: max-content; width: 50%;">
-                <div id="tab1" class="tab-content box active h-100">
-                    <div class="mb-3">
-                        <label for="backup-file" class="form-label">📂 Chọn file SQL để nhập:</label>
-                        <input type="file" id="backup-file" class="form-control" accept=".sql">
+                <div id="tab1" class="tab-content box h-100">
+                    <div class="alert alert-secondary text-center">
+                        <i class="bi bi-x-circle"></i> Chức năng này đã bị deprecated.
                     </div>
-                    <button id="reset-db-btn1" class="btn btn-danger">🔄 Reset Database</button>
-                    <div id="reset-status1" class="mt-3"></div>
                 </div>
 
                 <div id="tab2" class="tab-content box h-100">
-                    <div class="mb-3">
-                        <label for="backup-file" class="form-label">📂 Chọn file SQL để nhập:</label>
-                        <select id="backup-list" class="form-control" style="display: flex;"></select>
+                    <div class="alert alert-secondary text-center">
+                        <i class="bi bi-x-circle"></i> Chức năng này đã bị deprecated.
                     </div>
-                    <button id="reset-db-btn2" class="btn btn-danger">🔄 Reset Database</button>
-                    <div id="reset-status2" class="mt-3"></div>
                 </div>
-                <div id="tab3" class="tab-content box h-100">
+                <div id="tab3" class="tab-content box h-100 active">
                     <div class="mb-3">
                         <label for="sqlQuery" class="form-label">✒️ Nhập câu lệnh SQL:</label>
                         <textarea id="sqlQuery" class="form-control" rows="3" placeholder="Ví dụ: SELECT * FROM users;"></textarea>
@@ -241,81 +243,7 @@
     </script>
 
     <script>
-        $("#reset-db-btn1").click(function () {
-            const fileInput = document.getElementById("backup-file");
-
-            // Kiểm tra nếu vẫn chưa có file nào được chọn
-            if (!fileInput) {
-                alert("⚠️ Vui lòng tải file lên!");
-                return;
-            }
-
-            console.log("📂 File được chọn:", fileInput.files[0]);
-
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
-
-            $("#reset-status1").text("⏳ Đang reset database...");
-
-            $.ajax({
-                url: "/reset-database",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.success) {
-                        console.log("✅ Reset database thành công!");
-                        $("#reset-status1").html("✅ Reset database thành công!");
-                    } else {
-                        console.error("❌ Lỗi reset:", response.error);
-                        $("#reset-status1").html(`❌ Reset thất bại! Lỗi: ${response.error || "Không rõ nguyên nhân."}`);
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error("🚨 Lỗi kết nối đến server:", textStatus, errorThrown);
-                    $("#reset-status1").text(`❌ Server lỗi ${jqXHR.status}: ${jqXHR.responseText || "Không rõ nguyên nhân."}`);
-                }
-            });
-        });
-        $("#reset-db-btn2").click(function () {
-            const backupSelect = document.getElementById("backup-list");
-
-            // Kiểm tra nếu vẫn chưa có file nào được chọn
-            if (!backupSelect) {
-                alert("⚠️ Vui lòng chọn file từ danh sách hoặc tải lên!");
-                return;
-            }
-
-            console.log("📂 File được chọn:", backupSelect.value);
-
-            const formData = new FormData();
-            formData.append("backupFileName", backupSelect.value);
-
-
-            $("#reset-status2").text("⏳ Đang reset database...");
-
-            $.ajax({
-                url: "/reset-database",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.success) {
-                        console.log("✅ Reset database thành công!");
-                        $("#reset-status2").html("✅ Reset database thành công!");
-                    } else {
-                        console.error("❌ Lỗi reset:", response.error);
-                        $("#reset-status2").html(`❌ Reset thất bại! Lỗi: ${response.error || "Không rõ nguyên nhân."}`);
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error("🚨 Lỗi kết nối đến server:", textStatus, errorThrown);
-                    $("#reset-status2").text(`❌ Server lỗi ${jqXHR.status}: ${jqXHR.responseText || "Không rõ nguyên nhân."}`);
-                }
-            });
-        });
+        // [DEPRECATED] Reset database buttons đã bị vô hiệu hóa
         $("#add-db-btn").click(function () {
             const fileInput = document.getElementById("add-file");
 
@@ -419,23 +347,7 @@
             }
         });
     </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            async function loadBackupFiles() {
-                const res = await fetch("/list-backups");
-                const data = await res.json();
-                
-                if (data.success) {
-                    const select = document.getElementById("backup-list");
-                    select.innerHTML = `<option value="">-- Chọn file có sẵn --</option>` +
-                        data.files.map(file => `<option value="${file}">${file}</option>`).join("");
-                } else {
-                    alert(data.message);
-                }
-            }
-            loadBackupFiles();
-        });
-    </script>
+    <!-- [DEPRECATED] loadBackupFiles đã bị loại bỏ cùng với chức năng Reset Database -->
         
 
 </body>
