@@ -6,7 +6,7 @@ const {
   richText,
   styleCell,
   sumFormula,
-} = require("./excel-style.utils");
+} = require("../utils/excel-style.utils");
 
 const DEFAULT_RENDER_OPTIONS = {
   useFormulas: true,
@@ -545,6 +545,7 @@ const renderBlock = (sheet, block, startRow = 1, startCol = 1, layout, numbering
 
   const subtotalRows = [];
   const sectionCodes = [];
+  const sectionMetas = [];
 
   for (let sectionIndex = 0; sectionIndex < normalizedBlock.sections.length; sectionIndex += 1) {
     const section = normalizedBlock.sections[sectionIndex];
@@ -580,6 +581,15 @@ const renderBlock = (sheet, block, startRow = 1, startCol = 1, layout, numbering
       options,
     );
     subtotalRows.push(subtotalRow);
+    sectionMetas.push({
+      tag: section.metaTag,
+      label: resolvedSection.label,
+      dataStart: dataRows[0],
+      dataEnd: dataRows[dataRows.length - 1],
+      subtotalRow,
+      sumCols,
+      startCol,
+    });
   }
 
   let grandTotalRow;
@@ -639,6 +649,7 @@ const renderBlock = (sheet, block, startRow = 1, startCol = 1, layout, numbering
     nextRow: ctx.currentRow,
     blockCode: numbering?.blockCode,
     sectionCodes,
+    sectionMetas,
   };
 };
 
@@ -741,7 +752,9 @@ const renderBlockGroups = (sheet, groups, startRow = 1, startCol = 1, rowGap = 0
         .map((r) => r.grandTotalRow)
         .filter((rowNumber) => rowNumber !== undefined);
 
-      const sourceRows = grandRows.length ? grandRows : blockResults.length === 1 ? blockResults[0].subtotalRows : [];
+      const sourceRows = grandRows.length
+        ? grandRows
+        : blockResults.flatMap((result) => result.subtotalRows ?? []);
 
       const externalFormulaCells = hasManualFinal
         ? (groupFinal.externalFormulaCells ?? [])
@@ -777,6 +790,7 @@ const renderBlockGroups = (sheet, groups, startRow = 1, startCol = 1, rowGap = 0
     currentRow += i < groups.length - 1 ? rowGap : 0;
   }
 
+  allResults.groupMetas = groupMetas;
   return allResults;
 };
 

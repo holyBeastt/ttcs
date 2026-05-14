@@ -137,9 +137,7 @@
             min-width: 40px;
         }
 
-        #mainTable tbody tr:nth-child(even) {
-            background-color: #f8fafc !important;
-        }
+
 
         #mainTable tbody tr:hover td {
             background-color: #e2e8f0 !important;
@@ -156,12 +154,9 @@
         }
 
         /* ===== WARNING ROW ===== */
-        .row-warning-danger {
-            background-color: rgba(255, 0, 0, 0.06) !important;
-        }
-
-        .row-warning-danger td {
-            color: #b91c1c !important;
+        #mainTable tbody tr.row-warning-danger,
+        #mainTable tbody tr.row-warning-danger td {
+            background-color: #fff3cd !important;
         }
 
         /* ===== VALUE COLORS ===== */
@@ -356,7 +351,7 @@
 
                 <!-- Table Section (No scroll container) -->
                 <div id="renderInfo">
-                    <table class="table table-striped table-hover table-bordered text-center" id="mainTable">
+                    <table class="table table-hover table-bordered text-center" id="mainTable">
                         <thead>
                             <tr>
                                 <th rowspan="3" class="s-base" style="width:40px">STT</th>
@@ -369,16 +364,16 @@
 
                                 <th colspan="15" class="s-teaching">Thực tế giảng dạy + coi, ra đề, chấm thi + ĐATN + HDTQ</th>
                                 <th colspan="6" class="s-over">Số tiết vượt định mức</th>
-                                <th rowspan="3" class="s-rate" style="width:90px">Mức TT chuẩn</th>
+                                <th rowspan="3" class="s-rate" style="width:90px" title="Được tính tự động theo công thức: TRUNC(Thu nhập / 176, 1)">Mức TT chuẩn</th>
                                 <th colspan="6" class="s-money">Thành tiền</th>
                                 <th rowspan="3" class="s-net" style="width:90px">Thực nhận</th>
                                 <th rowspan="3" class="s-action" style="width:70px">Thao tác</th>
                             </tr>
                             <tr>
-                                <th colspan="5" class="s-teaching-hk1" title="Bao gồm: Giảng dạy HK1 + Đồ án tốt nghiệp + Hướng dẫn tham quan (không có thông tin HK, mặc định vào HK1)">
-                                    Học kỳ I <small style="font-weight:400; font-size:0.65rem; display:block; opacity:0.85;">(gồm ĐA &amp; TQ)</small>
+                                <th colspan="5" class="s-teaching-hk1">Học kỳ I</th>
+                                <th colspan="5" class="s-teaching-hk2" title="Bao gồm: Giảng dạy HK2 + Đồ án tốt nghiệp + Hướng dẫn tham quan (không có thông tin HK, mặc định vào HK2)">
+                                    Học kỳ II <small style="font-weight:400; font-size:0.65rem; display:block; opacity:0.85;">(gồm ĐA &amp; TQ)</small>
                                 </th>
-                                <th colspan="5" class="s-teaching-hk2">Học kỳ II</th>
                                 <th colspan="5" class="s-teaching-year">Cả năm</th>
 
                                 <th rowspan="2" class="s-over-sub" style="width:70px">VN</th>

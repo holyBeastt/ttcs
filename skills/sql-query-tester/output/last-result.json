@@ -1,11 +1,15 @@
 {
-  "executedAt": "2026-05-09T08:51:56.900Z",
-  "durationMs": 3,
-  "sql": "SELECT 1 AS ping LIMIT 200",
+  "executedAt": "2026-05-12T08:26:48.506Z",
+  "durationMs": 7,
+  "sql": "SELECT (SELECT SUM(QuyChuan) FROM giangday WHERE NamHoc = '2025 - 2026' AND id_User = 11) AS gd, (SELECT SUM(quy_chuan) FROM vg_lop_ngoai_quy_chuan WHERE nam_hoc = '2025 - 2026' AND id_User = 11 AND khoa_duyet = 1) AS lnqc, (SELECT SUM(quy_chuan) FROM vg_coi_cham_ra_de WHERE nam_hoc = '2025 - 2026' AND id_User = 11 AND khoa_duyet = 1) AS kthp, (SELECT SUM(SoTiet) FROM exportdoantotnghiep WHERE NamHoc = '2025 - 2026' AND id_User = 11 AND isMoiGiang = 0) AS da, (SELECT SUM(so_tiet_quy_doi) FROM vg_huong_dan_tham_quan_thuc_te WHERE nam_hoc = '2025 - 2026' AND id_User = 11) AS hdtq LIMIT 200",
   "rowCount": 1,
   "rows": [
     {
-      "ping": 1
+      "gd": "60.00",
+      "lnqc": null,
+      "kthp": "98.28",
+      "da": null,
+      "hdtq": "18.00"
     }
   ]
 }

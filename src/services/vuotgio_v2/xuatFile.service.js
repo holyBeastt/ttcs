@@ -13,7 +13,7 @@
 const tongHopService = require('./tongHop.service');
 const createPoolConnection = require('../../config/databasePool');
 const sharedRepo = require('../../repositories/vuotgio_v2/shared.repo');
-const { buildWorkbook } = require('./excel/keKhaiReport.generator');
+const { buildWorkbook } = require('./excel');
 
 /**
  * Resolve danh sách SDO dựa theo scope (giangVien / khoa / toàn bộ)
@@ -80,7 +80,7 @@ const exportExcel = async (namHoc, khoa, giangVien) => {
             count: summaries.length,
         });
 
-        return buildWorkbook(summaries);
+        return buildWorkbook(summaries, { useFormulas: true });
     } finally {
         if (connection) connection.release();
     }

@@ -68,6 +68,7 @@ const buildTableF = (rawData) => {
 
     // Dùng normalized category key thay vì raw tên hệ đào tạo
     // → doAn "Hệ Mật mã" và giangDay "Hệ Mật mã VN (ĐTKTKM)" đều map về "vn"
+    const CATEGORY_ORDER = ["vn", "lao", "cuba", "cpc", "dongHP"];
     const groups = new Map();
 
     const getGroup = (tenHeDaoTao) => {
@@ -109,28 +110,50 @@ const buildTableF = (rawData) => {
         else g.hk1 += val;
     });
 
-    // 4. Đồ án (không có HK → dồn vào hk1)
+    // 4. Đồ án (không có HK → quy ước vào HK2)
     doAn.forEach(r => {
         const g = getGroup(r.ten_he_dao_tao || r.he_dao_tao);
         g.do_an += base.toDecimal(r.SoTiet);
     });
 
-    // 5. Tham quan (không có HK → dồn vào hk1)
+    // 5. Tham quan (không có HK → quy ước vào HK2)
     hdtq.forEach(r => {
         const g = getGroup(r.ten_he_dao_tao || r.he_dao_tao);
         g.tham_quan += base.toDecimal(r.so_tiet_quy_doi);
     });
 
     // Chuyển Map sang Array, làm tròn, tính tong
-    const rows = Array.from(groups.values()).map((row, idx) => ({
-        tt: idx + 1,
-        doi_tuong: row.doi_tuong,
-        hk1: base.toDecimal(row.hk1.toFixed(2)),
-        hk2: base.toDecimal(row.hk2.toFixed(2)),
-        do_an: base.toDecimal(row.do_an.toFixed(2)),
-        tham_quan: base.toDecimal(row.tham_quan.toFixed(2)),
-        tong: base.toDecimal((row.hk1 + row.hk2 + row.do_an + row.tham_quan).toFixed(2))
-    }));
+    // Chuẩn hóa 5 dòng theo thứ tự cố định
+    CATEGORY_ORDER.forEach((key) => {
+        if (!groups.has(key)) {
+            groups.set(key, {
+                doi_tuong: trainingSystemMapper.getLabel(key),
+                hk1: 0,
+                hk2: 0,
+                do_an: 0,
+                tham_quan: 0,
+                tong: 0
+            });
+        }
+    });
+
+    const rows = CATEGORY_ORDER.map((key, idx) => {
+        const row = groups.get(key);
+        const hk1 = base.toDecimal(row.hk1.toFixed(2));
+        const hk2 = base.toDecimal(row.hk2.toFixed(2));
+        const do_an = base.toDecimal(row.do_an.toFixed(2));
+        const tham_quan = base.toDecimal(row.tham_quan.toFixed(2));
+        const tong = base.toDecimal((hk1 + hk2 + do_an + tham_quan).toFixed(2));
+        return {
+            tt: idx + 1,
+            doi_tuong: row.doi_tuong,
+            hk1,
+            hk2,
+            do_an,
+            tham_quan,
+            tong
+        };
+    });
 
     // Tính tổng cộng footer
     const totals = {
@@ -166,7 +189,7 @@ const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc, extraInfo = {}) => {
     });
 
     const tableF = buildTableF(rawData);
-    const breakdown = PaymentCalculator.computeSdoBreakdown(tableF, stats.thanhToan);
+    const breakdown = PaymentCalculator.computeSdoBreakdown(tableF, stats.thanhToan, nv.luong);
 
     return {
         id_User: nv.id_User,

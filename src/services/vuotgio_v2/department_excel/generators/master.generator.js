@@ -136,7 +136,7 @@ const _renderHeaders = (ws, startRow) => {
 const _renderDataRow = (ws, row, sdo, index, isExport = false) => {
     const bd = sdo.breakdown
         ? sdo.breakdown
-        : PaymentCalculator.computeSdoBreakdown(sdo.tableF, sdo.thanhToan);
+        : PaymentCalculator.computeSdoBreakdown(sdo.tableF, sdo.thanhToan, sdo.luong);
 
     // Static input columns (always values)
     const staticValues = {
@@ -150,7 +150,7 @@ const _renderDataRow = (ws, row, sdo, index, isExport = false) => {
         8:  bd.hk1.vn,  9: bd.hk1.lao, 10: bd.hk1.cuba, 11: bd.hk1.cpc, 12: bd.hk1.dongHP,
         13: bd.hk2.vn, 14: bd.hk2.lao, 15: bd.hk2.cuba, 16: bd.hk2.cpc, 17: bd.hk2.dongHP,
         28: bd.vuot.total,   // vuot_total — SDO engine source of truth
-        29: bd.mucTT,        // constant 100,000
+        29: bd.mucTT,        // Mức TT chuẩn được tính linh hoạt
     };
 
     const excelRow = ws.getRow(row);
@@ -179,7 +179,7 @@ const _renderDataRow = (ws, row, sdo, index, isExport = false) => {
             23: bd.vuot.vn, 24: bd.vuot.lao, 25: bd.vuot.cuba, 26: bd.vuot.cpc, 27: bd.vuot.dongHP,
             30: bd.money.vn,31: bd.money.lao,32: bd.money.cuba,33: bd.money.cpc,34: bd.money.dongHP,
             35: bd.money.total,
-            36: 0,   // Thực nhận (placeholder)
+            36: bd.thucNhan,   // Thực nhận
         };
         Object.entries(derivedValues).forEach(([col, val]) => {
             const c = excelRow.getCell(Number(col));
@@ -217,8 +217,6 @@ const _renderSubTotal = (ws, row, label, totals, bgColor = COLORS.groupTotal, is
         }
     } else {
         // Static pre-calculated values
-        const numericCols = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,
-                             23,24,25,26,27,28,29,30,31,32,33,34,35,36];
         const keyMap = {
             3:'luong',4:'dinhMucChuan',5:'mienGiam',6:'thieuNCKH',7:'dinhMucSauMienGiam',
             8:'hk1_vn',9:'hk1_lao',10:'hk1_cuba',11:'hk1_cpc',12:'hk1_dongHP',
@@ -228,6 +226,7 @@ const _renderSubTotal = (ws, row, label, totals, bgColor = COLORS.groupTotal, is
             28:'vuot_total',
             30:'money_vn',31:'money_lao',32:'money_cuba',33:'money_cpc',34:'money_dongHP',
             35:'money_total',
+            36:'thucNhan',
         };
 
         for (let c = 3; c <= 36; c++) {
@@ -261,6 +260,7 @@ const _accumulateTotals = (totals, sdo, bd) => {
     });
     totals.vuot_total  += bd.vuot.total;
     totals.money_total += bd.money.total;
+    totals.thucNhan    += (bd.thucNhan || bd.money.total || 0);
 };
 
 const _emptyTotals = () => ({
@@ -273,6 +273,7 @@ const _emptyTotals = () => ({
     vuot_total:0,
     money_vn:0, money_lao:0, money_cuba:0, money_cpc:0, money_dongHP:0,
     money_total:0,
+    thucNhan:0,
 });
 
 // ── Public API ─────────────────────────────────────────────────────────────

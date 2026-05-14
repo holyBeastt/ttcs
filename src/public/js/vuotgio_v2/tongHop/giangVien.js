@@ -309,7 +309,7 @@ function renderTable(data) {
 
         // Ưu tiên dùng breakdown đã tính sẵn từ Backend (single source of truth).
         // Fallback: tự tính nếu là snapshot cũ chưa có breakdown.
-        const bd = row.breakdown || getBdFallback(row);
+        const bd = row.breakdown || emptyBreakdown();
 
         const mucTT  = bd.mucTT || 0;
         const thucNhan = bd.thucNhan || 0;
@@ -408,115 +408,15 @@ function renderTable(data) {
  * Fallback: tự tính breakdown cho dữ liệu snapshot cũ không có sẵn breakdown từ server.
  * Cấu trúc trả về giống hệt computeSdoBreakdown() ở backend.
  */
-function getBdFallback(row) {
-    const GROUPS = ['vn', 'lao', 'cuba', 'cpc', 'dongHP'];
-    const RATE = 100000;
-
-    const raw = parseTrainingSystemBreakdown(row.tableF);
-    const vuot = distributeOvertimeProportionally(raw, row.thanhToan || 0);
-
-    const money = {};
-    let moneyTotal = 0;
-    GROUPS.forEach(g => {
-        money[g] = Number(Number((vuot[`vuot_${g}`] || 0) * RATE).toFixed(2));
-        moneyTotal += money[g];
-    });
-
-    const sum = (prefix) => GROUPS.reduce((s, g) => s + (raw[`${prefix}_${g}`] || 0), 0);
-
+function emptyBreakdown() {
     return {
-        hk1:  { vn: raw.hk1_vn,  lao: raw.hk1_lao,  cuba: raw.hk1_cuba,  cpc: raw.hk1_cpc,  dongHP: raw.hk1_dongHP,  total: sum('hk1') },
-        hk2:  { vn: raw.hk2_vn,  lao: raw.hk2_lao,  cuba: raw.hk2_cuba,  cpc: raw.hk2_cpc,  dongHP: raw.hk2_dongHP,  total: sum('hk2') },
-        year: { vn: raw.year_vn, lao: raw.year_lao, cuba: raw.year_cuba, cpc: raw.year_cpc, dongHP: raw.year_dongHP, total: sum('year') },
-        vuot: { vn: vuot.vuot_vn, lao: vuot.vuot_lao, cuba: vuot.vuot_cuba, cpc: vuot.vuot_cpc, dongHP: vuot.vuot_dongHP, total: Number(Number(row.thanhToan || 0).toFixed(2)) },
-        money: { ...money, total: Number(moneyTotal.toFixed(2)) },
-        thucNhan: Number(moneyTotal.toFixed(2)),
-        mucTT: RATE,
-    };
-}
-
-
-/**
- * Parse tableF data to extract training system breakdown
- */
-function parseTrainingSystemBreakdown(tableF) {
-    const breakdown = {
-        hk1_vn: 0, hk1_lao: 0, hk1_cuba: 0, hk1_cpc: 0, hk1_dongHP: 0,
-        hk2_vn: 0, hk2_lao: 0, hk2_cuba: 0, hk2_cpc: 0, hk2_dongHP: 0,
-        year_vn: 0, year_lao: 0, year_cuba: 0, year_cpc: 0, year_dongHP: 0
-    };
-
-    if (!tableF || !tableF.rows) return breakdown;
-
-    tableF.rows.forEach(row => {
-        const doiTuong = row.doi_tuong || '';
-        
-        /**
-         * Backend classification logic (from sdo-data.helpers.js):
-         * - Check if name contains "mật mã" → isMatMa = true/false
-         * - Check region: "lào" → lao, "campuchia" → campuchia, "cuba" → cuba, default → viet_nam
-         * - If isMatMa = false → đóng học phí (dongHP)
-         * - If isMatMa = true → use region (vn, lao, cuba, cpc for campuchia)
-         */
-        const classifyHeDaoTao = (tenHeDaoTao) => {
-            const name = String(tenHeDaoTao || "").toLowerCase();
-            const isMatMa = name.includes("mật mã");
-            
-            let vungMien = "viet_nam";
-            if (name.includes("lào")) vungMien = "lao";
-            else if (name.includes("campuchia")) vungMien = "campuchia"; 
-            else if (name.includes("cuba")) vungMien = "cuba";
-            
-            return { isMatMa, vungMien };
-        };
-
-        // Map backend regions to frontend categories
-        const regionToCategory = {
-            "viet_nam": "vn",
-            "lao": "lao", 
-            "cuba": "cuba",
-            "campuchia": "cpc"  // Campuchia maps to CPC column
-        };
-        
-        const classification = classifyHeDaoTao(doiTuong);
-        
-        let category;
-        if (!classification.isMatMa) {
-            // Not "mật mã" → đóng học phí
-            category = 'dongHP';
-        } else {
-            // Is "mật mã" → use region mapping
-            category = regionToCategory[classification.vungMien] || 'vn';
-        }
-
-        // Đồ án & tham quan không có thông tin HK → mặc định tính vào HK1
-        breakdown[`hk1_${category}`] += (row.hk1 || 0) + (row.do_an || 0) + (row.tham_quan || 0);
-        breakdown[`hk2_${category}`] += row.hk2 || 0;
-        breakdown[`year_${category}`] += row.tong || 0;
-    });
-
-    return breakdown;
-}
-
-/**
- * Distribute overtime hours proportionally across training systems
- */
-function distributeOvertimeProportionally(breakdown, totalOvertime) {
-    const yearTotal = breakdown.year_vn + breakdown.year_lao + breakdown.year_cuba + 
-                     breakdown.year_cpc + breakdown.year_dongHP;
-    
-    if (yearTotal === 0) {
-        return {
-            vuot_vn: 0, vuot_lao: 0, vuot_cuba: 0, vuot_cpc: 0, vuot_dongHP: 0
-        };
-    }
-
-    return {
-        vuot_vn: (breakdown.year_vn / yearTotal) * totalOvertime,
-        vuot_lao: (breakdown.year_lao / yearTotal) * totalOvertime,
-        vuot_cuba: (breakdown.year_cuba / yearTotal) * totalOvertime,
-        vuot_cpc: (breakdown.year_cpc / yearTotal) * totalOvertime,
-        vuot_dongHP: (breakdown.year_dongHP / yearTotal) * totalOvertime
+        hk1:  { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        hk2:  { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        year: { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        vuot: { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        money: { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        thucNhan: 0,
+        mucTT: 0,
     };
 }
 
@@ -977,4 +877,4 @@ async function chotDuLieu() {
 }
 
 
-
+
