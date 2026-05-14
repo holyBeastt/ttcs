@@ -56,24 +56,61 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('filterHocPhan').addEventListener('input', filterTable);
 
     setupUpdateButtonVisibility();
+    setupColumnVisibility();
 });
+
+function setupColumnVisibility() {
+    const role = localStorage.getItem('userRole');
+    const MaPhongBan = localStorage.getItem('MaPhongBan');
+
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
+    const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
+
+    const checkAllKhoa = document.getElementById('checkAllKhoa');
+    const checkAllDaoTao = document.getElementById('checkAllDaoTao');
+
+    // Mặc định disable tất cả
+    if (checkAllKhoa) checkAllKhoa.disabled = true;
+    if (checkAllDaoTao) checkAllDaoTao.disabled = true;
+
+    // Khoa: GV_CNBM duyệt (check), Lãnh đạo khoa bỏ duyệt (uncheck)
+    if (role === gvCnbm || role === lanhDaoKhoa) {
+        if (checkAllKhoa) checkAllKhoa.disabled = false;
+    }
+
+    // Phòng ĐT/VP: Trợ lý duyệt (check), Lãnh đạo phòng bỏ duyệt (uncheck)
+    if ((MaPhongBan === daoTao || MaPhongBan === vanPhong) && (role === troLyPhong || role === lanhDaoPhong)) {
+        if (checkAllDaoTao) checkAllDaoTao.disabled = false;
+    }
+}
 
 function setupUpdateButtonVisibility() {
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const role = localStorage.getItem('userRole');
     const updateBtn = document.getElementById('updateApprovalBtn');
 
-    const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DT';
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
     const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
-    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGD';
-    const troLyPhong = window.APP_ROLES?.troLy_phong || 'troLy_phong';
-    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'lanhDao_phong';
-    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'lanhDao_khoa';
+    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
 
-    if ((MaPhongBan === daoTao || MaPhongBan === vanPhong || MaPhongBan === banGiamDoc) &&
-        (role === troLyPhong || role === lanhDaoPhong)) {
+    // Khoa: GV_CNBM duyệt, Lãnh đạo khoa bỏ duyệt
+    if (role === gvCnbm || role === lanhDaoKhoa) {
         updateBtn.style.display = 'flex';
-    } else if (role === lanhDaoKhoa) {
+    }
+    // Phòng (ĐT/VP): Trợ lý duyệt, Lãnh đạo phòng bỏ duyệt
+    else if ((MaPhongBan === daoTao || MaPhongBan === vanPhong) && (role === troLyPhong || role === lanhDaoPhong)) {
+        updateBtn.style.display = 'flex';
+    }
+    // Ban Giám đốc: toàn quyền
+    else if (MaPhongBan === banGiamDoc) {
         updateBtn.style.display = 'flex';
     }
 }
@@ -81,23 +118,62 @@ function setupUpdateButtonVisibility() {
 // ==================== PERMISSION HELPERS ====================
 
 function canEditDelete(data) {
+    const role = localStorage.getItem('userRole');
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+
+    // Chỉ GV_CNBM và Lãnh đạo khoa có quyền sửa/xóa
+    if (role !== gvCnbm && role !== lanhDaoKhoa) return false;
+
+    // Chỉ sửa/xóa khi chưa duyệt
     return data.KhoaDuyet === 0 && data.DaoTaoDuyet === 0;
 }
 
-function canApprove(type) {
+/**
+ * Kiểm tra quyền duyệt cho từng cột
+ * @param {'khoa'|'daoTao'} type - Loại duyệt
+ * @param {'check'|'uncheck'} action - Hành động (check = duyệt, uncheck = bỏ duyệt)
+ */
+function canApprove(type, action) {
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const role = localStorage.getItem('userRole');
-    const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DT';
-    const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
-    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGD';
-    const troLyPhong = window.APP_ROLES?.troLy_phong || 'troLy_phong';
-    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'lanhDao_phong';
-    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'lanhDao_khoa';
 
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
+    const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
+    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
+
+    // Ban Giám đốc có toàn quyền
     if (MaPhongBan === banGiamDoc) return true;
-    if (type === 'khoa') return role === lanhDaoKhoa || role === lanhDaoPhong;
-    if (type === 'daoTao') return MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong);
+
+    if (type === 'khoa') {
+        // GV_CNBM: chỉ được duyệt (check)
+        if (role === gvCnbm && action === 'check') return true;
+        // Lãnh đạo khoa: chỉ được bỏ duyệt (uncheck)
+        if (role === lanhDaoKhoa && action === 'uncheck') return true;
+        return false;
+    }
+
+    if (type === 'daoTao') {
+        if (MaPhongBan !== daoTao && MaPhongBan !== vanPhong) return false;
+        // Trợ lý: chỉ được duyệt (check)
+        if (role === troLyPhong && action === 'check') return true;
+        // Lãnh đạo phòng: chỉ được bỏ duyệt (uncheck)
+        if (role === lanhDaoPhong && action === 'uncheck') return true;
+        return false;
+    }
+
     return false;
+}
+
+/**
+ * Kiểm tra xem user có quyền tương tác với checkbox không (bất kể check/uncheck)
+ */
+function canInteract(type) {
+    return canApprove(type, 'check') || canApprove(type, 'uncheck');
 }
 
 // ==================== DATA LOADING ====================
@@ -329,13 +405,22 @@ function renderTable(data) {
         khoaCheckbox.type = 'checkbox';
         khoaCheckbox.name = 'khoa';
         khoaCheckbox.checked = row.KhoaDuyet === 1;
-        khoaCheckbox.onchange = () => updateCheckAll('khoa');
+        khoaCheckbox.onchange = () => {
+            updateCheckAll('khoa');
+            updateDaoTaoCheckboxes();
+        };
 
+        // Phân quyền checkbox Khoa
         if (row.DaoTaoDuyet === 1) {
+            // Đã duyệt ĐT → khóa Khoa
             khoaCheckbox.checked = true;
             khoaCheckbox.disabled = true;
+        } else if (row.KhoaDuyet === 1) {
+            // Đã duyệt Khoa → chỉ Lãnh đạo khoa mới bỏ duyệt được
+            khoaCheckbox.disabled = !canApprove('khoa', 'uncheck');
         } else {
-            khoaCheckbox.disabled = !canApprove('khoa');
+            // Chưa duyệt Khoa → chỉ GV_CNBM mới duyệt được
+            khoaCheckbox.disabled = !canApprove('khoa', 'check');
         }
         khoaCheckTd.appendChild(khoaCheckbox);
         tableRow.appendChild(khoaCheckTd);
@@ -348,10 +433,16 @@ function renderTable(data) {
         dtCheckbox.checked = row.DaoTaoDuyet === 1;
         dtCheckbox.onchange = () => updateCheckAll('daoTao');
 
-        if (canApprove('daoTao')) {
-            dtCheckbox.disabled = row.KhoaDuyet !== 1;
-        } else {
+        // Phân quyền checkbox Đào tạo
+        if (row.DaoTaoDuyet === 1) {
+            // Đã duyệt → chỉ Lãnh đạo phòng mới bỏ duyệt được
+            dtCheckbox.disabled = !canApprove('daoTao', 'uncheck');
+        } else if (row.KhoaDuyet !== 1) {
+            // Khoa chưa duyệt → không cho duyệt ĐT
             dtCheckbox.disabled = true;
+        } else {
+            // Khoa đã duyệt, ĐT chưa duyệt → chỉ Trợ lý mới duyệt được
+            dtCheckbox.disabled = !canApprove('daoTao', 'check');
         }
         dtCheckTd.appendChild(dtCheckbox);
         tableRow.appendChild(dtCheckTd);
@@ -367,8 +458,6 @@ function renderTable(data) {
                     <i class="fas fa-trash"></i>
                 </button>
             `;
-        } else {
-            actionTd.innerHTML = '<span class="text-muted small">Đã duyệt</span>';
         }
         tableRow.appendChild(actionTd);
 
@@ -444,7 +533,52 @@ function checkAll(type) {
     const checkAllIdMap = { 'khoa': 'checkAllKhoa', 'daoTao': 'checkAllDaoTao' };
     const checkAllCheckbox = document.getElementById(checkAllIdMap[type]);
     if (!checkAllCheckbox) return;
-    checkboxes.forEach(cb => { if (!cb.disabled) cb.checked = checkAllCheckbox.checked; });
+
+    const isChecking = checkAllCheckbox.checked;
+    const action = isChecking ? 'check' : 'uncheck';
+
+    checkboxes.forEach(cb => {
+        if (cb.disabled) return;
+        if (!canApprove(type, action)) return;
+        cb.checked = isChecking;
+    });
+
+    if (type === 'khoa') {
+        updateDaoTaoCheckboxes();
+    }
+}
+
+/**
+ * Update Đào tạo checkboxes based on Khoa status
+ */
+function updateDaoTaoCheckboxes() {
+    const rows = document.querySelectorAll('#tableBody tr');
+    
+    rows.forEach(row => {
+        const khoaCheckbox = row.querySelector('input[name="khoa"]');
+        const dtCheckbox = row.querySelector('input[name="daoTao"]');
+        const dataIndex = parseInt(row.getAttribute('data-index'));
+        const data = Number.isNaN(dataIndex) ? null : globalData[dataIndex];
+        
+        if (khoaCheckbox && dtCheckbox) {
+            if (data && data.DaoTaoDuyet === 1) {
+                khoaCheckbox.checked = true;
+                khoaCheckbox.disabled = true;
+                dtCheckbox.checked = true;
+                dtCheckbox.disabled = !canApprove('daoTao', 'uncheck');
+                return;
+            }
+            
+            if (!khoaCheckbox.checked) {
+                dtCheckbox.disabled = true;
+                dtCheckbox.checked = false;
+            } else {
+                dtCheckbox.disabled = !canApprove('daoTao', 'check');
+            }
+        }
+    });
+
+    updateCheckAll('daoTao');
 }
 
 function updateCheckAll(type) {

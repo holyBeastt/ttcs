@@ -138,6 +138,7 @@
                     </select>
                     
                     <button id="loadDataBtn" class="btn text-nowrap mx-2">Hiển thị</button>
+                    <button id="updateApprovalBtn" class="btn btn-success text-nowrap" style="display: none;">CẬP NHẬT</button>
                 </div>
 
                 <a href="/v2/vuotgio/huong-dan-tham-quan/add" class="btn btn-success text-nowrap">Thêm mới</a>
@@ -156,6 +157,20 @@
                             <th>Mô tả hoạt động</th>
                             <th>Số ngày</th>
                             <th>Số tiết quy đổi</th>
+                            <th style="width: 80px;" id="khoaColumn">
+                                <div class="form-check d-flex justify-content-center align-items-center">
+                                    <input class="check me-1" type="checkbox" id="checkAllKhoa"
+                                        onclick="checkAll('khoa')" />
+                                    <label class="form-check-label" for="checkAllKhoa">Khoa</label>
+                                </div>
+                            </th>
+                            <th style="width: 80px;" id="phongColumn">
+                                <div class="form-check d-flex justify-content-center align-items-center">
+                                    <input class="check me-1" type="checkbox" id="checkAllDaoTao"
+                                        onclick="checkAll('daoTao')" />
+                                    <label class="form-check-label text-nowrap" for="checkAllDaoTao">ĐT</label>
+                                </div>
+                            </th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>

@@ -91,10 +91,18 @@ const deleteRecord = async (connection, id) => {
     await connection.execute(`DELETE FROM vg_huong_dan_tham_quan_thuc_te WHERE id = ?`, [id]);
 };
 
+const updateApproval = async (connection, id, khoaDuyet, daoTaoDuyet) => {
+    await connection.execute(
+        `UPDATE vg_huong_dan_tham_quan_thuc_te SET khoa_duyet = ?, dao_tao_duyet = ? WHERE id = ?`,
+        [khoaDuyet, daoTaoDuyet, id]
+    );
+};
+
 module.exports = {
     getTable,
     getById,
     save,
     update,
+    updateApproval,
     delete: deleteRecord
 };

@@ -76,10 +76,25 @@ const deleteRecord = async (id, user) => withConnection(null, async (connection)
     } catch (e) {}
 });
 
+const batchApprove = async (records, user) => withConnection(null, async (connection) => {
+    let count = 0;
+    for (const record of records) {
+        const khoaDuyet = parseInt(record.khoa_duyet) || 0;
+        const daoTaoDuyet = parseInt(record.dao_tao_duyet) || 0;
+        await repo.updateApproval(connection, record.id, khoaDuyet, daoTaoDuyet);
+        count++;
+    }
+    try {
+        await LogService.logChange(user.id, user.name, 'Batch duyệt hướng dẫn tham quan', `Cập nhật ${count} bản ghi`);
+    } catch (e) {}
+    return count;
+});
+
 module.exports = {
     getFilters,
     getTable,
     save,
     edit,
+    batchApprove,
     delete: deleteRecord
 };

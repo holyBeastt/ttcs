@@ -150,6 +150,7 @@ router.get("/huong-dan-tham-quan/filters", huongDanThamQuanController.getFilters
 router.get("/huong-dan-tham-quan/table", huongDanThamQuanController.getTable);
 router.post("/huong-dan-tham-quan/save", huongDanThamQuanController.save);
 router.post("/huong-dan-tham-quan/edit/:id", huongDanThamQuanController.edit);
+router.post("/huong-dan-tham-quan/batch-approve", huongDanThamQuanController.batchApprove);
 router.delete("/huong-dan-tham-quan/:id", huongDanThamQuanController.delete);
 
 module.exports = router;
