@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadNhanSuSuggestions() {
     try {
-        const response = await fetch(`${BASE_URL}/importkthp/getSuggestions`);
+        const response = await fetch(`${BASE_URL}/import-kthp/getSuggestions`);
         if (!response.ok) throw new Error("Lỗi khi tải danh sách");
 
         nhanSuList = await response.json();
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showLoading();
 
             try {
-                const response = await fetch(`${BASE_URL}/importkthp/upload`, {
+                const response = await fetch(`${BASE_URL}/import-kthp/upload`, {
                     method: 'POST',
                     body: formData
                 });
@@ -170,50 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fileInput.click();
     });
 
-    // Form submission for adding single entry
-    document.getElementById('addEntryForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const entry = {
-            section: document.getElementById('section').value,
-            hoVaTen: document.getElementById('hoVaTen').value,
-            khoa: document.getElementById('khoa').value,
-            tenHocPhan: document.getElementById('tenHocPhan').value,
-            lopHocPhan: document.getElementById('lopHocPhan').value,
-            doiTuong: document.getElementById('doiTuong').value,
-            soDe: document.getElementById('soDe').value || null,
-            soCa: document.getElementById('soCa').value || null,
-            soBaiCham1: document.getElementById('soBaiCham1').value || null,
-            soBaiCham2: document.getElementById('soBaiCham2').value || null,
-            tongSoBai: document.getElementById('tongSoBai').value || null,
-            soTietQC: document.getElementById('soTietQC').value
-        };
 
-        if (!entry.hoVaTen || !entry.khoa || !entry.tenHocPhan || !entry.lopHocPhan || !entry.doiTuong || !entry.soTietQC) {
-            return showAlert('warning', 'Vui lòng điền đầy đủ các trường bắt buộc!');
-        }
-
-        try {
-            const response = await fetch(`${BASE_URL}/importkthp/add`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(entry)
-            });
-            if (!response.ok) throw new Error('Thêm dữ liệu thất bại');
-            const data = await response.json();
-
-            dataTam.push({ ...data, Type: entry.section === 'raDe' ? 'Ra Đề' : entry.section === 'coiThi' ? 'Coi Thi' : 'Chấm Thi' });
-
-            renderTable(dataTam.filter(item => item.Type === 'Ra Đề'), 'raDeTableContainer', columnDefs.raDe);
-            renderTable(dataTam.filter(item => item.Type === 'Coi Thi'), 'coiThiTableContainer', columnDefs.coiThi);
-            renderTable(dataTam.filter(item => item.Type === 'Chấm Thi'), 'chamThiTableContainer', columnDefs.chamThi);
-
-            showAlert('success', 'Dữ liệu đã được thêm thành công!');
-            document.getElementById('addEntryForm').reset();
-        } catch (error) {
-            showAlert('error', error.message || 'Đã xảy ra lỗi khi thêm dữ liệu.');
-            console.error('Error:', error);
-        }
-    });
 
     // Utility function for showing alerts
     function showAlert(icon, message) {
@@ -248,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dataTam = [...raDeData, ...coiThiData, ...chamThiData];
         console.log('Data to be sent:', dataTam);
         try {
-            const response = await fetch(`${BASE_URL}/importkthp/checkfile`, {
+            const response = await fetch(`${BASE_URL}/import-kthp/checkfile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ Ki: kiValue, Nam: namValue })
@@ -289,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Save data to server with custom messages
     async function saveDataToServer(kiValue, namValue, dataTam, messages) {
         try {
-            const response = await fetch(`${BASE_URL}/importkthp/save`, {
+            const response = await fetch(`${BASE_URL}/import-kthp/save`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -315,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delete existing data and save new
     async function deleteFile(kiValue, namValue) {
         try {
-            const response = await fetch(`${BASE_URL}/importkthp/delete`, {
+            const response = await fetch(`${BASE_URL}/import-kthp/delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ Ki: kiValue, Nam: namValue })
@@ -363,9 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
         checkDataExistence(kiValue, namValue);
     });
 
-    document.getElementById('viewtam').addEventListener('click', function() {
-        window.location.href = `${BASE_URL}/vuotGioDanhGiaCuoiKi`;
-    });
+
 
     function extractEditedData(containerId, columns, typeLabel) {
         const table = document.querySelector(`#${containerId}Table`);
@@ -429,24 +384,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
     
 });
-async function getSuggestions() {
-    try {
-        const MaPhongBan = document.getElementById("MaPhongBan").value;
-        const response = await fetch(`${BASE_URL}/importkthp/getNameSuggestions?MaPhongBan=${MaPhongBan}`);
-        if (!response.ok) throw new Error("Lỗi khi tải danh sách");
 
-        const nhanSuList = await response.json();
-
-        const datalist = document.getElementById("nameGVSuggestions");
-        datalist.innerHTML = ""; // Xóa gợi ý cũ
-
-        nhanSuList.forEach(({ TenNhanVien }) => {
-        const option = document.createElement("option");
-        option.value = TenNhanVien;
-        datalist.appendChild(option);
-        });
-    } catch (error) {
-        console.error("Không thể tải danh sách:", error);
-    }
-}
 
