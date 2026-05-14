@@ -77,6 +77,29 @@ const edit = async (req, res) => {
 };
 
 /**
+ * Batch approve/unapprove
+ */
+const batchApprove = async (req, res) => {
+    const user = {
+        id: req.session?.userId || 1,
+        name: req.session?.TenNhanVien || 'ADMIN'
+    };
+    const records = req.body;
+
+    if (!records || !Array.isArray(records) || records.length === 0) {
+        return res.status(400).json({ success: false, message: "Thiếu dữ liệu cần cập nhật." });
+    }
+
+    try {
+        const count = await service.batchApprove(records, user);
+        res.status(200).json({ success: true, message: `Đã cập nhật ${count} bản ghi!` });
+    } catch (error) {
+        console.error("Error in batchApprove huongDanThamQuan:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
  * Xóa bản ghi
  */
 const deleteRecord = async (req, res) => {
@@ -100,5 +123,6 @@ module.exports = {
     getTable,
     save,
     edit,
+    batchApprove,
     delete: deleteRecord
 };
