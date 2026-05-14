@@ -1,4 +1,4 @@
-const { TAGS } = require("../layout/section-tags.constants");
+const { TAGS } = require("../layouts/section-tags.constants");
 const { getLabel } = require("../normalizers/training-system.normalizer");
 
 const colLetter = (col) => {

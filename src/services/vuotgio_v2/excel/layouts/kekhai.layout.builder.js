@@ -1,10 +1,10 @@
-const { EXCEL_GLOBAL_BLOCKS_LAYOUT } = require("../layouts/excel-global-layout.config");
-const { TAGS } = require("../layout/section-tags.constants");
+const { EXCEL_GLOBAL_BLOCKS_LAYOUT } = require("./excel-global-layout.config");
+const { TAGS } = require("./section-tags.constants");
 const {
   columnsA1, columnsA2, columnsB, columnsC,
   columnsD1, columnsD2, columnsD3, columnsD4,
   columnsD5, columnsD6, columnsD7, columnsD8, columnsD9,
-} = require("../layouts/excel-columns.constants");
+} = require("./excel-columns.constants");
 const {
   filterA1, mapA1Row, filterA2, mapA2Row,
   filterB, bFilterMatMa, bFilterDongHP, mapBRow,
