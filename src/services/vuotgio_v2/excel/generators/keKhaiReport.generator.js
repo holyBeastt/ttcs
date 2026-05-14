@@ -1,7 +1,7 @@
 const { ExcelJS, BORDERS, COLOR, mergeAndStyle, styleCell } = require("../utils/excel-style.utils");
 const { EXCEL_GLOBAL_BLOCKS_LAYOUT } = require("../layouts/excel-global-layout.config");
 const { buildTableFFormulaRows } = require("../formulas/tableF.formula.builder");
-const { buildHeader, buildGroups } = require("../layout/kekhai.layout.builder");
+const { buildHeader, buildGroups } = require("../layouts/kekhai.layout.builder");
 const { renderPaymentSheet } = require("../components/kekhai-payment.component");
 const { renderBlockGroups } = require("../components/excel-block.renderer");
 const { toNum } = require("../utils/sdo-data.helpers");
