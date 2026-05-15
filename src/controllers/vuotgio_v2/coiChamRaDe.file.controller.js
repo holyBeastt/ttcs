@@ -26,9 +26,12 @@ const readFileExcel = async (req, res) => {
 const importWorkloadToDB = async (req, res) => {
     try {
         const { ki, nam, workloadData } = req.body;
+        if (!req.session?.userId) {
+            return res.status(401).json({ success: false, message: "Vui lòng đăng nhập để tiếp tục" });
+        }
         const user = {
-            id: req.session?.userId || 1,
-            userName: req.session?.TenNhanVien || 'ADMIN'
+            id: req.session.userId,
+            userName: req.session.TenNhanVien || req.session.username || 'Unknown'
         };
 
         const count = await importService.importToDB(workloadData, { ki, nam, user });

@@ -119,6 +119,12 @@
 
     <div class="page-wrap">
         <div class="panel">
+            <!-- Data Lock Banner -->
+            <div id="dataLockBanner" class="alert alert-warning align-items-center mb-3 d-none" role="alert">
+                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                <span id="dataLockMessage"></span>
+            </div>
+
             <div class="title">Hướng dẫn tham quan thực tế</div>
 
             <!-- Toolbar -->
@@ -270,6 +276,102 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script src="/js/vuotgio_v2/huongDanThamQuan/index.js"></script>
+
+    <!-- Data Lock Check -->
+    <script>
+    (function() {
+        const namHocSelect = document.getElementById('namHocFilter');
+        const banner = document.getElementById('dataLockBanner');
+        const bannerMsg = document.getElementById('dataLockMessage');
+
+        function checkLockStatus() {
+            const namHoc = namHocSelect ? namHocSelect.value : '';
+            if (!namHoc) {
+                banner.classList.add('d-none');
+                banner.classList.remove('d-flex');
+                enableButtons();
+                return;
+            }
+            fetch('/v2/vuotgio/trang-thai-khoa?namHoc=' + encodeURIComponent(namHoc))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success && data.locked) {
+                        var info = data.lockInfo;
+                        bannerMsg.textContent = 'Dữ liệu năm học ' + namHoc + ' đã được lưu bởi ' + info.nguoi_khoa + ' vào ' + info.ngay_khoa + '. Không thể chỉnh sửa.';
+                        banner.classList.remove('d-none');
+                        banner.classList.add('d-flex');
+                        disableButtons();
+                    } else {
+                        banner.classList.add('d-none');
+                        banner.classList.remove('d-flex');
+                        enableButtons();
+                    }
+                })
+                .catch(function() {
+                    banner.classList.add('d-none');
+                    banner.classList.remove('d-flex');
+                    enableButtons();
+                });
+        }
+
+        function disableButtons() {
+            var actionBtns = document.querySelectorAll('#updateApprovalBtn, #checkAllKhoa, #checkAllDaoTao');
+            actionBtns.forEach(function(btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            });
+            // Disable "Thêm mới" link button
+            var addBtn = document.querySelector('a[href="/v2/vuotgio/huong-dan-tham-quan/add"]');
+            if (addBtn) {
+                addBtn.style.opacity = '0.5';
+                addBtn.style.pointerEvents = 'none';
+            }
+            document.querySelectorAll('#tableBody .btn-action, #tableBody .btn').forEach(function(btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            });
+            document.body.dataset.locked = 'true';
+        }
+
+        function enableButtons() {
+            var actionBtns = document.querySelectorAll('#updateApprovalBtn, #checkAllKhoa, #checkAllDaoTao');
+            actionBtns.forEach(function(btn) {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            });
+            var addBtn = document.querySelector('a[href="/v2/vuotgio/huong-dan-tham-quan/add"]');
+            if (addBtn) {
+                addBtn.style.opacity = '';
+                addBtn.style.pointerEvents = '';
+            }
+            document.querySelectorAll('#tableBody .btn-action, #tableBody .btn').forEach(function(btn) {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            });
+            document.body.dataset.locked = 'false';
+        }
+
+        if (namHocSelect) {
+            namHocSelect.addEventListener('change', checkLockStatus);
+        }
+        setTimeout(checkLockStatus, 500);
+
+        // Re-check after data loads
+        var observer = new MutationObserver(function() {
+            if (document.body.dataset.locked === 'true') {
+                disableButtons();
+            }
+        });
+        var tableBody = document.getElementById('tableBody');
+        if (tableBody) {
+            observer.observe(tableBody, { childList: true });
+        }
+    })();
+    </script>
 </body>
 
 </html>

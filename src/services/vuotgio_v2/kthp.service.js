@@ -6,10 +6,15 @@ const mapper = require("../../mappers/vuotgio_v2/kthp.mapper");
 const baseMapper = require("../../mappers/vuotgio_v2/base.mapper");
 const { pick, toInt, toDecimal } = baseMapper;
 
-const getUserContext = (req) => ({
-    userId: req.session?.userId || 1,
-    userName: req.session?.TenNhanVien || req.session?.username || "ADMIN",
-});
+const getUserContext = (req) => {
+    if (!req.session?.userId) {
+        console.warn("[KTHP] getUserContext: session.userId is missing — request may be unauthenticated");
+    }
+    return {
+        userId: req.session?.userId || null,
+        userName: req.session?.TenNhanVien || req.session?.username || "Unknown",
+    };
+};
 
 const getLecturerIdByName = async (connection, name) => {
     if (!name) return null;
@@ -224,7 +229,7 @@ const deleteRecord = async (req, res) => {
 
 const batchApprove = async (req, res) => {
     const { userId, userName } = getUserContext(req);
-    const records = req.body;
+    const records = req.body.updates || req.body;
     if (!records || !Array.isArray(records) || records.length === 0) {
         return res.status(400).json({ success: false, message: "Thiếu dữ liệu cần cập nhật." });
     }

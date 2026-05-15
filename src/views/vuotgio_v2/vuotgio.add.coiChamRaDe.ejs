@@ -573,6 +573,12 @@
     </header>
 
     <main class="main">
+        <!-- Data Lock Banner -->
+        <div id="dataLockBanner" class="alert alert-warning align-items-center mb-3 d-none" role="alert">
+            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+            <span id="dataLockMessage"></span>
+        </div>
+
         <form id="themKTHPForm">
             <div class="meta-card">
                 <div class="meta-top">
@@ -693,6 +699,69 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script src="/js/vuotgio_v2/themKTHP/index.js"></script>
+
+    <!-- Data Lock Check -->
+    <script>
+    (function() {
+        const namHocSelect = document.getElementById('namHocForm');
+        const banner = document.getElementById('dataLockBanner');
+        const bannerMsg = document.getElementById('dataLockMessage');
+
+        function checkLockStatus() {
+            const namHoc = namHocSelect ? namHocSelect.value : '';
+            if (!namHoc) {
+                banner.classList.add('d-none');
+                banner.classList.remove('d-flex');
+                enableButtons();
+                return;
+            }
+            fetch('/v2/vuotgio/trang-thai-khoa?namHoc=' + encodeURIComponent(namHoc))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success && data.locked) {
+                        var info = data.lockInfo;
+                        bannerMsg.textContent = 'Dữ liệu năm học ' + namHoc + ' đã được lưu bởi ' + info.nguoi_khoa + ' vào ' + info.ngay_khoa + '. Không thể chỉnh sửa.';
+                        banner.classList.remove('d-none');
+                        banner.classList.add('d-flex');
+                        disableButtons();
+                    } else {
+                        banner.classList.add('d-none');
+                        banner.classList.remove('d-flex');
+                        enableButtons();
+                    }
+                })
+                .catch(function() {
+                    banner.classList.add('d-none');
+                    banner.classList.remove('d-flex');
+                    enableButtons();
+                });
+        }
+
+        function disableButtons() {
+            // Disable save and reset buttons
+            var btns = document.querySelectorAll('#themKTHPForm button[type="submit"], #resetCalculatorBtn');
+            btns.forEach(function(btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            });
+        }
+
+        function enableButtons() {
+            var btns = document.querySelectorAll('#themKTHPForm button[type="submit"], #resetCalculatorBtn');
+            btns.forEach(function(btn) {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            });
+        }
+
+        if (namHocSelect) {
+            namHocSelect.addEventListener('change', checkLockStatus);
+        }
+        setTimeout(checkLockStatus, 500);
+    })();
+    </script>
 </body>
 
 </html>

@@ -191,6 +191,24 @@ function formatNumber(val) {
     return Number(val).toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
+// ==================== SKELETON LOADING ====================
+
+function showSkeletonRows() {
+    const body = document.getElementById('tableBody');
+    if (!body) return;
+    body.innerHTML = Array.from({ length: 5 })
+        .map(() => `<tr class="skeleton-row"><td colspan="37">&nbsp;</td></tr>`)
+        .join('');
+}
+
+function clearSkeletonRows() {
+    const body = document.getElementById('tableBody');
+    if (body) {
+        body.innerHTML =
+            '<tr><td colspan="37" class="text-center text-muted py-4">Không có dữ liệu</td></tr>';
+    }
+}
+
 // ==================== LOAD DATA ====================
 
 // Load data
@@ -204,7 +222,11 @@ async function loadData() {
         return;
     }
 
+    showSkeletonRows();
+
     try {
+        Swal.showLoading();
+
         let url = '';
         if (version === 'LIVE') {
             url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}&detail=1`;
@@ -215,6 +237,7 @@ async function loadData() {
         console.info('[tongHopGV] loadData request', { namHoc, khoa, version, url });
         const response = await fetch(url);
         const result = await response.json();
+        Swal.close();
 
         console.info('[tongHopGV] loadData response', {
             status: response.status,
@@ -227,6 +250,7 @@ async function loadData() {
 
         if (!result.success) {
             Swal.fire('Lỗi', result.message || 'Không thể tải dữ liệu', 'error');
+            clearSkeletonRows();
             return;
         }
 
@@ -253,8 +277,10 @@ async function loadData() {
             Swal.fire('Thông báo', 'Không có dữ liệu', 'info');
         }
     } catch (error) {
+        Swal.close();
         console.error('Error loading data:', error);
         Swal.fire('Lỗi', 'Không thể tải dữ liệu', 'error');
+        clearSkeletonRows();
     }
 }
 
