@@ -95,7 +95,7 @@ const getHuongDanThamQuanByIdUser = async (connection, { namHoc, idUser }) => {
                 COALESCE(hdt.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
          FROM vg_huong_dan_tham_quan_thuc_te t
          LEFT JOIN he_dao_tao hdt ON hdt.id = t.he_dao_tao_id
-         WHERE t.nam_hoc = ? AND t.id_User = ?`,
+         WHERE t.nam_hoc = ? AND t.id_User = ? AND t.khoa_duyet = 1`,
         [namHoc, idUser]
     );
     return rows;
@@ -130,7 +130,7 @@ const getDuLieuThoTongHop = async (connection, { namHoc, khoa }) => {
             SELECT id_User FROM giangday WHERE NamHoc = ?
             UNION SELECT id_User FROM vg_lop_ngoai_quy_chuan WHERE nam_hoc = ?
             UNION SELECT id_User FROM vg_coi_cham_ra_de WHERE nam_hoc = ?
-            UNION SELECT id_User FROM exportdoantotnghiep WHERE NamHoc = ?
+            UNION SELECT id_User FROM exportdoantotnghiep WHERE NamHoc = ? AND isMoiGiang = 0
             UNION SELECT id_User FROM vg_huong_dan_tham_quan_thuc_te WHERE nam_hoc = ?
         )
         AND nv.id_User <> 1
@@ -171,7 +171,7 @@ const getDuLieuThoTongHop = async (connection, { namHoc, khoa }) => {
     const [lnqc] = await connection.execute(queryDetails('vg_lop_ngoai_quy_chuan', 'nam_hoc', 'AND khoa_duyet = 1'), [namHoc, ...lecturerIds]);
     const [kthp] = await connection.execute(queryDetails('vg_coi_cham_ra_de', 'nam_hoc', 'AND khoa_duyet = 1'), [namHoc, ...lecturerIds]);
     const [da] = await connection.execute(queryDetails('exportdoantotnghiep', 'NamHoc', 'AND isMoiGiang = 0'), [namHoc, ...lecturerIds]);
-    const [hdtq] = await connection.execute(queryDetails('vg_huong_dan_tham_quan_thuc_te', 'nam_hoc'), [namHoc, ...lecturerIds]);
+    const [hdtq] = await connection.execute(queryDetails('vg_huong_dan_tham_quan_thuc_te', 'nam_hoc', 'AND khoa_duyet = 1'), [namHoc, ...lecturerIds]);
 
     const gdMap = new Map(gd.map(r => [r.id_User, r.total]));
     const lnqcMap = new Map(lnqc.map(r => [r.id_User, r.total]));
@@ -200,15 +200,133 @@ const getChuNhiemKhoaByKhoa = async (connection, maKhoa) => {
     return rows[0]?.TenNhanVien || "";
 };
 
+// ============================================================
+// Batch functions — lấy dữ liệu cho nhiều GV cùng lúc
+// Sử dụng parameterized placeholders để chống SQL injection
+// ============================================================
+
+/**
+ * Tạo chuỗi placeholders an toàn cho mệnh đề IN
+ * @param {Array<number>} ids - Mảng ID (đã validate là số nguyên)
+ * @returns {string} Chuỗi "?, ?, ?" 
+ */
+const buildPlaceholders = (ids) => ids.map(() => '?').join(', ');
+
+const getGiangDayByIds = async (connection, { namHoc, ids }) => {
+    if (!ids.length) return [];
+    const placeholders = buildPlaceholders(ids);
+    const [rows] = await connection.execute(
+        `SELECT gd.*, 
+                COALESCE(hdt.he_dao_tao, gd.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
+         FROM giangday gd
+         LEFT JOIN he_dao_tao hdt ON hdt.id = gd.he_dao_tao
+         WHERE gd.NamHoc = ? AND gd.id_User IN (${placeholders})
+         ORDER BY gd.id_User, gd.HocKy, gd.TenHocPhan`,
+        [namHoc, ...ids]
+    );
+    return rows;
+};
+
+const getLopNgoaiQCByIds = async (connection, { namHoc, ids }) => {
+    if (!ids.length) return [];
+    const placeholders = buildPlaceholders(ids);
+    const [rows] = await connection.execute(
+        `SELECT lnqc.*, 
+                COALESCE(hdt.he_dao_tao, lnqc.he_dao_tao_id, 'Không xác định') AS ten_he_dao_tao
+         FROM vg_lop_ngoai_quy_chuan lnqc
+         LEFT JOIN he_dao_tao hdt ON hdt.id = lnqc.he_dao_tao_id
+         WHERE lnqc.nam_hoc = ? AND lnqc.id_User IN (${placeholders}) AND lnqc.khoa_duyet = 1
+         ORDER BY lnqc.id_User, lnqc.hoc_ky, lnqc.ma_hoc_phan`,
+        [namHoc, ...ids]
+    );
+    return rows;
+};
+
+const getKthpByIds = async (connection, { namHoc, ids }) => {
+    if (!ids.length) return [];
+    const placeholders = buildPlaceholders(ids);
+    const [rows] = await connection.execute(
+        `SELECT kthp.*, 
+                COALESCE(hdt.he_dao_tao, kthp.doi_tuong, 'Không xác định') AS ten_he_dao_tao
+         FROM vg_coi_cham_ra_de kthp
+         LEFT JOIN he_dao_tao hdt ON hdt.id = kthp.he_dao_tao_id
+         WHERE kthp.nam_hoc = ? AND kthp.id_User IN (${placeholders}) AND kthp.khoa_duyet = 1
+         ORDER BY kthp.id_User, kthp.hoc_ky, kthp.hinh_thuc`,
+        [namHoc, ...ids]
+    );
+    return rows;
+};
+
+const getDoAnByIds = async (connection, { namHoc, ids }) => {
+    if (!ids.length) return [];
+    const placeholders = buildPlaceholders(ids);
+    const [rows] = await connection.execute(
+        `SELECT da.*, 
+                COALESCE(hdt.he_dao_tao, da.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
+         FROM exportdoantotnghiep da
+         LEFT JOIN he_dao_tao hdt ON hdt.id = da.he_dao_tao
+         WHERE da.NamHoc = ? AND da.id_User IN (${placeholders}) AND da.isMoiGiang = 0`,
+        [namHoc, ...ids]
+    );
+    return rows;
+};
+
+const getHuongDanThamQuanByIds = async (connection, { namHoc, ids }) => {
+    if (!ids.length) return [];
+    const placeholders = buildPlaceholders(ids);
+    const [rows] = await connection.execute(
+        `SELECT t.*, 
+                COALESCE(hdt.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
+         FROM vg_huong_dan_tham_quan_thuc_te t
+         LEFT JOIN he_dao_tao hdt ON hdt.id = t.he_dao_tao_id
+         WHERE t.nam_hoc = ? AND t.id_User IN (${placeholders}) AND t.khoa_duyet = 1`,
+        [namHoc, ...ids]
+    );
+    return rows;
+};
+
+const getNhanVienByIds = async (connection, ids) => {
+    if (!ids.length) return [];
+    const placeholders = buildPlaceholders(ids);
+    const [rows] = await connection.execute(
+        `SELECT
+            nv.id_User,
+            nv.TenNhanVien AS giangVien,
+            nv.NgaySinh AS ngaySinh,
+            nv.HocVi AS hocVi,
+            nv.HSL AS hsl,
+            nv.MaPhongBan AS maKhoa,
+            nv.ChucVu AS chucVu,
+            nv.PhanTramMienGiam AS phanTramMienGiam,
+            nv.LyDoMienGiam AS lyDoMienGiam,
+            nv.SoTaiKhoan AS soTaiKhoan,
+            nv.NganHang AS nganHang,
+            nv.Luong AS luong,
+            pb.TenPhongBan AS khoa,
+            COALESCE(pb.isKhoa, 0) AS isKhoa
+        FROM nhanvien nv
+        LEFT JOIN phongban pb ON pb.id = nv.phongban_id
+        WHERE nv.id_User IN (${placeholders})`,
+        [...ids]
+    );
+    return rows;
+};
+
 module.exports = {
     NON_KHOA_GROUP_CODE,
     getDinhMuc,
     getNhanVienById,
+    getNhanVienByIds,
     getGiangDayByIdUser,
     getLopNgoaiQCByIdUser,
     getKthpByIdUser,
     getDoAnByIdUser,
     getHuongDanThamQuanByIdUser,
+    getGiangDayByIds,
+    getLopNgoaiQCByIds,
+    getKthpByIds,
+    getDoAnByIds,
+    getHuongDanThamQuanByIds,
     getDuLieuThoTongHop,
     getChuNhiemKhoaByKhoa
 };

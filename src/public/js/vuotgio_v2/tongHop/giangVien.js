@@ -88,11 +88,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (exportBtn) exportBtn.addEventListener('click', exportExcel);
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
 
-    // Snapshot actions
-    document.getElementById('chotDuLieuBtn').addEventListener('click', chotDuLieu);
-    document.getElementById('versionSelect').addEventListener('change', loadData);
-    document.getElementById('namHocXem').addEventListener('change', loadHistory);
-
     // Chuyển sang thống kê Khoa
     const btnSwitchToKhoa = document.getElementById('btnSwitchToKhoa');
     if (btnSwitchToKhoa) {
@@ -145,8 +140,8 @@ async function loadNamHocOptions() {
             select.appendChild(option);
         });
 
-        // Sau khi load xong năm học, load lịch sử chốt
-        loadHistory();
+        // Sau khi load xong năm học, load dữ liệu
+        loadData();
     } catch (error) {
         console.error('Error loading nam hoc:', error);
         const currentYear = new Date().getFullYear();
@@ -215,7 +210,6 @@ function clearSkeletonRows() {
 async function loadData() {
     const namHoc = document.getElementById('namHocXem').value;
     const khoa = document.getElementById('khoaXem').value;
-    const version = document.getElementById('versionSelect').value;
 
     if (!namHoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'warning');
@@ -227,14 +221,9 @@ async function loadData() {
     try {
         Swal.showLoading();
 
-        let url = '';
-        if (version === 'LIVE') {
-            url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}&detail=1`;
-        } else {
-            url = `/v2/vuotgio/tong-hop/snapshot-data?namHoc=${namHoc}&version=${version}`;
-        }
+        const url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}&detail=1`;
 
-        console.info('[tongHopGV] loadData request', { namHoc, khoa, version, url });
+        console.info('[tongHopGV] loadData request', { namHoc, khoa, url });
         const response = await fetch(url);
         const result = await response.json();
         Swal.close();
@@ -256,19 +245,14 @@ async function loadData() {
 
         let data = result.data || [];
 
-        // Nếu là snapshot, chúng ta vẫn cần filter theo khoa ở client nếu API snapshot chưa filter
-        if (version !== 'LIVE' && khoa !== 'ALL') {
-            data = data.filter(r => r.maKhoa === khoa);
-        }
-
         globalData = data;
         console.info('[tongHopGV] loadData final', {
             count: data.length,
             sample: data.slice(0, 3)
         });
 
-        logMissingFields(data, { namHoc, khoa, version });
-        logFirstRowDetails(data, { namHoc, khoa, version });
+        logMissingFields(data, { namHoc, khoa });
+        logFirstRowDetails(data, { namHoc, khoa });
         renderTable(globalData);
         updateSummary(globalData);
 
@@ -316,6 +300,7 @@ function renderTable(data) {
         if (row.khoa !== lastKhoa) {
             const groupRow = document.createElement('tr');
             groupRow.className = 'group-header table-light fw-bold';
+            groupRow.setAttribute('data-khoa-code', row.maKhoa || row.khoa || '');
             groupRow.innerHTML = `
                 <td colspan="37" class="text-start px-3 py-2">
                     <i class="fas fa-university me-2"></i> ${row.khoa || 'Khác'}
@@ -832,75 +817,7 @@ function renderExcelPdfPreview(serverData, hoTen, namHoc, khoa) {
 //     link.download = `TongHopVuotGio_${namHoc}_${khoa}.csv`;
 //     link.click();
 // }
-// ==================== SNAPSHOT ACTIONS ====================
 
-// Tải lịch sử chốt
-async function loadHistory() {
-    const namHoc = document.getElementById('namHocXem').value;
-    if (!namHoc) return;
-
-    try {
-        const response = await fetch(`/v2/vuotgio/tong-hop/lich-su-chot?namHoc=${namHoc}`);
-        const result = await response.json();
-
-        const select = document.getElementById('versionSelect');
-        // Giữ lại option LIVE
-        select.innerHTML = '<option value="LIVE">Phiên bản (Live)</option>';
-
-        if (result.success && result.data) {
-            result.data.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.version;
-                const date = new Date(v.ngay_chot).toLocaleString('vi-VN');
-                opt.textContent = `V${v.version} - ${date} ${v.is_latest ? '(Mới nhất)' : ''}`;
-                select.appendChild(opt);
-            });
-        }
-    } catch (error) {
-        console.error('Error loading history:', error);
-    }
-}
-
-// Chốt dữ liệu
-async function chotDuLieu() {
-    const namHoc = document.getElementById('namHocXem').value;
-    if (!namHoc) {
-        Swal.fire('Lỗi', 'Vui lòng chọn năm học trước khi chốt', 'warning');
-        return;
-    }
-
-    const { value: ghiChu } = await Swal.fire({
-        title: 'Chốt dữ liệu vượt giờ',
-        input: 'text',
-        inputLabel: 'Ghi chú cho phiên bản này',
-        inputPlaceholder: 'Nhập ghi chú...',
-        showCancelButton: true,
-        confirmButtonText: 'Chốt ngay',
-        cancelButtonText: 'Hủy'
-    });
-
-    if (ghiChu === undefined) return; // User cancelled
-
-    try {
-        Swal.showLoading();
-        const response = await fetch('/v2/vuotgio/tong-hop/chot-du-lieu', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ namHoc, ghiChu })
-        });
-        const result = await response.json();
-
-        if (result.success) {
-            Swal.fire('Thành công', result.message, 'success');
-            loadHistory(); // Tải lại dropdown
-        } else {
-            Swal.fire('Lỗi', result.message, 'error');
-        }
-    } catch (error) {
-        console.error('Error chotDuLieu:', error);
-        Swal.fire('Lỗi', 'Không thể chốt dữ liệu', 'error');
-    }
-}
 
 
 

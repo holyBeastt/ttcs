@@ -64,7 +64,9 @@ const save = async (req, res) => {
 };
 
 const getTable = async (req, res) => {
-    const { Dot, KiHoc, NamHoc, Khoa } = req.params;
+    const { Dot, KiHoc, NamHoc } = req.params;
+    // enforceKhoaFilter middleware đã override req.params.Khoa nếu user là khoa
+    const Khoa = req.params.Khoa;
     let connection;
     try {
         connection = await createPoolConnection();
@@ -80,8 +82,8 @@ const getTable = async (req, res) => {
 
 const edit = async (req, res) => {
     const { userId, userName } = getUserContext(req);
-    const data = req.body;
-    const { id, dot, ki_hoc, nam_hoc } = data;
+    const raw = req.body;
+    const { id, dot, ki_hoc, nam_hoc } = raw;
     if (!id || !dot || !ki_hoc || !nam_hoc) {
         return res.status(400).json({ success: false, message: "Thiếu id, dot, ki_hoc, nam_hoc" });
     }
@@ -89,11 +91,10 @@ const edit = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        const data = mapper.toEntity(req.body);
-        const { id, dot, ki_hoc, nam_hoc } = data;
+        const mapped = mapper.toEntity(req.body);
         
         const allowedFields = ["course_name", "course_code", "credit_hours", "student_quantity", "student_bonus", "bonus_time", "ll_code", "ll_total", "qc", "lecturer", "major", "he_dao_tao", "note", "course_id"];
-        const values = allowedFields.map((field) => data[field]);
+        const values = allowedFields.map((field) => mapped[field]);
         const setClause = allowedFields.map((field) => `${field} = ?`).join(", ");
 
         const [result] = await connection.execute(
@@ -302,7 +303,9 @@ const confirmToMain = async (req, res) => {
 };
 
 const getChinhThuc = async (req, res) => {
-    const { NamHoc, Khoa } = req.params;
+    const { NamHoc } = req.params;
+    // enforceKhoaFilter middleware đã override req.params.Khoa nếu user là khoa
+    const Khoa = req.params.Khoa;
     let connection;
     try {
         connection = await createPoolConnection();

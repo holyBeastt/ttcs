@@ -145,7 +145,9 @@ const saveBatch = async (req, res) => {
 };
 
 const getTable = async (req, res) => {
-    const { NamHoc, Khoa } = req.params;
+    const { NamHoc } = req.params;
+    // enforceKhoaFilter middleware đã override req.params.Khoa nếu user là khoa
+    const Khoa = req.params.Khoa;
     let connection;
     try {
         connection = await createPoolConnection();

@@ -9,6 +9,7 @@
 
 const xuatFileService          = require('../../services/vuotgio_v2/xuatFile.service');
 const consolidatedExportService = require('../../services/vuotgio_v2/consolidatedExport.service');
+const dataLockService          = require('../../services/vuotgio_v2/dataLock.service');
 
 /* ════════════════════════════════════════════════════
    Helpers
@@ -60,15 +61,37 @@ const exportExcel = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Thiếu thông tin Năm học' });
     }
 
+    // Kiểm tra dữ liệu đã được lưu chưa
     try {
-        const workbook = await xuatFileService.exportExcel(namHoc, khoa, giangVien);
+        const locked = await dataLockService.isLocked(namHoc);
+        if (!locked) {
+            return res.status(403).json({
+                success: false,
+                message: 'Dữ liệu năm học này chưa được lưu. Vui lòng lưu dữ liệu trước khi xuất file.'
+            });
+        }
+    } catch (err) {
+        console.error('[xuatFile.controller] lock check error:', err);
+        return res.status(500).json({ success: false, message: 'Không thể kiểm tra trạng thái lưu dữ liệu.' });
+    }
 
-        // Build descriptive filename
-        const namHocPart   = sanitizeFileName(namHoc);
-        const khoaPart     = khoa && khoa !== 'ALL' ? `_${sanitizeFileName(khoa)}` : '';
-        const gvPart       = giangVien ? `_${sanitizeFileName(giangVien)}` : '';
-        const datePart     = new Date().toISOString().slice(0, 10);
-        const filename     = `KeKhai_VuotGio_${namHocPart}${khoaPart}${gvPart}_${datePart}.xlsx`;
+    try {
+        const { workbook, meta } = await xuatFileService.exportExcel(namHoc, khoa, giangVien);
+
+        // Build descriptive filename based on scope
+        const namHocPart = sanitizeFileName(namHoc);
+        let filename;
+
+        if (giangVien && meta.giangVienName) {
+            // Scope: 1 giảng viên → KeKhai_VuotGio_Nguyen_Van_A_2024-2025.xlsx
+            filename = `KeKhai_VuotGio_${sanitizeFileName(meta.giangVienName)}_${namHocPart}.xlsx`;
+        } else if (khoa && khoa !== 'ALL' && meta.maKhoa) {
+            // Scope: 1 khoa → KeKhai_VuotGio_Khoa_CNTT_2024-2025.xlsx
+            filename = `KeKhai_VuotGio_Khoa_${sanitizeFileName(meta.maKhoa)}_${namHocPart}.xlsx`;
+        } else {
+            // Scope: tất cả khoa → KeKhai_VuotGio_TatCaKhoa_2024-2025.xlsx
+            filename = `KeKhai_VuotGio_TatCaKhoa_${namHocPart}.xlsx`;
+        }
 
         await _sendWorkbook(res, workbook, filename);
     } catch (err) {
@@ -96,12 +119,25 @@ const exportConsolidated = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Thiếu thông tin Năm học' });
     }
 
+    // Kiểm tra dữ liệu đã được lưu chưa
+    try {
+        const locked = await dataLockService.isLocked(namHoc);
+        if (!locked) {
+            return res.status(403).json({
+                success: false,
+                message: 'Dữ liệu năm học này chưa được lưu. Vui lòng lưu dữ liệu trước khi xuất file.'
+            });
+        }
+    } catch (err) {
+        console.error('[xuatFile.controller] lock check error:', err);
+        return res.status(500).json({ success: false, message: 'Không thể kiểm tra trạng thái lưu dữ liệu.' });
+    }
+
     try {
         const workbook = await consolidatedExportService.exportConsolidatedByDepartment(namHoc);
 
         const namHocPart = sanitizeFileName(namHoc);
-        const datePart   = new Date().toISOString().slice(0, 10);
-        const filename   = `TongHop_VuotGio_${namHocPart}_${datePart}.xlsx`;
+        const filename   = `TongHop_VuotGio_${namHocPart}.xlsx`;
 
         await _sendWorkbook(res, workbook, filename);
     } catch (err) {

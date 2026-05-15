@@ -160,6 +160,13 @@ async function loadKhoaOptions() {
             }
         });
 
+        // Enforce khoa filter: nếu user thuộc khoa, lock dropdown
+        if (typeof KhoaFilterUtils !== 'undefined' && KhoaFilterUtils.isKhoaUser()) {
+            khoaSelects.forEach(select => {
+                KhoaFilterUtils.applyKhoaFilter(select);
+            });
+        }
+
         const khoaForm = document.getElementById('khoaForm');
         if (khoaForm && khoaForm.value) {
             await loadGiangVienList(khoaForm.value);

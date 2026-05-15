@@ -11,6 +11,12 @@ const service = require("../../services/vuotgio_v2/huongDanThamQuan.service");
 const getFilters = async (req, res) => {
     try {
         const filters = await service.getFilters();
+
+        // Nếu user thuộc khoa, chỉ trả về khoa của họ trong danh sách filter
+        if (req.khoaFilter?.isKhoa && req.khoaFilter.MaPhongBan) {
+            filters.khoa = [req.khoaFilter.MaPhongBan];
+        }
+
         res.json({ success: true, data: filters });
     } catch (error) {
         console.error("Error in getFilters huongDanThamQuan:", error);
@@ -31,6 +37,11 @@ const getTable = async (req, res) => {
             HeDaoTao: req.query.HeDaoTao
         };
 
+        // Enforce khoa filter: nếu user thuộc khoa, ép filter theo MaPhongBan
+        if (req.khoaFilter?.isKhoa && req.khoaFilter.MaPhongBan) {
+            filters.Khoa = req.khoaFilter.MaPhongBan;
+        }
+
         const data = await service.getTable(filters);
         res.status(200).json({ success: true, data });
     } catch (error) {
@@ -47,6 +58,11 @@ const save = async (req, res) => {
         id: req.session?.userId || 1,
         name: req.session?.TenNhanVien || 'ADMIN'
     };
+
+    // Enforce khoa filter: nếu user thuộc khoa, ép khoa trong body
+    if (req.khoaFilter?.isKhoa && req.khoaFilter.MaPhongBan) {
+        req.body.khoa = req.khoaFilter.MaPhongBan;
+    }
 
     try {
         const insertId = await service.save(req.body, user);

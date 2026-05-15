@@ -64,10 +64,12 @@ const checkDataLock = async (req, res, next) => {
     const namHoc = extractNamHoc(req);
 
     if (!namHoc) {
-        // Không tìm thấy namHoc → ghi log cảnh báo và cho request đi qua
-        // (không thể xác định năm học nào để kiểm tra khóa)
+        // Không tìm thấy namHoc → chặn write để an toàn (fail-closed)
         console.warn(`[DataLockMiddleware] Không tìm thấy namHoc trong request ${req.method} ${req.originalUrl}`);
-        return next();
+        return res.status(400).json({
+            success: false,
+            message: "Không xác định được năm học để kiểm tra trạng thái khóa",
+        });
     }
 
     try {

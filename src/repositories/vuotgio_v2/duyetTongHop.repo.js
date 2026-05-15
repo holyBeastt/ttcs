@@ -13,10 +13,13 @@ const HDTQ_TABLE = "vg_huong_dan_tham_quan_thuc_te";
  */
 const getApprovalStatus = async (connection, namHoc) => {
     const [rows] = await connection.execute(
-        `SELECT id, nam_hoc, khoa, van_phong_duyet, van_phong_nguoi_duyet_id, van_phong_ngay_duyet, ghi_chu
-         FROM ${TABLE}
-         WHERE nam_hoc = ?
-         ORDER BY khoa`,
+        `SELECT d.id, d.nam_hoc, d.khoa, d.van_phong_duyet, 
+                d.van_phong_nguoi_duyet_id, d.van_phong_ngay_duyet, d.ghi_chu,
+                nv.TenNhanVien AS van_phong_nguoi_duyet_ten
+         FROM ${TABLE} d
+         LEFT JOIN nhanvien nv ON nv.id_User = d.van_phong_nguoi_duyet_id
+         WHERE d.nam_hoc = ?
+         ORDER BY d.khoa`,
         [namHoc]
     );
     return rows;
