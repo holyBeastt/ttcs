@@ -603,6 +603,7 @@ async function handleEditSubmit() {
     const id = document.getElementById('editID').value;
     
     const formData = {
+        NamHoc: document.getElementById('editNamHoc').value,
         namhoc: document.getElementById('editNamHoc').value,
         ki: document.getElementById('editHocKy').value,
         khoa: document.getElementById('editKhoa').value,
@@ -663,7 +664,8 @@ async function deleteRecord(id) {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await fetch(`/v2/vuotgio/duyet-kthp/${id}`, {
+        const namHoc = document.getElementById('namHocXem').value;
+        const response = await fetch(`/v2/vuotgio/duyet-kthp/${id}?NamHoc=${encodeURIComponent(namHoc)}`, {
             method: 'DELETE'
         });
 
@@ -716,10 +718,11 @@ async function submitApprovals() {
     }
 
     try {
+        const namHoc = document.getElementById('namHocXem').value;
         const response = await fetch('/v2/vuotgio/duyet-kthp/batch-approve', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updates)
+            body: JSON.stringify({ NamHoc: namHoc, updates: updates })
         });
 
         const result = await response.json();

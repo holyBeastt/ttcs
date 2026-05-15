@@ -78,11 +78,18 @@ const deleteRecord = async (id, user) => withConnection(null, async (connection)
 
 const batchApprove = async (records, user) => withConnection(null, async (connection) => {
     let count = 0;
-    for (const record of records) {
-        const khoaDuyet = parseInt(record.khoa_duyet) || 0;
-        const daoTaoDuyet = parseInt(record.dao_tao_duyet) || 0;
-        await repo.updateApproval(connection, record.id, khoaDuyet, daoTaoDuyet);
-        count++;
+    await connection.beginTransaction();
+    try {
+        for (const record of records) {
+            const khoaDuyet = parseInt(record.khoa_duyet) || 0;
+            const daoTaoDuyet = parseInt(record.dao_tao_duyet) || 0;
+            await repo.updateApproval(connection, record.id, khoaDuyet, daoTaoDuyet);
+            count++;
+        }
+        await connection.commit();
+    } catch (error) {
+        await connection.rollback();
+        throw error;
     }
     try {
         await LogService.logChange(user.id, user.name, 'Batch duyệt hướng dẫn tham quan', `Cập nhật ${count} bản ghi`);

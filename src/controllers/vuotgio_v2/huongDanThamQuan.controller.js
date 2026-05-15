@@ -84,7 +84,7 @@ const batchApprove = async (req, res) => {
         id: req.session?.userId || 1,
         name: req.session?.TenNhanVien || 'ADMIN'
     };
-    const records = req.body;
+    const records = req.body.updates || req.body;
 
     if (!records || !Array.isArray(records) || records.length === 0) {
         return res.status(400).json({ success: false, message: "Thiếu dữ liệu cần cập nhật." });

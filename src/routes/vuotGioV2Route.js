@@ -18,9 +18,11 @@ const tongHopController = require("../controllers/vuotgio_v2/tongHop.controller"
 const xuatFileController = require("../controllers/vuotgio_v2/xuatFile.controller");
 const thongKeGiangDayController = require("../controllers/vuotgio_v2/thongKeGiangDay.controller");
 const previewController = require("../controllers/vuotgio_v2/preview.controller");
+const dataLockController = require("../controllers/vuotgio_v2/dataLock.controller");
 
 // Middleware
 const { uploadSingleFile } = require("../middlewares/TKBImportMiddleware");
+const { checkDataLock } = require("../middlewares/dataLockMiddleware");
 const multer = require("multer");
 const uploadMemory = multer({ storage: multer.memoryStorage() });
 
@@ -45,24 +47,24 @@ router.get("/them-lop-ngoai-qc", baseController.getThemLopNgoaiQC);
 router.get("/danh-sach-lop-ngoai-qc", baseController.getDanhSachLopNgoaiQC);
 
 // --- Nháp (course_schedule_details) ---
-router.post("/lop-ngoai-quy-chuan", lopNgoaiQCController.save);
+router.post("/lop-ngoai-quy-chuan", checkDataLock, lopNgoaiQCController.save);
 router.get("/lop-ngoai-quy-chuan/nhap/:Dot/:KiHoc/:NamHoc/:Khoa", lopNgoaiQCController.getTable);
-router.post("/lop-ngoai-quy-chuan/edit", lopNgoaiQCController.edit);
-router.delete("/lop-ngoai-quy-chuan/row", lopNgoaiQCController.delete);
-router.delete("/lop-ngoai-quy-chuan/all", lopNgoaiQCController.deleteByFilter);
-router.post("/lop-ngoai-quy-chuan/confirm", lopNgoaiQCController.confirmToMain);
+router.post("/lop-ngoai-quy-chuan/edit", checkDataLock, lopNgoaiQCController.edit);
+router.delete("/lop-ngoai-quy-chuan/row", checkDataLock, lopNgoaiQCController.delete);
+router.delete("/lop-ngoai-quy-chuan/all", checkDataLock, lopNgoaiQCController.deleteByFilter);
+router.post("/lop-ngoai-quy-chuan/confirm", checkDataLock, lopNgoaiQCController.confirmToMain);
 
 // --- Chính thức (lopngoaiquychuan) ---
 router.get("/lop-ngoai-quy-chuan/chinh-thuc/:NamHoc/:Khoa", lopNgoaiQCController.getChinhThuc);
-router.post("/lop-ngoai-quy-chuan/edit-chinh-thuc/:ID", lopNgoaiQCController.editChinhThuc);
-router.delete("/lop-ngoai-quy-chuan/chinh-thuc/:ID", lopNgoaiQCController.deleteChinhThuc);
-router.post("/lop-ngoai-quy-chuan/approve/:ID", lopNgoaiQCController.approve);
-router.post("/lop-ngoai-quy-chuan/unapprove/:ID", lopNgoaiQCController.unapprove);
-router.post("/lop-ngoai-quy-chuan/batch-approve", lopNgoaiQCController.batchApprove);
+router.post("/lop-ngoai-quy-chuan/edit-chinh-thuc/:ID", checkDataLock, lopNgoaiQCController.editChinhThuc);
+router.delete("/lop-ngoai-quy-chuan/chinh-thuc/:ID", checkDataLock, lopNgoaiQCController.deleteChinhThuc);
+router.post("/lop-ngoai-quy-chuan/approve/:ID", checkDataLock, lopNgoaiQCController.approve);
+router.post("/lop-ngoai-quy-chuan/unapprove/:ID", checkDataLock, lopNgoaiQCController.unapprove);
+router.post("/lop-ngoai-quy-chuan/batch-approve", checkDataLock, lopNgoaiQCController.batchApprove);
 
 // --- Import file Lớp Ngoài QC ---
 router.post("/lop-ngoai-qc/parse-excel", uploadSingleFile, lopNgoaiQCImportController.parseExcel);
-router.post("/lop-ngoai-qc/confirm-import", lopNgoaiQCImportController.confirmImport);
+router.post("/lop-ngoai-qc/confirm-import", checkDataLock, lopNgoaiQCImportController.confirmImport);
 router.post("/lop-ngoai-qc/check-data-exist", lopNgoaiQCImportController.checkDataExist);
 
 // =====================================================
@@ -70,11 +72,11 @@ router.post("/lop-ngoai-qc/check-data-exist", lopNgoaiQCImportController.checkDa
 // =====================================================
 
 router.get("/them-kthp", baseController.getThemKTHP);
-router.post("/them-kthp", themKTHPController.save);
-router.post("/them-kthp/batch", themKTHPController.saveBatch);
+router.post("/them-kthp", checkDataLock, themKTHPController.save);
+router.post("/them-kthp/batch", checkDataLock, themKTHPController.saveBatch);
 router.get("/them-kthp/:NamHoc/:Khoa", themKTHPController.getTable);
-router.post("/them-kthp/edit/:ID", themKTHPController.edit);
-router.delete("/them-kthp/:ID", themKTHPController.delete);
+router.post("/them-kthp/edit/:ID", checkDataLock, themKTHPController.edit);
+router.delete("/them-kthp/:ID", checkDataLock, themKTHPController.delete);
 
 // =====================================================
 // IMPORT KẾT THÚC HỌC PHẦN (FILE EXCEL)
@@ -83,10 +85,10 @@ router.delete("/them-kthp/:ID", themKTHPController.delete);
 router.get("/import-kthp", baseController.getCoiChamRaDeThi);
 router.get("/import-kthp/api", kthpImportController.getWorkload);
 router.post("/import-kthp/upload", uploadMemory.single('file'), kthpImportController.readFileExcel);
-router.post("/import-kthp/import", kthpImportController.importWorkloadToDB);
+router.post("/import-kthp/import", checkDataLock, kthpImportController.importWorkloadToDB);
 router.post("/import-kthp/checkfile", kthpImportController.checkDataExistence);
-router.post("/import-kthp/delete", kthpImportController.deleteWorkloadData);
-router.post("/import-kthp/save", kthpImportController.saveWorkloadData);
+router.post("/import-kthp/delete", checkDataLock, kthpImportController.deleteWorkloadData);
+router.post("/import-kthp/save", checkDataLock, kthpImportController.saveWorkloadData);
 router.get("/import-kthp/getSuggestions", kthpImportController.getSuggestions);
 
 // =====================================================
@@ -95,10 +97,10 @@ router.get("/import-kthp/getSuggestions", kthpImportController.getSuggestions);
 
 router.get("/duyet-kthp", baseController.getDuyetKTHP);
 router.get("/duyet-kthp/:NamHoc/:Khoa", duyetKTHPController.getTable);
-router.post("/duyet-kthp/batch-approve", duyetKTHPController.batchApprove);
-router.post("/duyet-kthp/edit/:ID", duyetKTHPController.edit);
-router.delete("/duyet-kthp/:ID", duyetKTHPController.delete);
-router.post("/duyet-kthp/approve/:ID", duyetKTHPController.approve); // Deprecated, kept for compatibility
+router.post("/duyet-kthp/batch-approve", checkDataLock, duyetKTHPController.batchApprove);
+router.post("/duyet-kthp/edit/:ID", checkDataLock, duyetKTHPController.edit);
+router.delete("/duyet-kthp/:ID", checkDataLock, duyetKTHPController.delete);
+router.post("/duyet-kthp/approve/:ID", checkDataLock, duyetKTHPController.approve); // Deprecated, kept for compatibility
 
 // =====================================================
 // TỔNG HỢP
@@ -119,6 +121,17 @@ router.get("/tong-hop/data-chuan/:MaGV", tongHopController.getStandardSummaryDat
 router.post("/tong-hop/chot-du-lieu", tongHopController.chotDuLieu);
 router.get("/tong-hop/lich-su-chot", tongHopController.getLichSuChot);
 router.get("/tong-hop/snapshot-data", tongHopController.getSnapshotData);
+
+// Khóa dữ liệu
+router.get("/trang-thai-khoa", dataLockController.getLockStatus);
+router.post("/tong-hop/khoa-du-lieu", dataLockController.lockData);
+
+// Duyệt tổng hợp theo khoa
+const duyetTongHopController = require("../controllers/vuotgio_v2/duyetTongHop.controller");
+router.get("/tong-hop/duyet-trang-thai", duyetTongHopController.getApprovalStatus);
+router.get("/tong-hop/duyet-kiem-tra", duyetTongHopController.checkPrerequisites);
+router.post("/tong-hop/duyet-khoa", duyetTongHopController.approveKhoa);
+router.post("/tong-hop/huy-duyet-khoa", duyetTongHopController.revokeKhoa);
 
 // =====================================================
 // XUẤT FILE
@@ -148,9 +161,9 @@ router.get("/huong-dan-tham-quan", baseController.getHuongDanThamQuan);
 router.get("/huong-dan-tham-quan/add", baseController.getHuongDanThamQuanAdd);
 router.get("/huong-dan-tham-quan/filters", huongDanThamQuanController.getFilters);
 router.get("/huong-dan-tham-quan/table", huongDanThamQuanController.getTable);
-router.post("/huong-dan-tham-quan/save", huongDanThamQuanController.save);
-router.post("/huong-dan-tham-quan/edit/:id", huongDanThamQuanController.edit);
-router.post("/huong-dan-tham-quan/batch-approve", huongDanThamQuanController.batchApprove);
-router.delete("/huong-dan-tham-quan/:id", huongDanThamQuanController.delete);
+router.post("/huong-dan-tham-quan/save", checkDataLock, huongDanThamQuanController.save);
+router.post("/huong-dan-tham-quan/edit/:id", checkDataLock, huongDanThamQuanController.edit);
+router.post("/huong-dan-tham-quan/batch-approve", checkDataLock, huongDanThamQuanController.batchApprove);
+router.delete("/huong-dan-tham-quan/:id", checkDataLock, huongDanThamQuanController.delete);
 
 module.exports = router;

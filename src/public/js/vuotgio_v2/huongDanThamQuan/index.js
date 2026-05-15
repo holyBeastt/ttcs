@@ -381,6 +381,8 @@ $(document).ready(function () {
         $(this).serializeArray().forEach(item => {
             formData[item.name] = item.value;
         });
+        // Ensure NamHoc is always present for data lock middleware
+        formData.NamHoc = document.getElementById('namHocFilter').value;
 
         try {
             const res = await fetch(url, {
@@ -418,7 +420,8 @@ $(document).ready(function () {
 
         if (confirm.isConfirmed) {
             try {
-                const res = await fetch(`/v2/vuotgio/huong-dan-tham-quan/${id}`, { method: 'DELETE' });
+                const namHoc = document.getElementById('namHocFilter').value;
+                const res = await fetch(`/v2/vuotgio/huong-dan-tham-quan/${id}?NamHoc=${encodeURIComponent(namHoc)}`, { method: 'DELETE' });
                 const result = await res.json();
                 if (result.success) {
                     Swal.fire('Đã xóa!', result.message, 'success');
@@ -460,10 +463,11 @@ $(document).ready(function () {
         }
 
         try {
+            const namHoc = document.getElementById('namHocFilter').value;
             const res = await fetch('/v2/vuotgio/huong-dan-tham-quan/batch-approve', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updates)
+                body: JSON.stringify({ NamHoc: namHoc, updates: updates })
             });
             const result = await res.json();
 

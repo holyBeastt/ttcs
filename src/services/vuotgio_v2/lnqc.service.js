@@ -5,10 +5,15 @@ const repo = require("../../repositories/vuotgio_v2/lnqc.repo");
 const mapper = require("../../mappers/vuotgio_v2/lnqc.mapper");
 const baseMapper = require("../../mappers/vuotgio_v2/base.mapper");
 
-const getUserContext = (req) => ({
-    userId: req.session?.userId || 1,
-    userName: req.session?.TenNhanVien || req.session?.username || "ADMIN",
-});
+const getUserContext = (req) => {
+    if (!req.session?.userId) {
+        console.warn("[LNQC] getUserContext: session.userId is missing — request may be unauthenticated");
+    }
+    return {
+        userId: req.session?.userId || null,
+        userName: req.session?.TenNhanVien || req.session?.username || "Unknown",
+    };
+};
 
 const save = async (req, res) => {
     const { userId, userName } = getUserContext(req);
@@ -266,8 +271,16 @@ const confirmToMain = async (req, res) => {
             return res.status(200).json({ success: true, message: "Không có dữ liệu hợp lệ (Khoa không trùng)" });
         }
 
-        await repo.insertOfficialBatch(connection, insertValues);
-        await repo.updateDraftSaved(connection, { dot, kiHoc: ki_hoc, namHoc: nam_hoc, major, excludedIds });
+        // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
+        await connection.beginTransaction();
+        try {
+            await repo.insertOfficialBatch(connection, insertValues);
+            await repo.updateDraftSaved(connection, { dot, kiHoc: ki_hoc, namHoc: nam_hoc, major, excludedIds });
+            await connection.commit();
+        } catch (txError) {
+            await connection.rollback();
+            throw txError;
+        }
 
         try {
             await LogService.logChange(userId, userName, "Chốt lớp ngoài QC", `Chuyển ${insertValues.length} dòng - Đợt: ${dot}, Kì: ${ki_hoc}, Năm: ${nam_hoc}`);

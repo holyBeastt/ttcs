@@ -14,5 +14,7 @@ rule/
 .vscode
 .agent/
 
+.kiro
+
 # AGENTS
 Automation_coding_agent.md

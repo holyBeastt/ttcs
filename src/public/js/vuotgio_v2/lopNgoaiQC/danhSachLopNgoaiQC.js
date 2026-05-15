@@ -711,7 +711,8 @@ async function deleteRecord(id) {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/chinh-thuc/${id}`, {
+        const namHoc = document.getElementById('namHocFilter').value;
+        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/chinh-thuc/${id}?NamHoc=${encodeURIComponent(namHoc)}`, {
             method: 'DELETE'
         });
 
