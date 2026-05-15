@@ -92,8 +92,8 @@ const getCollectionSDO = async (namHocInput, khoa) => withConnection(null, async
 });
 
 /**
- * Lấy danh sách SDO chi tiết (bao gồm tableF) cho tất cả GV trong khoa
- * Không thay đổi cấu trúc SDO gốc, chỉ map sang shape collection đầy đủ hơn.
+ * Lấy danh sách SDO chi tiết (bao gồm tableF) cho tất cả GV trong khoa.
+ * Sử dụng batch fetch để giảm số lượng queries (từ N*8 xuống ~8).
  */
 const getCollectionSDODetail = async (namHocInput, khoa) => withConnection(null, async (connection) => {
     const namHoc = chuanHoaNamHoc(namHocInput);
@@ -101,9 +101,67 @@ const getCollectionSDODetail = async (namHocInput, khoa) => withConnection(null,
 
     if (!rawData.length) return [];
 
+    // Lấy danh sách ID (đã là số nguyên từ DB, an toàn cho parameterized query)
+    const ids = rawData.map(r => r.id_User);
+
+    // Batch fetch tất cả dữ liệu nguồn song song (~7 queries thay vì N*8)
+    const [allGD, allLNQC, allKTHP, allDA, allHDTQ, nckhData, dinhMuc, allNV] = await Promise.all([
+        repo.getGiangDayByIds(connection, { namHoc, ids }),
+        repo.getLopNgoaiQCByIds(connection, { namHoc, ids }),
+        repo.getKthpByIds(connection, { namHoc, ids }),
+        repo.getDoAnByIds(connection, { namHoc, ids }),
+        repo.getHuongDanThamQuanByIds(connection, { namHoc, ids }),
+        statsService.getLecturerSummary(namHoc, "ALL"),
+        repo.getDinhMuc(connection),
+        repo.getNhanVienByIds(connection, ids),
+    ]);
+
+    // Group by id_User trong memory
+    const groupByUser = (arr, key = 'id_User') => {
+        const map = new Map();
+        for (const r of arr) {
+            const id = r[key];
+            if (!map.has(id)) map.set(id, []);
+            map.get(id).push(r);
+        }
+        return map;
+    };
+
+    const gdMap = groupByUser(allGD);
+    const lnqcMap = groupByUser(allLNQC);
+    const kthpMap = groupByUser(allKTHP);
+    const daMap = groupByUser(allDA);
+    const hdtqMap = groupByUser(allHDTQ);
+    const nvMap = new Map(allNV.map(nv => [nv.id_User, nv]));
+    const nckhMap = new Map(nckhData.map(r => [Number(r.lecturerId), r.tongSoTietGiangVien]));
+
+    // Fetch chuNhiemKhoa — deduplicate theo khoa
+    const uniqueKhoas = [...new Set(allNV.map(nv => nv.maKhoa).filter(Boolean))];
+    const chuNhiemMap = new Map();
+    await Promise.all(uniqueKhoas.map(async (k) => {
+        const name = await repo.getChuNhiemKhoaByKhoa(connection, k);
+        chuNhiemMap.set(k, name);
+    }));
+
+    // Map từng GV với data đã có sẵn (pure computation, không query thêm)
     const sdoList = [];
     for (const row of rawData) {
-        const sdo = await getAtomicSDO(namHoc, row.id_User, connection);
+        const nv = nvMap.get(row.id_User);
+        if (!nv) continue;
+
+        const userRawData = {
+            giangDay: gdMap.get(row.id_User) || [],
+            lopNgoaiQC: lnqcMap.get(row.id_User) || [],
+            kthp: kthpMap.get(row.id_User) || [],
+            doAn: daMap.get(row.id_User) || [],
+            hdtq: hdtqMap.get(row.id_User) || [],
+            // Tạo mảng giả lập nckhRecords với tổng số tiết (đủ cho calculateOvertime)
+            nckhRecords: [{ soTietGiangVien: nckhMap.get(Number(row.id_User)) || 0 }],
+        };
+
+        const sdo = mapper.toAtomicSDO(nv, userRawData, namHoc, dinhMuc, {
+            chuNhiemKhoa: chuNhiemMap.get(nv.maKhoa) || ""
+        });
         if (!sdo) continue;
 
         sdoList.push({
@@ -111,8 +169,6 @@ const getCollectionSDODetail = async (namHocInput, khoa) => withConnection(null,
             giangVien: sdo.giangVien,
             maKhoa: sdo.maKhoa,
             khoa: sdo.khoa,
-            // isKhoa: 0 = phòng/ban (gộp chung), 1 = khoa (sheet riêng)
-            // Lấy từ sdo (đã fix repo+mapper), fallback về row từ rawData
             isKhoa: sdo.isKhoa ?? row.isKhoa ?? 1,
             chucVu: sdo.chucVu,
             soTaiKhoan: sdo.soTaiKhoan,
@@ -137,7 +193,7 @@ const getCollectionSDODetail = async (namHocInput, khoa) => withConnection(null,
             soTietNCKH: sdo.soTietNCKH,
             nam_hoc: sdo.nam_hoc,
             tableF: sdo.tableF,
-            breakdown: sdo.breakdown   // pre-computed: hk1/hk2/year/vuot/money đã tách sẵn
+            breakdown: sdo.breakdown
         });
     }
 

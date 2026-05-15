@@ -221,6 +221,12 @@ async function loadKhoaOptions() {
             khoaFilter.appendChild(option.cloneNode(true));
             if (editKhoa) editKhoa.appendChild(option);
         });
+
+        // Enforce khoa filter: nếu user thuộc khoa, lock dropdown
+        if (typeof KhoaFilterUtils !== 'undefined') {
+            KhoaFilterUtils.applyKhoaFilter(khoaFilter);
+            KhoaFilterUtils.applyKhoaFilter(editKhoa);
+        }
     } catch (error) {
         console.error('Error loading khoa:', error);
     }

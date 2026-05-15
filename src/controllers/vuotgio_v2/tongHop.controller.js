@@ -100,17 +100,9 @@ const chiTietGV = async (req, res) => {
     }
 };
 
-// --- Snapshot (Tạm hoãn triển khai logic, giữ hàm để tránh lỗi Route) ---
-const chotDuLieu = async (req, res) => res.status(501).json({ success: false, message: "Chức năng chốt dữ liệu đang được nâng cấp." });
-const getLichSuChot = async (req, res) => res.json({ success: true, data: [] });
-const getSnapshotData = async (req, res) => res.status(501).json({ success: false, message: "Chức năng xem lịch sử đang được nâng cấp." });
-
 module.exports = {
     tongHopTheoGV,
     tongHopTheoKhoa,
     getStandardSummaryData,
     chiTietGV,
-    chotDuLieu,
-    getLichSuChot,
-    getSnapshotData
 };

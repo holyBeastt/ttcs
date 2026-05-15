@@ -8,6 +8,7 @@
    ════════════════════════════════════════════════════ */
 let currentType = 'A';   // 'A' = Kê khai cá nhân  |  'B' = Tổng hợp
 let currentScope = 'all'; // 'all' | 'khoa' | 'gv'
+let lockStatusCache = {}; // { namHoc: { locked: bool, lockInfo: object } }
 
 /* ════════════════════════════════════════════════════
    Boot
@@ -15,6 +16,10 @@ let currentScope = 'all'; // 'all' | 'khoa' | 'gv'
 document.addEventListener('DOMContentLoaded', function () {
     loadNamHocOptions();
     loadKhoaOptions();
+
+    // Listen for năm học changes to check lock status
+    document.getElementById('namHocA')?.addEventListener('change', () => checkLockStatus('A'));
+    document.getElementById('namHocB')?.addEventListener('change', () => checkLockStatus('B'));
 });
 
 /* ════════════════════════════════════════════════════
@@ -93,6 +98,10 @@ async function loadNamHocOptions() {
                 select.appendChild(opt);
             });
         });
+
+        // Check lock status for the initially selected năm học
+        checkLockStatus('A');
+        checkLockStatus('B');
     } catch (err) {
         console.error('[xuatFile] loadNamHoc error:', err);
         const year = new Date().getFullYear();
@@ -145,6 +154,67 @@ async function loadGiangVienByKhoa() {
         console.error('[xuatFile] loadGiangVien error:', err);
         const select = document.getElementById('giangVienA');
         if (select) select.innerHTML = '<option value="">— Chọn giảng viên —</option>';
+    }
+}
+
+/* ════════════════════════════════════════════════════
+   Lock status check
+   ════════════════════════════════════════════════════ */
+async function checkLockStatus(type) {
+    const selectId = type === 'A' ? 'namHocA' : 'namHocB';
+    const btnId    = type === 'A' ? 'btnExportA' : 'btnExportB';
+    const namHoc   = document.getElementById(selectId)?.value;
+    const btn      = document.getElementById(btnId);
+
+    if (!namHoc || !btn) return;
+
+    // Check cache first
+    if (lockStatusCache[namHoc] !== undefined) {
+        _updateExportButton(btn, type, lockStatusCache[namHoc]);
+        return;
+    }
+
+    try {
+        const res = await fetch(`/v2/vuotgio/trang-thai-khoa?namHoc=${encodeURIComponent(namHoc)}`);
+        const data = await res.json();
+
+        if (data.success) {
+            lockStatusCache[namHoc] = data.locked;
+            _updateExportButton(btn, type, data.locked);
+        }
+    } catch (err) {
+        console.error('[xuatFile] checkLockStatus error:', err);
+    }
+}
+
+function _updateExportButton(btn, type, locked) {
+    const warningId = `lockWarning${type}`;
+    let warningEl = document.getElementById(warningId);
+
+    if (!locked) {
+        // Chưa lưu → disable nút xuất + hiển thị cảnh báo
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.style.pointerEvents = 'none';
+
+        if (!warningEl) {
+            warningEl = document.createElement('div');
+            warningEl.id = warningId;
+            warningEl.style.cssText = 'background:#fef3c7;border-left:4px solid #b45309;border-radius:0 8px 8px 0;padding:12px 16px;font-size:.87rem;color:#92400e;margin-bottom:16px;display:flex;gap:10px;align-items:center;';
+            warningEl.innerHTML = '<i class="fas fa-lock" style="flex-shrink:0;"></i><span><strong>Chưa thể xuất file:</strong> Dữ liệu năm học này chưa được lưu. Vui lòng lưu dữ liệu trước khi xuất file.</span>';
+            btn.parentNode.insertBefore(warningEl, btn);
+        }
+    } else {
+        // Đã lưu → enable nút xuất + xóa cảnh báo
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+        btn.style.pointerEvents = '';
+
+        if (warningEl) {
+            warningEl.remove();
+        }
     }
 }
 

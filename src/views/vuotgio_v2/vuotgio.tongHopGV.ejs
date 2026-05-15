@@ -403,9 +403,6 @@
                     <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
                         <option value="ALL">Tất cả khoa</option>
                     </select>
-                    <select class="selectop" id="versionSelect" style="width: 220px; margin: 0; box-shadow: none;">
-                        <option value="LIVE">Phiên bản (Live)</option>
-                    </select>
                     <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
                         Hiển thị
                     </button>
@@ -413,13 +410,14 @@
                         style="height: 45px; width: 180px; margin: 0; margin-left: 5px;">
                         Thống kê khoa
                     </button>
-                    <button id="chotDuLieuBtn" class="btn btn-success"
-                        style="height: 45px; width: 100px; margin: 0; margin-left: 20px;">
-                        Lưu
-                    </button>
                     <button id="khoaDuLieuBtn" class="btn btn-primary"
                         style="height: 45px; width: 180px; margin: 0; margin-left: 5px; display: none;">
                         <i class="bi bi-save-fill me-1"></i> Lưu Dữ Liệu
+                    </button>
+
+                    <button id="btnDuyetTatCa" class="btn btn-success"
+                        style="height: 45px; width: 180px; margin: 0; margin-left: 5px; display: none;">
+                        <i class="bi bi-check-all me-1"></i> Duyệt tất cả
                     </button>
 
                     <button id="btnCompactView" class="btn btn-outline-secondary"
@@ -574,7 +572,6 @@
             function updateLockUI(locked, lockInfo) {
                 const lockBanner = document.getElementById('lockStatusBanner');
                 const lockText = document.getElementById('lockStatusText');
-                const chotBtn = document.getElementById('chotDuLieuBtn');
                 const khoaBtn = document.getElementById('khoaDuLieuBtn');
 
                 if (locked && lockInfo) {
@@ -582,16 +579,12 @@
                     lockBanner.style.display = 'block';
                     lockText.textContent = `Đã lưu - ${lockInfo.ngay_khoa} bởi ${lockInfo.nguoi_khoa}`;
 
-                    // Ẩn nút Lưu và nút Lưu & Khóa
-                    if (chotBtn) chotBtn.style.display = 'none';
+                    // Ẩn nút Lưu Dữ Liệu
                     if (khoaBtn) khoaBtn.style.display = 'none';
                 } else {
                     // Ẩn banner
                     lockBanner.style.display = 'none';
                     lockText.textContent = '';
-
-                    // Hiển thị lại nút Lưu
-                    if (chotBtn) chotBtn.style.display = '';
 
                     // Hiển thị nút Lưu chỉ cho Lãnh đạo phòng VP
                     const role = localStorage.getItem('userRole');
@@ -805,6 +798,9 @@
                     // Group header row
                     if (row.classList.contains('group-header')) {
                         newRow.className = 'group-header table-light fw-bold';
+                        // Copy data-khoa-code attribute cho approval badge
+                        const khoaCode = row.getAttribute('data-khoa-code');
+                        if (khoaCode) newRow.setAttribute('data-khoa-code', khoaCode);
                         newRow.innerHTML = '<td colspan="9" class="text-start px-3 py-2">' + row.querySelector('td').innerHTML + '</td>';
                         tbody.appendChild(newRow);
                         return;
@@ -896,6 +892,385 @@
                     });
                     observer.observe(tableBody, { childList: true });
                 }
+            });
+        })();
+        </script>
+
+        <!-- Duyệt Tổng Hợp theo Khoa (VP) -->
+        <script>
+        (function() {
+            'use strict';
+
+            // Trạng thái duyệt: Map<khoa, { van_phong_duyet, van_phong_ngay_duyet, ... }>
+            let approvalMap = new Map();
+
+            const ROLE_TRO_LY = 'Trợ lý';
+            const ROLE_LANH_DAO = 'Lãnh đạo phòng';
+            const MA_VP = 'VP';
+
+            /**
+             * Kiểm tra user hiện tại có quyền duyệt/hủy duyệt không
+             */
+            function canApproveOrRevoke() {
+                const role = localStorage.getItem('userRole') || '';
+                const maPhongBan = localStorage.getItem('MaPhongBan') || '';
+                return (role === ROLE_TRO_LY || role === ROLE_LANH_DAO) && maPhongBan === MA_VP;
+            }
+
+            /**
+             * Load trạng thái duyệt từ API
+             */
+            async function loadApprovalStatus() {
+                const namHoc = document.getElementById('namHocXem').value;
+                if (!namHoc) return;
+
+                try {
+                    const response = await fetch(`/v2/vuotgio/tong-hop/duyet-trang-thai?namHoc=${encodeURIComponent(namHoc)}`);
+                    const result = await response.json();
+
+                    if (result.success && Array.isArray(result.data)) {
+                        approvalMap.clear();
+                        result.data.forEach(item => {
+                            approvalMap.set(item.khoa, item);
+                        });
+                        // Cập nhật UI group headers
+                        updateGroupHeaders();
+                    }
+                } catch (error) {
+                    console.error('[duyetTongHop] Error loading approval status:', error);
+                }
+            }
+
+            /**
+             * Cập nhật badge + nút duyệt trên các group header row
+             */
+            function updateGroupHeaders() {
+                // Cập nhật cả bảng chính và bảng compact
+                const containers = [
+                    document.getElementById('tableBody'),
+                    document.querySelector('#compactTable tbody')
+                ].filter(Boolean);
+
+                containers.forEach(container => {
+                    const groupRows = container.querySelectorAll('tr.group-header');
+                    groupRows.forEach(row => {
+                        applyApprovalBadge(row);
+                    });
+                });
+            }
+
+            function applyApprovalBadge(row) {
+                const td = row.querySelector('td');
+                if (!td) return;
+
+                // Lấy mã khoa từ data attribute
+                const maKhoa = row.getAttribute('data-khoa-code');
+                if (!maKhoa) return;
+
+                const approval = approvalMap.get(maKhoa);
+                const isDuyet = approval && approval.van_phong_duyet === 1;
+
+                // Xóa badge/nút cũ nếu có
+                const existingBadge = td.querySelector('.approval-badge-container');
+                if (existingBadge) existingBadge.remove();
+                // Xóa text info cũ nếu có
+                const existingInfo = td.querySelector('.approval-info-text');
+                if (existingInfo) existingInfo.remove();
+
+                // Thêm text thông tin duyệt ngay sau tên khoa
+                if (isDuyet) {
+                    const ngayDuyet = approval.van_phong_ngay_duyet
+                        ? new Date(approval.van_phong_ngay_duyet).toLocaleString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                        : '';
+                    const nguoiDuyet = approval.van_phong_nguoi_duyet_ten || '';
+                    const infoParts = [nguoiDuyet, ngayDuyet].filter(Boolean).join(' - ');
+                    if (infoParts) {
+                        const infoSpan = document.createElement('span');
+                        infoSpan.className = 'approval-info-text';
+                        infoSpan.style.cssText = 'margin-left:12px; font-size:0.72rem; color:#059669; font-weight:400; font-style:italic;';
+                        infoSpan.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>Đã duyệt: ${infoParts}`;
+                        td.appendChild(infoSpan);
+                    }
+                }
+
+                // Tạo container badge (nút hành động)
+                const container = document.createElement('span');
+                container.className = 'approval-badge-container';
+                container.style.cssText = 'float:right; display:inline-flex; align-items:center; gap:8px;';
+
+                if (isDuyet) {
+                    // Badge đã duyệt (ngắn gọn)
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-success';
+                    badge.style.cssText = 'font-size:0.7rem; padding:4px 8px; font-weight:500;';
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Đã duyệt';
+                    container.appendChild(badge);
+
+                    // Nút hủy duyệt (nếu có quyền)
+                    if (canApproveOrRevoke()) {
+                        const btnRevoke = document.createElement('button');
+                        btnRevoke.className = 'btn btn-sm btn-outline-danger';
+                        btnRevoke.style.cssText = 'font-size:0.65rem; padding:2px 8px; line-height:1.4;';
+                        btnRevoke.innerHTML = '<i class="bi bi-x-circle me-1"></i>Hủy duyệt';
+                        btnRevoke.title = 'Hủy duyệt khoa này';
+                        btnRevoke.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            handleRevoke(maKhoa);
+                        });
+                        container.appendChild(btnRevoke);
+                    }
+                } else {
+                    // Badge chưa duyệt
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-warning text-dark';
+                    badge.style.cssText = 'font-size:0.7rem; padding:4px 8px; font-weight:500;';
+                    badge.innerHTML = '<i class="bi bi-clock me-1"></i>Chưa duyệt';
+                    container.appendChild(badge);
+
+                    // Nút duyệt (nếu có quyền)
+                    if (canApproveOrRevoke()) {
+                        const btnApprove = document.createElement('button');
+                        btnApprove.className = 'btn btn-sm btn-success';
+                        btnApprove.style.cssText = 'font-size:0.65rem; padding:2px 8px; line-height:1.4;';
+                        btnApprove.innerHTML = '<i class="bi bi-check-lg me-1"></i>Duyệt';
+                        btnApprove.title = 'Duyệt tổng hợp khoa này';
+                        btnApprove.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            handleApprove(maKhoa);
+                        });
+                        container.appendChild(btnApprove);
+                    }
+                }
+
+                td.appendChild(container);
+            }
+
+            /**
+             * Xử lý duyệt 1 khoa
+             */
+            async function handleApprove(maKhoa) {
+                const namHoc = document.getElementById('namHocXem').value;
+                if (!namHoc) return;
+
+                // Kiểm tra điều kiện tiên quyết trước
+                try {
+                    const checkRes = await fetch(`/v2/vuotgio/tong-hop/duyet-kiem-tra?namHoc=${encodeURIComponent(namHoc)}&khoa=${encodeURIComponent(maKhoa)}`);
+                    const checkResult = await checkRes.json();
+
+                    if (checkResult.success && !checkResult.passed) {
+                        let errorHtml = '<strong>Chưa đủ điều kiện duyệt:</strong><ul style="text-align:left;margin-top:8px;">';
+                        (checkResult.errors || []).forEach(err => {
+                            errorHtml += `<li>${err.tableName || err.table}: ${err.unapproved}/${err.total} bản ghi chưa duyệt</li>`;
+                        });
+                        errorHtml += '</ul>';
+                        Swal.fire({ icon: 'warning', title: 'Chưa đủ điều kiện', html: errorHtml });
+                        return;
+                    }
+                } catch (err) {
+                    console.error('[duyetTongHop] check prerequisites error:', err);
+                }
+
+                // Xác nhận
+                const confirm = await Swal.fire({
+                    title: 'Xác nhận duyệt',
+                    html: `Duyệt tổng hợp vượt giờ khoa <strong>${maKhoa}</strong>?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Duyệt',
+                    cancelButtonText: 'Hủy',
+                    confirmButtonColor: '#059669',
+                    reverseButtons: true
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                try {
+                    const response = await fetch('/v2/vuotgio/tong-hop/duyet-khoa', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ namHoc, khoa: maKhoa })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire({ icon: 'success', title: 'Đã duyệt', text: result.message, timer: 2000, showConfirmButton: false });
+                        await loadApprovalStatus();
+                    } else {
+                        let errorHtml = result.message || 'Không thể duyệt';
+                        if (result.errors && result.errors.length > 0) {
+                            errorHtml += '<br><br><ul style="text-align:left;">';
+                            result.errors.forEach(err => {
+                                errorHtml += `<li>${err.tableName || err.table}: ${err.unapproved}/${err.total} chưa duyệt</li>`;
+                            });
+                            errorHtml += '</ul>';
+                        }
+                        Swal.fire({ icon: 'error', title: 'Lỗi', html: errorHtml });
+                    }
+                } catch (error) {
+                    console.error('[duyetTongHop] approve error:', error);
+                    Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
+                }
+            }
+
+            /**
+             * Xử lý hủy duyệt 1 khoa
+             */
+            async function handleRevoke(maKhoa) {
+                const namHoc = document.getElementById('namHocXem').value;
+                if (!namHoc) return;
+
+                const confirm = await Swal.fire({
+                    title: 'Xác nhận hủy duyệt',
+                    html: `Hủy duyệt tổng hợp khoa <strong>${maKhoa}</strong>?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Hủy duyệt',
+                    cancelButtonText: 'Quay lại',
+                    confirmButtonColor: '#dc2626',
+                    reverseButtons: true
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                try {
+                    const response = await fetch('/v2/vuotgio/tong-hop/huy-duyet-khoa', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ namHoc, khoa: maKhoa })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire({ icon: 'success', title: 'Đã hủy duyệt', text: result.message, timer: 2000, showConfirmButton: false });
+                        await loadApprovalStatus();
+                    } else {
+                        Swal.fire('Lỗi', result.message || 'Không thể hủy duyệt', 'error');
+                    }
+                } catch (error) {
+                    console.error('[duyetTongHop] revoke error:', error);
+                    Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
+                }
+            }
+
+            /**
+             * Xử lý duyệt tất cả khoa chưa duyệt
+             */
+            async function handleApproveAll() {
+                const namHoc = document.getElementById('namHocXem').value;
+                if (!namHoc) return;
+
+                // Lấy danh sách khoa chưa duyệt
+                const chuaDuyet = [];
+                approvalMap.forEach((val, khoa) => {
+                    if (!val.van_phong_duyet || val.van_phong_duyet === 0) {
+                        chuaDuyet.push(khoa);
+                    }
+                });
+
+                // Thêm cả khoa có trong bảng nhưng chưa có trong approvalMap (chưa có record)
+                const tableBody = document.getElementById('tableBody');
+                if (tableBody) {
+                    tableBody.querySelectorAll('tr.group-header[data-khoa-code]').forEach(row => {
+                        const code = row.getAttribute('data-khoa-code');
+                        if (code && !approvalMap.has(code)) {
+                            chuaDuyet.push(code);
+                        } else if (code && approvalMap.has(code) && !approvalMap.get(code).van_phong_duyet) {
+                            if (!chuaDuyet.includes(code)) chuaDuyet.push(code);
+                        }
+                    });
+                }
+
+                if (chuaDuyet.length === 0) {
+                    Swal.fire('Thông báo', 'Tất cả khoa đã được duyệt', 'info');
+                    return;
+                }
+
+                const confirm = await Swal.fire({
+                    title: 'Duyệt tất cả',
+                    html: `Duyệt tổng hợp vượt giờ cho <strong>${chuaDuyet.length}</strong> khoa chưa duyệt?<br><small class="text-muted">${chuaDuyet.join(', ')}</small>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Duyệt tất cả',
+                    cancelButtonText: 'Hủy',
+                    confirmButtonColor: '#059669',
+                    reverseButtons: true
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                const btn = document.getElementById('btnDuyetTatCa');
+                const originalContent = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang duyệt...';
+
+                let successCount = 0;
+                let failedKhoa = [];
+
+                for (const khoa of chuaDuyet) {
+                    try {
+                        const response = await fetch('/v2/vuotgio/tong-hop/duyet-khoa', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ namHoc, khoa })
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            successCount++;
+                        } else {
+                            failedKhoa.push({ khoa, message: result.message || 'Lỗi' });
+                        }
+                    } catch (err) {
+                        failedKhoa.push({ khoa, message: 'Lỗi kết nối' });
+                    }
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+
+                if (failedKhoa.length === 0) {
+                    Swal.fire({ icon: 'success', title: 'Hoàn tất', text: `Đã duyệt ${successCount} khoa`, timer: 2500, showConfirmButton: false });
+                } else {
+                    let html = `Duyệt thành công: ${successCount}/${chuaDuyet.length}<br><br><strong>Không duyệt được:</strong><ul style="text-align:left;">`;
+                    failedKhoa.forEach(f => { html += `<li>${f.khoa}: ${f.message}</li>`; });
+                    html += '</ul>';
+                    Swal.fire({ icon: 'warning', title: 'Kết quả', html });
+                }
+
+                await loadApprovalStatus();
+            }
+
+            // Khởi tạo
+            document.addEventListener('DOMContentLoaded', function() {
+                const namHocSelect = document.getElementById('namHocXem');
+                const loadBtn = document.getElementById('loadDataBtn');
+                const btnDuyetTatCa = document.getElementById('btnDuyetTatCa');
+
+                // Hiển thị nút "Duyệt tất cả" nếu có quyền
+                if (btnDuyetTatCa && canApproveOrRevoke()) {
+                    btnDuyetTatCa.style.display = '';
+                    btnDuyetTatCa.addEventListener('click', handleApproveAll);
+                }
+
+                // Load trạng thái duyệt sau khi data đã load (delay để đợi renderTable)
+                // Dùng MutationObserver trên tableBody
+                const tableBody = document.getElementById('tableBody');
+                if (tableBody) {
+                    const observer = new MutationObserver(function() {
+                        // Mỗi khi bảng render lại → load lại trạng thái duyệt
+                        loadApprovalStatus();
+                    });
+                    observer.observe(tableBody, { childList: true });
+                }
+
+                // Khi đổi năm học → load lại
+                if (namHocSelect) {
+                    namHocSelect.addEventListener('change', () => {
+                        setTimeout(loadApprovalStatus, 300);
+                    });
+                }
+
+                // Load lần đầu (delay để đợi loadNamHocOptions + loadData)
+                setTimeout(loadApprovalStatus, 1000);
             });
         })();
         </script>

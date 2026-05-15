@@ -58,7 +58,7 @@ const _resolveSummaries = async (connection, namHoc, { khoa, giangVien }) => {
  * @param {string} namHoc
  * @param {string|undefined} khoa     - mã khoa, hoặc 'ALL'
  * @param {string|undefined} giangVien - id_User hoặc HoTen
- * @returns {Promise<ExcelJS.Workbook>}
+ * @returns {Promise<{workbook: ExcelJS.Workbook, meta: {giangVienName: string|null, maKhoa: string|null}}>}
  */
 const exportExcel = async (namHoc, khoa, giangVien) => {
     if (!namHoc) throw new Error('Thiếu thông tin Năm học');
@@ -80,7 +80,14 @@ const exportExcel = async (namHoc, khoa, giangVien) => {
             count: summaries.length,
         });
 
-        return buildWorkbook(summaries, { useFormulas: true });
+        // Extract metadata from summaries for filename generation
+        const meta = {
+            giangVienName: giangVien ? (summaries[0].giangVien || null) : null,
+            maKhoa: (khoa && khoa !== 'ALL') ? (summaries[0].maKhoa || khoa) : null,
+        };
+
+        const workbook = await buildWorkbook(summaries, { useFormulas: true });
+        return { workbook, meta };
     } finally {
         if (connection) connection.release();
     }

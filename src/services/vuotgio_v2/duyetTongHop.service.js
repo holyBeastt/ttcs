@@ -40,6 +40,7 @@ const getApprovalStatus = async (namHoc) => {
                 van_phong_duyet: approval?.van_phong_duyet || 0,
                 van_phong_ngay_duyet: approval?.van_phong_ngay_duyet || null,
                 van_phong_nguoi_duyet_id: approval?.van_phong_nguoi_duyet_id || null,
+                van_phong_nguoi_duyet_ten: approval?.van_phong_nguoi_duyet_ten || null,
             };
         });
 

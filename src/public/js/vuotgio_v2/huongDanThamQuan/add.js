@@ -149,6 +149,11 @@ $(document).ready(function () {
                 } else if ($('#nam_hoc option').length > 1) {
                     $('#nam_hoc').prop('selectedIndex', 1);
                 }
+
+                // Enforce khoa filter: nếu user thuộc khoa, lock dropdown
+                if (typeof KhoaFilterUtils !== 'undefined') {
+                    KhoaFilterUtils.applyKhoaFilter('khoa');
+                }
             }
         } catch (e) {
             console.error("Error loading filters", e);

@@ -55,16 +55,18 @@ const checkPrerequisites = async (req, res) => {
  * POST /tong-hop/duyet-khoa
  * VP duyệt tổng hợp cho 1 khoa
  * Body: { namHoc, khoa, ghiChu? }
+ * Quyền: Trợ lý VP hoặc Lãnh đạo phòng VP
  */
 const approveKhoa = async (req, res) => {
     if (!req.session?.userId) {
         return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // Kiểm tra quyền: Lãnh đạo phòng VP
+    // Kiểm tra quyền: Trợ lý hoặc Lãnh đạo phòng VP
     const role = req.session.role || req.session.Quyen;
     const maPhongBan = req.session.MaPhongBan;
-    if (role !== "Lãnh đạo phòng" || maPhongBan !== "VP") {
+    const allowedRoles = ["Lãnh đạo phòng", "Trợ lý"];
+    if (!allowedRoles.includes(role) || maPhongBan !== "VP") {
         return res.status(403).json({ success: false, message: "Bạn không có quyền thực hiện thao tác này" });
     }
 
@@ -91,16 +93,18 @@ const approveKhoa = async (req, res) => {
  * POST /tong-hop/huy-duyet-khoa
  * VP hủy duyệt 1 khoa
  * Body: { namHoc, khoa }
+ * Quyền: Trợ lý VP hoặc Lãnh đạo phòng VP
  */
 const revokeKhoa = async (req, res) => {
     if (!req.session?.userId) {
         return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // Kiểm tra quyền: Lãnh đạo phòng VP
+    // Kiểm tra quyền: Trợ lý hoặc Lãnh đạo phòng VP
     const role = req.session.role || req.session.Quyen;
     const maPhongBan = req.session.MaPhongBan;
-    if (role !== "Lãnh đạo phòng" || maPhongBan !== "VP") {
+    const allowedRoles = ["Lãnh đạo phòng", "Trợ lý"];
+    if (!allowedRoles.includes(role) || maPhongBan !== "VP") {
         return res.status(403).json({ success: false, message: "Bạn không có quyền thực hiện thao tác này" });
     }
 

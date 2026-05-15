@@ -7,45 +7,6 @@ const createPoolConnection = require("../../config/databasePool");
 const repo = require("../../repositories/vuotgio_v2/dataLock.repo");
 
 // ============================================================
-// In-memory cache với TTL 60 giây
-// ============================================================
-const CACHE_TTL = 60000; // 60 giây
-const lockCache = new Map();
-
-/**
- * Lấy giá trị từ cache nếu chưa hết hạn
- * @param {string} key
- * @returns {object|null}
- */
-const getCacheEntry = (key) => {
-    const entry = lockCache.get(key);
-    if (!entry) return null;
-    if (Date.now() - entry.timestamp > CACHE_TTL) {
-        lockCache.delete(key);
-        return null;
-    }
-    return entry;
-};
-
-/**
- * Cập nhật cache
- * @param {string} key
- * @param {boolean} locked
- * @param {object|null} lockInfo
- */
-const setCacheEntry = (key, locked, lockInfo) => {
-    lockCache.set(key, { locked, lockInfo, timestamp: Date.now() });
-};
-
-/**
- * Xóa cache cho một năm học (invalidate)
- * @param {string} namHoc
- */
-const invalidateCache = (namHoc) => {
-    lockCache.delete(namHoc);
-};
-
-// ============================================================
 // Helper
 // ============================================================
 const withConnection = async (connection, callback) => {
@@ -90,23 +51,14 @@ const validateNamHocFormat = (namHoc) => {
 };
 
 /**
- * Kiểm tra năm học đã bị khóa chưa (sử dụng cache)
+ * Kiểm tra năm học đã bị khóa chưa
  * @param {string} namHoc - Năm học cần kiểm tra (e.g. "2025 - 2026")
  * @returns {Promise<boolean>} true nếu đã khóa
  */
 const isLocked = async (namHoc) => {
-    // Kiểm tra cache trước
-    const cached = getCacheEntry(namHoc);
-    if (cached !== null) {
-        return cached.locked;
-    }
-
-    // Cache miss → query DB
     return await withConnection(null, async (connection) => {
         const record = await repo.getLockRecord(connection, namHoc);
-        const locked = record !== null;
-        setCacheEntry(namHoc, locked, null);
-        return locked;
+        return record !== null;
     });
 };
 
@@ -120,7 +72,6 @@ const getLockStatus = async (namHoc) => {
         const record = await repo.getLockRecordWithUserName(connection, namHoc);
 
         if (!record) {
-            setCacheEntry(namHoc, false, null);
             return { locked: false, lockInfo: null };
         }
 
@@ -130,7 +81,6 @@ const getLockStatus = async (namHoc) => {
             ghi_chu: record.ghi_chu || null,
         };
 
-        setCacheEntry(namHoc, true, lockInfo);
         return { locked: true, lockInfo };
     });
 };
@@ -249,9 +199,6 @@ const lockData = async (namHoc, userId, ghiChu) => {
             throw error;
         }
 
-        // 6. Invalidate cache
-        invalidateCache(namHoc);
-
         return { success: true, message: "Khóa dữ liệu thành công" };
     });
 };
@@ -262,8 +209,4 @@ module.exports = {
     getLockStatus,
     checkPrerequisites,
     lockData,
-    invalidateCache,
-    // Expose for testing
-    _cache: lockCache,
-    _CACHE_TTL: CACHE_TTL,
 };
