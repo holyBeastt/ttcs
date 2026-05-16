@@ -23,6 +23,7 @@ const sanitizeFileName = (str) =>
         .normalize('NFC')
         .replace(/[^a-zA-Z0-9À-ỹ_\- ]/g, '')
         .trim()
+        .replace(/\s*-\s*/g, '-')
         .replace(/\s+/g, '_')
         .slice(0, 40);
 
