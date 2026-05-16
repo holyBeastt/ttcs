@@ -204,8 +204,8 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <!-- ========== V2 - Vượt Giờ ========== -->
-                <a class="nav-link" href="/v2/vuotgio/them-lop-ngoai-qc">Thêm Thông Tin Lớp Ngoài Quy Chuẩn</a>
-                <a class="nav-link" href="/v2/vuotgio/them-kthp">Thêm Thông Tin Coi, Chấm, Ra Đề Thi</a>
+                <a class="nav-link" id="nav-them-lop-ngoai-qc" href="/v2/vuotgio/them-lop-ngoai-qc">Thêm Thông Tin Lớp Ngoài Quy Chuẩn</a>
+                <a class="nav-link" id="nav-them-kthp" href="/v2/vuotgio/them-kthp">Thêm Thông Tin Coi, Chấm, Ra Đề Thi</a>
                 <!-- <a class="nav-link" href="/v2/vuotgio/import-kthp">Import file Coi, Chấm, Ra Đề Thi</a> -->
                 <a class="nav-link" href="/v2/vuotgio/danh-sach-lop-ngoai-qc">Đào Tạo Duyệt Danh Sách Lớp Ngoài Quy Chuẩn</a>
                 <a class="nav-link" href="/v2/vuotgio/duyet-kthp">Khảo Thí Duyệt Coi, Chấm, Ra Đề Thi</a>
@@ -574,6 +574,26 @@
       themFileKTHP.style.display = "none";
     } else {
       themFileKTHP.style.display = "";
+    }
+
+    // Vượt giờ: "Thêm Thông Tin Lớp Ngoài Quy Chuẩn" chỉ hiển thị cho Đào tạo (trợ lý + lãnh đạo)
+    let navThemLopNgoaiQC = document.getElementById("nav-them-lop-ngoai-qc");
+    if (navThemLopNgoaiQC) {
+      if (maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+        navThemLopNgoaiQC.style.display = "";
+      } else {
+        navThemLopNgoaiQC.style.display = "none";
+      }
+    }
+
+    // Vượt giờ: "Thêm Thông Tin Coi, Chấm, Ra Đề Thi" chỉ hiển thị cho Khảo thí (trợ lý + lãnh đạo)
+    let navThemKTHP = document.getElementById("nav-them-kthp");
+    if (navThemKTHP) {
+      if (maPhongBan === APP_DEPARTMENTS.khaoThi && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+        navThemKTHP.style.display = "";
+      } else {
+        navThemKTHP.style.display = "none";
+      }
     }
   });
 </script>
