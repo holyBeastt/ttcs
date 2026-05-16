@@ -275,8 +275,14 @@ async function _download(url, loadingMsg) {
 
         const disposition = res.headers.get('Content-Disposition') || '';
         let filename = 'VuotGio_V2.xlsx';
-        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (match && match[1]) filename = match[1].replace(/['"]/g, '');
+        // Ưu tiên filename* (UTF-8) nếu có, fallback về filename thường
+        const utf8Match = disposition.match(/filename\*=UTF-8''([^;\s]+)/i);
+        if (utf8Match && utf8Match[1]) {
+            filename = decodeURIComponent(utf8Match[1]);
+        } else {
+            const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (match && match[1]) filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
+        }
 
         const blob = await res.blob();
         const blobUrl = window.URL.createObjectURL(blob);

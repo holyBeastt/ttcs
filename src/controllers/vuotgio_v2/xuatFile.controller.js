@@ -31,7 +31,10 @@ const sanitizeFileName = (str) =>
  */
 const _sendWorkbook = async (res, workbook, filename) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    // RFC 5987: filename cho client cũ, filename* cho client hỗ trợ UTF-8
+    const encodedFilename = encodeURIComponent(filename).replace(/['()]/g, escape);
+    res.setHeader('Content-Disposition',
+        `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`);
     await workbook.xlsx.write(res);
     res.end();
 };
