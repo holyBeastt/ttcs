@@ -13,6 +13,10 @@ const execFileAsync = promisify(execFile);
 class PDFConverter {
   static SOFFICE_CANDIDATES = [
     process.env.LIBREOFFICE_PATH,
+    // Linux
+    "/usr/bin/soffice",
+    "/usr/local/bin/soffice",
+    // Windows
     "D:\\Libre\\program\\soffice.exe",
     "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
     "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe",
