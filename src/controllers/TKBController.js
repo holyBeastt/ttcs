@@ -15,7 +15,7 @@ const getTKBChinhThucSite = async (req, res) => {
 };
 
 const getDataTKBChinhThuc = async (req, res) => {
-  const { Khoa, Dot, Ki, Nam } = req.body;
+  const { Khoa, Dot, Ki, Nam, HeDaoTao } = req.body;
   let connection;
 
   const baseSelect = `
@@ -65,6 +65,12 @@ const getDataTKBChinhThuc = async (req, res) => {
       query = `${baseSelect} 
         WHERE major = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
       queryParams = [Khoa, Dot, Ki, Nam];
+    }
+
+    // Thêm filter hệ đào tạo nếu không phải ALL
+    if (HeDaoTao && HeDaoTao !== "ALL") {
+      query += ` AND he_dao_tao = ?`;
+      queryParams.push(HeDaoTao);
     }
 
     const [results] = await connection.execute(query, queryParams);
