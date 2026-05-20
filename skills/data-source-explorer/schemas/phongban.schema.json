@@ -1,0 +1,37 @@
+[
+  {
+    "field": "id",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "PRI",
+    "default": null
+  },
+  {
+    "field": "MaPhongBan",
+    "type": "char(20)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "TenPhongBan",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "GhiChu",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "isKhoa",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "",
+    "default": null
+  }
+]

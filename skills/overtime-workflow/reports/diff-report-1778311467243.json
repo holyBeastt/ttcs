@@ -1,0 +1,167 @@
+{
+  "timestamp": "2026-05-09T07:24:27.243Z",
+  "mapperChecksum": "52731b84ab7ee8a62e8e50571d9e2bd19375875ea6cedbd7babf7c14e5b6cb0a",
+  "baselineChecksum": null,
+  "results": [
+    {
+      "id": "fixture-1",
+      "description": "Typical lecturer with some external classes and NCKH partially completed",
+      "input": {
+        "soTietGiangDay": 300,
+        "soTietNgoaiQC": 10,
+        "soTietKTHP": 5,
+        "soTietDoAn": 8,
+        "soTietHDTQ": 2,
+        "soTietNCKH": 150,
+        "phanTramMienGiam": 10,
+        "dinhMucChuan": 280,
+        "dinhMucNCKH": 280
+      },
+      "actual": {
+        "tongThucHien": 325,
+        "mienGiam": 28,
+        "dinhMucSauMienGiam": 252,
+        "thieuTietGiangDay": 0,
+        "thieuNCKH": 102,
+        "tongVuot": 0,
+        "thanhToan": 0,
+        "dinhMucChuan": 280
+      },
+      "expected": null,
+      "diffs": null
+    },
+    {
+      "id": "fixture-2",
+      "description": "Lecturer below quota, no overtime",
+      "input": {
+        "soTietGiangDay": 200,
+        "soTietNgoaiQC": 0,
+        "soTietKTHP": 0,
+        "soTietDoAn": 0,
+        "soTietHDTQ": 0,
+        "soTietNCKH": 280,
+        "phanTramMienGiam": 0,
+        "dinhMucChuan": 280,
+        "dinhMucNCKH": 280
+      },
+      "actual": {
+        "tongThucHien": 200,
+        "mienGiam": 0,
+        "dinhMucSauMienGiam": 280,
+        "thieuTietGiangDay": 80,
+        "thieuNCKH": 0,
+        "tongVuot": 0,
+        "thanhToan": 0,
+        "dinhMucChuan": 280
+      },
+      "expected": null,
+      "diffs": null
+    },
+    {
+      "id": "fixture-3",
+      "description": "Exact post-discount quota, NCKH satisfied -> no overtime",
+      "input": {
+        "soTietGiangDay": 252,
+        "soTietNgoaiQC": 0,
+        "soTietKTHP": 0,
+        "soTietDoAn": 0,
+        "soTietHDTQ": 0,
+        "soTietNCKH": 280,
+        "phanTramMienGiam": 10,
+        "dinhMucChuan": 280,
+        "dinhMucNCKH": 280
+      },
+      "actual": {
+        "tongThucHien": 252,
+        "mienGiam": 28,
+        "dinhMucSauMienGiam": 252,
+        "thieuTietGiangDay": 0,
+        "thieuNCKH": 0,
+        "tongVuot": 0,
+        "thanhToan": 0,
+        "dinhMucChuan": 280
+      },
+      "expected": null,
+      "diffs": null
+    },
+    {
+      "id": "fixture-4",
+      "description": "Very large actual teaching; paid overtime capped at discounted quota",
+      "input": {
+        "soTietGiangDay": 600,
+        "soTietNgoaiQC": 0,
+        "soTietKTHP": 0,
+        "soTietDoAn": 0,
+        "soTietHDTQ": 0,
+        "soTietNCKH": 280,
+        "phanTramMienGiam": 0,
+        "dinhMucChuan": 280,
+        "dinhMucNCKH": 280
+      },
+      "actual": {
+        "tongThucHien": 600,
+        "mienGiam": 0,
+        "dinhMucSauMienGiam": 280,
+        "thieuTietGiangDay": 0,
+        "thieuNCKH": 0,
+        "tongVuot": 320,
+        "thanhToan": 280,
+        "dinhMucChuan": 280
+      },
+      "expected": null,
+      "diffs": null
+    },
+    {
+      "id": "fixture-5",
+      "description": "Rounding edgecases with decimals in inputs",
+      "input": {
+        "soTietGiangDay": 280.555,
+        "soTietNgoaiQC": 0.333,
+        "soTietKTHP": 0.112,
+        "soTietDoAn": 0,
+        "soTietHDTQ": 0,
+        "soTietNCKH": 150.789,
+        "phanTramMienGiam": 12.345,
+        "dinhMucChuan": 280,
+        "dinhMucNCKH": 280
+      },
+      "actual": {
+        "tongThucHien": 281,
+        "mienGiam": 34.57,
+        "dinhMucSauMienGiam": 245.43,
+        "thieuTietGiangDay": 0,
+        "thieuNCKH": 94.65,
+        "tongVuot": 0,
+        "thanhToan": 0,
+        "dinhMucChuan": 280
+      },
+      "expected": null,
+      "diffs": null
+    },
+    {
+      "id": "fixture-6",
+      "description": "Missing dinhMuc fields -> defaults used",
+      "input": {
+        "soTietGiangDay": 300,
+        "soTietNgoaiQC": 0,
+        "soTietKTHP": 0,
+        "soTietDoAn": 0,
+        "soTietHDTQ": 0,
+        "soTietNCKH": 0,
+        "phanTramMienGiam": 0
+      },
+      "actual": {
+        "tongThucHien": 300,
+        "mienGiam": 0,
+        "dinhMucSauMienGiam": 280,
+        "thieuTietGiangDay": 0,
+        "thieuNCKH": 280,
+        "tongVuot": 0,
+        "thanhToan": 0,
+        "dinhMucChuan": 280
+      },
+      "expected": null,
+      "diffs": null
+    }
+  ]
+}

@@ -4,21 +4,112 @@
  */
 
 let globalData = []; // Biến toàn cục để lưu dữ liệu từ server
+let previewPdfObjectUrl = null;
+
+const REQUIRED_FIELDS = [
+    "id_User",
+    "giangVien",
+    "maKhoa",
+    "dinhMucChuan",
+    "dinhMucSauMienGiam",
+    "thieuNCKH",
+    "thanhToan",
+    "tableF"
+];
+
+const logMissingFields = (rows, context) => {
+    const missingMap = new Map();
+    const maxSamples = 20;
+    let sampleCount = 0;
+
+    rows.forEach((row, index) => {
+        const missing = REQUIRED_FIELDS.filter((key) => {
+            const value = row?.[key];
+            if (value === null || value === undefined) return true;
+            if (key === "tableF" && !value?.rows) return true;
+            if (typeof value === "number" && Number.isNaN(value)) return true;
+            return false;
+        });
+
+        if (missing.length) {
+            missing.forEach((key) => {
+                missingMap.set(key, (missingMap.get(key) || 0) + 1);
+            });
+
+            if (sampleCount < maxSamples) {
+                console.warn("[tongHopGV] Missing fields", {
+                    context,
+                    index,
+                    id_User: row?.id_User,
+                    giangVien: row?.giangVien,
+                    missing
+                });
+                sampleCount += 1;
+            }
+        }
+    });
+
+    if (missingMap.size) {
+        const summary = Array.from(missingMap.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([key, count]) => ({ key, count }));
+        console.warn("[tongHopGV] Missing fields summary", { context, summary });
+    } else {
+        console.info("[tongHopGV] Missing fields summary", { context, summary: [] });
+    }
+};
+
+const logFirstRowDetails = (rows, context) => {
+    if (!Array.isArray(rows) || rows.length === 0) {
+        console.info("[tongHopGV] First row details", { context, message: "no rows" });
+        return;
+    }
+
+    const firstRow = rows[0];
+    console.info("[tongHopGV] First row raw data", { context, row: firstRow });
+};
 
 // ==================== INITIALIZATION ====================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function () {
     console.log('[tongHopGV] DOMContentLoaded - HTML Table Version');
-    
-    // Load dropdowns
-    loadNamHocOptions();
-    loadKhoaOptions();
+
+    // Load dropdowns và tự động nạp dữ liệu
+    await Promise.all([
+        loadNamHocOptions(),
+        loadKhoaOptions()
+    ]);
+
+    loadData();
 
     // Event listeners
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) exportBtn.addEventListener('click', exportExcel);
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
+
+    // Chuyển sang thống kê Khoa
+    const btnSwitchToKhoa = document.getElementById('btnSwitchToKhoa');
+    if (btnSwitchToKhoa) {
+        btnSwitchToKhoa.addEventListener('click', () => {
+            const namHoc = document.getElementById('namHocXem').value;
+            window.location.href = `/v2/vuotgio/tong-hop-khoa?namHoc=${encodeURIComponent(namHoc)}`;
+        });
+    }
+
+    // Toggle Summary
+    const btnToggleSummary = document.getElementById('btnToggleSummary');
+    if (btnToggleSummary) {
+        btnToggleSummary.addEventListener('click', () => {
+            document.getElementById('summaryBox').classList.toggle('collapsed');
+            const icon = btnToggleSummary.querySelector('i');
+            if (icon.classList.contains('bi-chevron-down')) {
+                icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+            } else {
+                icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
+            }
+        });
+    }
 });
 
 // ==================== DATA LOADING ====================
@@ -26,22 +117,31 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load năm học từ API có sẵn
 async function loadNamHocOptions() {
     console.log('[tongHopGV] loadNamHocOptions called');
+    const urlNamHoc = new URLSearchParams(window.location.search).get('namHoc');
+    
     try {
         const response = await fetch('/api/namhoc');
         const data = await response.json();
         console.log('[tongHopGV] NamHoc data:', data);
-        
+
         const select = document.getElementById('namHocXem');
         select.innerHTML = '';
         data.forEach((item, index) => {
             const option = document.createElement('option');
             option.value = item.NamHoc;
             option.textContent = item.NamHoc;
-            if (item.trangthai === 1 || (index === 0 && !data.some(i => i.trangthai === 1))) {
+            
+            // Ưu tiên chọn năm học từ URL
+            if (urlNamHoc && item.NamHoc === urlNamHoc) {
+                option.selected = true;
+            } else if (!urlNamHoc && (item.trangthai === 1 || (index === 0 && !data.some(i => i.trangthai === 1)))) {
                 option.selected = true;
             }
             select.appendChild(option);
         });
+
+        // Sau khi load xong năm học, load dữ liệu
+        loadData();
     } catch (error) {
         console.error('Error loading nam hoc:', error);
         const currentYear = new Date().getFullYear();
@@ -53,16 +153,24 @@ async function loadNamHocOptions() {
 // Load khoa từ API có sẵn
 async function loadKhoaOptions() {
     console.log('[tongHopGV] loadKhoaOptions called');
+    const urlKhoa = new URLSearchParams(window.location.search).get('khoa');
+
     try {
         const response = await fetch('/api/khoa');
         const data = await response.json();
         console.log('[tongHopGV] Khoa data:', data);
-        
+
         const select = document.getElementById('khoaXem');
         data.forEach(dept => {
             const option = document.createElement('option');
             option.value = dept.MaPhongBan;
             option.textContent = dept.TenPhongBan || dept.MaPhongBan;
+            
+            // Ưu tiên chọn khoa từ URL
+            if (urlKhoa && dept.MaPhongBan === urlKhoa) {
+                option.selected = true;
+            }
+            
             select.appendChild(option);
         });
     } catch (error) {
@@ -78,42 +186,85 @@ function formatNumber(val) {
     return Number(val).toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
+// ==================== SKELETON LOADING ====================
+
+function showSkeletonRows() {
+    const body = document.getElementById('tableBody');
+    if (!body) return;
+    body.innerHTML = Array.from({ length: 5 })
+        .map(() => `<tr class="skeleton-row"><td colspan="37">&nbsp;</td></tr>`)
+        .join('');
+}
+
+function clearSkeletonRows() {
+    const body = document.getElementById('tableBody');
+    if (body) {
+        body.innerHTML =
+            '<tr><td colspan="37" class="text-center text-muted py-4">Không có dữ liệu</td></tr>';
+    }
+}
+
 // ==================== LOAD DATA ====================
 
 // Load data
 async function loadData() {
     const namHoc = document.getElementById('namHocXem').value;
     const khoa = document.getElementById('khoaXem').value;
-    
+
     if (!namHoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'warning');
         return;
     }
 
+    showSkeletonRows();
+
     try {
-        const response = await fetch(`/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}`);
+        Swal.showLoading();
+
+        const url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}&detail=1`;
+
+        console.info('[tongHopGV] loadData request', { namHoc, khoa, url });
+        const response = await fetch(url);
         const result = await response.json();
-        
+        Swal.close();
+
+        console.info('[tongHopGV] loadData response', {
+            status: response.status,
+            ok: response.ok,
+            success: result?.success,
+            message: result?.message,
+            dataType: Array.isArray(result?.data) ? 'array' : typeof result?.data,
+            dataCount: Array.isArray(result?.data) ? result.data.length : null
+        });
+
         if (!result.success) {
             Swal.fire('Lỗi', result.message || 'Không thể tải dữ liệu', 'error');
+            clearSkeletonRows();
             return;
         }
-        
-        const data = result.data || [];
+
+        let data = result.data || [];
+
         globalData = data;
+        console.info('[tongHopGV] loadData final', {
+            count: data.length,
+            sample: data.slice(0, 3)
+        });
+
+        logMissingFields(data, { namHoc, khoa });
+        logFirstRowDetails(data, { namHoc, khoa });
         renderTable(globalData);
         updateSummary(globalData);
 
-        // Hiện công thức sau khi có dữ liệu
-        const formulaInfo = document.getElementById('formulaInfo');
-        if (formulaInfo) formulaInfo.style.display = '';
-        
+
         if (data.length === 0) {
             Swal.fire('Thông báo', 'Không có dữ liệu', 'info');
         }
     } catch (error) {
+        Swal.close();
         console.error('Error loading data:', error);
         Swal.fire('Lỗi', 'Không thể tải dữ liệu', 'error');
+        clearSkeletonRows();
     }
 }
 
@@ -128,140 +279,235 @@ function renderTable(data) {
 
     let STT = 1;
 
-    // Calculate totals
-    let totalGiangDay = 0;
-    let totalThucHien = 0;
-    let totalDinhMuc = 0;
-    let totalThieuNCKH = 0;
-    let totalVuotGio = 0;
+    // Initialize totals for all columns
+    let totals = {
+        dinhMucChuan: 0, mienGiam: 0, thieuNCKH: 0, dinhMucSauGiamTru: 0,
+        hk1_vn: 0, hk1_lao: 0, hk1_cuba: 0, hk1_cpc: 0, hk1_dongHP: 0,
+        hk2_vn: 0, hk2_lao: 0, hk2_cuba: 0, hk2_cpc: 0, hk2_dongHP: 0,
+        year_vn: 0, year_lao: 0, year_cuba: 0, year_cpc: 0, year_dongHP: 0,
+        vuot_vn: 0, vuot_lao: 0, vuot_cuba: 0, vuot_cpc: 0, vuot_dongHP: 0, vuot_tong: 0,
+        mucTT: 0,
+        tien_vn: 0, tien_lao: 0, tien_cuba: 0, tien_cpc: 0, tien_dongHP: 0, tien_tong: 0,
+        thucNhan: 0,
+        luong: 0
+    };
+
+    let lastKhoa = null;
 
     data.forEach((row, index) => {
+        if (index < 5) console.log(`[renderTable] Row ${index}:`, row);
+        // Thêm dòng tiêu đề nhóm nếu khoa thay đổi
+        if (row.khoa !== lastKhoa) {
+            const groupRow = document.createElement('tr');
+            groupRow.className = 'group-header table-light fw-bold';
+            groupRow.setAttribute('data-khoa-code', row.maKhoa || row.khoa || '');
+            groupRow.innerHTML = `
+                <td colspan="37" class="text-start px-3 py-2">
+                    <i class="fas fa-university me-2"></i> ${row.khoa || 'Khác'}
+                </td>
+            `;
+            tableBody.appendChild(groupRow);
+            lastKhoa = row.khoa;
+        }
+
         const tableRow = document.createElement('tr');
         tableRow.setAttribute('data-index', index);
+        tableRow.setAttribute('data-khoa', row.khoa || ''); // Phục vụ filter
 
-        // STT
-        const sttTd = document.createElement('td');
-        sttTd.textContent = STT++;
-        tableRow.appendChild(sttTd);
-
-        // Họ tên
-        const hoTenTd = document.createElement('td');
-        hoTenTd.textContent = row.giangVien || '';
-        hoTenTd.style.textAlign = 'left';
-        tableRow.appendChild(hoTenTd);
-
-        // Khoa
-        const khoaTd = document.createElement('td');
-        khoaTd.textContent = row.maKhoa || '';
-        tableRow.appendChild(khoaTd);
-
-        // % Miễn giảm
-        const mgTd = document.createElement('td');
-        const mg = row.phanTramMienGiam || 0;
-        mgTd.textContent = mg > 0 ? mg + '%' : '0%';
-        if (mg > 0) mgTd.style.color = '#e67e22';
-        tableRow.appendChild(mgTd);
-
-        // Giảng dạy TKB
-        const giangDayTd = document.createElement('td');
-        giangDayTd.textContent = formatNumber(row.soTietGiangDay);
-        giangDayTd.style.textAlign = 'right';
-        tableRow.appendChild(giangDayTd);
-        totalGiangDay += row.soTietGiangDay || 0;
-
-        // Tổng số tiết thực hiện
-        const thucHienTd = document.createElement('td');
-        thucHienTd.textContent = formatNumber(row.soTietThucHien);
-        thucHienTd.style.textAlign = 'right';
-        tableRow.appendChild(thucHienTd);
-        totalThucHien += row.soTietThucHien || 0;
-
-        // Định mức phải giảng
-        const dinhMucTd = document.createElement('td');
-        dinhMucTd.textContent = formatNumber(row.soTietDinhMuc);
-        dinhMucTd.style.textAlign = 'right';
-        tableRow.appendChild(dinhMucTd);
-        totalDinhMuc += row.soTietDinhMuc || 0;
-
-        // Tổng số tiết chưa hoàn thành NCKH
-        const thieuNCKHTd = document.createElement('td');
-        thieuNCKHTd.textContent = formatNumber(row.soTietThieuNCKH);
-        thieuNCKHTd.style.textAlign = 'right';
-        if (row.soTietThieuNCKH > 0) {
-            thieuNCKHTd.classList.add('text-danger-bold');
+        if (row.thieuTietGiangDay > 0) {
+            tableRow.classList.add('row-warning-danger');
         }
-        tableRow.appendChild(thieuNCKHTd);
-        totalThieuNCKH += row.soTietThieuNCKH || 0;
 
-        // Vượt giờ
-        const vuotGioTd = document.createElement('td');
-        vuotGioTd.textContent = formatNumber(row.soTietVuotGio);
-        vuotGioTd.style.textAlign = 'right';
-        if (row.soTietVuotGio > 0) {
-            vuotGioTd.classList.add('text-success-bold');
-        }
-        tableRow.appendChild(vuotGioTd);
-        totalVuotGio += row.soTietVuotGio || 0;
+        // Ưu tiên dùng breakdown đã tính sẵn từ Backend (single source of truth).
+        // Fallback: tự tính nếu là snapshot cũ chưa có breakdown.
+        const bd = row.breakdown || emptyBreakdown();
 
-        // Thao tác
-        const actionTd = document.createElement('td');
-        actionTd.innerHTML = `
-            <button class="btn btn-sm btn-info" onclick="showDetail('${encodeURIComponent(row.giangVien)}', '${row.giangVien}')" title="Xem chi tiết">
-                <i class="fas fa-eye"></i> Chi tiết
-            </button>
+        const mucTT  = bd.mucTT || 0;
+        const thucNhan = bd.thucNhan || 0;
+
+        tableRow.innerHTML = `
+            <td>${STT++}</td>
+            <td style="text-align: left; padding-left: 8px;">${row.giangVien || ''}</td>
+            <td>${formatNumber(row.luong)}</td>
+            <td>${formatNumber(row.dinhMucChuan)}</td>
+            <td>${formatNumber(row.mienGiam)}</td>
+            <td class="${row.thieuNCKH > 0 ? 'text-danger-bold' : ''}">${formatNumber(row.thieuNCKH)}</td>
+            <td>${formatNumber(row.dinhMucSauMienGiam)}</td>
+
+            <!-- HK1 -->
+            <td>${formatNumber(bd.hk1.vn)}</td>
+            <td>${formatNumber(bd.hk1.lao)}</td>
+            <td>${formatNumber(bd.hk1.cuba)}</td>
+            <td>${formatNumber(bd.hk1.cpc)}</td>
+            <td>${formatNumber(bd.hk1.dongHP)}</td>
+
+            <!-- HK2 -->
+            <td>${formatNumber(bd.hk2.vn)}</td>
+            <td>${formatNumber(bd.hk2.lao)}</td>
+            <td>${formatNumber(bd.hk2.cuba)}</td>
+            <td>${formatNumber(bd.hk2.cpc)}</td>
+            <td>${formatNumber(bd.hk2.dongHP)}</td>
+
+            <!-- Cả năm -->
+            <td>${formatNumber(bd.year.vn)}</td>
+            <td>${formatNumber(bd.year.lao)}</td>
+            <td>${formatNumber(bd.year.cuba)}</td>
+            <td>${formatNumber(bd.year.cpc)}</td>
+            <td>${formatNumber(bd.year.dongHP)}</td>
+
+            <!-- Vượt giờ -->
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.vn)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.lao)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.cuba)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.cpc)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.dongHP)}</td>
+            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.total)}</td>
+
+            <!-- Mức TT -->
+            <td>${formatNumber(mucTT)}</td>
+
+            <!-- Thành tiền -->
+            <td>${formatNumber(bd.money.vn)}</td>
+            <td>${formatNumber(bd.money.lao)}</td>
+            <td>${formatNumber(bd.money.cuba)}</td>
+            <td>${formatNumber(bd.money.cpc)}</td>
+            <td>${formatNumber(bd.money.dongHP)}</td>
+            <td style="font-weight: bold;">${formatNumber(bd.money.total)}</td>
+
+            <!-- Thực nhận -->
+            <td style="font-weight: bold; color: #1a5276;">${formatNumber(thucNhan)}</td>
+
+            <!-- Actions -->
+            <td>
+                <button class="btn btn-sm btn-success" onclick="previewExcel('${row.id_User}', '${row.giangVien}')" title="Xem preview Excel">
+                    <i class="fas fa-file-excel"></i>
+                </button>
+            </td>
         `;
-        tableRow.appendChild(actionTd);
 
         tableBody.appendChild(tableRow);
+
+        // Accumulate totals
+        totals.luong            += row.luong || 0;
+        totals.dinhMucChuan     += row.dinhMucChuan || 0;
+        totals.mienGiam         += row.mienGiam || 0;
+        totals.thieuNCKH        += row.thieuNCKH || 0;
+        totals.dinhMucSauGiamTru += row.dinhMucSauMienGiam || 0;
+        totals.hk1_vn     += bd.hk1.vn;    totals.hk1_lao    += bd.hk1.lao;
+        totals.hk1_cuba   += bd.hk1.cuba;  totals.hk1_cpc    += bd.hk1.cpc;
+        totals.hk1_dongHP += bd.hk1.dongHP;
+        totals.hk2_vn     += bd.hk2.vn;    totals.hk2_lao    += bd.hk2.lao;
+        totals.hk2_cuba   += bd.hk2.cuba;  totals.hk2_cpc    += bd.hk2.cpc;
+        totals.hk2_dongHP += bd.hk2.dongHP;
+        totals.year_vn    += bd.year.vn;   totals.year_lao   += bd.year.lao;
+        totals.year_cuba  += bd.year.cuba; totals.year_cpc   += bd.year.cpc;
+        totals.year_dongHP += bd.year.dongHP;
+        totals.vuot_vn    += bd.vuot.vn;   totals.vuot_lao   += bd.vuot.lao;
+        totals.vuot_cuba  += bd.vuot.cuba; totals.vuot_cpc   += bd.vuot.cpc;
+        totals.vuot_dongHP += bd.vuot.dongHP; totals.vuot_tong += bd.vuot.total;
+        totals.tien_vn    += bd.money.vn;  totals.tien_lao   += bd.money.lao;
+        totals.tien_cuba  += bd.money.cuba; totals.tien_cpc  += bd.money.cpc;
+        totals.tien_dongHP += bd.money.dongHP; totals.tien_tong += bd.money.total;
+        totals.thucNhan   += thucNhan;
     });
 
-    // Render footer (totals) — 8 cột: STT, Họ tên, Khoa, %MG, TH, ĐM, NCKH, VG, Thao tác
+    // Render footer
+    renderFooter(totals);
+}
+
+/**
+ * Fallback: tự tính breakdown cho dữ liệu snapshot cũ không có sẵn breakdown từ server.
+ * Cấu trúc trả về giống hệt computeSdoBreakdown() ở backend.
+ */
+function emptyBreakdown() {
+    return {
+        hk1:  { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        hk2:  { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        year: { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        vuot: { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        money: { vn: 0, lao: 0, cuba: 0, cpc: 0, dongHP: 0, total: 0 },
+        thucNhan: 0,
+        mucTT: 0,
+    };
+}
+
+/**
+ * Render footer with totals
+ */
+function renderFooter(totals) {
+    const tableFoot = document.getElementById('tableFoot');
+    tableFoot.innerHTML = '';
+    
     const footRow = document.createElement('tr');
     footRow.style.fontWeight = 'bold';
     footRow.style.backgroundColor = '#e9ecef';
-    
+
     footRow.innerHTML = `
-        <td colspan="4" style="text-align: right;">TỔNG CỘNG</td>
-        <td style="text-align: right;">${formatNumber(totalGiangDay)}</td>
-        <td style="text-align: right;">${formatNumber(totalThucHien)}</td>
-        <td style="text-align: right;">${formatNumber(totalDinhMuc)}</td>
-        <td style="text-align: right;">${formatNumber(totalThieuNCKH)}</td>
-        <td style="text-align: right;">${formatNumber(totalVuotGio)}</td>
+        <td colspan="2" style="text-align: center;">TỔNG CỘNG</td>
+        <td>${formatNumber(totals.luong)}</td>
+        <td>${formatNumber(totals.dinhMucChuan)}</td>
+        <td>${formatNumber(totals.mienGiam)}</td>
+        <td>${formatNumber(totals.thieuNCKH)}</td>
+        <td>${formatNumber(totals.dinhMucSauGiamTru)}</td>
+        
+        <!-- HK1 -->
+        <td>${formatNumber(totals.hk1_vn)}</td>
+        <td>${formatNumber(totals.hk1_lao)}</td>
+        <td>${formatNumber(totals.hk1_cuba)}</td>
+        <td>${formatNumber(totals.hk1_cpc)}</td>
+        <td>${formatNumber(totals.hk1_dongHP)}</td>
+        
+        <!-- HK2 -->
+        <td>${formatNumber(totals.hk2_vn)}</td>
+        <td>${formatNumber(totals.hk2_lao)}</td>
+        <td>${formatNumber(totals.hk2_cuba)}</td>
+        <td>${formatNumber(totals.hk2_cpc)}</td>
+        <td>${formatNumber(totals.hk2_dongHP)}</td>
+        
+        <!-- Cả năm -->
+        <td>${formatNumber(totals.year_vn)}</td>
+        <td>${formatNumber(totals.year_lao)}</td>
+        <td>${formatNumber(totals.year_cuba)}</td>
+        <td>${formatNumber(totals.year_cpc)}</td>
+        <td>${formatNumber(totals.year_dongHP)}</td>
+        
+        <!-- Vượt giờ -->
+        <td>${formatNumber(totals.vuot_vn)}</td>
+        <td>${formatNumber(totals.vuot_lao)}</td>
+        <td>${formatNumber(totals.vuot_cuba)}</td>
+        <td>${formatNumber(totals.vuot_cpc)}</td>
+        <td>${formatNumber(totals.vuot_dongHP)}</td>
+        <td>${formatNumber(totals.vuot_tong)}</td>
+        
+        <!-- Mức TT -->
+        <td></td>
+        
+        <!-- Thành tiền -->
+        <td>${formatNumber(totals.tien_vn)}</td>
+        <td>${formatNumber(totals.tien_lao)}</td>
+        <td>${formatNumber(totals.tien_cuba)}</td>
+        <td>${formatNumber(totals.tien_cpc)}</td>
+        <td>${formatNumber(totals.tien_dongHP)}</td>
+        <td>${formatNumber(totals.tien_tong)}</td>
+        
+        <!-- Thực nhận -->
+        <td>${formatNumber(totals.thucNhan)}</td>
+        
+        <!-- Actions -->
         <td></td>
     `;
 
     tableFoot.appendChild(footRow);
-
-    // Đồng bộ chiều rộng cột thead theo tbody (xử lý lệch do scrollbar)
-    syncTableColumnWidths();
 }
 
-/**
- * Đọc chiều rộng thực của td đầu tiên trong tbody và áp lại cho th tương ứng.
- * Giải quyết lệch cột khi scrollbar xuất hiện (scrollbar-gutter fallback).
- */
-function syncTableColumnWidths() {
-    const firstBodyRow = document.querySelector('#tableBody tr');
-    if (!firstBodyRow) return;
 
-    const bodyTds = firstBodyRow.querySelectorAll('td');
-    const headThs = document.querySelectorAll('#mainTable thead th');
-
-    bodyTds.forEach((td, i) => {
-        if (headThs[i]) {
-            const w = td.getBoundingClientRect().width;
-            headThs[i].style.width = w + 'px';
-            headThs[i].style.minWidth = w + 'px';
-        }
-    });
-}
 
 // ==================== UPDATE SUMMARY ====================
 
 function updateSummary(data) {
     const totalGV = data.length;
-    const totalVuotGio = data.reduce((sum, r) => sum + (r.soTietVuotGio || 0), 0);
-    const gvCoVuotGio = data.filter(r => r.soTietVuotGio > 0).length;
+    const totalVuotGio = data.reduce((sum, r) => sum + (r.thanhToan || 0), 0);
+    const gvCoVuotGio = data.filter(r => (r.thanhToan || 0) > 0).length;
 
     const elTotalGV = document.getElementById('totalGV');
     const elTotalVuotGio = document.getElementById('totalVuotGio');
@@ -271,299 +517,279 @@ function updateSummary(data) {
     if (elTotalVuotGio) elTotalVuotGio.textContent = formatNumber(totalVuotGio);
     if (elGvCoVuotGio) elGvCoVuotGio.textContent = gvCoVuotGio;
 
-    // Show the summary row once data is loaded
-    const summaryRow = document.getElementById('summaryRow');
-    if (summaryRow) summaryRow.style.display = '';
+    // Show the summary box once data is loaded
+    const summaryBox = document.getElementById('summaryBox');
+    if (summaryBox) summaryBox.style.display = '';
 }
 
 // ==================== FILTER ====================
 
 function filterTable() {
     const gvFilter = document.getElementById('filterGiangVien').value.toLowerCase();
-    const tableRows = document.querySelectorAll('#tableBody tr');
-
-    tableRows.forEach(row => {
-        const hoTenCell = row.querySelector('td:nth-child(2)'); // Họ tên
-        const hoTenValue = hoTenCell ? hoTenCell.textContent.toLowerCase() : '';
-
-        if (hoTenValue.includes(gvFilter)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+    
+    // 1. Lọc dữ liệu từ globalData
+    const filteredData = globalData.filter(row => {
+        const hoTen = (row.giangVien || '').toLowerCase();
+        return hoTen.includes(gvFilter);
     });
+
+    // 2. Render lại toàn bộ bảng dựa trên dữ liệu đã lọc
+    // Việc gọi renderTable sẽ tự động xử lý lại STT và Group Header cho Khoa
+    renderTable(filteredData);
+
+    // 3. Cập nhật Summary box
+    updateSummary(filteredData);
 }
 
-// ==================== DETAIL MODAL ====================
+// Remove old updateFooterTotals function as it's replaced by renderFooter
 
-// Show detail modal
-async function showDetail(maGV, hoTen) {
+// ==================== EXCEL PREVIEW (PDF) ====================
+
+// Preview Excel as PDF generated from xlsx + LibreOffice
+async function previewExcel(maGV, hoTen) {
     const namHoc = document.getElementById('namHocXem').value;
-    
-    document.getElementById('detailGVName').textContent = hoTen;
-    
+    const khoa = document.getElementById('khoaXem').value;
+    const previewMode = 'pdf';
+
+    console.info('[vuotgio_v2.preview] click', {
+        giangVien: hoTen,
+        maGV,
+        namHoc,
+        khoa,
+        previewMode,
+        url: `/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}`
+    });
+
+    Swal.showLoading();
+
     try {
-        const response = await fetch(`/v2/vuotgio/tong-hop/chi-tiet/${maGV}?namHoc=${namHoc}`);
+        const response = await fetch(`/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}`);
         const result = await response.json();
-        
+
+        console.info('[vuotgio_v2.preview] result from server:', result);
+
+        if (result.success) {
+            console.info('[vuotgio_v2.preview] intermediate data keys:', Object.keys(result.data?.intermediateJson || {}));
+            if (result.data?.pdfBase64) {
+                console.info('[vuotgio_v2.preview] PDF base64 received, length:', result.data.pdfBase64.length);
+            }
+        }
+
         if (!result.success) {
-            Swal.fire('Lỗi', result.message || 'Không thể tải chi tiết', 'error');
+            Swal.close();
+            Swal.fire('Lỗi', result.message || 'Không thể tải dữ liệu preview', 'error');
             return;
         }
-        
-        renderDetailContent(result.data);
-        
-        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-        modal.show();
+
+        if (result.data?.pdfBase64) {
+            renderExcelPdfPreview(result.data, hoTen, namHoc, khoa);
+        } else {
+            Swal.close();
+            Swal.fire('Lỗi', 'Không tạo được bản PDF preview', 'error');
+        }
+
+        if (Array.isArray(result.data?.warnings) && result.data.warnings.length > 0) {
+            console.warn('[preview-template] warnings:', result.data.warnings);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lưu ý preview',
+                text: result.data.warnings[0],
+                timer: 3500,
+                showConfirmButton: false,
+            });
+        }
+
     } catch (error) {
-        console.error('Error loading detail:', error);
+        Swal.close();
+        console.error('Error loading excel preview:', error);
         Swal.fire('Lỗi', 'Không thể tải chi tiết', 'error');
     }
 }
 
-// Render detail content
-function renderDetailContent(data) {
-    let html = '';
-    
-    // Tính tổng số tiết
-    const totalGiangDay = (data.giangDay || []).reduce((s, r) => s + (r.QuyChuan || 0), 0);
-    const totalLopNgoaiQC = (data.lopNgoaiQC || []).reduce((s, r) => s + (r.QuyChuan || 0), 0);
-    const totalKTHP = (data.kthp || []).reduce((s, r) => s + (r.sotietqc || 0), 0);
-    const totalDoAn = (data.doAn || []).reduce((s, r) => s + (r.SoTiet || 0), 0);
-    const totalThucHien = totalGiangDay + totalLopNgoaiQC + totalKTHP + totalDoAn;
-    
-    // Summary
-    html += `
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-                <h6 class="mb-0">Tổng hợp - ${data.giangVien || ''}</h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <strong>Giảng dạy:</strong> ${formatNumber(totalGiangDay)}
-                    </div>
-                    <div class="col-md-3">
-                        <strong>Ngoài QC:</strong> ${formatNumber(totalLopNgoaiQC)}
-                    </div>
-                    <div class="col-md-3">
-                        <strong>KTHP:</strong> ${formatNumber(totalKTHP)}
-                    </div>
-                    <div class="col-md-3">
-                        <strong>Đồ án:</strong> ${formatNumber(totalDoAn)}
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-md-12">
-                        <strong>Tổng thực hiện:</strong> <span class="text-primary fs-5">${formatNumber(totalThucHien)}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Giảng dạy
-    if (data.giangDay && data.giangDay.length > 0) {
-        html += `
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white d-flex justify-content-between">
-                    <h6 class="mb-0">Giảng dạy</h6>
-                    <span class="badge bg-light text-dark">${data.giangDay.length} lớp</span>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>HK</th>
-                                <th>Mã HP</th>
-                                <th>Tên HP</th>
-                                <th>Lớp</th>
-                                <th class="text-end">Quy chuẩn</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.giangDay.map(row => `
-                                <tr>
-                                    <td>${row.HocKy || ''}</td>
-                                    <td>${row.MaHocPhan || ''}</td>
-                                    <td>${row.TenHocPhan || ''}</td>
-                                    <td>${row.Lop || ''}</td>
-                                    <td class="text-end">${formatNumber(row.QuyChuan)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-dark">
-                                <th colspan="4">Tổng</th>
-                                <th class="text-end">${formatNumber(totalGiangDay)}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Lớp ngoài quy chuẩn
-    if (data.lopNgoaiQC && data.lopNgoaiQC.length > 0) {
-        html += `
-            <div class="card mb-3">
-                <div class="card-header bg-warning d-flex justify-content-between">
-                    <h6 class="mb-0">Lớp ngoài quy chuẩn</h6>
-                    <span class="badge bg-dark">${data.lopNgoaiQC.length} lớp</span>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>HK</th>
-                                <th>Mã HP</th>
-                                <th>Tên HP</th>
-                                <th>Lớp</th>
-                                <th class="text-end">Quy chuẩn</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.lopNgoaiQC.map(row => `
-                                <tr>
-                                    <td>${row.HocKy || ''}</td>
-                                    <td>${row.MaHocPhan || ''}</td>
-                                    <td>${row.TenHocPhan || ''}</td>
-                                    <td>${row.Lop || ''}</td>
-                                    <td class="text-end">${formatNumber(row.QuyChuan)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-dark">
-                                <th colspan="4">Tổng</th>
-                                <th class="text-end">${formatNumber(totalLopNgoaiQC)}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-    
-    // KTHP
-    if (data.kthp && data.kthp.length > 0) {
-        html += `
-            <div class="card mb-3">
-                <div class="card-header bg-success text-white d-flex justify-content-between">
-                    <h6 class="mb-0">Kết thúc học phần</h6>
-                    <span class="badge bg-light text-dark">${data.kthp.length} bản ghi</span>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>HK</th>
-                                <th>Tên HP</th>
-                                <th>Lớp</th>
-                                <th>Hình thức</th>
-                                <th class="text-end">Số tiết QC</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.kthp.map(row => `
-                                <tr>
-                                    <td>${row.ki || ''}</td>
-                                    <td>${row.tenhocphan || ''}</td>
-                                    <td>${row.lop || ''}</td>
-                                    <td>${row.hinhthuc || ''}</td>
-                                    <td class="text-end">${formatNumber(row.sotietqc)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-dark">
-                                <th colspan="4">Tổng</th>
-                                <th class="text-end">${formatNumber(totalKTHP)}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Đồ án
-    if (data.doAn && data.doAn.length > 0) {
-        html += `
-            <div class="card mb-3">
-                <div class="card-header bg-secondary text-white d-flex justify-content-between">
-                    <h6 class="mb-0">Hướng dẫn đồ án</h6>
-                    <span class="badge bg-light text-dark">${data.doAn.length} đồ án</span>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tên SV</th>
-                                <th>Mã SV</th>
-                                <th>Khóa</th>
-                                <th class="text-end">Số tiết</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.doAn.map(row => `
-                                <tr>
-                                    <td>${row.TenSinhVien || row.HoTen || ''}</td>
-                                    <td>${row.MaSV || row.MaSinhVien || ''}</td>
-                                    <td>${row.Khoa || ''}</td>
-                                    <td class="text-end">${formatNumber(row.SoTiet)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-dark">
-                                <th colspan="3">Tổng</th>
-                                <th class="text-end">${formatNumber(totalDoAn)}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-    
-    // NCKH
-    if (data.nckh && data.nckh.length > 0) {
-        html += `
-            <div class="card mb-3">
-                <div class="card-header bg-danger text-white d-flex justify-content-between">
-                    <h6 class="mb-0">NCKH</h6>
-                    <span class="badge bg-light text-dark">${data.nckh.length} bản ghi</span>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>Loại</th>
-                                <th>Tên</th>
-                                <th class="text-end">Số tiết</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.nckh.map(row => `
-                                <tr>
-                                    <td>${row.PhanLoai || ''}</td>
-                                    <td>${row.TenCongTrinh || ''}</td>
-                                    <td class="text-end">${formatNumber(row.SoTiet || 0)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-    
-    document.getElementById('detailModalBody').innerHTML = html;
-}
+function renderExcelPdfPreview(serverData, hoTen, namHoc, khoa) {
+    Swal.close();
 
+    if (previewPdfObjectUrl) {
+        URL.revokeObjectURL(previewPdfObjectUrl);
+        previewPdfObjectUrl = null;
+    }
+
+    const pdfBytes = atob(serverData.pdfBase64);
+    const byteNumbers = new Array(pdfBytes.length);
+    for (let i = 0; i < pdfBytes.length; i++) {
+        byteNumbers[i] = pdfBytes.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
+    previewPdfObjectUrl = URL.createObjectURL(pdfBlob);
+
+    const previewWindow = window.open('', '_blank');
+    if (!previewWindow) {
+        Swal.fire('Lỗi', 'Trình duyệt đã chặn cửa sổ preview mới. Vui lòng cho phép popup.', 'error');
+        return;
+    }
+
+    const escapeHtml = (text) => String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const escapedTitle = escapeHtml(`Xem trước: ${hoTen || ''}`);
+    const escapedNamHoc = escapeHtml(namHoc || '');
+    const escapedKhoa = escapeHtml(khoa === 'ALL' ? 'Tất cả' : (khoa || ''));
+    
+    previewWindow.document.open();
+    previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>${escapedTitle}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+            <style>
+                html, body {
+                    margin: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: #fff;
+                    overflow: hidden;
+                    font-family: Arial, sans-serif;
+                }
+                .header {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 56px;
+                    background: #f1f5f9;
+                    color: #1e293b;
+                    display: flex;
+                    align-items: center;
+                    padding: 0 20px;
+                    gap: 20px;
+                    z-index: 1000;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                .header .info-group {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    font-size: 14px;
+                }
+                .header .info-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 4px 10px;
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 6px;
+                    white-space: nowrap;
+                }
+                .header .info-item strong {
+                    color: #64748b;
+                }
+                .header button {
+                    height: 36px;
+                    width: 36px;
+                    border: 1px solid #e2e8f0;
+                    background: #fff;
+                    color: #64748b;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    transition: all 0.2s ease;
+                }
+                .header button:hover {
+                    background: #f8fafc;
+                    color: #1e293b;
+                }
+                .header button.close-btn {
+                    margin-left: auto;
+                }
+                .header button.close-btn:hover {
+                    background: #fee2e2;
+                    color: #ef4444;
+                    border-color: #fecaca;
+                }
+                .header .title {
+                    font-weight: 600;
+                    font-size: 16px;
+                    color: #0f172a;
+                }
+                .layout {
+                    display: flex;
+                    width: 100%;
+                    height: 100%;
+                    padding-top: 56px;
+                }
+                .sidebar {
+                    width: 260px;
+                    min-width: 260px;
+                    border-right: 1px solid #e5e7eb;
+                    background: #f8fafc;
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .sidebar.hidden {
+                    display: none;
+                }
+                .sidebar .meta {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    font-size: 14px;
+                    color: #334155;
+                }
+                .meta-item {
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 6px;
+                    padding: 10px 12px;
+                    line-height: 1.4;
+                }
+                .viewer {
+                    flex: 1;
+                    height: 100%;
+                    border: 0;
+                }
+            </style>
+            <script>
+                // Sidebar toggle removed as sidebar is gone
+            </script>
+        </head>
+        <body>
+            <div class="header">
+                <div class="title">${escapedTitle}</div>
+                <div class="info-group">
+                    <div class="info-item">
+                        <strong>Năm học:</strong> ${escapedNamHoc}
+                    </div>
+                    <div class="info-item">
+                        <strong>Khoa:</strong> ${escapedKhoa}
+                    </div>
+                </div>
+                <button class="close-btn" onclick="window.close()" title="Đóng">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="layout">
+                <iframe class="viewer" src="${previewPdfObjectUrl}#toolbar=0&navpanes=0" title="Excel PDF Preview"></iframe>
+            </div>
+        </body>
+        </html>
+    `);
+    previewWindow.document.close();
+}
 
 // ==================== EXPORT EXCEL ====================
 
@@ -575,11 +801,11 @@ function renderDetailContent(data) {
 
 //     const namHoc = document.getElementById('namHocXem').value;
 //     const khoa = document.getElementById('khoaXem').value;
-    
+
 //     // Create CSV content
 //     let csvContent = '\uFEFF'; // BOM for UTF-8
 //     csvContent += 'STT,Mã GV,Họ tên,Khoa,Chức danh,Thực hiện,Định mức,Thiếu NCKH,Vượt giờ\n';
-    
+
 //     globalData.forEach((row, index) => {
 //         csvContent += `${index + 1},"${row.MaGV || ''}","${row.HoTen || ''}","${row.MaKhoa || ''}","${row.ChucDanh || ''}",${row.SoTietThucHien || 0},${row.SoTietDinhMuc || 0},${row.SoTietThieuNCKH || 0},${row.SoTietVuotGio || 0}\n`;
 //     });
@@ -591,3 +817,7 @@ function renderDetailContent(data) {
 //     link.download = `TongHopVuotGio_${namHoc}_${khoa}.csv`;
 //     link.click();
 // }
+
+
+
+

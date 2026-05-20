@@ -19,6 +19,9 @@ const mapRoleLabel = (role) => {
   const r = String(role || "").toLowerCase();
   if (r === "tac_gia") return "Tác giả";
   if (r === "thanh_vien") return "Thành viên";
+  if (r === "chu_tich") return "Chủ tịch";
+  if (r === "phan_bien") return "Phản biện";
+  if (r === "uy_vien") return "Ủy viên";
   return role || "";
 };
 

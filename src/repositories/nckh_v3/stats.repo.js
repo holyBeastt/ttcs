@@ -80,6 +80,9 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
       c.phan_loai,
       c.nam_hoc,
       c.tong_so_tiet,
+      c.ngay_nghiem_thu,
+      c.xep_loai,
+      c.ma_so,
       st.so_tiet AS so_tiet_giang_vien,
       st.vai_tro AS vai_tro_giang_vien,
       GROUP_CONCAT(
@@ -110,6 +113,9 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
       c.phan_loai,
       c.nam_hoc,
       c.tong_so_tiet,
+      c.ngay_nghiem_thu,
+      c.xep_loai,
+      c.ma_so,
       st.so_tiet,
       st.vai_tro
     ORDER BY c.id DESC

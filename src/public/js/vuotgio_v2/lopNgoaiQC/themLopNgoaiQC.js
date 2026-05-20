@@ -94,6 +94,11 @@ async function loadKhoaOptions() {
             option.textContent = dept.TenPhongBan || dept.MaPhongBan;
             select.appendChild(option);
         });
+
+        // Enforce khoa filter: nếu user thuộc khoa, lock dropdown
+        if (typeof KhoaFilterUtils !== 'undefined') {
+            KhoaFilterUtils.applyKhoaFilter(select);
+        }
     } catch (error) {
         console.error('Error loading khoa:', error);
     }

@@ -1,0 +1,48 @@
+{
+  "schema": [
+    {
+      "field": "GiangDay",
+      "type": "float",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "VuotGio",
+      "type": "float",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "NCKH",
+      "type": "float",
+      "nullable": false,
+      "key": "",
+      "default": null
+    },
+    {
+      "field": "GiangDayChuaNghiHuu",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": "280"
+    },
+    {
+      "field": "GiangDayDaNghiHuu",
+      "type": "int(11)",
+      "nullable": true,
+      "key": "",
+      "default": "560"
+    }
+  ],
+  "rows": [
+    {
+      "GiangDay": 280,
+      "VuotGio": 280,
+      "NCKH": 200,
+      "GiangDayChuaNghiHuu": 280,
+      "GiangDayDaNghiHuu": 560
+    }
+  ]
+}

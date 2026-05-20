@@ -10,6 +10,17 @@ local_file/
 test/
 docs/
 rule/
+.agent  
+.vscode
+.agent/
+
+.kiro
+
+# AGENTS
+Automation_coding_agent.md
 
 # agent docs
 AGENTS.md
+
+
+firebase-service-account.json

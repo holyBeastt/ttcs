@@ -4,15 +4,41 @@
  */
 
 let globalData = []; // Biến toàn cục để lưu dữ liệu từ server
+let heDaoTaoList = [];
+
+function toFixedInput(value, decimals) {
+    const num = parseFloat(value);
+    if (Number.isNaN(num)) return '';
+    return num.toFixed(decimals);
+}
+
+function setSelectValueWithFallback(select, value) {
+    if (!select) return;
+    const normalized = String(value ?? '').trim();
+    if (!normalized) return;
+    const exists = Array.from(select.options).some(option => option.value === normalized);
+    if (!exists) {
+        const option = document.createElement('option');
+        option.value = normalized;
+        option.textContent = normalized;
+        select.appendChild(option);
+    }
+    select.value = normalized;
+}
 
 // ==================== INITIALIZATION ====================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('[DuyetKTHP] Init - HTML Table Version');
     
-    // Load dropdowns
-    loadNamHocOptions();
-    loadKhoaOptions();
+    // Load dropdowns và tự động tải dữ liệu
+    await Promise.all([
+        loadNamHocOptions(),
+        loadKhoaOptions(),
+        loadHeDaoTaoOptions()
+    ]);
+    
+    loadData();
 
     // Event listeners
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
@@ -23,14 +49,121 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
     document.getElementById('filterHocPhan').addEventListener('input', filterTable);
 
-    // Always show update button (no permission check for now)
-    document.getElementById('updateApprovalBtn').style.display = 'flex';
+    // Setup permission-based UI
+    setupUpdateButtonVisibility();
+    setupColumnVisibility();
 });
 
 // ==================== PERMISSION HELPERS ====================
 
-// Check if row can be edited/deleted (all approvals = 0)
+function setupUpdateButtonVisibility() {
+    const role = localStorage.getItem('userRole');
+    const MaPhongBan = localStorage.getItem('MaPhongBan');
+    const updateBtn = document.getElementById('updateApprovalBtn');
+
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
+    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
+
+    // Khoa: GV_CNBM duyệt, Lãnh đạo khoa bỏ duyệt
+    // Phòng (Khảo thí): Trợ lý duyệt, Lãnh đạo phòng bỏ duyệt
+    if (role === gvCnbm || role === lanhDaoKhoa) {
+        updateBtn.style.display = 'flex';
+    } else if (MaPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong)) {
+        updateBtn.style.display = 'flex';
+    } else if (MaPhongBan === banGiamDoc) {
+        updateBtn.style.display = 'flex';
+    }
+}
+
+function setupColumnVisibility() {
+    const role = localStorage.getItem('userRole');
+    const MaPhongBan = localStorage.getItem('MaPhongBan');
+
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
+
+    const checkAllKhoa = document.getElementById('checkAllKhoa');
+    const checkAllKhaoThi = document.getElementById('checkAllKhaoThi');
+
+    // Mặc định disable tất cả
+    if (checkAllKhoa) checkAllKhoa.disabled = true;
+    if (checkAllKhaoThi) checkAllKhaoThi.disabled = true;
+
+    // Khoa: GV_CNBM duyệt (check), Lãnh đạo khoa bỏ duyệt (uncheck)
+    if (role === gvCnbm || role === lanhDaoKhoa) {
+        if (checkAllKhoa) checkAllKhoa.disabled = false;
+    }
+
+    // Phòng Khảo thí: Trợ lý duyệt (check), Lãnh đạo phòng bỏ duyệt (uncheck)
+    if (MaPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong)) {
+        if (checkAllKhaoThi) checkAllKhaoThi.disabled = false;
+    }
+}
+
+/**
+ * Kiểm tra quyền duyệt cho từng cột
+ * @param {'khoa'|'khaoThi'} type - Loại duyệt
+ * @param {'check'|'uncheck'} action - Hành động (check = duyệt, uncheck = bỏ duyệt)
+ */
+function canApprove(type, action) {
+    const role = localStorage.getItem('userRole');
+    const MaPhongBan = localStorage.getItem('MaPhongBan');
+
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
+    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
+
+    // Ban Giám đốc có toàn quyền
+    if (MaPhongBan === banGiamDoc) return true;
+
+    if (type === 'khoa') {
+        // GV_CNBM: chỉ được duyệt (check)
+        if (role === gvCnbm && action === 'check') return true;
+        // Lãnh đạo khoa: chỉ được bỏ duyệt (uncheck)
+        if (role === lanhDaoKhoa && action === 'uncheck') return true;
+        return false;
+    }
+
+    if (type === 'khaoThi') {
+        if (MaPhongBan !== khaoThi) return false;
+        // Trợ lý: chỉ được duyệt (check)
+        if (role === troLyPhong && action === 'check') return true;
+        // Lãnh đạo phòng: chỉ được bỏ duyệt (uncheck)
+        if (role === lanhDaoPhong && action === 'uncheck') return true;
+        return false;
+    }
+
+    return false;
+}
+
+/**
+ * Kiểm tra xem user có quyền tương tác với checkbox không (bất kể check/uncheck)
+ */
+function canInteract(type) {
+    return canApprove(type, 'check') || canApprove(type, 'uncheck');
+}
+
+// Check if row can be edited/deleted
+// Chỉ GV_CNBM và Lãnh đạo khoa mới được sửa/xóa, và chỉ khi chưa duyệt
 function canEditDelete(data) {
+    const role = localStorage.getItem('userRole');
+    const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
+    const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+
+    // Chỉ GV_CNBM và Lãnh đạo khoa có quyền sửa/xóa
+    if (role !== gvCnbm && role !== lanhDaoKhoa) return false;
+
+    // Chỉ sửa/xóa khi chưa duyệt
     return data.khoaduyet === 0 && data.khaothiduyet === 0;
 }
 
@@ -81,8 +214,50 @@ async function loadKhoaOptions() {
             khoaXem.appendChild(option.cloneNode(true));
             if (editKhoa) editKhoa.appendChild(option);
         });
+
+        // Enforce khoa filter: nếu user thuộc khoa, lock dropdown
+        if (typeof KhoaFilterUtils !== 'undefined') {
+            KhoaFilterUtils.applyKhoaFilter(khoaXem);
+            KhoaFilterUtils.applyKhoaFilter(editKhoa);
+        }
     } catch (error) {
         console.error('Error loading khoa:', error);
+    }
+}
+
+// Load hệ đào tạo cho modal
+async function loadHeDaoTaoOptions() {
+    try {
+        const response = await fetch('/api/gvm/v1/he-moi-giang');
+        if (!response.ok) {
+            throw new Error(`Load he dao tao failed with status ${response.status}`);
+        }
+
+        const rawData = await response.json();
+        const list = Array.isArray(rawData)
+            ? rawData
+            : (rawData && Array.isArray(rawData.data) ? rawData.data : []);
+
+        heDaoTaoList = list
+            .map((item) => ({
+                id: item.id,
+                value: item.he_dao_tao || item.HeDaoTao || item.value || ''
+            }))
+            .filter((item) => item.value);
+
+        const editHeDaoTao = document.getElementById('editHeDaoTao');
+        if (editHeDaoTao) {
+            editHeDaoTao.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
+            heDaoTaoList.forEach((item) => {
+                const option = document.createElement('option');
+                option.value = String(item.value);
+                option.textContent = String(item.value);
+                editHeDaoTao.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading he dao tao:', error);
+        heDaoTaoList = [];
     }
 }
 
@@ -124,6 +299,8 @@ function renderTable(data) {
         const tableRow = document.createElement('tr');
         tableRow.setAttribute('data-id', row.id);
         tableRow.setAttribute('data-index', index);
+        tableRow.setAttribute('data-giangvien', row.giangvien || '');
+        tableRow.setAttribute('data-qc', row.sotietqc || 0);
 
         // STT
         const sttTd = document.createElement('td');
@@ -139,6 +316,11 @@ function renderTable(data) {
         const khoaTd = document.createElement('td');
         khoaTd.textContent = row.khoa || '';
         tableRow.appendChild(khoaTd);
+
+        // Hệ đào tạo
+        const heDaoTaoTd = document.createElement('td');
+        heDaoTaoTd.textContent = row.doituong || row.doi_tuong || '';
+        tableRow.appendChild(heDaoTaoTd);
 
         // Học kỳ
         const hocKyTd = document.createElement('td');
@@ -162,8 +344,14 @@ function renderTable(data) {
 
         // Số tiết QC
         const qcTd = document.createElement('td');
-        qcTd.textContent = row.sotietqc || '';
+        const qcVal = parseFloat(row.sotietqc);
+        qcTd.textContent = Number.isNaN(qcVal) ? '' : qcVal.toFixed(2);
         tableRow.appendChild(qcTd);
+
+        // Ghi chú
+        const ghiChuTd = document.createElement('td');
+        ghiChuTd.textContent = row.ghichu || '';
+        tableRow.appendChild(ghiChuTd);
 
         // Checkbox Khoa
         const khoaCheckTd = document.createElement('td');
@@ -171,7 +359,23 @@ function renderTable(data) {
         khoaCheckbox.type = 'checkbox';
         khoaCheckbox.name = 'khoa';
         khoaCheckbox.checked = row.khoaduyet === 1;
-        khoaCheckbox.onchange = () => updateCheckAll('khoa');
+        khoaCheckbox.onchange = () => {
+            updateCheckAll('khoa');
+            updateKhaoThiCheckboxes();
+        };
+
+        // Phân quyền checkbox Khoa
+        if (row.khaothiduyet === 1) {
+            // Đã duyệt Khảo thí → khóa cả hai
+            khoaCheckbox.checked = true;
+            khoaCheckbox.disabled = true;
+        } else if (row.khoaduyet === 1) {
+            // Đã duyệt Khoa → chỉ Lãnh đạo khoa mới bỏ duyệt được
+            khoaCheckbox.disabled = !canApprove('khoa', 'uncheck');
+        } else {
+            // Chưa duyệt Khoa → chỉ GV_CNBM mới duyệt được
+            khoaCheckbox.disabled = !canApprove('khoa', 'check');
+        }
         khoaCheckTd.appendChild(khoaCheckbox);
         tableRow.appendChild(khoaCheckTd);
 
@@ -182,9 +386,18 @@ function renderTable(data) {
         ktCheckbox.name = 'khaoThi';
         ktCheckbox.checked = row.khaothiduyet === 1;
         ktCheckbox.onchange = () => updateCheckAll('khaoThi');
-        
-        // Workflow: Khảo thí chỉ enable khi Khoa đã duyệt
-        ktCheckbox.disabled = row.khoaduyet !== 1;
+
+        // Phân quyền checkbox Khảo thí
+        if (row.khaothiduyet === 1) {
+            // Đã duyệt → chỉ Lãnh đạo phòng mới bỏ duyệt được
+            ktCheckbox.disabled = !canApprove('khaoThi', 'uncheck');
+        } else if (row.khoaduyet !== 1) {
+            // Khoa chưa duyệt → không cho duyệt Khảo thí
+            ktCheckbox.disabled = true;
+        } else {
+            // Khoa đã duyệt, Khảo thí chưa duyệt → chỉ Trợ lý mới duyệt được
+            ktCheckbox.disabled = !canApprove('khaoThi', 'check');
+        }
         
         ktCheckTd.appendChild(ktCheckbox);
         tableRow.appendChild(ktCheckTd);
@@ -200,17 +413,40 @@ function renderTable(data) {
                     <i class="fas fa-trash"></i>
                 </button>
             `;
-        } else {
-            actionTd.innerHTML = '<span class="text-muted small">Đã duyệt</span>';
         }
         tableRow.appendChild(actionTd);
 
         tableBody.appendChild(tableRow);
     });
 
+    updateSummary();
+
     // Update Check All states
     updateCheckAll('khoa');
     updateCheckAll('khaoThi');
+}
+
+// ==================== UPDATE SUMMARY ====================
+function updateSummary() {
+    const rows = document.querySelectorAll('#tableBody tr');
+    const uniqueGVs = new Set();
+    let totalQC = 0;
+
+    rows.forEach(row => {
+        if (row.style.display !== 'none') {
+            const gv = row.getAttribute('data-giangvien');
+            if (gv) uniqueGVs.add(gv);
+            
+            const qcVal = parseFloat(row.getAttribute('data-qc')) || 0;
+            totalQC += qcVal;
+        }
+    });
+
+    const popTeachers = document.getElementById('totalTeachers');
+    const popTotalQC = document.getElementById('totalQC');
+    
+    if (popTeachers) popTeachers.textContent = uniqueGVs.size;
+    if (popTotalQC) popTotalQC.textContent = totalQC.toFixed(2);
 }
 
 // ==================== FILTER ====================
@@ -223,7 +459,7 @@ function filterTable() {
 
     tableRows.forEach(row => {
         const gvCell = row.querySelector('td:nth-child(2)'); // Giảng viên
-        const hpCell = row.querySelector('td:nth-child(5)'); // Tên học phần
+        const hpCell = row.querySelector('td:nth-child(6)'); // Tên học phần
 
         const gvValue = gvCell ? gvCell.textContent.toLowerCase() : '';
         const hpValue = hpCell ? hpCell.textContent.toLowerCase() : '';
@@ -237,6 +473,8 @@ function filterTable() {
             row.style.display = 'none';
         }
     });
+
+    updateSummary();
 }
 
 // ==================== CHECK ALL ====================
@@ -252,9 +490,16 @@ function checkAll(type) {
     const checkAllCheckbox = document.getElementById(checkAllIdMap[type]);
     if (!checkAllCheckbox) return;
 
+    const isChecking = checkAllCheckbox.checked;
+
     checkboxes.forEach(checkbox => {
         if (checkbox.disabled) return;
-        checkbox.checked = checkAllCheckbox.checked;
+        
+        // Kiểm tra quyền: nếu đang check thì cần quyền 'check', nếu uncheck thì cần quyền 'uncheck'
+        const action = isChecking ? 'check' : 'uncheck';
+        if (!canApprove(type, action)) return;
+        
+        checkbox.checked = isChecking;
     });
 
     // Nếu check Khoa, cần update trạng thái của Khảo thí
@@ -297,14 +542,26 @@ function updateKhaoThiCheckboxes() {
     rows.forEach(row => {
         const khoaCheckbox = row.querySelector('input[name="khoa"]');
         const ktCheckbox = row.querySelector('input[name="khaoThi"]');
+        const dataIndex = parseInt(row.getAttribute('data-index'));
+        const data = Number.isNaN(dataIndex) ? null : globalData[dataIndex];
         
         if (khoaCheckbox && ktCheckbox) {
-            // Khảo thí chỉ enable khi Khoa được check
-            ktCheckbox.disabled = !khoaCheckbox.checked;
+            if (data && data.khaothiduyet === 1) {
+                // Đã duyệt Khảo thí → chỉ Lãnh đạo phòng mới bỏ duyệt
+                khoaCheckbox.checked = true;
+                khoaCheckbox.disabled = true;
+                ktCheckbox.checked = true;
+                ktCheckbox.disabled = !canApprove('khaoThi', 'uncheck');
+                return;
+            }
             
-            // Nếu Khoa uncheck, tự động uncheck Khảo thí
+            // Khảo thí chỉ enable khi Khoa được check VÀ user có quyền
             if (!khoaCheckbox.checked) {
+                ktCheckbox.disabled = true;
                 ktCheckbox.checked = false;
+            } else {
+                // Khoa đã check → cho phép duyệt Khảo thí nếu có quyền
+                ktCheckbox.disabled = !canApprove('khaoThi', 'check');
             }
         }
     });
@@ -335,8 +592,11 @@ function editRecord(id) {
     document.getElementById('editGiangVien').value = record.giangvien || '';
     document.getElementById('editLopHP').value = record.lophocphan || '';
     document.getElementById('editSiSo').value = record.tongso || 0;
-    document.getElementById('editLoaiKTHP').value = record.hinhthuc || 'Ra đề';
-    document.getElementById('editSoTietQC').value = record.sotietqc || 0;
+    const heDaoTaoSelect = document.getElementById('editHeDaoTao');
+    setSelectValueWithFallback(heDaoTaoSelect, record.doituong || record.doi_tuong || '');
+    const loaiSelect = document.getElementById('editLoaiKTHP');
+    setSelectValueWithFallback(loaiSelect, record.hinhthuc || 'Ra đề');
+    document.getElementById('editSoTietQC').value = toFixedInput(record.sotietqc, 2) || 0;
     document.getElementById('editGhiChu').value = record.ghichu || '';
 
     // Show modal
@@ -349,6 +609,7 @@ async function handleEditSubmit() {
     const id = document.getElementById('editID').value;
     
     const formData = {
+        NamHoc: document.getElementById('editNamHoc').value,
         namhoc: document.getElementById('editNamHoc').value,
         ki: document.getElementById('editHocKy').value,
         khoa: document.getElementById('editKhoa').value,
@@ -358,6 +619,7 @@ async function handleEditSubmit() {
         giangvien: document.getElementById('editGiangVien').value,
         lophocphan: document.getElementById('editLopHP').value,
         tongso: document.getElementById('editSiSo').value,
+        doituong: document.getElementById('editHeDaoTao').value,
         hinhthuc: document.getElementById('editLoaiKTHP').value,
         sotietqc: document.getElementById('editSoTietQC').value,
         ghichu: document.getElementById('editGhiChu').value
@@ -408,7 +670,8 @@ async function deleteRecord(id) {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await fetch(`/v2/vuotgio/duyet-kthp/${id}`, {
+        const namHoc = document.getElementById('namHocXem').value;
+        const response = await fetch(`/v2/vuotgio/duyet-kthp/${id}?NamHoc=${encodeURIComponent(namHoc)}`, {
             method: 'DELETE'
         });
 
@@ -443,10 +706,14 @@ async function submitApprovals() {
         const ktCheckbox = row.querySelector('input[name="khaoThi"]');
         
         if (globalData[dataIndex]) {
+            const khaoThiValue = ktCheckbox?.checked ? 1 : 0;
+            if (khaoThiValue === 1 && khoaCheckbox) {
+                khoaCheckbox.checked = true;
+            }
             updates.push({
                 id: id,
                 khoaduyet: khoaCheckbox?.checked ? 1 : 0,
-                khaothiduyet: ktCheckbox?.checked ? 1 : 0
+                khaothiduyet: khaoThiValue
             });
         }
     });
@@ -457,10 +724,11 @@ async function submitApprovals() {
     }
 
     try {
+        const namHoc = document.getElementById('namHocXem').value;
         const response = await fetch('/v2/vuotgio/duyet-kthp/batch-approve', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updates)
+            body: JSON.stringify({ NamHoc: namHoc, updates: updates })
         });
 
         const result = await response.json();
@@ -476,3 +744,20 @@ async function submitApprovals() {
         Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật', 'error');
     }
 }
+
+// ==================== TOGGLE SUMMARY ====================
+document.addEventListener('DOMContentLoaded', function() {
+    const btnToggle = document.getElementById('btnToggleSummary');
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function() {
+            const summaryBox = document.getElementById('summaryBox');
+            summaryBox.classList.toggle('collapsed');
+            const icon = this.querySelector('i');
+            if (summaryBox.classList.contains('collapsed')) {
+                icon.className = 'bi bi-chevron-up';
+            } else {
+                icon.className = 'bi bi-chevron-down';
+            }
+        });
+    }
+});

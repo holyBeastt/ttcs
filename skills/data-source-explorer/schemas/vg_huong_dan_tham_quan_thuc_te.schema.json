@@ -1,0 +1,107 @@
+[
+  {
+    "field": "id",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "PRI",
+    "default": null
+  },
+  {
+    "field": "id_User",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "MUL",
+    "default": null
+  },
+  {
+    "field": "he_dao_tao_id",
+    "type": "int(11)",
+    "nullable": false,
+    "key": "MUL",
+    "default": null
+  },
+  {
+    "field": "nganh_hoc",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "khoa",
+    "type": "varchar(50)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "nam_hoc",
+    "type": "varchar(20)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "hoc_ky",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "dot",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "mo_ta_hoat_dong",
+    "type": "text",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "theo_qd",
+    "type": "varchar(255)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "so_ngay",
+    "type": "int(11)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "so_tiet_quy_doi",
+    "type": "decimal(10,2)",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "ghi_chu",
+    "type": "text",
+    "nullable": true,
+    "key": "",
+    "default": null
+  },
+  {
+    "field": "created_at",
+    "type": "timestamp",
+    "nullable": true,
+    "key": "",
+    "default": "current_timestamp()"
+  },
+  {
+    "field": "updated_at",
+    "type": "timestamp",
+    "nullable": true,
+    "key": "",
+    "default": "current_timestamp()"
+  }
+]

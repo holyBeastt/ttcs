@@ -93,9 +93,6 @@
                 </a>
                 <a class="nav-link" href="/tableTam">Bảng quy chuẩn giảng dạy dự kiến</a>
                 <a class="nav-link" href="/tableQC">Bảng quy chuẩn giảng dạy chính thức</a>
-                <div class="dropdown-submenu" style="width: 100%" id="addFileKTHP">
-                  <a class="nav-link" id="" href="/v2/vuotgio/importkthp">Coi, chấm, ra đề thi</a>
-                </div>
               </div>
             </div>
           </div>
@@ -207,13 +204,18 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <!-- ========== V2 - Vượt Giờ ========== -->
-                <a class="nav-link" href="/v2/vuotgio/them-lop-ngoai-qc">Thêm Lớp Ngoài Quy Chuẩn</a>
-                <a class="nav-link" href="/v2/vuotgio/danh-sach-lop-ngoai-qc">Duyệt Danh Sách Lớp Ngoài Quy Chuẩn</a>
-                <a class="nav-link" href="/v2/vuotgio/them-kthp">Thêm Thông Tin Coi, Chấm, Ra Đề Thi</a>
-                <a class="nav-link" href="/v2/vuotgio/duyet-kthp">Duyệt Coi, Chấm, Ra Đề Thi</a>
-                <a class="nav-link" href="/v2/vuotgio/huong-dan-datn">Xem số tiết hướng dẫn ĐATN</a>
-                <a class="nav-link" href="/v2/vuotgio/tong-hop-giang-vien">Tổng hợp số tiết vượt giờ theo GV</a>
-                <a class="nav-link" href="/v2/vuotgio/tong-hop-khoa">Tổng hợp số tiết vượt giờ theo Khoa</a>
+                <a class="nav-link" id="nav-them-lop-ngoai-qc" href="/v2/vuotgio/them-lop-ngoai-qc">Thêm Thông Tin Lớp Ngoài Quy Chuẩn</a>
+                <a class="nav-link" id="nav-them-kthp" href="/v2/vuotgio/them-kthp">Thêm Thông Tin Coi, Chấm, Ra Đề Thi</a>
+                <!-- <a class="nav-link" href="/v2/vuotgio/import-kthp">Import file Coi, Chấm, Ra Đề Thi</a> -->
+                <a class="nav-link" href="/v2/vuotgio/danh-sach-lop-ngoai-qc">Đào Tạo Duyệt Danh Sách Lớp Ngoài Quy Chuẩn</a>
+                <a class="nav-link" href="/v2/vuotgio/duyet-kthp">Khảo Thí Duyệt Coi, Chấm, Ra Đề Thi</a>
+                <a class="nav-link" href="/v2/vuotgio/thong-ke-giang-day">Giảng dạy quy chuẩn</a>
+                <a class="nav-link" href="/v2/vuotgio/huong-dan-datn">Hướng dẫn ĐATN - Luận án - Luận văn</a>
+                <a class="nav-link" href="/v2/vuotgio/huong-dan-tham-quan">Hướng dẫn tham quan thực tế</a>
+                <a class="nav-link" href="/v2/vuotgio/tong-hop-giang-vien">Thống kê số tiết vượt giờ theo giảng viên</a>
+                <a class="nav-link" href="/v2/vuotgio/tong-hop-khoa">Thống kê số tiết vượt giờ theo khoa - phòng</a>
+                <a class="nav-link" href="/v2/vuotgio/xuat-file">Xuất file vượt giờ</a>
+
               </div>
             </div>
           </div>
@@ -363,8 +365,8 @@
 
     // Chuẩn hóa một số route legacy để active đúng menu hiện tại.
     const activePathAliases = {
-      "/importkthp": "/v2/vuotgio/them-kthp",
-      "/v2/vuotgio/importkthp": "/v2/vuotgio/them-kthp",
+      "/importkthp": "/v2/vuotgio/import-kthp",
+      "/v2/vuotgio/importkthp": "/v2/vuotgio/import-kthp",
     };
     const normalizedCurrentPath = activePathAliases[currentPath] || currentPath;
 
@@ -572,6 +574,26 @@
       themFileKTHP.style.display = "none";
     } else {
       themFileKTHP.style.display = "";
+    }
+
+    // Vượt giờ: "Thêm Thông Tin Lớp Ngoài Quy Chuẩn" chỉ hiển thị cho Đào tạo (trợ lý + lãnh đạo)
+    let navThemLopNgoaiQC = document.getElementById("nav-them-lop-ngoai-qc");
+    if (navThemLopNgoaiQC) {
+      if (maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+        navThemLopNgoaiQC.style.display = "";
+      } else {
+        navThemLopNgoaiQC.style.display = "none";
+      }
+    }
+
+    // Vượt giờ: "Thêm Thông Tin Coi, Chấm, Ra Đề Thi" chỉ hiển thị cho Khảo thí (trợ lý + lãnh đạo)
+    let navThemKTHP = document.getElementById("nav-them-kthp");
+    if (navThemKTHP) {
+      if (maPhongBan === APP_DEPARTMENTS.khaoThi && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+        navThemKTHP.style.display = "";
+      } else {
+        navThemKTHP.style.display = "none";
+      }
     }
   });
 </script>

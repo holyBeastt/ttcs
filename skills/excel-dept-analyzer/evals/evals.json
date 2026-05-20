@@ -1,0 +1,11 @@
+{
+  "skill_name": "excel-dept-analyzer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hãy phân tích logic tính toán của sheet 'CNTT-092025'. Chú ý đến cách tính đơn giá và việc áp trần 300 tiết.",
+      "expected_output": "Một bản đặc tả Markdown chi tiết các bước tính toán của khoa CNTT, bao gồm công thức đơn giá TRUNC(C/176, 1) và logic IF(AC<=300, AC, 300), kèm code Python minh họa.",
+      "files": ["thống kê chung vượt giờ.xlsx"]
+    }
+  ]
+}

@@ -282,6 +282,31 @@
     return list.map((item) => escapeHtml(item.tenNhanVien || item.tenNgoai || "")).join("<br/>");
   }
 
+  const HOI_DONG_ROLE_LABELS = {
+    chu_tich: "Chủ tịch",
+    phan_bien: "Phản biện",
+    uy_vien: "Ủy viên",
+  };
+
+  function formatHoiDongParticipants(participants) {
+    const list = participants || [];
+    if (!list.length) return "<em>Không có</em>";
+
+    const roleOrder = ["chu_tich", "phan_bien", "uy_vien"];
+    const lines = [];
+
+    roleOrder.forEach((role) => {
+      const label = HOI_DONG_ROLE_LABELS[role] || role;
+      list.filter((item) => item.vaiTro === role).forEach((item) => {
+        const name = item.tenNhanVien || item.tenNgoai || "";
+        lines.push(`${escapeHtml(name)} (${escapeHtml(label)})`);
+      });
+    });
+
+    if (!lines.length) return "<em>Không có</em>";
+    return lines.join("<br/>");
+  }
+
   async function showDetail(id) {
     if (id === null || id === undefined || String(id).trim() === "") {
       await Swal.fire("Thất bại", "ID bản ghi không hợp lệ", "error");
@@ -295,19 +320,27 @@
     }
 
     const data = result.data;
+    const participantHtml = data.loaiNckh === "HOIDONG"
+      ? `<p><strong>Vai trò hội đồng:</strong><br/>${formatHoiDongParticipants(data.participants)}</p>`
+      : `
+        <p><strong>Tác giả chính/Chủ nhiệm:</strong><br/>${formatParticipants(data.participants, "tac_gia")}</p>
+        <p><strong>Thành viên:</strong><br/>${formatParticipants(data.participants, "thanh_vien")}</p>
+      `;
+
+    const maSoLabel = data.loaiNckh === "HOIDONG" ? "Số quyết định" : "Mã số";
+
     const html = `
       <div style="text-align:left;line-height:1.5;">
         <p><strong>Loại NCKH:</strong> ${escapeHtml(data.loaiNckhLabel)}</p>
         <p><strong>Phân loại:</strong> ${escapeHtml(data.phanLoai)}</p>
         <p><strong>Tên công trình:</strong> ${escapeHtml(data.tenCongTrinh)}</p>
         <p><strong>Năm học:</strong> ${escapeHtml(data.namHoc)}</p>
-        <p><strong>Mã số:</strong> ${escapeHtml(data.maSo || "")}</p>
+        <p><strong>${maSoLabel}:</strong> ${escapeHtml(data.maSo || "")}</p>
         <p><strong>Xếp loại:</strong> ${escapeHtml(data.xepLoai || "")}</p>
         <p><strong>Ngày nghiệm thu:</strong> ${formatDate(data.ngayNghiemThu)}</p>
         <p><strong>Khoa:</strong> ${escapeHtml(data.tenPhongBan || data.maPhongBan || "")}</p>
         <p><strong>Tổng số tiết:</strong> ${formatHours(data.tongSoTiet)}</p>
-        <p><strong>Tác giả chính/Chủ nhiệm:</strong><br/>${formatParticipants(data.participants, "tac_gia")}</p>
-        <p><strong>Thành viên:</strong><br/>${formatParticipants(data.participants, "thanh_vien")}</p>
+        ${participantHtml}
       </div>
     `;
 

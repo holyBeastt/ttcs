@@ -208,8 +208,8 @@
               <select class="selectop" id="MaPhongBan">
                 <option value="ALL">Tất cả khoa</option>
               </select>
-              <select class="selectop" id="heDaoTao" style="min-width: 140px">
-                <option value="ALL">Tất cả hệ</option>
+              <select class="selectop" id="heDaoTao" style="width: max-content">
+                <option value="ALL">Tất cả hệ đào tạo</option>
               </select>
               <button onclick="getDataTable()" class="btn text-nowrap" id="render" style="margin-top: 17px">
                 Hiển thị
@@ -439,7 +439,7 @@
             // Cập nhật options của select#heDaoTao
             const heDaoTaoSelect = document.getElementById('heDaoTao');
             if (heDaoTaoSelect) {
-              heDaoTaoSelect.innerHTML = '<option value="ALL">Tất cả hệ</option>';
+              heDaoTaoSelect.innerHTML = '<option value="ALL">Tất cả hệ đào tạo</option>';
               heDaoTaoList.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id;

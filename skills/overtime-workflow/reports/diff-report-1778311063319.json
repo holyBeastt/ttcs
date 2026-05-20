@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-05-09T07:17:43.319Z",
+  "results": [
+    {
+      "id": "fixture-1",
+      "description": "Typical lecturer with some external classes and NCKH partially completed",
+      "input": {
+        "soTietGiangDay": 300,
+        "soTietNgoaiQC": 10,
+        "soTietKTHP": 5,
+        "soTietDoAn": 8,
+        "soTietHDTQ": 2,
+        "soTietNCKH": 150,
+        "phanTramMienGiam": 10,
+        "dinhMucChuan": 280,
+        "dinhMucNCKH": 280
+      },
+      "actual": {
+        "tongThucHien": 325,
+        "mienGiam": 28,
+        "dinhMucSauMienGiam": 252,
+        "thieuTietGiangDay": 0,
+        "thieuNCKH": 102,
+        "tongVuot": 0,
+        "thanhToan": 0,
+        "dinhMucChuan": 280
+      },
+      "expected": null
+    },
+    {
+      "id": "fixture-2",
+      "description": "Lecturer below quota, no overtime",
+      "input": {
+        "soTietGiangDay": 200,
+        "soTietNgoaiQC": 0,
+        "soTietKTHP": 0,
+        "soTietDoAn": 0,
+        "soTietHDTQ": 0,
+        "soTietNCKH": 280,
+        "phanTramMienGiam": 0,
+        "dinhMucChuan": 280,
+        "dinhMucNCKH": 280
+      },
+      "actual": {
+        "tongThucHien": 200,
+        "mienGiam": 0,
+        "dinhMucSauMienGiam": 280,
+        "thieuTietGiangDay": 80,
+        "thieuNCKH": 0,
+        "tongVuot": 0,
+        "thanhToan": 0,
+        "dinhMucChuan": 280
+      },
+      "expected": null
+    }
+  ]
+}

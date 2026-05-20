@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coi chấm ra đề thi - Vượt Giờ V2</title>
+
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/table.css" />
+    <link rel="stylesheet" href="/css/teachingInfo.css" />
+
+    <style>
+        .vuotgio-v2-container {
+            padding: 20px;
+        }
+
+        .page-header {
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .grid-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-toolbar {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search {
+            width: 200px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            height: 50px;
+        }
+
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 0.85rem;
+        }
+
+        .fixed-section {
+            height: 500px;
+            overflow-y: auto;
+        }
+
+        /* Summary Popup Styles */
+        .summary {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .summary.collapsed {
+            transform: translateY(calc(100% + 10px));
+        }
+
+        .summary-toggle {
+            position: absolute;
+            top: -35px;
+            right: 0;
+            width: 35px;
+            height: 35px;
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 10px 0 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .summary.collapsed .summary-toggle {
+            transform: translateY(5px);
+            border-radius: 10px 10px 0 0;
+            right: 10px;
+            top: -40px;
+        }
+
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            min-width: 200px;
+            padding: 4px 0;
+        }
+
+        .summary-box .label {
+            color: #516078;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .summary-box .value {
+            color: #0d6efd;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../header') %>
+
+        <div class="vuotgio-v2-container">
+            <div class="summary" id="summaryBox">
+                <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="summary-box">
+                    <div class="label">Tổng giảng viên</div>
+                    <div class="value" id="totalTeachers">0</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Tổng số tiết QC</div>
+                    <div class="value" id="totalQC">0</div>
+                </div>
+            </div>
+
+            <!-- Data Lock Banner -->
+            <div id="dataLockBanner" class="alert alert-warning align-items-center mb-3 d-none" role="alert">
+                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                <span id="dataLockMessage"></span>
+            </div>
+
+            <!-- Page Header -->
+            <!-- <div class="page-header">
+                <h2 class="page-title">Duyệt Thông Tin Coi, Chấm, Ra Đề Thi</h2>
+            </div> -->
+
+            <!-- Grid Section -->
+            <div class="grid-container">
+                <!-- Toolbar: Dropdowns + Buttons -->
+                <div class="grid-toolbar">
+                   <select class="selectop" id="namHocXem" style="width: 130px; margin: 0; box-shadow: none;">
+                        <option value="">Chọn năm học</option>
+                    </select>
+                    <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
+                        <option value="ALL" selected>Tất cả khoa</option>
+                    </select>
+                    <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
+                        Hiển thị
+                    </button>
+                    <button id="updateApprovalBtn" class="btn btn-success"
+                        style="height: 45px; width: 130px; margin: 0; display: none;">
+                        CẬP NHẬT
+                    </button>
+                </div>
+
+                <!-- Filter Row -->
+                <div class="d-flex my-3" style="height: 70px">
+                    <input type="text" id="filterGiangVien" placeholder="Tìm theo tên giảng viên"
+                        class="form-control m-2 search" />
+                    <input type="text" id="filterHocPhan" placeholder="Tìm theo tên học phần"
+                        class="form-control m-2 search" />
+                </div>
+
+                <!-- Table Section -->
+                <div id="renderInfo" class="fixed-section">
+                    <table class="text-center" style="width: 100%">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">STT</th>
+                                <th style="width: 180px;">Giảng viên</th>
+                                <th style="width: 70px;">Khoa</th>
+                                <th style="width: 140px;">Hệ đào tạo</th>
+                                <th style="width: 50px;">Kì</th>
+                                <th style="width: 200px;">Tên học phần</th>
+                                <th style="width: 100px;">Lớp HP</th>
+                                <th style="width: 100px;">Loại KTHP</th>
+                                <th style="width: 80px;">Số tiết QC</th>
+                                <th style="width: 160px;">Ghi chú</th>
+                                <th style="width: 80px;" id="khoaColumn">
+                                    <div class="form-check d-flex justify-content-center align-items-center">
+                                        <input class="check me-1" type="checkbox" id="checkAllKhoa"
+                                            onclick="checkAll('khoa')" />
+                                        <label class="form-check-label" for="checkAllKhoa">Khoa</label>
+                                    </div>
+                                </th>
+                                <th style="width: 80px;" id="khaoThiColumn">
+                                    <div class="form-check d-flex justify-content-center align-items-center">
+                                        <input class="check me-1" type="checkbox" id="checkAllKhaoThi"
+                                            onclick="checkAll('khaoThi')" />
+                                        <label class="form-check-label text-nowrap" for="checkAllKhaoThi">K.Thí</label>
+                                    </div>
+                                </th>
+                                <th style="width: 100px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Dữ liệu sẽ được chèn vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Sửa Kết Thúc Học Phần</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editForm">
+                            <input type="hidden" id="editID" />
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Năm học</label>
+                                    <select id="editNamHoc" class="form-select"></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Học kỳ</label>
+                                    <select id="editHocKy" class="form-select">
+                                        <option value="1">Học kỳ 1</option>
+                                        <option value="2">Học kỳ 2</option>
+                                        <option value="3">Học kỳ hè</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Khoa</label>
+                                    <select id="editKhoa" class="form-select"></select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên học phần</label>
+                                    <input type="text" id="editTenHP" class="form-control" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Mã HP</label>
+                                    <input type="text" id="editMaHP" class="form-control" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Số TC</label>
+                                    <input type="number" id="editSoTC" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Giảng viên</label>
+                                    <input type="text" id="editGiangVien" class="form-control" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Lớp HP</label>
+                                    <input type="text" id="editLopHP" class="form-control" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Sĩ số</label>
+                                    <input type="number" id="editSiSo" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Hệ đào tạo</label>
+                                    <select id="editHeDaoTao" class="form-select"></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Loại KTHP</label>
+                                    <select id="editLoaiKTHP" class="form-select">
+                                        <option value="Ra đề">Ra đề</option>
+                                        <option value="Coi thi">Coi thi</option>
+                                        <option value="Chấm thi">Chấm thi</option>
+                                        <option value="Ngân hàng câu hỏi">Ngân hàng câu hỏi</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Số tiết QC</label>
+                                    <input type="number" id="editSoTietQC" class="form-control" step="0.5" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Ghi chú</label>
+                                    <input type="text" id="editGhiChu" class="form-control" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" id="saveEditBtn">Lưu thay đổi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+        <script src="/js/vuotgio_v2/khoaFilter.utils.js"></script>
+        <script src="/js/vuotgio_v2/duyetKTHP/index.js"></script>
+
+        <!-- Data Lock Check -->
+        <script>
+        (function() {
+            const namHocSelect = document.getElementById('namHocXem');
+            const banner = document.getElementById('dataLockBanner');
+            const bannerMsg = document.getElementById('dataLockMessage');
+
+            function checkLockStatus() {
+                const namHoc = namHocSelect ? namHocSelect.value : '';
+                if (!namHoc) {
+                    banner.classList.add('d-none');
+                    banner.classList.remove('d-flex');
+                    enableButtons();
+                    return;
+                }
+                fetch('/v2/vuotgio/trang-thai-khoa?namHoc=' + encodeURIComponent(namHoc))
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.success && data.locked) {
+                            var info = data.lockInfo;
+                            bannerMsg.textContent = 'Dữ liệu năm học ' + namHoc + ' đã được lưu bởi ' + info.nguoi_khoa + ' vào ' + info.ngay_khoa + '. Không thể chỉnh sửa.';
+                            banner.classList.remove('d-none');
+                            banner.classList.add('d-flex');
+                            disableButtons();
+                        } else {
+                            banner.classList.add('d-none');
+                            banner.classList.remove('d-flex');
+                            enableButtons();
+                        }
+                    })
+                    .catch(function() {
+                        banner.classList.add('d-none');
+                        banner.classList.remove('d-flex');
+                        enableButtons();
+                    });
+            }
+
+            function disableButtons() {
+                var actionBtns = document.querySelectorAll('#updateApprovalBtn, #checkAllKhoa, #checkAllKhaoThi');
+                actionBtns.forEach(function(btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.pointerEvents = 'none';
+                });
+                document.querySelectorAll('#tableBody .btn-action, #tableBody .btn').forEach(function(btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.pointerEvents = 'none';
+                });
+                document.body.dataset.locked = 'true';
+            }
+
+            function enableButtons() {
+                var actionBtns = document.querySelectorAll('#updateApprovalBtn, #checkAllKhoa, #checkAllKhaoThi');
+                actionBtns.forEach(function(btn) {
+                    btn.disabled = false;
+                    btn.style.opacity = '';
+                    btn.style.pointerEvents = '';
+                });
+                document.querySelectorAll('#tableBody .btn-action, #tableBody .btn').forEach(function(btn) {
+                    btn.disabled = false;
+                    btn.style.opacity = '';
+                    btn.style.pointerEvents = '';
+                });
+                document.body.dataset.locked = 'false';
+            }
+
+            if (namHocSelect) {
+                namHocSelect.addEventListener('change', checkLockStatus);
+            }
+            setTimeout(checkLockStatus, 500);
+
+            // Re-check after data loads
+            var observer = new MutationObserver(function() {
+                if (document.body.dataset.locked === 'true') {
+                    disableButtons();
+                }
+            });
+            var tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                observer.observe(tableBody, { childList: true });
+            }
+        })();
+        </script>
+</body>
+
+</html>

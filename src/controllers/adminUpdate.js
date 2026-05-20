@@ -2,6 +2,13 @@ const express = require("express");
 const mysql = require("mysql2/promise"); // Ensure you have mysql2 installed
 const pool = require("../config/Pool");
 
+const parseWholeHsl = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const normalizedValue = typeof value === "string" ? value.replace(",", ".") : value;
+  const parsedValue = Number(normalizedValue);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+};
+
 const postUpdateNV = async (req, res) => {
   // Lấy các thông tin từ form
   let connection; // Khai báo biến connection
@@ -36,7 +43,7 @@ const postUpdateNV = async (req, res) => {
   try {
     // Kiểm tra giá trị của HSL và PhanTramMienGiam
     // Chuẩn hóa giá trị của HSL
-    const validHSL = HSL === "" ? 0 : Number(HSL.toString().replace(",", "."));
+    const validHSL = HSL === "" ? 0 : parseWholeHsl(HSL);
 
     connection = await pool.getConnection(); // Lấy kết nối từ pool
 
@@ -87,11 +94,11 @@ const postUpdateNV = async (req, res) => {
         .status(409)
         .json({ message: "Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác." });
     }
-    const ModeHSL = parseFloat(HSL); // Chuyển thành số thực
-    if (isNaN(ModeHSL) || ModeHSL < 0) {
+    const ModeHSL = parseWholeHsl(HSL);
+    if (ModeHSL === null || ModeHSL < 0) {
       connection.release();
       return res.status(400).json({
-        message: "Hệ số lương phải là số lớn hơn 0. Vui lòng kiểm tra lại.",
+        message: "Hệ số lương phải là số hợp lệ không âm. Vui lòng kiểm tra lại.",
       });
     }
     if (!/^\d*$/.test(Luong)) {

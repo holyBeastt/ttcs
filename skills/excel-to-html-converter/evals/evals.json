@@ -1,0 +1,11 @@
+{
+  "skill_name": "excel-to-html-converter",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hãy convert sheet 'CNTT-092025' sang HTML với giao diện chuyên nghiệp.",
+      "expected_output": "Một file HTML được tạo ra, có chứa dữ liệu của khoa CNTT, xử lý đúng các ô gộp và có style CSS hiện đại.",
+      "files": ["thống kê chung vượt giờ.xlsx"]
+    }
+  ]
+}
