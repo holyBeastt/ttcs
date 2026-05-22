@@ -1456,65 +1456,66 @@
 
             const result = await response.json();
 
-            if (result.success) {
-              // Lấy dữ liệu từ các ô chọn
-              let Dot = document.getElementById("combobox-dot").value;
-              let Ki = document.getElementById("comboboxki").value;
-              let Nam = document.getElementById("NamHoc").value;
-              let Khoa = document.getElementById("MaPhongBan").value;
-
-              const body = { Khoa, Dot, Ki, Nam };
-
-              // Gọi API xóa dữ liệu
-              fetch("/xoa-qcdk", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-              })
-                .then((response) => response.json())
-                .then((deleteResult) => {
-                  if (deleteResult.success) {
-                    console.log("Dữ liệu đã được xóa thành công!");
-                  } else {
-                    console.error("Lỗi xóa dữ liệu:", deleteResult.message);
-                  }
-                })
-                .catch((error) => console.error("Lỗi khi gọi API xóa:", error));
-
-              // Hiển thị thông báo ban hành thành công
+            if (!response.ok || !result.success) {
+              // Hiển thị thông báo lỗi chi tiết từ server (kể cả trùng lặp)
               Swal.fire({
                 title: "Thông báo",
-                html: result.message,
-                icon: "success",
-                confirmButtonText: "OK",
-                width: "auto",
-                padding: "20px",
-                timer: 3000, // Thời gian hiển thị (ms), ở đây là 3 giây
-                timerProgressBar: true, // Hiển thị thanh tiến trình
-                didClose: () => {
-                  location.reload(); // Reload trang khi alert đóng
-                },
-              });
-            } else {
-              // Hiển thị thông báo ban hành thất bại
-              Swal.fire({
-                title: "Thông báo",
-                html: result.message,
+                html: result.message || "Ban hành thất bại! Vui lòng thử lại.",
                 icon: "error",
                 confirmButtonText: "OK",
                 width: "auto",
                 padding: "20px",
               });
+              return; // KHÔNG gọi /xoa-qcdk khi ban hành thất bại
             }
+
+            // Ban hành thành công → mới gọi xóa bảng tạm
+            let Dot = document.getElementById("combobox-dot").value;
+            let Ki = document.getElementById("comboboxki").value;
+            let Nam = document.getElementById("NamHoc").value;
+            let Khoa = document.getElementById("MaPhongBan").value;
+
+            const body = { Khoa, Dot, Ki, Nam };
+
+            // Gọi API xóa dữ liệu
+            fetch("/xoa-qcdk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body),
+            })
+              .then((response) => response.json())
+              .then((deleteResult) => {
+                if (deleteResult.success) {
+                  console.log("Dữ liệu đã được xóa thành công!");
+                } else {
+                  console.error("Lỗi xóa dữ liệu:", deleteResult.message);
+                }
+              })
+              .catch((error) => console.error("Lỗi khi gọi API xóa:", error));
+
+            // Hiển thị thông báo ban hành thành công
+            Swal.fire({
+              title: "Thông báo",
+              html: result.message,
+              icon: "success",
+              confirmButtonText: "OK",
+              width: "auto",
+              padding: "20px",
+              timer: 3000,
+              timerProgressBar: true,
+              didClose: () => {
+                location.reload();
+              },
+            });
           } catch (error) {
             console.error("Error:", error);
             Swal.fire({
               title: "Thông báo",
               html: "Gửi dữ liệu thất bại! Vui lòng thử lại.",
-              icon: "success",
+              icon: "error",
               confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
+              width: "auto",
+              padding: "20px",
             });
           }
         });

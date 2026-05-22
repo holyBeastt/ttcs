@@ -76,6 +76,9 @@ router.post("/ban-hanh",
         res.status(500).json({ success: false, message: "Ban hành thất bại" });
       }
     } catch (error) {
+      if (error.code === "ER_DUP_ENTRY") {
+        return res.status(409).json({ success: false, message: error.message });
+      }
       console.error("Lỗi server:", error);
       res.status(500).json({
         success: false,

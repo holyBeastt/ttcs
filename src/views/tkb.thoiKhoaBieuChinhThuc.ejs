@@ -1250,9 +1250,14 @@
           },
           body: JSON.stringify(updatedData),
         })
-          .then((response) => {
+          .then(async (response) => {
             if (!response.ok) {
-              throw new Error("Gửi dữ liệu thất bại");
+              let errorMsg = "Gửi dữ liệu thất bại";
+              try {
+                const errData = await response.json();
+                if (errData.message) errorMsg = errData.message;
+              } catch (e) {}
+              throw new Error(errorMsg);
             }
             return response.json();
           })
@@ -1271,8 +1276,8 @@
               html: data.message,
               icon: iconAlert,
               confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
+              width: "auto",
+              padding: "20px",
             });
             
           })
@@ -1280,11 +1285,11 @@
             console.error("Error:", error);
             Swal.fire({
               title: "Thông báo",
-              html: "Gửi dữ liệu thất bại",
+              html: error.message || "Gửi dữ liệu thất bại",
               icon: "error",
               confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
+              width: "auto",
+              padding: "20px",
             });
           });
       }

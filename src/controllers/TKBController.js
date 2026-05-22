@@ -350,7 +350,8 @@ const themTKBVaoQCDK = async (req, res) => {
   const { major, dot, ki_hoc, nam_hoc } = req.body;
 
   let connection,
-    maPhongBanFalse = [];
+    maPhongBanFalse = [],
+    tkbData = [];
 
   try {
     // Lấy kết nối từ createPoolConnection
@@ -386,7 +387,8 @@ const themTKBVaoQCDK = async (req, res) => {
       getDataTKBParams.push(major);
     }
 
-    const [tkbData] = await connection.query(getDataTKBQuery, getDataTKBParams);
+    const [results] = await connection.query(getDataTKBQuery, getDataTKBParams);
+    tkbData = results;
 
     // Nếu không có dữ liệu thì không cần insert
     if (tkbData.length === 0) {
@@ -528,6 +530,32 @@ const themTKBVaoQCDK = async (req, res) => {
       message: "Thêm dữ liệu vào quy chuẩn dự kiến thành công"
     });
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
+      let dupValue = "";
+      let duplicateCourseName = "";
+      if (error.sqlMessage) {
+        const match = error.sqlMessage.match(/Duplicate entry '(.*?)' for key/i);
+        if (match && match[1]) {
+          const dupString = match[1];
+          // Tìm tên lớp học phần từ dữ liệu gốc tkbData để trích xuất chính xác
+          for (const row of tkbData) {
+            if (row.LopHocPhan && dupString.includes(row.LopHocPhan)) {
+              duplicateCourseName = row.LopHocPhan;
+              break; // tìm thấy dòng trùng lặp đầu tiên thì dừng
+            }
+          }
+          if (duplicateCourseName) {
+            dupValue = ` (Tại lớp học phần: ${duplicateCourseName})`;
+          } else {
+            dupValue = ` (Chi tiết chuỗi trùng: ${dupString})`;
+          }
+        }
+      }
+      return res.status(409).json({ 
+        status: "error", 
+        message: `Dữ liệu bị trùng lặp trong bảng tạm${dupValue}. <br/><br/><b>Vui lòng chỉnh sửa lại:</b> Trong cùng một đợt, kì, năm thì tên lớp (bao gồm Tên học phần + tên lớp) phải khác nhau.`
+      });
+    }
     console.error("Lỗi khi cập nhật dữ liệu:", error);
     res.status(500).json({
       status: "error",
