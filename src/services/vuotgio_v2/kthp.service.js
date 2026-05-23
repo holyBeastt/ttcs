@@ -281,8 +281,43 @@ const getList = async (req, res) => {
     try {
         connection = await createPoolConnection();
         const query = `
-            SELECT ${repo.buildSelect()} FROM ${repo.COI_CHAM_RA_DE_TABLE}
-            WHERE khoa = ? AND hoc_ky = ? AND nam_hoc = ?
+            SELECT 
+              t.id,
+              t.id_user,
+              t.giang_vien AS giangvien,
+              t.giang_vien,
+              t.khoa,
+              t.hoc_ky AS ki,
+              t.hoc_ky,
+              t.nam_hoc AS namhoc,
+              t.nam_hoc,
+              t.hinh_thuc AS hinhthuc,
+              t.hinh_thuc,
+              t.ten_hoc_phan AS tenhocphan,
+              t.ten_hoc_phan,
+              t.lop_hoc_phan AS lophocphan,
+              t.lop_hoc_phan,
+              h.he_dao_tao AS doituong,
+              h.he_dao_tao AS doi_tuong,
+              t.bai_cham_1 AS baicham1,
+              t.bai_cham_1,
+              t.bai_cham_2 AS baicham2,
+              t.bai_cham_2,
+              t.tong_so AS tongso,
+              t.tong_so,
+              t.quy_chuan AS sotietqc,
+              t.quy_chuan,
+              t.ghi_chu AS ghichu,
+              t.ghi_chu,
+              t.khoa_duyet AS khoaduyet,
+              t.khoa_duyet,
+              t.khao_thi_duyet AS khaothiduyet,
+              t.khao_thi_duyet,
+              t.so_tc,
+              t.so_sv
+            FROM ${repo.COI_CHAM_RA_DE_TABLE} t
+            LEFT JOIN he_dao_tao h ON t.he_dao_tao_id = h.id
+            WHERE t.khoa = ? AND t.hoc_ky = ? AND t.nam_hoc = ?
         `;
         const [rows] = await connection.execute(query, [MaPhongBan, Ki, Nam]);
         res.json({ success: true, list: rows });
@@ -311,13 +346,15 @@ const getMyList = async (req, res) => {
 };
 
 const deleteByFilter = async (req, res) => {
-    const { Ki, Nam } = req.body;
+    const { Ki, Nam, hocKy, namHoc } = req.body;
+    const kiVal = hocKy || Ki;
+    const namVal = namHoc || Nam;
     const { userId, userName } = getUserContext(req);
     let connection;
     try {
         connection = await createPoolConnection();
-        const [result] = await repo.deleteByYearAndSemester(connection, { hocKy: Ki, namHoc: Nam });
-        await LogService.logChange(userId, userName, "Xóa KTHP theo năm/kỳ", `Xóa ${result.affectedRows} bản ghi - Học kỳ ${Ki}, Năm ${Nam}`);
+        const [result] = await repo.deleteByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal });
+        await LogService.logChange(userId, userName, "Xóa KTHP theo năm/kỳ", `Xóa ${result.affectedRows} bản ghi - Học kỳ ${kiVal}, Năm ${namVal}`);
         res.json({ success: true, message: "Xóa dữ liệu thành công", affectedRows: result.affectedRows });
     } catch (error) {
         console.error("Lỗi khi xóa dữ liệu KTHP:", error);
@@ -328,11 +365,13 @@ const deleteByFilter = async (req, res) => {
 };
 
 const checkExistence = async (req, res) => {
-    const { Ki, Nam } = req.body;
+    const { Ki, Nam, hocKy, namHoc } = req.body;
+    const kiVal = hocKy || Ki;
+    const namVal = namHoc || Nam;
     let connection;
     try {
         connection = await createPoolConnection();
-        const count = await repo.countByYearAndSemester(connection, { hocKy: Ki, namHoc: Nam });
+        const count = await repo.countByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal });
         res.json({ exists: count > 0 });
     } catch (error) {
         console.error("Lỗi khi kiểm tra dữ liệu KTHP:", error);

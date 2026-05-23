@@ -17,23 +17,23 @@ const dataLockService = require("../services/vuotgio_v2/dataLock.service");
  */
 const extractNamHoc = (req) => {
     // Priority 1: Route params
-    const fromParams = req.params.NamHoc || req.params.namHoc;
+    const fromParams = req.params.NamHoc || req.params.namHoc || req.params.Nam || req.params.nam;
     if (fromParams) return fromParams;
 
     // Priority 2: Query params
-    const fromQuery = req.query.NamHoc || req.query.namHoc || req.query.nam_hoc;
+    const fromQuery = req.query.NamHoc || req.query.namHoc || req.query.nam_hoc || req.query.Nam || req.query.nam;
     if (fromQuery) return fromQuery;
 
     // Priority 3: Request body (object)
     if (req.body && !Array.isArray(req.body)) {
-        const fromBody = req.body.NamHoc || req.body.namHoc || req.body.nam_hoc;
+        const fromBody = req.body.NamHoc || req.body.namHoc || req.body.nam_hoc || req.body.Nam || req.body.nam;
         if (fromBody) return fromBody;
     }
 
     // Priority 4: Request body (array) — lấy từ phần tử đầu tiên
     if (Array.isArray(req.body) && req.body.length > 0) {
         const first = req.body[0];
-        const fromArray = first.NamHoc || first.namHoc || first.nam_hoc;
+        const fromArray = first.NamHoc || first.namHoc || first.nam_hoc || first.Nam || first.nam;
         if (fromArray) return fromArray;
     }
 

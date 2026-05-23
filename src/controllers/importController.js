@@ -671,40 +671,25 @@ const importTableQC = async (jsonData, req) => {
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
   const connection = await createPoolConnection();
 
-  // Hàm format ngày từ string sang Date object hoặc null
-  // const formatDateValue = (dateValue) => {
-  //   if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
-  //     return null;
-  //   }
-
-  //   // Nếu đã là Date object
-  //   if (dateValue instanceof Date) {
-  //     return dateValue;
-  //   }
-
-  //   // Nếu là string, thử parse
-  //   if (typeof dateValue === 'string') {
-  //     // Format dd/mm/yyyy
-  //     const parts = dateValue.split('/');
-  //     if (parts.length === 3) {
-  //       const day = parseInt(parts[0], 10);
-  //       const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-  //       const year = parseInt(parts[2], 10);
-  //       const date = new Date(year, month, day);
-  //       if (!isNaN(date.getTime())) {
-  //         return date;
-  //       }
-  //     }
-
-  //     // Thử parse ISO format hoặc các format khác
-  //     const date = new Date(dateValue);
-  //     if (!isNaN(date.getTime())) {
-  //       return date;
-  //     }
-  //   }
-
-  //   return null;
-  // };
+  // 1. Tải bảng cấu hình ký tự bắt đầu để đối chiếu hệ đào tạo & đối tượng
+  const prefixQuery = `
+    SELECT 
+      k.viet_tat,
+      k.doi_tuong,
+      h.he_dao_tao AS ten_he_dao_tao
+    FROM kitubatdau k
+    LEFT JOIN he_dao_tao h ON CAST(k.gia_tri_so_sanh AS UNSIGNED) = h.id;
+  `;
+  const [configs] = await connection.query(prefixQuery);
+  const mappingMap = new Map();
+  for (const config of configs) {
+    if (config.viet_tat) {
+      mappingMap.set(config.viet_tat.toUpperCase().trim(), {
+        doi_tuong: config.doi_tuong,
+        he_dao_tao: config.ten_he_dao_tao
+      });
+    }
+  }
 
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
@@ -763,8 +748,20 @@ const importTableQC = async (jsonData, req) => {
     // console.log("Giảng Viên Giảng Dạy:", giangVienGiangDay);
 
     // Lấy hệ đào tạo từ dữ liệu gốc
-    const he_dao_tao = item["he_dao_tao"] || item["Hệ đào tạo"] || null;
-    const doi_tuong = "Việt Nam"; // Mặc định là "Việt Nam"
+    let he_dao_tao = item["he_dao_tao"] || item["Hệ đào tạo"] || null;
+    let doi_tuong = "Việt Nam"; // Mặc định là "Việt Nam"
+
+    // Trích xuất tiền tố của Lop để map
+    const matchPrefix = String(Lop || "").trim().match(/^[A-Za-z]+/);
+    const prefix = matchPrefix ? matchPrefix[0].toUpperCase().trim() : "";
+
+    if (mappingMap.has(prefix)) {
+      const matchConfig = mappingMap.get(prefix);
+      doi_tuong = matchConfig.doi_tuong || doi_tuong;
+      if (!he_dao_tao) {
+        he_dao_tao = matchConfig.he_dao_tao || null;
+      }
+    }
 
     // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu (hỗ trợ nhiều format key)
     const ngayBatDau = item["NgayBatDau"] || item["Ngày bắt đầu"] || null;

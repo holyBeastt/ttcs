@@ -27,6 +27,7 @@ const {
   getFacultyCodeList,
   getFacultyNameList,
   getStudentCourseList,
+  detectHeDaoTaoShared,
 } = require("../controllers/homeController");
 const { route } = require("./adminRoute");
 
@@ -79,5 +80,8 @@ router.get("/api/shared/faculty-name-list", getFacultyNameList);
 
 // Lấy danh sách khóa sinh viên
 router.get("/api/shared/student-course-list", getStudentCourseList);
+
+// Đối chiếu hệ đào tạo từ danh sách chuỗi tên lớp
+router.post("/api/shared/detect-he-dao-tao", detectHeDaoTaoShared);
 
 module.exports = router;
