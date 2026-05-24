@@ -1,5 +1,78 @@
 const pool = require("../config/Pool");
 
+// Helper function để lấy dữ liệu thống kê tổng hợp (tránh lặp code giữa get và export)
+async function getGeneralStatsData(namhoc, khoa, hedaotao) {
+  let query = `
+    SELECT 
+      Khoa,
+      HocKy,
+      SUM(CASE WHEN id_User = 1 AND he_dao_tao = 1 THEN quychuan ELSE 0 END) AS mg_dhp,
+      SUM(CASE WHEN id_User = 1 AND he_dao_tao != 1 THEN quychuan ELSE 0 END) AS mg_khac,
+      SUM(CASE WHEN id_User = 1 THEN quychuan ELSE 0 END) AS tong_mg,
+      SUM(CASE WHEN id_Gvm = 1 AND he_dao_tao = 1 THEN quychuan ELSE 0 END) AS gd_dhp,
+      SUM(CASE WHEN id_Gvm = 1 AND he_dao_tao != 1 THEN quychuan ELSE 0 END) AS gd_khac,
+      SUM(quychuan) AS tong_tiet
+    FROM giangday
+    WHERE (? = 'ALL' OR NamHoc = ?)
+      AND (? = 'ALL' OR he_dao_tao = ?)
+      AND (? = 'ALL' OR Khoa = ?)
+    GROUP BY Khoa, HocKy
+    ORDER BY Khoa, HocKy
+  `;
+  const params = [
+    namhoc || "ALL", namhoc || "ALL",
+    hedaotao || "ALL", hedaotao || "ALL",
+    khoa || "ALL", khoa || "ALL"
+  ];
+  const [rows] = await pool.query(query, params);
+  return rows;
+}
+
+// Helper function để lấy dữ liệu thống kê chi tiết
+async function getDetailedStatsData(namhoc, khoa) {
+  const [heRows] = await pool.query("SELECT he_dao_tao FROM he_dao_tao WHERE loai_hinh = 'mời giảng' ORDER BY id");
+  const allHe = heRows.map(h => h.he_dao_tao);
+
+  const query = `
+    SELECT 
+      g.HocKy,
+      g.Khoa,
+      h.he_dao_tao AS HeDaoTao,
+      SUM(CASE WHEN g.id_User = 1 THEN g.quychuan ELSE 0 END) AS mg_tiet,
+      SUM(CASE WHEN g.id_Gvm = 1 THEN g.quychuan ELSE 0 END) AS ch_tiet
+    FROM giangday g
+    LEFT JOIN he_dao_tao h ON g.he_dao_tao = h.id
+    WHERE (? = 'ALL' OR g.NamHoc = ?)
+      AND (? = 'ALL' OR g.Khoa = ?)
+    GROUP BY g.HocKy, g.Khoa, h.he_dao_tao
+    ORDER BY g.HocKy, g.Khoa, h.he_dao_tao
+  `;
+  const params = [
+    namhoc || "ALL", namhoc || "ALL",
+    khoa || "ALL", khoa || "ALL"
+  ];
+  const [detailedRows] = await pool.query(query, params);
+  
+  const semesters = {};
+  const foundSemesters = [...new Set(detailedRows.map(r => r.HocKy))];
+  foundSemesters.forEach(ki => {
+    semesters[ki] = { mg: {}, ch: {} };
+  });
+
+  detailedRows.forEach(row => {
+    if (row.HocKy && semesters[row.HocKy]) {
+      const sem = semesters[row.HocKy];
+      if (!sem.mg[row.Khoa]) sem.mg[row.Khoa] = {};
+      if (!sem.ch[row.Khoa]) sem.ch[row.Khoa] = {};
+
+      sem.mg[row.Khoa][row.HeDaoTao] = parseFloat(row.mg_tiet || 0);
+      sem.ch[row.Khoa][row.HeDaoTao] = parseFloat(row.ch_tiet || 0);
+    }
+  });
+
+  return { semesters, allHe };
+}
+
 const thongketonghopController = {
   getChartData: async (req, res) => {
     const { namhoc, kihoc, khoa, hedaotao, type } = req.query;
@@ -280,31 +353,7 @@ const thongketonghopController = {
     const { namhoc, khoa, hedaotao } = req.query;
 
     try {
-      let query = `
-        SELECT 
-          Khoa,
-          HocKy,
-          SUM(CASE WHEN id_User = 1 AND he_dao_tao = 1 THEN quychuan ELSE 0 END) AS mg_dhp,
-          SUM(CASE WHEN id_User = 1 AND he_dao_tao != 1 THEN quychuan ELSE 0 END) AS mg_khac,
-          SUM(CASE WHEN id_User = 1 THEN quychuan ELSE 0 END) AS tong_mg,
-          SUM(CASE WHEN id_Gvm = 1 AND he_dao_tao = 1 THEN quychuan ELSE 0 END) AS gd_dhp,
-          SUM(CASE WHEN id_Gvm = 1 AND he_dao_tao != 1 THEN quychuan ELSE 0 END) AS gd_khac,
-          SUM(quychuan) AS tong_tiet
-        FROM giangday
-        WHERE (? = 'ALL' OR NamHoc = ?)
-          AND (? = 'ALL' OR he_dao_tao = ?)
-          AND (? = 'ALL' OR Khoa = ?)
-        GROUP BY Khoa, HocKy
-        ORDER BY Khoa, HocKy
-      `;
-
-      const params = [
-        namhoc || "ALL", namhoc || "ALL",
-        hedaotao || "ALL", hedaotao || "ALL",
-        khoa || "ALL", khoa || "ALL"
-      ];
-
-      const [rows] = await pool.query(query, params);
+      const rows = await getGeneralStatsData(namhoc, khoa, hedaotao);
       res.json({ success: true, data: rows });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu thống kê tổng hợp V2:", error);
@@ -315,55 +364,7 @@ const thongketonghopController = {
   getDetailedStatsV2: async (req, res) => {
     const { namhoc, khoa } = req.query;
     try {
-      // 1. Get all training systems
-      const [heRows] = await pool.query("SELECT he_dao_tao FROM he_dao_tao WHERE loai_hinh = 'mời giảng' ORDER BY id");
-      const allHe = heRows.map(h => h.he_dao_tao);
-
-      // 2. Get teaching data grouped by Khoa
-      const query = `
-        SELECT 
-          g.HocKy,
-          g.Khoa,
-          h.he_dao_tao AS HeDaoTao,
-          SUM(CASE WHEN g.id_User = 1 THEN g.quychuan ELSE 0 END) AS mg_tiet,
-          SUM(CASE WHEN g.id_Gvm = 1 THEN g.quychuan ELSE 0 END) AS ch_tiet
-        FROM giangday g
-        LEFT JOIN he_dao_tao h ON g.he_dao_tao = h.id
-        WHERE (? = 'ALL' OR g.NamHoc = ?)
-          AND (? = 'ALL' OR g.Khoa = ?)
-        GROUP BY g.HocKy, g.Khoa, h.he_dao_tao
-        ORDER BY g.HocKy, g.Khoa, h.he_dao_tao
-      `;
-      const params = [
-        namhoc || "ALL", namhoc || "ALL",
-        khoa || "ALL", khoa || "ALL"
-      ];
-
-      const [rows] = await pool.query(query, params);
-
-      // 3. Structure data: semesters -> lecturerType -> [ {khoa, systems: {he: tiet}} ]
-      const semesters = {};
-      const foundSemesters = [...new Set(rows.map(r => r.HocKy))];
-
-      foundSemesters.forEach(ki => {
-        semesters[ki] = {
-          mg: {}, // { khoaName: { heName: tiet } }
-          ch: {}
-        };
-      });
-
-      rows.forEach(row => {
-        if (row.HocKy && semesters[row.HocKy]) {
-          const sem = semesters[row.HocKy];
-
-          if (!sem.mg[row.Khoa]) sem.mg[row.Khoa] = {};
-          if (!sem.ch[row.Khoa]) sem.ch[row.Khoa] = {};
-
-          sem.mg[row.Khoa][row.HeDaoTao] = parseFloat(row.mg_tiet || 0);
-          sem.ch[row.Khoa][row.HeDaoTao] = parseFloat(row.ch_tiet || 0);
-        }
-      });
-
+      const { semesters, allHe } = await getDetailedStatsData(namhoc, khoa);
       res.json({ success: true, semesters, allHe });
     } catch (error) {
       console.error("Lỗi khi lấy chi tiết thống kê:", error);
@@ -394,31 +395,7 @@ const thongketonghopController = {
     const ExcelJS = require("exceljs");
 
     try {
-      let query = `
-        SELECT 
-          Khoa,
-          HocKy,
-          SUM(CASE WHEN id_User = 1 AND he_dao_tao = 1 THEN quychuan ELSE 0 END) AS mg_dhp,
-          SUM(CASE WHEN id_User = 1 AND he_dao_tao != 1 THEN quychuan ELSE 0 END) AS mg_khac,
-          SUM(CASE WHEN id_User = 1 THEN quychuan ELSE 0 END) AS tong_mg,
-          SUM(CASE WHEN id_Gvm = 1 AND he_dao_tao = 1 THEN quychuan ELSE 0 END) AS gd_dhp,
-          SUM(CASE WHEN id_Gvm = 1 AND he_dao_tao != 1 THEN quychuan ELSE 0 END) AS gd_khac,
-          SUM(quychuan) AS tong_tiet
-        FROM giangday
-        WHERE (? = 'ALL' OR NamHoc = ?)
-          AND (? = 'ALL' OR he_dao_tao = ?)
-          AND (? = 'ALL' OR Khoa = ?)
-        GROUP BY Khoa, HocKy
-        ORDER BY Khoa, HocKy
-      `;
-
-      const params = [
-        namhoc || "ALL", namhoc || "ALL",
-        hedaotao || "ALL", hedaotao || "ALL",
-        khoa || "ALL", khoa || "ALL"
-      ];
-
-      const [rows] = await pool.query(query, params);
+      const rows = await getGeneralStatsData(namhoc, khoa, hedaotao);
 
       // Process data for pivot
       const pivotMap = {};
@@ -444,20 +421,21 @@ const thongketonghopController = {
       const worksheet = workbook.addWorksheet("Thống kê tổng hợp");
 
       // Set columns
+      // Bỏ 'header' để ExcelJS không tự chèn dòng header lên đầu (dòng 1)
       worksheet.columns = [
-        { header: "Khoa", key: "khoa", width: 35 },
-        { header: "KÌ 1", key: "ki1_mg_dhp", width: 15 },
-        { header: "", key: "ki1_mg_khac", width: 15 },
-        { header: "", key: "ki1_tong_mg", width: 15 },
-        { header: "", key: "ki1_gd_dhp", width: 15 },
-        { header: "", key: "ki1_gd_khac", width: 15 },
-        { header: "", key: "ki1_tong_tiet", width: 18 },
-        { header: "KÌ 2", key: "ki2_mg_dhp", width: 15 },
-        { header: "", key: "ki2_mg_khac", width: 15 },
-        { header: "", key: "ki2_tong_mg", width: 15 },
-        { header: "", key: "ki2_gd_dhp", width: 15 },
-        { header: "", key: "ki2_gd_khac", width: 15 },
-        { header: "", key: "ki2_tong_tiet", width: 18 },
+        { key: "khoa", width: 35 },
+        { key: "ki1_mg_dhp", width: 15 },
+        { key: "ki1_mg_khac", width: 15 },
+        { key: "ki1_tong_mg", width: 15 },
+        { key: "ki1_gd_dhp", width: 15 },
+        { key: "ki1_gd_khac", width: 15 },
+        { key: "ki1_tong_tiet", width: 18 },
+        { key: "ki2_mg_dhp", width: 15 },
+        { key: "ki2_mg_khac", width: 15 },
+        { key: "ki2_tong_mg", width: 15 },
+        { key: "ki2_gd_dhp", width: 15 },
+        { key: "ki2_gd_khac", width: 15 },
+        { key: "ki2_tong_tiet", width: 18 },
       ];
 
       // Styling helpers
@@ -586,6 +564,180 @@ const thongketonghopController = {
       });
       valueCell.numFmt = '#,##0.00';
       aRow.height = 25;
+
+      // -------------- CHI TIẾT THEO KÌ --------------
+      const { semesters, allHe } = await getDetailedStatsData(namhoc, khoa);
+
+      // 1. Thêm trực tiếp dữ liệu chi tiết vào Sheet 1 (Thống kê tổng hợp) phần bên dưới theo yêu cầu
+      Object.keys(semesters).sort().forEach(ki => {
+        const semData = semesters[ki];
+        
+        worksheet.addRow([]);
+        const titleRowGen = worksheet.addRow([`CHI TIẾT MỜI GIẢNG & CƠ HỮU - HỌC KỲ ${ki}`]);
+        worksheet.mergeCells(titleRowGen.number, 1, titleRowGen.number, allHe.length + 2);
+        titleRowGen.getCell(1).style = titleStyle;
+        titleRowGen.getCell(1).alignment = { horizontal: 'center' };
+        titleRowGen.height = 30;
+
+        worksheet.addRow([]); // Blank
+
+        ["mg", "ch"].forEach(type => {
+          const label = type === 'mg' ? 'I. DANH SÁCH MỜI GIẢNG' : 'II. DANH SÁCH CƠ HỮU';
+          const tableData = semData[type];
+          const sortedKhoasDetail = Object.keys(tableData).sort();
+
+          const labelRow = worksheet.addRow([label]);
+          labelRow.getCell(1).font = { bold: true, size: 14, color: { argb: type === 'mg' ? 'FF0070C0' : 'FF00B050' } };
+          worksheet.addRow([]); // Blank
+
+          // Header table
+          const headerData = ["Khoa", ...allHe, "Tổng cộng"];
+          const hRow = worksheet.addRow(headerData);
+          hRow.eachCell(cell => cell.style = headerStyle);
+
+          if (sortedKhoasDetail.length === 0) {
+            worksheet.addRow(["Không có dữ liệu"]);
+          } else {
+            const colTotals = allHe.map(() => 0);
+            let grandTotal = 0;
+
+            sortedKhoasDetail.forEach(khoa => {
+              let rowTotal = 0;
+              const rowValues = [khoa];
+              
+              allHe.forEach((he, idx) => {
+                const val = tableData[khoa][he] || 0;
+                rowValues.push(val > 0 ? val : '-');
+                rowTotal += val;
+                colTotals[idx] += val;
+              });
+
+              rowValues.push(rowTotal);
+              grandTotal += rowTotal;
+
+              const r = worksheet.addRow(rowValues);
+              r.eachCell((cell, colNumber) => {
+                cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+                if (colNumber > 1) {
+                  cell.alignment = { horizontal: 'center' };
+                  if(typeof cell.value === 'number') cell.numFmt = '#,##0.00';
+                }
+                if (colNumber === allHe.length + 2) {
+                  cell.font = { bold: true };
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+                }
+              });
+            });
+
+            // Tiếng dòng TỔNG CỘNG
+            const totalRowVals = ["TỔNG CỘNG", ...colTotals.map(t => t > 0 ? t : '-'), grandTotal];
+            const tRow = worksheet.addRow(totalRowVals);
+            tRow.eachCell((cell, colNumber) => {
+              cell.font = { bold: true };
+              cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF99' } };
+              if (colNumber > 1) {
+                cell.alignment = { horizontal: 'center' };
+                if(typeof cell.value === 'number') cell.numFmt = '#,##0.00';
+              }
+            });
+          }
+          worksheet.addRow([]);
+          worksheet.addRow([]);
+        });
+      });
+
+      // 2. Tạo các sheet chi tiết (Tab phụ) cho từng Kì để user tham khảo (sẽ xóa nếu user thấy thừa sau này)
+      Object.keys(semesters).sort().forEach(ki => {
+        const wsDetail = workbook.addWorksheet(`Chi tiết Kì ${ki}`);
+        const semData = semesters[ki];
+
+        // Định dạng cột BỎ header để tránh lỗi dòng thừa số 1
+        const cols = [{ key: "khoa", width: 35 }];
+        allHe.forEach((he, i) => {
+          cols.push({ key: `he_${i}`, width: 15 });
+        });
+        cols.push({ key: "tong_cong", width: 15 });
+        wsDetail.columns = cols;
+
+        // Title 
+        const wsTitleRow = wsDetail.addRow([`CHI TIẾT MỜI GIẢNG & CƠ HỮU - HỌC KỲ ${ki}`]);
+        wsDetail.mergeCells(1, 1, 1, allHe.length + 2);
+        wsTitleRow.getCell(1).style = titleStyle;
+        wsTitleRow.getCell(1).alignment = { horizontal: 'center' };
+        wsTitleRow.height = 30;
+
+        const subtitleRowDetail = wsDetail.addRow([`Năm học: ${namhoc || 'Tất cả'}`]);
+        subtitleRowDetail.getCell(1).alignment = { horizontal: 'center' };
+        wsDetail.mergeCells(2, 1, 2, allHe.length + 2);
+        wsDetail.addRow([]);
+
+        ["mg", "ch"].forEach(type => {
+          const label = type === 'mg' ? 'I. DANH SÁCH MỜI GIẢNG' : 'II. DANH SÁCH CƠ HỮU';
+          const tableData = semData[type];
+          const sortedKhoasDetail = Object.keys(tableData).sort();
+
+          const labelRow = wsDetail.addRow([label]);
+          labelRow.getCell(1).font = { bold: true, size: 14, color: { argb: type === 'mg' ? 'FF0070C0' : 'FF00B050' } };
+          wsDetail.addRow([]); // Blank
+
+          // Header table
+          const headerData = ["Khoa", ...allHe, "Tổng cộng"];
+          const hRow = wsDetail.addRow(headerData);
+          hRow.eachCell(cell => cell.style = headerStyle);
+
+          if (sortedKhoasDetail.length === 0) {
+            wsDetail.addRow(["Không có dữ liệu"]);
+          } else {
+            const colTotals = allHe.map(() => 0);
+            let grandTotal = 0;
+
+            sortedKhoasDetail.forEach(khoa => {
+              let rowTotal = 0;
+              const rowValues = [khoa];
+              
+              allHe.forEach((he, idx) => {
+                const val = tableData[khoa][he] || 0;
+                rowValues.push(val > 0 ? val : '-');
+                rowTotal += val;
+                colTotals[idx] += val;
+              });
+
+              rowValues.push(rowTotal);
+              grandTotal += rowTotal;
+
+              const r = wsDetail.addRow(rowValues);
+              r.eachCell((cell, colNumber) => {
+                cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+                if (colNumber > 1) {
+                  cell.alignment = { horizontal: 'center' };
+                  if(typeof cell.value === 'number') cell.numFmt = '#,##0.00';
+                }
+                if (colNumber === allHe.length + 2) {
+                  cell.font = { bold: true };
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+                }
+              });
+            });
+
+            // Dòng TỔNG CỘNG
+            const totalRowVals = ["TỔNG CỘNG", ...colTotals.map(t => t > 0 ? t : '-'), grandTotal];
+            const tRow = wsDetail.addRow(totalRowVals);
+            tRow.eachCell((cell, colNumber) => {
+              cell.font = { bold: true };
+              cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF99' } }; // Light yellow
+              if (colNumber > 1) {
+                cell.alignment = { horizontal: 'center' };
+                if(typeof cell.value === 'number') cell.numFmt = '#,##0.00';
+              }
+            });
+          }
+          wsDetail.addRow([]);
+          wsDetail.addRow([]);
+        });
+      });
+
       const fileName = `ThongKeTongHop_hedaotao-${hedaotao}_namhoc-${namhoc}_khoa-${khoa}.xlsx`;
 
       res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
