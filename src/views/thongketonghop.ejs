@@ -931,9 +931,6 @@
                   }</option>`
                 );
               });
-              if (response.MaxNamHoc) {
-                $("#NamHoc").val(response.MaxNamHoc).trigger("change");
-              }
 
               // Populate comboboxki with data
               $("#comboboxki").empty();
@@ -944,54 +941,18 @@
                   }</option>`
                 );
               });
+
+              if (response.MaxNamHoc) {
+                $("#NamHoc").val(response.MaxNamHoc);
+              }
+
+              // Khởi tạo dữ liệu sau khi combobox đã có đủ option
+              fetchData1();
+              fetchThongKeMGData();
+              fetchData2();
             }
           },
         });
-
-        // Lấy danh sách khoa (No longer needed)
-        /*
-        $.ajax({
-          url: "/getPhongBanTH",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              $("#Khoa").empty();
-              $("#Khoa").append('<option value="ALL">Tất cả khoa</option>');
-              response.MaPhongBan.forEach(function (item) {
-                if (item.MaPhongBan && item.MaPhongBan !== "ALL") {
-                  $("#Khoa").append(
-                    `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                  );
-                }
-              });
-            }
-          },
-        });
-        */
-
-        // Lấy danh sách hệ đào tạo (No longer needed)
-        /*
-        $.ajax({
-          url: "/getHeDaoTaoTH",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              $("#HeDaoTao").empty();
-              $("#HeDaoTao").append('<option value="ALL">Tất cả hệ</option>');
-              response.HeDaoTao.forEach(function (item) {
-                $("#HeDaoTao").append(
-                  `<option value="${item.HeDaoTao}">${item.HeDaoTao}</option>`
-                );
-              });
-            }
-          },
-        });
-        */
-
-        // Khởi tạo dữ liệu
-        fetchData1();
-        fetchThongKeMGData();
-        fetchData2();
       });
     </script>
 
