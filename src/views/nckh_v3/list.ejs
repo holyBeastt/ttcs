@@ -73,68 +73,8 @@
     }
 
     .nckh-v3-list-table {
-      background: #fff;
-      border: 1px solid #dee2e6;
-      border-radius: 10px;
-      position: relative;
-      overflow: auto;
-      max-height: calc(100vh - 290px);
-      scroll-behavior: smooth;
-      overscroll-behavior: contain;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-    }
-
-    .nckh-v3-list-table::before,
-    .nckh-v3-list-table::after {
-      content: "";
-      position: sticky;
-      left: 0;
-      right: 0;
-      height: 16px;
-      display: block;
-      pointer-events: none;
-      z-index: 4;
-      opacity: 0;
-      transition: opacity 180ms ease;
-    }
-
-    .nckh-v3-list-table::before {
-      top: 0;
-      margin-bottom: -16px;
-      background: linear-gradient(to bottom, rgba(33, 37, 41, 0.12), rgba(33, 37, 41, 0));
-    }
-
-    .nckh-v3-list-table::after {
-      bottom: 0;
-      margin-top: -16px;
-      background: linear-gradient(to top, rgba(33, 37, 41, 0.14), rgba(33, 37, 41, 0));
-    }
-
-    .nckh-v3-list-table.has-top-shadow::before {
-      opacity: 1;
-    }
-
-    .nckh-v3-list-table.has-bottom-shadow::after {
-      opacity: 1;
-    }
-
-    .nckh-v3-list-table::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-
-    .nckh-v3-list-table::-webkit-scrollbar-thumb {
-      background: #c4ccd4;
-      border-radius: 999px;
-      border: 2px solid #f8f9fa;
-    }
-
-    .nckh-v3-list-table::-webkit-scrollbar-thumb:hover {
-      background: #9ea9b5;
-    }
-
-    .nckh-v3-list-table::-webkit-scrollbar-track {
-      background: #f8f9fa;
+      width: 100%;
+      overflow-x: auto; /* Just in case horizontal scrolling is needed, but vertical scrolling is natively on page */
     }
 
     .nckh-v3-list-table .table {
@@ -143,27 +83,19 @@
     }
 
     .nckh-v3-list-table thead th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: #3eacff;
-      color: #fff;
-      border-color: #2d7fbe;
-      text-transform: uppercase;
-      font-size: 0.78rem;
-      letter-spacing: 0.02em;
+      background: #f8f9fa;
       vertical-align: middle;
       white-space: nowrap;
     }
 
-    .nckh-v3-list-table td {
+    .nckh-v3-list-table td, 
+    .nckh-v3-list-table th {
       vertical-align: middle;
-      font-size: 0.92rem;
+      padding: 8px;
     }
 
     .nckh-v3-list-table .col-main {
       min-width: 260px;
-      font-weight: 600;
     }
 
     .nckh-v3-list-table .col-people {
@@ -180,14 +112,6 @@
       margin-top: 2px;
     }
 
-    .nckh-v3-row-khoa-duyet {
-      background: #fff8dc;
-    }
-
-    .nckh-v3-row-vien-duyet {
-      background: #e8f5e9;
-    }
-
     .nckh-v3-checkbox {
       width: 18px;
       height: 18px;
@@ -199,30 +123,7 @@
       opacity: 0.45;
     }
 
-    .nckh-v3-approval-khoa,
-    .nckh-v3-approval-vien {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
 
-    .nckh-v3-inline-note {
-      color: #6c757d;
-      font-size: 0.85rem;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 992px) {
-      .nckh-v3-list-table {
-        max-height: calc(100vh - 250px);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .nckh-v3-list-table {
-        max-height: none;
-      }
-    }
   </style>
 </head>
 
@@ -233,6 +134,7 @@
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
       <h1 class="page-title mb-0">Danh sách NCKH</h1>
       <div class="d-flex gap-2">
+        <a href="/v3/nckh/import" class="btn btn-outline-success btn-sm"><i class="bi bi-cloud-upload"></i> Import</a>
         <a href="/v3/nckh/thong-ke/giang-vien" class="btn btn-outline-primary btn-sm">TK theo GV</a>
         <a href="/v3/nckh/thong-ke/khoa" class="btn btn-outline-primary btn-sm">TK theo Khoa</a>
         <a href="/v3/nckh/thong-ke/hoc-vien" class="btn btn-outline-primary btn-sm">TK theo HV</a>
@@ -278,8 +180,8 @@
       </div>
     </div>
 
-    <div class="nckh-v3-list-table table-responsive">
-      <table class="table table-bordered table-hover text-center align-middle">
+    <div class="nckh-v3-list-table">
+      <table border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
         <thead>
           <tr>
             <th>STT</th>
@@ -338,23 +240,6 @@
   <script src="/js/nckh_v3/list/index.js"></script>
   <script>
     (function () {
-      // Scroll shadow logic
-      const container = document.querySelector(".nckh-v3-list-table");
-      if (container) {
-        const updateScrollShadows = () => {
-          const maxScrollTop = container.scrollHeight - container.clientHeight;
-          container.classList.toggle("has-top-shadow", container.scrollTop > 4);
-          container.classList.toggle("has-bottom-shadow", container.scrollTop < maxScrollTop - 4);
-        };
-        container.addEventListener("scroll", updateScrollShadows, { passive: true });
-        window.addEventListener("resize", updateScrollShadows);
-        const tableBody = document.getElementById("recordsTableBody");
-        if (tableBody && window.MutationObserver) {
-          const observer = new MutationObserver(updateScrollShadows);
-          observer.observe(tableBody, { childList: true, subtree: true });
-        }
-        updateScrollShadows();
-      }
 
       // Sort logic
       let currentSort = { key: null, direction: 'asc' };

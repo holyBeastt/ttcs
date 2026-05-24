@@ -23,21 +23,25 @@
 
     .nckh-v3-type-toolbar {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      align-items: flex-end;
+      gap: 14px;
       flex-wrap: wrap;
-      margin-bottom: 12px;
     }
 
-    .nckh-v3-type-toolbar .form-label {
+    .nckh-v3-type-toolbar .tb-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 300px;
+    }
+
+    .nckh-v3-type-toolbar .tb-group .form-label {
       margin-bottom: 0;
-      font-weight: 500;
-      color: #495057;
-      white-space: nowrap;
-    }
-
-    .nckh-v3-type-toolbar .form-select {
-      min-width: 280px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--nckh-text-muted);
     }
   </style>
 </head>
@@ -47,23 +51,28 @@
 
   <div class="nckh-v3-container">
     <div class="page-header">
-      <h1 class="page-title">Nhập liệu nghiên cứu khoa học</h1>
+      <h1 class="page-title">Thêm thủ công NCKH</h1>
+      <a href="/v3/nckh/import" class="btn-import-link">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Thêm bằng file
+      </a>
     </div>
 
     <div class="nckh-tab-content active">
       <div class="form-section">
         <form id="nckhTypeForm" class="nckh-v3-type-toolbar" method="GET" action="<%= pagePath %>">
-          <label for="nckhTypeSelect" class="form-label">Loại NCKH</label>
-          <select id="nckhTypeSelect" name="type" class="form-select">
-            <% (nckhTypeOptions || []).forEach(function(item) { %>
-              <option value="<%= item.value %>" <%= selectedType === item.value ? 'selected' : '' %>>
-                <%= item.label %>
-              </option>
-            <% }); %>
-          </select>
+          <div class="tb-group">
+            <label for="nckhTypeSelect" class="form-label">Loại NCKH</label>
+            <select id="nckhTypeSelect" name="type" class="form-select">
+              <% (nckhTypeOptions || []).forEach(function(item) { %>
+                <option value="<%= item.value %>" <%= selectedType === item.value ? 'selected' : '' %>>
+                  <%= item.label %>
+                </option>
+              <% }); %>
+            </select>
+          </div>
         </form>
 
-        <div id="nckhTypeContent" class="nckh-v3-form-scroll">
+        <div id="nckhTypeContent" class="nckh-v3-form-scroll" style="margin-top: 20px;">
           <% if (selectedTypeMeta && selectedTypeMeta.implemented) { %>
             <%- include('./typeInput', { pageMode: pageMode, selectedTypeMeta: selectedTypeMeta }) %>
           <% } else { %>

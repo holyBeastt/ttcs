@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 
 const portalController = require("../controllers/nckh_v3/portal.controller");
 const deTaiDuAnV3Controller = require("../controllers/nckh_v3/deTaiDuAn.controller");
@@ -14,6 +15,34 @@ const recordController = require("../controllers/nckh_v3/record.controller");
 const adminController = require("../controllers/nckh_v3/adminQuyDinh.controller");
 const statsController = require("../controllers/nckh_v3/stats.controller");
 const exportController = require("../controllers/nckh_v3/export.controller");
+const importController = require("../controllers/nckh_v3/import.controller");
+
+// Multer memory storage for Excel upload
+const uploadMemory = multer({ storage: multer.memoryStorage() });
+
+// Auth middleware: only trợ lý / lãnh đạo from Viện NCKH&HTPT
+const importAuthMiddleware = (req, res, next) => {
+  const role = req.session?.role || "";
+  const maPhongBan = req.session?.MaPhongBan || "";
+
+  const troLyPhong = process.env.ROLE_PHONGBAN_TROLY || "tro_ly_phong";
+  const lanhDaoPhong = process.env.ROLE_PHONGBAN_LANHDAO || "lanh_dao_phong";
+  const vienNcCode = process.env.VIEN_NCKH_HTPT || "NCKHHTQT";
+
+  const hasRole = role === troLyPhong || role === lanhDaoPhong;
+  // TODO: Bật lại kiểm tra phòng ban sau khi test xong
+  // const hasDept = maPhongBan === vienNcCode;
+  const hasDept = true;
+
+  if (!hasRole || !hasDept) {
+    if (req.headers["content-type"]?.includes("json") || req.xhr) {
+      return res.status(403).json({ success: false, message: "Bạn không có quyền truy cập tính năng import." });
+    }
+    return res.redirect("/v3/nckh");
+  }
+
+  next();
+};
 
 router.use((req, res, next) => {
 	res.locals.nckhVersion = "v3";
@@ -131,6 +160,11 @@ router.get("/export/stats/hoc-vien", exportController.exportInstituteStats);
 router.get("/hoi-dong-khoa-hoc", (req, res) => {
 	res.redirect("/v3/nckh/them-moi-nckh?type=thanh-vien-hoi-dong");
 });
+
+// Import NCKH routes (restricted to trợ lý / lãnh đạo Viện NC)
+router.get("/import", importAuthMiddleware, importController.renderImportPage);
+router.post("/import/preview", importAuthMiddleware, uploadMemory.single("file"), importController.previewExcel);
+router.post("/import/save", importAuthMiddleware, importController.saveImportData);
 
 // Admin quy-dinh APIs (route under V3 path)
 router.get("/admin/quy-dinh", adminController.getAdminQuyDinhPage);

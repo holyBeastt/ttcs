@@ -155,11 +155,7 @@
     // No auto-focusing to user's department, keep 'ALL' as default.
   }
 
-  function getRowClass(row) {
-    if (row.vienNcDuyet === 1) return "nckh-v3-row-vien-duyet";
-    if (row.khoaDuyet === 1) return "nckh-v3-row-khoa-duyet";
-    return "";
-  }
+
 
   function escapeHtml(value) {
     return String(value || "")
@@ -227,7 +223,7 @@
       const thanhVien = formatMultilineCell(row.thanhVienDisplay || row.thanhVien || "");
 
       return `
-        <tr class="${getRowClass(row)}" data-id="${row.id}">
+        <tr data-id="${row.id}">
           <td>${index + 1}</td>
           <td>${escapeHtml(row.loaiNckhLabel)}</td>
           <td>${escapeHtml(row.phanLoai)}</td>
