@@ -109,10 +109,6 @@ const buildPreview = async (fileBuffer, type, namHocFromUI) => {
 
   // Map each row
   const mappedRecords = filteredRows.map((row, index) => {
-    // Thêm log chi tiết data đọc được từ Excel
-    console.log(`\n--- [NCKH V3 Import] Dòng ${index + 1} ---`);
-    console.log(`[RAW EXCEL]:`, JSON.stringify(row, null, 2));
-
     try {
       const mapped = importMapper.mapRow(type, row);
       
@@ -121,7 +117,6 @@ const buildPreview = async (fileBuffer, type, namHocFromUI) => {
         mapped.chung.namHoc = namHocFromUI;
       }
       
-      console.log(`[MAPPED DATA]:`, JSON.stringify(mapped, null, 2));
 
       mapped._rowIndex = index + 1;
       mapped._errors = [];

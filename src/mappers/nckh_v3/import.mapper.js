@@ -1,7 +1,7 @@
 /**
  * NCKH Import Mapper
  * Transforms raw Excel row objects → standardized DB-ready objects
- * for each of the 4 supported NCKH types.
+ * for each of the 8 supported NCKH types.
  */
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -26,6 +26,16 @@ const parseMySQLDate = (v) => {
   if (!v) return null;
   const str = String(v).trim();
   if (!str) return null;
+
+  // Pattern: Excel serial date (e.g. 45432 or 45432.5)
+  if (/^\d{5}(\.\d+)?$/.test(str)) {
+    const excelDate = parseFloat(str);
+    const d = new Date((excelDate - 25569) * 86400 * 1000);
+    const day = String(d.getUTCDate()).padStart(2, "0");
+    const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const year = d.getUTCFullYear();
+    return `${year}-${month}-${day}`;
+  }
 
   // Pattern: DD/MM/YYYY or DD-MM-YYYY
   const regexDDMMYYYY = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/;
@@ -290,6 +300,155 @@ const mapThanhVienHoiDong = (row) => {
   };
 };
 
+/**
+ * File 5: Sách / Giáo trình
+ * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
+ */
+const mapSachGiaoTrinh = (row) => {
+  const tacGiaChinh = splitCodes(row["Mã số Chủ biên"]);
+  const dongTacGia = splitCodes(row["Mã số Đồng tác giả"]);
+
+  return {
+    chung: {
+      tenCongTrinh: trimStr(row["Tên sách/giáo trình"]),
+      loaiNckh: "SACHGIAOTRINH",
+      phanLoai: trimStr(row["Phân loại sách"]) || null,
+      namHoc: null, // Sẽ được lấy từ UI select
+      maSo: trimStr(row["Mã số sách"]) || null,
+      soQuyetDinh: trimStr(row["Số quyết định"]) || null,
+      ngayQuyetDinh: parseMySQLDate(row["Ngày quyết định"]) || null,
+      coQuanChuQuan: trimStr(row["Nhà xuất bản"]) || null,
+      coQuanChuTri: trimStr(row["Cơ quan chủ trì"]) || null,
+      tongSoTiet: 0,
+      capNhiemVu: null,
+      kinhPhi: null,
+      tenTapChi: null,
+      soBao: null,
+      soTrichDan: null,
+      ngayNghiemThu: null,
+      xepLoai: null,
+    },
+    participants: {
+      tacGiaMaCodes: tacGiaChinh,
+      thanhVienMaCodes: dongTacGia,
+      ngoaiList: [],
+    },
+    namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
+    mode: "standard",
+  };
+};
+
+/**
+ * File 6: Sáng kiến
+ * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
+ */
+const mapSangKien = (row) => {
+  const tacGiaChinh = splitCodes(row["Mã số Tác giả chính"]);
+  const dongTacGia = splitCodes(row["Mã số Đồng tác giả"]);
+
+  return {
+    chung: {
+      tenCongTrinh: trimStr(row["Tên sáng kiến"]),
+      loaiNckh: "SANGKIEN",
+      phanLoai: trimStr(row["Cấp sáng kiến"]) || null,
+      namHoc: null, // Sẽ được lấy từ UI select
+      maSo: trimStr(row["Mã số sáng kiến"]) || null,
+      xepLoai: trimStr(row["Kết quả đánh giá"]) || null,
+      coQuanChuTri: trimStr(row["Cơ quan chủ trì"]) || null,
+      soQuyetDinh: trimStr(row["Số quyết định"]) || null,
+      ngayQuyetDinh: parseMySQLDate(row["Ngày quyết định"]) || null,
+      tongSoTiet: 0,
+      capNhiemVu: null,
+      kinhPhi: null,
+      tenTapChi: null,
+      soBao: null,
+      soTrichDan: null,
+      ngayNghiemThu: null,
+    },
+    participants: {
+      tacGiaMaCodes: tacGiaChinh,
+      thanhVienMaCodes: dongTacGia,
+      ngoaiList: [],
+    },
+    namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
+    mode: "standard",
+  };
+};
+
+/**
+ * File 7: Giải thưởng
+ * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
+ */
+const mapGiaiThuong = (row) => {
+  const tacGiaChinh = splitCodes(row["Mã số Người đạt giải chính"]);
+  const dongTacGia = splitCodes(row["Mã số Thành viên khác"]);
+
+  return {
+    chung: {
+      tenCongTrinh: trimStr(row["Tên giải thưởng"]),
+      loaiNckh: "GIAITHUONG",
+      phanLoai: trimStr(row["Cấp giải thưởng"]) || null,
+      namHoc: null, // Sẽ được lấy từ UI select
+      xepLoai: trimStr(row["Thứ hạng giải"]) || null,
+      coQuanChuTri: trimStr(row["Cơ quan chủ trì"]) || null,
+      soQuyetDinh: trimStr(row["Số quyết định"]) || null,
+      ngayQuyetDinh: parseMySQLDate(row["Ngày quyết định"]) || null,
+      tongSoTiet: 0,
+      maSo: null,
+      capNhiemVu: null,
+      kinhPhi: null,
+      tenTapChi: null,
+      soBao: null,
+      soTrichDan: null,
+      ngayNghiemThu: null,
+    },
+    participants: {
+      tacGiaMaCodes: tacGiaChinh,
+      thanhVienMaCodes: dongTacGia,
+      ngoaiList: [],
+    },
+    namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
+    mode: "standard",
+  };
+};
+
+/**
+ * File 8: Đề xuất nghiên cứu
+ * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
+ */
+const mapDeXuatNghienCuu = (row) => {
+  const tacGiaChinh = splitCodes(row["Mã số Chủ nhiệm đề xuất"]);
+  const dongTacGia = splitCodes(row["Mã số Thành viên khác"]);
+
+  return {
+    chung: {
+      tenCongTrinh: trimStr(row["Tên đề xuất nghiên cứu"]),
+      loaiNckh: "DEXUAT",
+      phanLoai: trimStr(row["Phân loại đề xuất"]) || null,
+      namHoc: null, // Sẽ được lấy từ UI select
+      xepLoai: trimStr(row["Kết quả"]) || null,
+      coQuanChuTri: trimStr(row["Cơ quan chủ trì"]) || null,
+      tongSoTiet: 0,
+      maSo: null,
+      soQuyetDinh: null,
+      ngayQuyetDinh: null,
+      capNhiemVu: null,
+      kinhPhi: null,
+      tenTapChi: null,
+      soBao: null,
+      soTrichDan: null,
+      ngayNghiemThu: null,
+    },
+    participants: {
+      tacGiaMaCodes: tacGiaChinh,
+      thanhVienMaCodes: dongTacGia,
+      ngoaiList: [],
+    },
+    namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
+    mode: "standard",
+  };
+};
+
 // ─── Main Dispatcher ────────────────────────────────────────────────────────
 
 const MAPPER_MAP = {
@@ -297,11 +456,15 @@ const MAPPER_MAP = {
   "huong-dan-sv-nckh": mapHuongDanSvNckh,
   "de-tai-du-an": mapDeTaiDuAn,
   "thanh-vien-hoi-dong": mapThanhVienHoiDong,
+  "sach-giao-trinh": mapSachGiaoTrinh,
+  "sang-kien": mapSangKien,
+  "giai-thuong": mapGiaiThuong,
+  "de-xuat-nghien-cuu": mapDeXuatNghienCuu,
 };
 
 /**
  * Map a single raw Excel row to a standardized record object.
- * @param {string} type - One of the 4 type keys
+ * @param {string} type - One of the 8 type keys
  * @param {Object} row  - Raw row from XLSX
  * @returns {Object}    - Mapped record
  */
@@ -321,6 +484,10 @@ const IMPORT_TYPES = [
   { value: "huong-dan-sv-nckh", label: "Hướng dẫn SV NCKH" },
   { value: "de-tai-du-an", label: "Đề tài dự án" },
   { value: "thanh-vien-hoi-dong", label: "Thành viên hội đồng" },
+  { value: "sach-giao-trinh", label: "Sách giáo trình" },
+  { value: "sang-kien", label: "Sáng kiến" },
+  { value: "giai-thuong", label: "Giải thưởng" },
+  { value: "de-xuat-nghien-cuu", label: "Đề xuất nghiên cứu" },
 ];
 
 module.exports = {
