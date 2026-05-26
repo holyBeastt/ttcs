@@ -522,6 +522,18 @@ const themTKBVaoQCDK = async (req, res) => {
       message: "Thêm dữ liệu vào quy chuẩn dự kiến thành công"
     });
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
+      const dupMatch = error.message.match(/Duplicate entry '(.+)' for key '(.+)'/);
+      const dupValue = dupMatch ? dupMatch[1] : "không xác định";
+      const dupKey = dupMatch ? dupMatch[2] : "unknown_key";
+
+      return res.status(409).json({
+        success: false,
+        message: `Dữ liệu bị trùng lặp trong bảng tạm. Giá trị "${dupValue}" trùng với khóa unique ("${dupKey}"). Vui lòng kiểm tra lại.`,
+        errorCode: "DUPLICATE_ENTRY",
+      });
+    }
+
     console.error("Lỗi khi cập nhật dữ liệu:", error);
     res.status(500).json({
       status: "error",

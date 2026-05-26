@@ -1022,7 +1022,7 @@ const importTableTam = async (jsonData) => {
   // Kiểm tra nếu không có đối tượng hợp lệ
   if (values.length === 0) {
     console.log("Không có dữ liệu hợp lệ để thêm vào cơ sở dữ liệu.");
-    return false; // Nếu không có đối tượng hợp lệ, dừng lại
+    return { success: false, message: "Không có dữ liệu hợp lệ để thêm vào cơ sở dữ liệu." }; // Nếu không có đối tượng hợp lệ, dừng lại
   }
 
   const connection = await createPoolConnection(); // Lấy kết nối từ pool
@@ -1030,10 +1030,25 @@ const importTableTam = async (jsonData) => {
     // Thực hiện truy vấn với nhiều giá trị
     await connection.query(query, [values]);
     console.log("Thêm file quy chuẩn vào bảng Tam thành công");
-    return true;
+    return { success: true };
   } catch (err) {
+    if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
+      const dupMatch = err.message.match(/Duplicate entry '(.+)' for key '(.+)'/);
+      const dupValue = dupMatch ? dupMatch[1] : "không xác định";
+      const dupKey = dupMatch ? dupMatch[2] : "unknown_key";
+
+      const ki = values[0] ? values[0][2] : "";
+      const dot = values[0] ? values[0][1] : "";
+      const nam = values[0] ? values[0][3] : "";
+
+      return {
+        success: false,
+        message: `Dữ liệu bị trùng lặp trong bảng tạm. Giá trị "${dupValue}" trùng với khóa unique ("${dupKey}") trong kỳ ${ki}, đợt ${dot}, năm học ${nam}. Vui lòng kiểm tra lại file Excel.`,
+        errorCode: "DUPLICATE_ENTRY",
+      };
+    }
     console.error("Lỗi:", err.message || err);
-    return false;
+    return { success: false, message: "Lưu dữ liệu thất bại!" };
   } finally {
     connection.release(); // Giải phóng kết nối
   }
