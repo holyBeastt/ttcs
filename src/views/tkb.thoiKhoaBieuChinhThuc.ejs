@@ -236,6 +236,12 @@
               <select class="selectop" id="departmentFilter">
                 <option value="">Chọn khoa</option>
               </select>
+
+              <!-- Combo box hệ đào tạo -->
+              <select class="selectop" id="heDaoTao" style="width: max-content">
+                <option value="ALL">Tất cả hệ đào tạo</option>
+              </select>
+
               <button
                 onclick="getDataTable()"
                 class="btn text-nowrap"
@@ -461,13 +467,40 @@
 
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", async function () {
         const isKhoa = localStorage.getItem("isKhoa");
         const role = localStorage.getItem("userRole");
+
+        // Load danh sách hệ đào tạo loại hình 'mời giảng'
+        await loadHeDaoTaoFromAPI();
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
         hideButtonTKB(role);
       });
+
+      // Populate select #heDaoTao từ API (chỉ lấy loại hình 'mời giảng')
+      async function loadHeDaoTaoFromAPI() {
+        try {
+          const response = await fetch('/api/gvm/v1/he-moi-giang');
+          if (!response.ok) throw new Error('Failed to fetch');
+          const result = await response.json();
+
+          if (result.success && result.data) {
+            const heDaoTaoSelect = document.getElementById('heDaoTao');
+            if (heDaoTaoSelect) {
+              heDaoTaoSelect.innerHTML = '<option value="ALL">Tất cả hệ đào tạo</option>';
+              result.data.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.he_dao_tao;
+                heDaoTaoSelect.appendChild(opt);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Lỗi khi load hệ đào tạo:', error);
+        }
+      }
 
       function hideButtonTKB(role) {
         if (role != "<%= APP_ROLES.troLy_phong %>" && role != "<%= APP_ROLES.lanhDao_phong %>") {
@@ -525,12 +558,14 @@
         const Ki = document.getElementById("comboboxki").value;
         const Nam = document.getElementById("NamHoc").value;
         const Khoa = document.getElementById("departmentFilter").value;
+        const HeDaoTao = document.getElementById("heDaoTao") ? document.getElementById("heDaoTao").value : "ALL";
 
         const body = {
           Khoa: Khoa,
           Dot: Dot,
           Ki: Ki,
           Nam: Nam,
+          HeDaoTao: HeDaoTao,
         };
 
         try {
@@ -1215,9 +1250,14 @@
           },
           body: JSON.stringify(updatedData),
         })
-          .then((response) => {
+          .then(async (response) => {
             if (!response.ok) {
-              throw new Error("Gửi dữ liệu thất bại");
+              let errorMsg = "Gửi dữ liệu thất bại";
+              try {
+                const errData = await response.json();
+                if (errData.message) errorMsg = errData.message;
+              } catch (e) {}
+              throw new Error(errorMsg);
             }
             return response.json();
           })
@@ -1236,8 +1276,8 @@
               html: data.message,
               icon: iconAlert,
               confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
+              width: "auto",
+              padding: "20px",
             });
             
           })
@@ -1245,11 +1285,11 @@
             console.error("Error:", error);
             Swal.fire({
               title: "Thông báo",
-              html: "Gửi dữ liệu thất bại",
+              html: error.message || "Gửi dữ liệu thất bại",
               icon: "error",
               confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
+              width: "auto",
+              padding: "20px",
             });
           });
       }

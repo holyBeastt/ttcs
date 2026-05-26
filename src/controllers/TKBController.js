@@ -15,7 +15,7 @@ const getTKBChinhThucSite = async (req, res) => {
 };
 
 const getDataTKBChinhThuc = async (req, res) => {
-  const { Khoa, Dot, Ki, Nam } = req.body;
+  const { Khoa, Dot, Ki, Nam, HeDaoTao } = req.body;
   let connection;
 
   const baseSelect = `
@@ -65,6 +65,12 @@ const getDataTKBChinhThuc = async (req, res) => {
       query = `${baseSelect} 
         WHERE major = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
       queryParams = [Khoa, Dot, Ki, Nam];
+    }
+
+    // Thêm filter hệ đào tạo nếu không phải ALL
+    if (HeDaoTao && HeDaoTao !== "ALL") {
+      query += ` AND he_dao_tao = ?`;
+      queryParams.push(HeDaoTao);
     }
 
     const [results] = await connection.execute(query, queryParams);
@@ -344,7 +350,8 @@ const themTKBVaoQCDK = async (req, res) => {
   const { major, dot, ki_hoc, nam_hoc } = req.body;
 
   let connection,
-    maPhongBanFalse = [];
+    maPhongBanFalse = [],
+    tkbData = [];
 
   try {
     // Lấy kết nối từ createPoolConnection
@@ -380,7 +387,8 @@ const themTKBVaoQCDK = async (req, res) => {
       getDataTKBParams.push(major);
     }
 
-    const [tkbData] = await connection.query(getDataTKBQuery, getDataTKBParams);
+    const [results] = await connection.query(getDataTKBQuery, getDataTKBParams);
+    tkbData = results;
 
     // Nếu không có dữ liệu thì không cần insert
     if (tkbData.length === 0) {

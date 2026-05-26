@@ -836,6 +836,32 @@ const importTableQC = async (jsonData, req) => {
       console.log("Đã ghi log import file quy chuẩn thành công");
     }
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
+      // Trích xuất tên lớp học phần bị trùng từ sqlMessage
+      let duplicateCourseName = "";
+      if (error.sqlMessage) {
+        const match = error.sqlMessage.match(/Duplicate entry '(.*?)' for key/i);
+        if (match && match[1]) {
+          const dupString = match[1];
+          // Tìm trong jsonData xem LopHocPhan nào khớp
+          for (const item of jsonData) {
+            const lopHocPhan = item["LopHocPhan"] || item["Lớp học phần"] || "";
+            if (lopHocPhan && dupString.includes(lopHocPhan)) {
+              duplicateCourseName = lopHocPhan;
+              break;
+            }
+          }
+        }
+      }
+      const dupMsg = duplicateCourseName
+        ? ` (Tại lớp học phần: ${duplicateCourseName})`
+        : "";
+      const err = new Error(
+        `Dữ liệu bị trùng lặp trong bảng quy chuẩn${dupMsg}. Vui lòng chỉnh sửa lại: Trong cùng một đợt, kì, năm thì tên lớp (bao gồm Tên học phần + tên lớp) phải khác nhau.`
+      );
+      err.code = "ER_DUP_ENTRY";
+      throw err;
+    }
     console.error("Error while inserting data:", error);
   } finally {
     connection.release();
