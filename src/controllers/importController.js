@@ -805,43 +805,49 @@ const importTableQC = async (jsonData, req) => {
     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
     await connection.execute(queryUpdate);
 
-    // Ghi log việc import file quy chuẩn thành công
+    // Ghi log việc ban hành quy chuẩn thành công
     if (req && req.session) {
-      const logQuery = `
-        INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, ?, NOW())
-      `;
+      try {
+        const logQuery = `
+          INSERT INTO lichsunhaplieu 
+          (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+          VALUES (?, ?, ?, ?, ?, NOW())
+        `;
 
-      const userId = req.session.userId || req.session.userInfo?.ID || 0;
-      const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
-      const khoa = req.session.MaPhongBan || 'Unknown Department';
-      const loaiThongTin = "Import file quy chuẩn";
+        const userId = req.session?.userInfo?.ID || req.session?.userId || 0;
+        const tenNhanVien = req.session?.userInfo?.TenNhanVien || req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+        const khoa = req.session?.userInfo?.MaPhongBan || req.session?.MaPhongBan || 'Unknown Department';
+        const loaiThongTin = "Ban hành bảng tạm";
 
-      // Lấy thông tin từ dữ liệu đầu tiên nếu có
-      const dot = jsonData[0]?.Dot || "";
-      const ki = jsonData[0]?.Ki || "";
-      const nam = jsonData[0]?.Nam || "";
+        // Lấy thông tin từ dữ liệu đầu tiên nếu có
+        const dot = jsonData[0]?.Dot || "";
+        const ki = jsonData[0]?.Ki || "";
+        const nam = jsonData[0]?.Nam || "";
 
-      const changeMessage = `${tenNhanVien} đã thêm mới ${insertResult.affectedRows} môn học từ file quy chuẩn vào cơ sở dữ liệu. Kì ${ki}, đợt ${dot}, năm học ${nam}.`;
+        const changeMessage = `${tenNhanVien} đã ban hành ${insertResult.affectedRows} môn học từ bảng tạm vào quy chuẩn chính thức. Kì ${ki}, đợt ${dot}, năm học ${nam}.`;
 
-      await connection.query(logQuery, [
-        userId,
-        tenNhanVien,
-        khoa,
-        loaiThongTin,
-        changeMessage,
-      ]);
+        await connection.query(logQuery, [
+          userId,
+          tenNhanVien,
+          khoa,
+          loaiThongTin,
+          changeMessage,
+        ]);
 
-      console.log("Đã ghi log import file quy chuẩn thành công");
+        console.log("Đã ghi log ban hành thành công");
+      } catch (logError) {
+        console.error("Lỗi khi ghi log ban hành:", logError);
+      }
     }
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
       // Trích xuất tên lớp học phần bị trùng từ sqlMessage
       let duplicateCourseName = "";
+      let dupValue = "";
       if (error.sqlMessage) {
         const match = error.sqlMessage.match(/Duplicate entry '(.*?)' for key/i);
         if (match && match[1]) {
+          dupValue = match[1];
           const dupString = match[1];
           // Tìm trong jsonData xem LopHocPhan nào khớp
           for (const item of jsonData) {
@@ -856,9 +862,18 @@ const importTableQC = async (jsonData, req) => {
       const dupMsg = duplicateCourseName
         ? ` (Tại lớp học phần: ${duplicateCourseName})`
         : "";
-      const err = new Error(
-        `Dữ liệu bị trùng lặp trong bảng quy chuẩn${dupMsg}. Vui lòng chỉnh sửa lại: Trong cùng một đợt, kì, năm thì tên lớp (bao gồm Tên học phần + tên lớp) phải khác nhau.`
-      );
+      
+      const messageDetail = `Dữ liệu bị trùng lặp trong bảng quy chuẩn${dupMsg}. Giá trị bị trùng: "${dupValue}". Vui lòng chỉnh sửa lại: Trong cùng một đợt, kì, năm thì tên lớp (bao gồm Tên học phần + tên lớp) phải khác nhau.`;
+      
+      console.error("======================================");
+      console.error("🚨 [LỖI TRÙNG DỮ LIỆU BAN HÀNH] 🚨");
+      console.error("Nguyên nhân: Bản ghi đang ban hành đã bị trùng khóa duy nhất trong database.");
+      console.error("Chi tiết từ MySQL:", error.sqlMessage || error.message);
+      console.error("Lớp dự đoán bị lỗi:", duplicateCourseName || "Không thể map từ JSON");
+      console.error("Giá trị SQL nhận được:", dupValue || "Không rõ");
+      console.error("======================================");
+
+      const err = new Error(messageDetail);
       err.code = "ER_DUP_ENTRY";
       throw err;
     }

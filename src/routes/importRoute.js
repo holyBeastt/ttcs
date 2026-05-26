@@ -81,6 +81,7 @@ router.post("/ban-hanh",
       }
     } catch (error) {
       if (error.code === "ER_DUP_ENTRY") {
+        console.warn(`\n[CẢNH BÁO XUNG ĐỘT] API /ban-hanh trả về 409 Conflict.\nChi tiết lỗi: ${error.message}\n`);
         return res.status(409).json({ success: false, message: error.message });
       }
       console.error("Lỗi server:", error);
