@@ -247,57 +247,6 @@ ttcs/
 
 ---
 
-## Biến môi trường
-
-Tạo file `.env` tại thư mục gốc với các biến sau:
-
-```env
-NODE_ENV=development
-
-# Server
-PORT=3000
-
-# Database
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=<mật-khẩu-db>
-DB_NAME=ttcs
-
-# Bảng phụ trợ (dùng trong legacy import)
-DB_TABLE_TAM=tam
-DB_TABLE_QC=quychuan
-
-# Upload
-ALLOWED_FILE_EXTENSIONS=jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,jfif,pdf,PDF,doc,DOC,docx,DOCX
-
-# JWT
-JWT_SECRET=<jwt-secret>
-
-# ── Role constants (dùng trong RBAC/ABAC) ──
-ROLE_PHONGBAN_TROLY=Trợ lý
-ROLE_PHONGBAN_THUONG=Thường
-ROLE_PHONGBAN_LANHDAO=Lãnh đạo phòng
-ROLE_KHOA_LANHDAO=Lãnh đạo khoa
-ROLE_KHOA_GV_CNBM=GV_CNBM
-ROLE_KHOA_GV=GV
-
-# ── Department codes (dùng trong ABAC filter) ──
-DAO_TAO=DAOTAO
-VAN_PHONG=VP
-BAN_GIAM_DOC=BGĐ
-KHAO_THI=KT&ĐBCL
-VIEN_NCKH_HTPT=NC&HTPT
-CONG_NGHE_THONG_TIN=CNTT
-AN_TOAN_THONG_TIN=ATTT
-DIEN_TU_VI_MACH=ĐTVM
-CO_BAN=CB
-MAT_MA=MM
-PHAN_HIEU_HOC_VIEN=ĐTPH
-```
-
----
-
 ## Các lệnh có sẵn
 
 | Lệnh | Mô tả |
@@ -409,4 +358,6 @@ Hệ thống hỗ trợ **Export/Import dữ liệu** giữa các instance (ví 
 
 ## License
 
-ISC
+© 2024–2026 **Học viện Kỹ thuật Mật mã (KMA)**. Mọi quyền được bảo lưu.
+
+Dự án này là tài sản nội bộ của Học viện Kỹ thuật Mật mã. Không được sao chép, phân phối hoặc sử dụng cho mục đích thương mại khi chưa có sự cho phép bằng văn bản từ Học viện.
