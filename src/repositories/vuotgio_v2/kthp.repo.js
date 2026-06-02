@@ -37,15 +37,53 @@ const buildSelect = () => `
 `;
 
 const getTable = async (connection, { namHoc, khoa }) => {
-    let query = `SELECT ${buildSelect()} FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ?`;
+    let query = `
+        SELECT 
+          t.id,
+          t.id_user,
+          t.giang_vien AS giangvien,
+          t.giang_vien,
+          t.khoa,
+          t.hoc_ky AS ki,
+          t.hoc_ky,
+          t.nam_hoc AS namhoc,
+          t.nam_hoc,
+          t.hinh_thuc AS hinhthuc,
+          t.hinh_thuc,
+          t.ten_hoc_phan AS tenhocphan,
+          t.ten_hoc_phan,
+          t.lop_hoc_phan AS lophocphan,
+          t.lop_hoc_phan,
+          h.he_dao_tao AS doituong,
+          h.he_dao_tao AS doi_tuong,
+          t.bai_cham_1 AS baicham1,
+          t.bai_cham_1,
+          t.bai_cham_2 AS baicham2,
+          t.bai_cham_2,
+          t.tong_so AS tongso,
+          t.tong_so,
+          t.quy_chuan AS sotietqc,
+          t.quy_chuan,
+          t.ghi_chu AS ghichu,
+          t.ghi_chu,
+          t.khoa_duyet AS khoaduyet,
+          t.khoa_duyet,
+          t.khao_thi_duyet AS khaothiduyet,
+          t.khao_thi_duyet,
+          t.so_tc,
+          t.so_sv
+        FROM ${COI_CHAM_RA_DE_TABLE} t
+        LEFT JOIN he_dao_tao h ON t.he_dao_tao_id = h.id
+        WHERE t.nam_hoc = ?
+    `;
     const params = [namHoc];
 
     if (khoa && khoa !== "ALL") {
-        query += ` AND khoa = ?`;
+        query += ` AND t.khoa = ?`;
         params.push(khoa);
     }
 
-    query += ` ORDER BY giang_vien, ten_hoc_phan, hinh_thuc`;
+    query += ` ORDER BY t.giang_vien, t.ten_hoc_phan, t.hinh_thuc`;
     const [rows] = await connection.execute(query, params);
     return rows;
 };
@@ -122,8 +160,43 @@ const countByYearAndSemester = async (connection, { namHoc, hocKy }) => {
 
 const getByLecturerName = async (connection, { name, namHoc, hocKy }) => {
     const query = `
-        SELECT ${buildSelect()} FROM ${COI_CHAM_RA_DE_TABLE}
-        WHERE giang_vien LIKE ? AND hoc_ky = ? AND nam_hoc = ?
+        SELECT 
+          t.id,
+          t.id_user,
+          t.giang_vien AS giangvien,
+          t.giang_vien,
+          t.khoa,
+          t.hoc_ky AS ki,
+          t.hoc_ky,
+          t.nam_hoc AS namhoc,
+          t.nam_hoc,
+          t.hinh_thuc AS hinhthuc,
+          t.hinh_thuc,
+          t.ten_hoc_phan AS tenhocphan,
+          t.ten_hoc_phan,
+          t.lop_hoc_phan AS lophocphan,
+          t.lop_hoc_phan,
+          h.he_dao_tao AS doituong,
+          h.he_dao_tao AS doi_tuong,
+          t.bai_cham_1 AS baicham1,
+          t.bai_cham_1,
+          t.bai_cham_2 AS baicham2,
+          t.bai_cham_2,
+          t.tong_so AS tongso,
+          t.tong_so,
+          t.quy_chuan AS sotietqc,
+          t.quy_chuan,
+          t.ghi_chu AS ghichu,
+          t.ghi_chu,
+          t.khoa_duyet AS khoaduyet,
+          t.khoa_duyet,
+          t.khao_thi_duyet AS khaothiduyet,
+          t.khao_thi_duyet,
+          t.so_tc,
+          t.so_sv
+        FROM ${COI_CHAM_RA_DE_TABLE} t
+        LEFT JOIN he_dao_tao h ON t.he_dao_tao_id = h.id
+        WHERE t.giang_vien LIKE ? AND t.hoc_ky = ? AND t.nam_hoc = ?
     `;
     const [rows] = await connection.execute(query, [`%${name}%`, hocKy, namHoc]);
     return rows;

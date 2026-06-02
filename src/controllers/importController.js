@@ -686,40 +686,25 @@ const importTableQC = async (jsonData, req) => {
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
   const connection = await createPoolConnection();
 
-  // Hàm format ngày từ string sang Date object hoặc null
-  // const formatDateValue = (dateValue) => {
-  //   if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
-  //     return null;
-  //   }
-
-  //   // Nếu đã là Date object
-  //   if (dateValue instanceof Date) {
-  //     return dateValue;
-  //   }
-
-  //   // Nếu là string, thử parse
-  //   if (typeof dateValue === 'string') {
-  //     // Format dd/mm/yyyy
-  //     const parts = dateValue.split('/');
-  //     if (parts.length === 3) {
-  //       const day = parseInt(parts[0], 10);
-  //       const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-  //       const year = parseInt(parts[2], 10);
-  //       const date = new Date(year, month, day);
-  //       if (!isNaN(date.getTime())) {
-  //         return date;
-  //       }
-  //     }
-
-  //     // Thử parse ISO format hoặc các format khác
-  //     const date = new Date(dateValue);
-  //     if (!isNaN(date.getTime())) {
-  //       return date;
-  //     }
-  //   }
-
-  //   return null;
-  // };
+  // 1. Tải bảng cấu hình ký tự bắt đầu để đối chiếu hệ đào tạo & đối tượng
+  const prefixQuery = `
+    SELECT 
+      k.viet_tat,
+      k.doi_tuong,
+      h.he_dao_tao AS ten_he_dao_tao
+    FROM kitubatdau k
+    LEFT JOIN he_dao_tao h ON CAST(k.gia_tri_so_sanh AS UNSIGNED) = h.id;
+  `;
+  const [configs] = await connection.query(prefixQuery);
+  const mappingMap = new Map();
+  for (const config of configs) {
+    if (config.viet_tat) {
+      mappingMap.set(config.viet_tat.toUpperCase().trim(), {
+        doi_tuong: config.doi_tuong,
+        he_dao_tao: config.ten_he_dao_tao
+      });
+    }
+  }
 
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
@@ -778,8 +763,20 @@ const importTableQC = async (jsonData, req) => {
     // console.log("Giảng Viên Giảng Dạy:", giangVienGiangDay);
 
     // Lấy hệ đào tạo từ dữ liệu gốc
-    const he_dao_tao = item["he_dao_tao"] || item["Hệ đào tạo"] || null;
-    const doi_tuong = "Việt Nam"; // Mặc định là "Việt Nam"
+    let he_dao_tao = item["he_dao_tao"] || item["Hệ đào tạo"] || null;
+    let doi_tuong = "Việt Nam"; // Mặc định là "Việt Nam"
+
+    // Trích xuất tiền tố của Lop để map
+    const matchPrefix = String(Lop || "").trim().match(/^[A-Za-z]+/);
+    const prefix = matchPrefix ? matchPrefix[0].toUpperCase().trim() : "";
+
+    if (mappingMap.has(prefix)) {
+      const matchConfig = mappingMap.get(prefix);
+      doi_tuong = matchConfig.doi_tuong || doi_tuong;
+      if (!he_dao_tao) {
+        he_dao_tao = matchConfig.he_dao_tao || null;
+      }
+    }
 
     // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu (hỗ trợ nhiều format key)
     const ngayBatDau = item["NgayBatDau"] || item["Ngày bắt đầu"] || null;
@@ -823,43 +820,49 @@ const importTableQC = async (jsonData, req) => {
     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
     await connection.execute(queryUpdate);
 
-    // Ghi log việc import file quy chuẩn thành công
+    // Ghi log việc ban hành quy chuẩn thành công
     if (req && req.session) {
-      const logQuery = `
-        INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, ?, NOW())
-      `;
+      try {
+        const logQuery = `
+          INSERT INTO lichsunhaplieu 
+          (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+          VALUES (?, ?, ?, ?, ?, NOW())
+        `;
 
-      const userId = req.session.userId || req.session.userInfo?.ID || 0;
-      const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
-      const khoa = req.session.MaPhongBan || 'Unknown Department';
-      const loaiThongTin = "Import file quy chuẩn";
+        const userId = req.session?.userInfo?.ID || req.session?.userId || 0;
+        const tenNhanVien = req.session?.userInfo?.TenNhanVien || req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+        const khoa = req.session?.userInfo?.MaPhongBan || req.session?.MaPhongBan || 'Unknown Department';
+        const loaiThongTin = "Ban hành bảng tạm";
 
-      // Lấy thông tin từ dữ liệu đầu tiên nếu có
-      const dot = jsonData[0]?.Dot || "";
-      const ki = jsonData[0]?.Ki || "";
-      const nam = jsonData[0]?.Nam || "";
+        // Lấy thông tin từ dữ liệu đầu tiên nếu có
+        const dot = jsonData[0]?.Dot || "";
+        const ki = jsonData[0]?.Ki || "";
+        const nam = jsonData[0]?.Nam || "";
 
-      const changeMessage = `${tenNhanVien} đã thêm mới ${insertResult.affectedRows} môn học từ file quy chuẩn vào cơ sở dữ liệu. Kì ${ki}, đợt ${dot}, năm học ${nam}.`;
+        const changeMessage = `${tenNhanVien} đã ban hành ${insertResult.affectedRows} môn học từ bảng tạm vào quy chuẩn chính thức. Kì ${ki}, đợt ${dot}, năm học ${nam}.`;
 
-      await connection.query(logQuery, [
-        userId,
-        tenNhanVien,
-        khoa,
-        loaiThongTin,
-        changeMessage,
-      ]);
+        await connection.query(logQuery, [
+          userId,
+          tenNhanVien,
+          khoa,
+          loaiThongTin,
+          changeMessage,
+        ]);
 
-      console.log("Đã ghi log import file quy chuẩn thành công");
+        console.log("Đã ghi log ban hành thành công");
+      } catch (logError) {
+        console.error("Lỗi khi ghi log ban hành:", logError);
+      }
     }
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
       // Trích xuất tên lớp học phần bị trùng từ sqlMessage
       let duplicateCourseName = "";
+      let dupValue = "";
       if (error.sqlMessage) {
         const match = error.sqlMessage.match(/Duplicate entry '(.*?)' for key/i);
         if (match && match[1]) {
+          dupValue = match[1];
           const dupString = match[1];
           // Tìm trong jsonData xem LopHocPhan nào khớp
           for (const item of jsonData) {
@@ -874,9 +877,18 @@ const importTableQC = async (jsonData, req) => {
       const dupMsg = duplicateCourseName
         ? ` (Tại lớp học phần: ${duplicateCourseName})`
         : "";
-      const err = new Error(
-        `Dữ liệu bị trùng lặp trong bảng quy chuẩn${dupMsg}. Vui lòng chỉnh sửa lại: Trong cùng một đợt, kì, năm thì tên lớp (bao gồm Tên học phần + tên lớp) phải khác nhau.`
-      );
+      
+      const messageDetail = `Dữ liệu bị trùng lặp trong bảng quy chuẩn${dupMsg}. Giá trị bị trùng: "${dupValue}". Vui lòng chỉnh sửa lại: Trong cùng một đợt, kì, năm thì tên lớp (bao gồm Tên học phần + tên lớp) phải khác nhau.`;
+      
+      console.error("======================================");
+      console.error("🚨 [LỖI TRÙNG DỮ LIỆU BAN HÀNH] 🚨");
+      console.error("Nguyên nhân: Bản ghi đang ban hành đã bị trùng khóa duy nhất trong database.");
+      console.error("Chi tiết từ MySQL:", error.sqlMessage || error.message);
+      console.error("Lớp dự đoán bị lỗi:", duplicateCourseName || "Không thể map từ JSON");
+      console.error("Giá trị SQL nhận được:", dupValue || "Không rõ");
+      console.error("======================================");
+
+      const err = new Error(messageDetail);
       err.code = "ER_DUP_ENTRY";
       throw err;
     }
@@ -1066,7 +1078,7 @@ const importTableTam = async (jsonData) => {
   // Kiểm tra nếu không có đối tượng hợp lệ
   if (values.length === 0) {
     console.log("Không có dữ liệu hợp lệ để thêm vào cơ sở dữ liệu.");
-    return false; // Nếu không có đối tượng hợp lệ, dừng lại
+    return { success: false, message: "Không có dữ liệu hợp lệ để thêm vào cơ sở dữ liệu." }; // Nếu không có đối tượng hợp lệ, dừng lại
   }
 
   const connection = await createPoolConnection(); // Lấy kết nối từ pool
@@ -1074,10 +1086,25 @@ const importTableTam = async (jsonData) => {
     // Thực hiện truy vấn với nhiều giá trị
     await connection.query(query, [values]);
     console.log("Thêm file quy chuẩn vào bảng Tam thành công");
-    return true;
+    return { success: true };
   } catch (err) {
+    if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
+      const dupMatch = err.message.match(/Duplicate entry '(.+)' for key '(.+)'/);
+      const dupValue = dupMatch ? dupMatch[1] : "không xác định";
+      const dupKey = dupMatch ? dupMatch[2] : "unknown_key";
+
+      const ki = values[0] ? values[0][2] : "";
+      const dot = values[0] ? values[0][1] : "";
+      const nam = values[0] ? values[0][3] : "";
+
+      return {
+        success: false,
+        message: `Dữ liệu bị trùng lặp trong bảng tạm. Giá trị "${dupValue}" trùng với khóa unique ("${dupKey}") trong kỳ ${ki}, đợt ${dot}, năm học ${nam}. Vui lòng kiểm tra lại file Excel.`,
+        errorCode: "DUPLICATE_ENTRY",
+      };
+    }
     console.error("Lỗi:", err.message || err);
-    return false;
+    return { success: false, message: "Lưu dữ liệu thất bại!" };
   } finally {
     connection.release(); // Giải phóng kết nối
   }

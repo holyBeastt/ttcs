@@ -39,14 +39,18 @@ router.post("/save-data",
       const result = await obj.importTableTam(req.body);
 
       // Kiểm tra kết quả trả về và phản hồi cho client
-      if (result === true) {
+      if (result === true || (result && result.success === true)) {
         res
           .status(200)
           .json({ success: true, message: "Dữ liệu đã được lưu thành công!" });
+      } else if (result && result.errorCode === "DUPLICATE_ENTRY") {
+        res
+          .status(409)
+          .json(result);
       } else {
         res
           .status(500)
-          .json({ success: false, message: "Lưu dữ liệu thất bại!" });
+          .json({ success: false, message: result && result.message ? result.message : "Lưu dữ liệu thất bại!" });
       }
     } catch (error) {
       console.error("Lỗi server:", error);
@@ -77,6 +81,7 @@ router.post("/ban-hanh",
       }
     } catch (error) {
       if (error.code === "ER_DUP_ENTRY") {
+        console.warn(`\n[CẢNH BÁO XUNG ĐỘT] API /ban-hanh trả về 409 Conflict.\nChi tiết lỗi: ${error.message}\n`);
         return res.status(409).json({ success: false, message: error.message });
       }
       console.error("Lỗi server:", error);

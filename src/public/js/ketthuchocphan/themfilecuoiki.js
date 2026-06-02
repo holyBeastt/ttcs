@@ -11,6 +11,20 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const headerTranslations = {
+            'hoVaTen': 'Họ và tên',
+            'khoa': 'Khoa',
+            'tenHocPhan': 'Tên học phần',
+            'lopHocPhan': 'Lớp học phần',
+            'doiTuong': 'Hệ đào tạo',
+            'soDe': 'Số đề',
+            'soCa': 'Số ca',
+            'soTietQC': 'Số tiết QC',
+            'soBaiCham1': 'Số bài chấm 1',
+            'soBaiCham2': 'Số bài chấm 2',
+            'tongSoBai': 'Tổng số bài'
+        };
+
         const table = document.createElement("table");
         table.className = "table table-bordered table-hover";
         table.id = tableId;
@@ -19,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const headerRow = document.createElement("tr");
         columns.forEach(column => {
             const th = document.createElement("th");
-            th.textContent = column;
+            th.textContent = headerTranslations[column] || column;
             headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
@@ -208,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch(`${BASE_URL}/import-kthp/checkfile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Ki: kiValue, Nam: namValue })
+                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue })
             });
             if (!response.ok) throw new Error('Kiểm tra dữ liệu thất bại');
             const data = await response.json();
@@ -252,6 +266,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify({
                     Ki: kiValue,
                     Nam: namValue,
+                    hocKy: kiValue,
+                    namHoc: namValue,
                     data: dataTam // Truyền thêm dataTam
                 })
             });
@@ -275,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch(`${BASE_URL}/import-kthp/delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Ki: kiValue, Nam: namValue })
+                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue })
             });
             if (!response.ok) throw new Error('Xóa dữ liệu thất bại');
             const messages = {

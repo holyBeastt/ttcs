@@ -19,6 +19,40 @@ const parseExcelFile = async (buffer) => {
         chamThi: []
     };
 
+    // Tải bảng cấu hình ký tự bắt đầu để tự động map hệ đào tạo
+    let connection;
+    const mappingMap = new Map();
+    try {
+        connection = await createPoolConnection();
+        const prefixQuery = `
+            SELECT 
+              k.viet_tat,
+              h.he_dao_tao
+            FROM kitubatdau k
+            LEFT JOIN he_dao_tao h ON CAST(k.gia_tri_so_sanh AS UNSIGNED) = h.id;
+        `;
+        const [configs] = await connection.query(prefixQuery);
+        for (const config of configs) {
+            if (config.viet_tat) {
+                mappingMap.set(config.viet_tat.toUpperCase().trim(), config.he_dao_tao);
+            }
+        }
+    } catch (err) {
+        console.error("Lỗi khi tải bảng cấu hình trong parseExcelFile:", err);
+    } finally {
+        if (connection) connection.release();
+    }
+
+    const getFirstParenthesesContent = (str) => {
+        const match = String(str || "").match(/\(([^)]+)\)/);
+        return match ? match[1] : str;
+    };
+
+    const extractPrefix = (classCode) => {
+        const match = String(classCode || "").trim().match(/^[A-Za-z]+/);
+        return match ? match[0] : "";
+    };
+
     sheetNames.forEach(sheetName => {
         const sheet = workbook.Sheets[sheetName];
         const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
@@ -62,8 +96,18 @@ const parseExcelFile = async (buffer) => {
             const khoa = khoaIndex >= 0 ? row[khoaIndex] : '';
             const tenHocPhan = tenHocPhanIndex >= 0 ? row[tenHocPhanIndex] : '';
             const lopHocPhan = lopHocPhanIndex >= 0 ? row[lopHocPhanIndex] : '';
-            const doiTuong = doiTuongIndex >= 0 ? row[doiTuongIndex] : '';
+            let doiTuong = doiTuongIndex >= 0 ? row[doiTuongIndex] : '';
             const soTietQC = soTietQCIndex >= 0 ? row[soTietQCIndex] : 0;
+
+            // Tự động map đối tượng (hệ đào tạo) từ lớp học phần
+            const classCode = getFirstParenthesesContent(lopHocPhan) || "";
+            const prefix = extractPrefix(classCode).toUpperCase().trim();
+            if (mappingMap.has(prefix)) {
+                doiTuong = mappingMap.get(prefix) || doiTuong;
+            }
+            if (!doiTuong) {
+                doiTuong = 'ĐH Đóng học phí';
+            }
 
             const base = { hoVaTen, khoa, tenHocPhan, lopHocPhan, doiTuong, soTietQC };
 
@@ -96,6 +140,45 @@ const importToDB = async (workloadData, { ki, nam, user }) => {
         await connection.beginTransaction();
 
         const insertValues = [];
+
+        // 1. Lấy toàn bộ cấu hình kitubatdau để đối chiếu nhanh
+        const prefixQuery = `
+            SELECT 
+              k.viet_tat,
+              k.doi_tuong,
+              h.id AS he_dao_tao_id,
+              h.he_dao_tao
+            FROM kitubatdau k
+            LEFT JOIN he_dao_tao h ON CAST(k.gia_tri_so_sanh AS UNSIGNED) = h.id;
+        `;
+        const [configs] = await connection.query(prefixQuery);
+
+        const mappingMap = new Map();
+        const nameMappingMap = new Map();
+        for (const config of configs) {
+            if (config.viet_tat) {
+                mappingMap.set(config.viet_tat.toUpperCase().trim(), {
+                    doi_tuong: config.doi_tuong,
+                    he_dao_tao_id: config.he_dao_tao_id
+                });
+            }
+            if (config.he_dao_tao) {
+                nameMappingMap.set(config.he_dao_tao.toUpperCase().trim(), {
+                    doi_tuong: config.doi_tuong,
+                    he_dao_tao_id: config.he_dao_tao_id
+                });
+            }
+        }
+
+        const getFirstParenthesesContent = (str) => {
+            const match = String(str || "").match(/\(([^)]+)\)/);
+            return match ? match[1] : str;
+        };
+
+        const extractPrefix = (classCode) => {
+            const match = String(classCode || "").trim().match(/^[A-Za-z]+/);
+            return match ? match[0] : "";
+        };
         
         const processGroup = (items, type) => {
             for (const item of items) {
@@ -108,6 +191,27 @@ const importToDB = async (workloadData, { ki, nam, user }) => {
                     tongso = item.tongSoBai || 0;
                 }
 
+                // Đối chiếu ký tự bắt đầu của lớp học phần
+                const classCode = getFirstParenthesesContent(item.lopHocPhan) || "";
+                const prefix = extractPrefix(classCode).toUpperCase().trim();
+                let mappedDoiTuong = "Đóng HP";
+                let mappedHeDaoTaoId = 1;
+
+                if (mappingMap.has(prefix)) {
+                    const matchConfig = mappingMap.get(prefix);
+                    mappedDoiTuong = matchConfig.doi_tuong;
+                    mappedHeDaoTaoId = matchConfig.he_dao_tao_id;
+                } else if (item.doiTuong) {
+                    const normalizedDoiTuong = String(item.doiTuong).toUpperCase().trim();
+                    if (nameMappingMap.has(normalizedDoiTuong)) {
+                        const matchConfig = nameMappingMap.get(normalizedDoiTuong);
+                        mappedDoiTuong = matchConfig.doi_tuong;
+                        mappedHeDaoTaoId = matchConfig.he_dao_tao_id;
+                    } else {
+                        mappedDoiTuong = item.doiTuong;
+                    }
+                }
+
                 insertValues.push([
                     item.hoVaTen,
                     item.khoa,
@@ -116,15 +220,15 @@ const importToDB = async (workloadData, { ki, nam, user }) => {
                     type,
                     item.tenHocPhan,
                     item.lopHocPhan,
-                    item.doiTuong,
+                    mappedDoiTuong,
                     baicham1,
                     baicham2,
                     tongso,
                     item.soTietQC || 0,
-                    1, // khoa_duyet
-                    1, // khao_thi_duyet
+                    0, // khoa_duyet
+                    0, // khao_thi_duyet
                     user.id,
-                    null // he_dao_tao_id (tạm để null)
+                    mappedHeDaoTaoId
                 ]);
             }
         };

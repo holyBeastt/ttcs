@@ -7,6 +7,12 @@ const cloneParticipantForYear = (participant, namThucHien) => ({
 
 const expandParticipantsByYears = (baseParticipants, soNamThucHien) => {
   const totalYears = Number(soNamThucHien || 1);
+  
+  // If the value is a literal year (e.g. 2024, 2025), just map it directly without looping
+  if (totalYears > 1900) {
+    return baseParticipants.map((item) => cloneParticipantForYear(item, totalYears));
+  }
+
   if (totalYears <= 1) {
     return baseParticipants.map((item) => cloneParticipantForYear(item, 1));
   }
@@ -65,8 +71,11 @@ const quyDoiSoTietStandard = (T, tongSoNguoi, soDongTacGia = 1, soNamThucHien = 
     thanhVien = base;
   }
 
-  tacGia = tacGia / totalYears;
-  thanhVien = thanhVien / totalYears;
+  // If totalYears > 1900, it is a literal year, so duration is 1
+  const duration = totalYears > 1900 ? 1 : totalYears;
+
+  tacGia = tacGia / duration;
+  thanhVien = thanhVien / duration;
 
   return {
     tacGia: round2(tacGia),
@@ -79,7 +88,8 @@ const quyDoiSoTietChiaDeu = (T, tongSoNguoi, soNamThucHien = 1) => {
     throw new Error("Tổng số người phải lớn hơn 0");
   }
 
-  return round2(Number(T) / Number(tongSoNguoi) / Number(soNamThucHien));
+  const duration = Number(soNamThucHien) > 1900 ? 1 : Number(soNamThucHien);
+  return round2(Number(T) / Number(tongSoNguoi) / duration);
 };
 
 const quyDoiSoTietCoDinh = (T) => round2(Number(T));

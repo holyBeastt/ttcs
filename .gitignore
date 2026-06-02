@@ -8,12 +8,12 @@ plan/
 config_global/
 local_file/
 test/
-docs/
+# docs/
 rule/
 .agent  
 .vscode
 .agent/
-
+.serena
 .kiro
 
 # AGENTS

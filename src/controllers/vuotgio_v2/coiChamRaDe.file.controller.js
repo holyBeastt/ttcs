@@ -25,7 +25,9 @@ const readFileExcel = async (req, res) => {
  */
 const importWorkloadToDB = async (req, res) => {
     try {
-        const { ki, nam, workloadData } = req.body;
+        const { ki, nam, hocKy, namHoc, workloadData } = req.body;
+        const kiVal = hocKy || ki;
+        const namVal = namHoc || nam;
         if (!req.session?.userId) {
             return res.status(401).json({ success: false, message: "Vui lòng đăng nhập để tiếp tục" });
         }
@@ -34,7 +36,7 @@ const importWorkloadToDB = async (req, res) => {
             userName: req.session.TenNhanVien || req.session.username || 'Unknown'
         };
 
-        const count = await importService.importToDB(workloadData, { ki, nam, user });
+        const count = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, user });
         res.json({ success: true, message: `Đã import ${count} bản ghi thành công!` });
     } catch (error) {
         console.error("[importWorkloadToDB] Error:", error);
@@ -43,11 +45,59 @@ const importWorkloadToDB = async (req, res) => {
 };
 
 /**
- * Lưu dữ liệu thủ công
+ * Lưu dữ liệu từ file Excel (bao gồm thêm mới và chỉnh sửa)
  */
 const saveWorkloadData = async (req, res) => {
-    // Tái sử dụng updateBatch hoặc saveBatch từ service tùy vào cấu trúc dữ liệu gửi lên
-    return service.updateBatch(req, res);
+    try {
+        const { Ki, Nam, hocKy, namHoc, data } = req.body;
+        const kiVal = hocKy || Ki;
+        const namVal = namHoc || Nam;
+
+        const workloadData = {
+            raDe: [],
+            coiThi: [],
+            chamThi: []
+        };
+
+        const updates = [];
+
+        if (Array.isArray(data)) {
+            data.forEach(item => {
+                const type = item.Type || item.type;
+                if (item.id || item.ID) {
+                    updates.push(item);
+                } else {
+                    if (type === "Ra Đề" || type === "Ra đề") {
+                        workloadData.raDe.push(item);
+                    } else if (type === "Coi Thi" || type === "Coi thi") {
+                        workloadData.coiThi.push(item);
+                    } else if (type === "Chấm Thi" || type === "Chấm thi") {
+                        workloadData.chamThi.push(item);
+                    }
+                }
+            });
+        }
+
+        const user = {
+            id: req.session?.userId || 1,
+            userName: req.session?.TenNhanVien || req.session?.username || 'Unknown'
+        };
+
+        let insertedCount = 0;
+        if (workloadData.raDe.length > 0 || workloadData.coiThi.length > 0 || workloadData.chamThi.length > 0) {
+            insertedCount = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, user });
+        }
+
+        if (updates.length > 0) {
+            req.body.data = updates;
+            return service.updateBatch(req, res);
+        }
+
+        return res.json({ success: true, message: `Đã lưu ${insertedCount} bản ghi thành công!` });
+    } catch (error) {
+        console.error("[saveWorkloadData] Error:", error);
+        res.status(500).json({ success: false, message: "Lỗi khi lưu dữ liệu!" });
+    }
 };
 
 /**

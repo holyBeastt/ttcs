@@ -1317,7 +1317,8 @@
           }
 
           const rs = await response.json();
-          dataQC = rs.data; // Lưu dữ liệu vào dataQC
+          // API /qcdk trả về trực tiếp mảng (không có thuộc tính data)
+          dataQC = Array.isArray(rs) ? rs : (rs.data || []); 
         } catch (error) {
           console.error("Error:", error);
           alert("Lấy dữ liệu thất bại! Vui lòng kiểm tra lại kết nối.");

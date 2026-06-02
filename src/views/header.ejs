@@ -521,30 +521,21 @@
     let themFileKTHP = document.getElementById("addFileKTHP");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
-    if (nckhNavChild && links.length >= 11 && maPhongBan === APP_DEPARTMENTS.ncHtpt && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+    // Links order: [0] Danh sách, [1] Thêm mới, [2] Import, [3] TK GV, [4] TK Khoa, [5] TK HV, ...
+    if (nckhNavChild && links.length >= 6 && maPhongBan === APP_DEPARTMENTS.ncHtpt && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+      links[0].style.display = "block";
+      links[1].style.display = "block";
+      links[2].style.display = "block";
+      links[3].style.display = "block";
+      links[4].style.display = "block";
+      links[5].style.display = "block";
+    } else if (nckhNavChild && links.length >= 6 && maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
       links[0].style.display = "block";
       links[1].style.display = "block";
       links[2].style.display = "none";
       links[3].style.display = "block";
-      links[4].style.display = "none";
-      links[5].style.display = "none";
-      links[6].style.display = "none";
-      links[7].style.display = "block";
-      links[8].style.display = "block";
-      links[9].style.display = "block";
-      links[10].style.display = "block";
-    } else if (nckhNavChild && links.length >= 11 && maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
-      links[0].style.display = "none";
-      links[1].style.display = "none";
-      links[2].style.display = "block";
-      links[3].style.display = "none";
       links[4].style.display = "block";
       links[5].style.display = "block";
-      links[6].style.display = "block";
-      links[7].style.display = "none";
-      links[8].style.display = "block";
-      links[9].style.display = "block";
-      links[10].style.display = "block";
     }
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
