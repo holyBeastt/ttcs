@@ -50,7 +50,7 @@ const getHeDaoTaoData = async (req, res) => {
 
 const getHeMoiGiangLists = async (req, res) => {
   try {
-    const query = "SELECT id, he_dao_tao FROM he_dao_tao where loai_hinh = 'mời giảng'";
+    const query = "SELECT id, he_dao_tao, cap_do FROM he_dao_tao where loai_hinh = 'mời giảng'";
     const [results] = await pool.query(query);
     return res.json({
       success: true,
