@@ -1,4 +1,4 @@
-const giangDayService = require("../../services/vuotgioDuKien/giangDay.service");
+const giangDayService = require("../../services/save_moigiang/giangDay.service");
 
 const getGiangDayQuyChuan = async (req, res) => {
     try {

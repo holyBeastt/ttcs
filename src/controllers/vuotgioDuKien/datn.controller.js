@@ -1,4 +1,4 @@
-const datnService = require("../../services/vuotgioDuKien/datn.service");
+const datnService = require("../../services/save_moigiang/datn.service");
 
 const getDoAnTotNghiepDuKien = async (req, res) => {
     try {

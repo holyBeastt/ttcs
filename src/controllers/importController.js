@@ -2750,95 +2750,10 @@ const insertGiangDay = async (
     // const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
     // const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
 
-    // Chuẩn bị dữ liệu để chèn từng loạt
-    const insertValues = await Promise.all(
-      dataJoin
-        .filter(
-          (item) =>
-            item.TaiChinhDuyet != 0 &&
-            item.DaLuu == 0 &&
-            daDuyetHetArray.includes(item.Khoa)
-        ) // Bỏ qua các mục có TaiChinhDuyet = 0
-        .map(async (item) => {
-          const {
-            ID,
-            Khoa,
-            MoiGiang,
-            SoTinChi,
-            LopHocPhan,
-            GiaoVien,
-            GiaoVienGiangDay,
-            LL,
-            SoTietCTDT,
-            HeSoT7CN,
-            SoSinhVien,
-            HeSoLopDong,
-            QuyChuan,
-            KiHoc,
-            NamHoc,
-            MaHocPhan,
-            TenLop,
-            Dot,
-            BoMon,
-            he_dao_tao,
-            isHdChinh,
-            DoiTuong,
-          } = item;
-
-          req.session.tmp++;
-
-          const TenHocPhan = LopHocPhan;
-          const gv1 = GiaoVienGiangDay ? GiaoVienGiangDay.split(" - ") : [];
-          let gv = gv1[0];
-          let id_Gvm = 1;
-          let id_User = 1;
-
-          // Tạo giá trị cho Mã Học Phần
-          const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
-
-          // Dùng forEach để duyệt qua mảng và Lấy id_Gvm khi giảng viên mới giảng
-          gvmList.forEach((giangVien) => {
-            if (giangVien.HoTen === gv1[0]) {
-              id_Gvm = giangVien.id_Gvm; // Gán id
-            }
-          });
-
-          // const exists = hocPhanList.some(
-          //   (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
-          // )
-          //   ? 1
-          //   : 0;
-
-          // if (exists == 0) {
-          //   await themHocPhan(TenHocPhan, SoTinChi, Khoa);
-          // }
-
-          // Trả về mảng các giá trị đã chờ để đưa vào câu INSERT
-          return [
-            gv,
-            SoTinChi,
-            TenHocPhan,
-            id_User,
-            id_Gvm,
-            LL,
-            SoTietCTDT,
-            HeSoT7CN,
-            SoSinhVien,
-            HeSoLopDong,
-            QuyChuan,
-            KiHoc,
-            NamHoc,
-            maHocPhan,
-            TenLop,
-            Dot,
-            Khoa,
-            BoMon,
-            he_dao_tao,
-            isHdChinh,
-            DoiTuong,
-          ];
-        })
-    );
+    const giangDayService = require("../services/save_moigiang/giangDay.service");
+    const insertValues = giangDayService.transformGiangDayData(dataJoin, gvmList, daDuyetHetArray, true);
+    
+    req.session.tmp += insertValues.length;
 
     // Kiểm tra xem có dữ liệu để chèn không
     if (insertValues.length === 0) {
@@ -3059,106 +2974,10 @@ const insertGiangDay2 = async (
   const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
 
   try {
-    // Chuẩn bị dữ liệu để chèn từng loạt
-    const insertValues = await Promise.all(
-      mergedArray
-        .filter(
-          (item) =>
-            item.TaiChinhDuyet != 0 &&
-            item.DaLuu == 0 &&
-            daDuyetHetArray.includes(item.Khoa)
-        ) // Bỏ qua các mục có TaiChinhDuyet = 0
-        .map(async (item) => {
-          //dataJoin.map(async (item) => {
-          let {
-            id_Gvm,
-            id_User,
-            ID,
-            Khoa,
-            MoiGiang,
-            SoTinChi,
-            LopHocPhan,
-            GiaoVien,
-            GiaoVienGiangDay,
-            LL,
-            SoTietCTDT,
-            HeSoT7CN,
-            SoSinhVien,
-            HeSoLopDong,
-            QuyChuan,
-            KiHoc,
-            NamHoc,
-            MaHocPhan,
-            TenLop,
-            Dot,
-            BoMon,
-            he_dao_tao,
-            isHdChinh,
-            DoiTuong,
-          } = item;
-
-          req.session.tmp++;
-
-          const TenHocPhan = LopHocPhan;
-
-          const gv1 = GiaoVienGiangDay ? GiaoVienGiangDay.split(" - ") : [];
-          let gv = gv1[0];
-          // let id_Gvm = 1;
-          // let id_User = 1;
-
-          if (id_Gvm == 0 || id_Gvm == null || id_Gvm == undefined) {
-            id_Gvm = 1;
-          }
-
-          // Tạo giá trị cho Mã Học Phần
-          const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
-
-          // Dùng forEach để duyệt qua mảng và Lấy id_User
-          // nvList.forEach((giangVien) => {
-          //   if (
-          //     giangVien.TenNhanVien.toLowerCase().trim() ==
-          //     gv1[0].toLowerCase().trim()
-          //   ) {
-          //     id_User = giangVien.id_User; // Gán id
-          //   }
-          // });
-
-          // const exists = hocPhanList.some(
-          //   (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
-          // )
-          //   ? 1
-          //   : 0;
-
-          // if (exists == 0) {
-          //   await themHocPhan(TenHocPhan, SoTinChi, Khoa);
-          // }
-
-          // Trả về mảng các giá trị đã chờ để đưa vào câu INSERT
-          return [
-            gv,
-            SoTinChi,
-            TenHocPhan,
-            id_User,
-            id_Gvm,
-            LL,
-            SoTietCTDT,
-            HeSoT7CN,
-            SoSinhVien,
-            HeSoLopDong,
-            QuyChuan,
-            KiHoc,
-            NamHoc,
-            maHocPhan,
-            TenLop,
-            Dot,
-            Khoa,
-            BoMon,
-            he_dao_tao,
-            isHdChinh,
-            DoiTuong,
-          ];
-        })
-    );
+    const giangDayService = require("../services/save_moigiang/giangDay.service");
+    const insertValues = giangDayService.transformGiangDayData(mergedArray, null, daDuyetHetArray, false);
+    
+    req.session.tmp += insertValues.length;
 
     // Kiểm tra xem có dữ liệu để chèn không
     if (insertValues.length === 0) {

@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../config/Pool");
 const createPoolConnection = require("../config/databasePool");
+const datnService = require("../services/save_moigiang/datn.service");
 const chinhSuaDoAnController = require("./chinhSuaDoAnController");
 require("dotenv").config();
 const {
@@ -1135,265 +1136,25 @@ const saveToExportDoAn = async (req, res) => {
     const [daDuyetHetResult] = await connection.query(daDuyetHetQuery, daDuyetHetParams);
     const daDuyetHetArray = daDuyetHetResult.map(row => row.MaPhongBan);
 
-    // Tạo mảng 2 chiều chứa tất cả các bản ghi
-    const values = [];
-    let isHDChinh, isMoiGiang;
-
-    await Promise.all(
-      data
-        .filter(
-          (item) =>
-            item.TaiChinhDuyet != 0 &&
-            item.DaLuu != 1 &&
-            daDuyetHetArray.includes(item.MaPhongBan)
-        ) // Bỏ qua các mục có TaiChinhDuyet = 0
-        .map(async (item) => {
-          let SoQD = "không";
-          let SoNguoi = 2; // Mặc định là 2 giảng viên
-
-          if (
-            item.GiangVien2.toLowerCase() == "null" ||
-            item.GiangVien2.toLowerCase() == "không" ||
-            item.GiangVien2 == ""
-          ) {
-            SoNguoi = 1;
-          }
-
-          isHDChinh = 1;
-          let GiangVien, CCCD;
-          let matchedItem1; // Xử lý giảng viên 1
-          if (item.GiangVien1.includes("-")) {
-            GiangVien = item.GiangVien1.split("-")[0].trim();
-            CCCD = item.GiangVien1.split("-")[2].trim();
-            isMoiGiang =
-              item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
-
-            const normalizedGV1 = GiangVien.trim();
-            matchedItem1 = allGV.find(
-              (arr) => arr.HoTen.trim() == normalizedGV1
-            );
-
-            if (!matchedItem1) {
-              errors.push(
-                `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien}`
-              );
-              return;
-            }
-
-            if (isMoiGiang === 1 && matchedItem1.isQuanDoi === 1) {
-              isMoiGiang = 0; // Giảng viên mời là quân đội
-            }
-          } else {
-            // Chuẩn hóa tên giảng viên để so sánh (loại bỏ ngoặc)
-            // const normalizedGV1 = item.GiangVien1.replace(
-            //   /\s*\(.*?\)\s*/g,
-            //   ""
-            // ).trim();
-            const normalizedGV1 = item.GiangVien1.trim();
-            matchedItem1 = uniqueGV.find(
-              (arr) => arr.HoTen.trim() == normalizedGV1
-            );
-            if (!matchedItem1) {
-              errors.push(
-                `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien}`
-              );
-              return;
-            }
-
-            GiangVien = matchedItem1.HoTen.trim();
-            CCCD = matchedItem1.CCCD;
-            isMoiGiang = matchedItem1.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
-
-            if (isMoiGiang === 1 && matchedItem1.isQuanDoi === 1) {
-              isMoiGiang = 0; // Giảng viên mời là quân đội
-            }
-          }
-
-          // ✅ DYNAMIC CALCULATION: Get SoTiet from sotietdoan table (NO MORE HARDCODED!)
-          let SoTiet = 0;
-          const soTietConfig = soTietMap[item.he_dao_tao];
-
-          if (!soTietConfig) {
-            errors.push(
-              `\nKhông tìm thấy cấu hình số tiết cho he_dao_tao = ${item.he_dao_tao} (Sinh viên: ${item.SinhVien})`
-            );
-            return;
-          }
-
-          if (SoNguoi == 1) {
-            // 1 giảng viên duy nhất → tong_tiet
-            SoTiet = soTietConfig.tong_tiet;
-          } else if (SoNguoi == 2) {
-            // 2 giảng viên - GV1 → so_tiet_1
-            SoTiet = soTietConfig.so_tiet_1;
-          }
-
-          // ✅ Calculate TienMoiGiang using CACHED data (NO database query!)
-          const TienMoiGiang = calculateDonGiaWithCache(tienLuongCache, matchedItem1, item.he_dao_tao);
-          const ThanhTien = SoTiet * TienMoiGiang;
-          const Thue = 0;
-          const ThucNhan = ThanhTien;
-
-
-          values.push([
-            item.SinhVien || null,
-            item.MaSV || null,
-            item.KhoaDaoTao || null,
-            SoQD || null,
-            item.TenDeTai || null,
-            SoNguoi || null,
-            isHDChinh || null,
-            GiangVien || null,
-            CCCD || null,
-            isMoiGiang,
-            SoTiet || null,
-            item.NgayBatDau || null,
-            item.NgayKetThuc || null,
-            item.MaPhongBan || null,
-            NamHoc || null,
-            item.Ki || null,
-            item.Dot || null,
-            item.TT || null,
-            matchedItem1.GioiTinh || null,
-            matchedItem1.NgaySinh || null,
-            matchedItem1.NgayCapCCCD || null,
-            matchedItem1.NoiCapCCCD || null,
-            matchedItem1.DiaChi || null,
-            matchedItem1.DienThoai || null,
-            matchedItem1.Email,
-            matchedItem1.MaSoThue,
-            matchedItem1.HocVi,
-            matchedItem1.NoiCongTac,
-            matchedItem1.ChucVu,
-            matchedItem1.STK,
-            matchedItem1.NganHang,
-            matchedItem1.MonGiangDayChinh,
-            matchedItem1.HSL,
-            item.he_dao_tao,
-            item.khoa_sinh_vien || null,
-            item.nganh || null,
-            TienMoiGiang || 0,     // ✅ NEW: Đơn giá
-            ThanhTien || 0,        // ✅ NEW: Thành tiền
-            Thue || 0,             // ✅ NEW: Thuế 10%
-            ThucNhan || 0,         // ✅ NEW: Thực nhận 90%
-          ]);
-          let matchedItem2;
-          count++;
-          // Nếu có giảng viên thứ 2, xử lý giảng viên 2 và thêm bản ghi thứ hai
-          if (SoNguoi == 2) {
-            isHDChinh = 0; // Hướng dẫn phụ
-
-            if (item.GiangVien2.includes("-")) {
-              GiangVien = item.GiangVien2.split("-")[0].trim();
-              CCCD = item.GiangVien2.split("-")[2].trim();
-              isMoiGiang =
-                item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
-
-              const normalizedGV2 = GiangVien.trim();
-              matchedItem2 = allGV.find(
-                (arr) => arr.HoTen.trim() == normalizedGV2
-              );
-
-              if (!matchedItem2) {
-                errors.push(
-                  `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien}`
-                );
-                return;
-              }
-
-              if (isMoiGiang === 1 && matchedItem2.isQuanDoi === 1) {
-                isMoiGiang = 0; // Giảng viên mời là quân đội
-              }
-            } else {
-              // Chuẩn hóa tên giảng viên 2 để so sánh (loại bỏ ngoặc)
-              // const normalizedGV2 = item.GiangVien2.replace(
-              //   /\s*\(.*?\)\s*/g,
-              //   ""
-              // ).trim();
-              const normalizedGV2 = item.GiangVien2.trim();
-              matchedItem2 = uniqueGV.find(
-                (arr) => arr.HoTen.trim() == normalizedGV2
-              );
-              if (!matchedItem2) {
-                errors.push(
-                  `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien}`
-                );
-                return;
-              }
-              GiangVien = matchedItem2.HoTen.trim();
-              CCCD = matchedItem2.CCCD;
-
-              isMoiGiang =
-                matchedItem2.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
-
-              if (isMoiGiang === 1 && matchedItem2.isQuanDoi === 1) {
-                isMoiGiang = 0; // Giảng viên mời là quân đội
-              }
-            }
-
-            // ✅ DYNAMIC CALCULATION: GV2 gets so_tiet_2 from sotietdoan
-            SoTiet = soTietConfig.so_tiet_2;
-
-            // ✅ Calculate TienMoiGiang for GV2 using CACHED data (NO database query!)
-            const TienMoiGiang2 = calculateDonGiaWithCache(tienLuongCache, matchedItem2, item.he_dao_tao);
-            const ThanhTien2 = SoTiet * TienMoiGiang2;
-            const Thue2 = 0;
-            const ThucNhan2 = ThanhTien2;
-
-            values.push([
-              item.SinhVien || null,
-              item.MaSV || null,
-              item.KhoaDaoTao || null,
-              SoQD || null,
-              item.TenDeTai || null,
-              SoNguoi || null,
-              isHDChinh,
-              GiangVien || null,
-              CCCD || null,
-              isMoiGiang,
-              SoTiet || null,
-              item.NgayBatDau || null,
-              item.NgayKetThuc || null,
-              item.MaPhongBan || null,
-              NamHoc || null,
-              item.Ki || null,
-              item.Dot || null,
-              item.TT || null,
-              matchedItem2.GioiTinh || null,
-              matchedItem2.NgaySinh || null,
-              matchedItem2.NgayCapCCCD || null,
-              matchedItem2.NoiCapCCCD || null,
-              matchedItem2.DiaChi || null,
-              matchedItem2.DienThoai || null,
-              matchedItem2.Email,
-              matchedItem2.MaSoThue,
-              matchedItem2.HocVi,
-              matchedItem2.NoiCongTac,
-              matchedItem2.ChucVu,
-              matchedItem2.STK,
-              matchedItem2.NganHang,
-              matchedItem2.MonGiangDayChinh,
-              matchedItem2.HSL,
-              item.he_dao_tao,
-              item.khoa_sinh_vien || null,
-              item.nganh || null,
-              TienMoiGiang2 || 0,    // ✅ NEW: Đơn giá GV2
-              ThanhTien2 || 0,       // ✅ NEW: Thành tiền GV2
-              Thue2 || 0,            // ✅ NEW: Thuế 10% GV2
-              ThucNhan2 || 0,        // ✅ NEW: Thực nhận 90% GV2
-            ]);
-
-            count++;
-          }
-        })
+    const datnService = require("../services/save_moigiang/datn.service");
+    const { values, errors: datnErrors } = datnService.transformDoAnData(
+      data,
+      daDuyetHetArray,
+      soTietMap,
+      tienLuongCache,
+      allGV,
+      { NamHoc, ki, Dot }
     );
+    
+    // Merge errors
+    errors.push(...datnErrors);
 
     // Nếu có lỗi, trả về thông báo lỗi
     if (errors.length > 0) {
-      return res.status(200).json({ message: `Có lỗi xảy ra ${errors}` });
+      return res.status(200).json({ message: `Có lỗi xảy ra ${errors.join(', ')}` });
     }
 
-    if (count == 0) {
+    if (values.length === 0) {
       // Dữ liệu đã được lưu hết
       return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" });
     } else {
@@ -1404,13 +1165,11 @@ const saveToExportDoAn = async (req, res) => {
       await connection.query(updateQuery, [...daDuyetHetArray]);
     }
 
-    // ✅ Câu lệnh SQL để chèn tất cả dữ liệu vào bảng (UPDATED with money fields)
-    // NOTE: Requires ALTER TABLE exportdoantotnghiep to add: TienMoiGiang, ThanhTien, Thue, ThucNhan
+    // ✅ Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, 
     isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, ki, Dot, TT,
     GioiTinh, NgaySinh, NgayCapCCCD, NoiCapCCCD, DiaChi, DienThoai, Email, MaSoThue, HocVi, NoiCongTac,
-    ChucVu, STK, NganHang, MonGiangDayChinh, HSL, he_dao_tao, khoa_sinh_vien, nganh,
-    TienMoiGiang, ThanhTien, TruThue, ThucNhan)
+    ChucVu, STK, NganHang, MonGiangDayChinh, HSL, he_dao_tao, khoa_sinh_vien, nganh)
                  VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values
