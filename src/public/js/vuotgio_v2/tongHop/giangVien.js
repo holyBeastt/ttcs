@@ -379,9 +379,11 @@ function renderTable(data) {
 
             <!-- Actions -->
             <td>
-                <button class="btn btn-sm btn-success" onclick="previewExcel('${row.id_User}', '${row.giangVien}')" title="Xem preview Excel">
-                    <i class="fas fa-file-excel"></i>
-                </button>
+                <div class="btn-group gap-1" role="group">
+                    <button class="btn btn-sm" style="background-color: #ffffff; color: #1d4ed8; border: 1px solid #1d4ed8; font-weight: bold;" onclick="openPersonalView('${row.id_User}', '${row.giangVien}')" title="Xem Bảng Web">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </td>
         `;
 
@@ -543,7 +545,14 @@ function filterTable() {
 
 // Remove old updateFooterTotals function as it's replaced by renderFooter
 
-// ==================== EXCEL PREVIEW (PDF) ====================
+// ==================== EXCEL PREVIEW (PDF) & BẢNG KÊ WEB ====================
+
+function openPersonalView(maGV, hoTen) {
+    const namHoc = document.getElementById('namHocXem').value;
+    const url = `/v2/vuotgio/ca-nhan?idUser=${encodeURIComponent(maGV)}&namHoc=${encodeURIComponent(namHoc)}`;
+    console.info('[vuotgio_v2.preview] click', { giangVien: hoTen, maGV, namHoc, url });
+    window.open(url, '_blank');
+}
 
 // Preview Excel as PDF generated from xlsx + LibreOffice
 async function previewExcel(maGV, hoTen) {

@@ -276,11 +276,34 @@
             </div>
           </div>
 
-          <!-- <div class="total-label mt-3 p-2 bg-light border rounded text-right">
-            <label class="font-weight-bold mb-0" style="font-size: 1.1em;">
-              Tổng số tiết toàn bộ: <span class="text-danger" id="totalQC">0</span>
-            </label>
-          </div> -->
+          <h4 class="mt-4 text-success font-weight-bold">III. Danh sách Giảng viên Cơ hữu</h4>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th class="align-middle text-center">STT</th>
+                  <th class="align-middle text-center">Giảng viên hướng</th>
+                  <th class="align-middle text-center">Tên đề tài</th>
+                  <th class="align-middle text-center">Sinh viên</th>
+                  <th class="align-middle text-center">Mã sinh viên</th>
+                  <th class="align-middle text-center">Đợt</th>
+                  <th class="align-middle text-center">Năm học</th>
+                  <th class="align-middle text-center">Ngày bắt đầu</th>
+                  <th class="align-middle text-center">Ngày kết thúc</th>
+                  <th class="align-middle text-center">Số tiết</th>
+                  <th class="align-middle text-center">Tổng số tiết</th>
+                  <th class="align-middle text-center">Tổng số tiết cả năm</th>
+                  <th class="align-middle text-center">Khoa</th>
+                </tr>
+              </thead>
+              <tbody class="teacher-group" id="tbody-cohuu"></tbody>
+            </table>
+            <div class="total-label">
+              <label>
+                Tổng số tiết: <span id="qc-cohuu">0</span>
+              </label>
+            </div>
+          </div>
         </div>
         <div
           id="no-data-message"
@@ -332,10 +355,11 @@
           .then((data) => {
            // 1. Xử lý logic hiển thị/ẩn thông báo
             const noDataMsg = document.getElementById("no-data-message");
-            if (!data || data.length === 0 || Object.keys(data.groupedByTeacher).length === 0) {
+            if (!data || (Object.keys(data.groupedByTeacher || {}).length === 0 && Object.keys(data.groupedCoHuu || {}).length === 0)) {
               if(noDataMsg) noDataMsg.style.display = "block";
               document.getElementById("tbody-civilian").innerHTML = "";
               document.getElementById("tbody-military").innerHTML = "";
+              document.getElementById("tbody-cohuu").innerHTML = "";
               return;
             }
             if(noDataMsg) noDataMsg.style.display = "none";
@@ -346,6 +370,7 @@
 
             // 3. Render bảng (Phiên bản tối ưu)
             renderTable(data.groupedByTeacher);
+            renderCoHuuTable(data.groupedCoHuu || {});
           })
           .catch((error) => {
             console.error("Error fetching data:", error);
@@ -401,6 +426,59 @@
         calculateTotals();
       }
 
+      // Hàm render bảng GV Cơ hữu (riêng biệt, không dùng isQuanDoi)
+      function renderCoHuuTable(groupedData) {
+        let cohuuHTML = "";
+        let index = 1;
+
+        Object.keys(groupedData).forEach((teacher) => {
+          const courses = groupedData[teacher];
+          if (!courses || courses.length === 0) return;
+
+          const totalSoTiet = courses.reduce((sum, c) => sum + (parseFloat(c.SoTiet) || 0), 0);
+          const currentIndex = index++;
+
+          cohuuHTML += courses.map((course, idx) => {
+            const isFirstRow = idx === 0;
+            const rowSpan = isFirstRow ? `rowspan="${courses.length}"` : "";
+            const alertClass = (course.TongSoTietCaNam > 300) ? "alert-sotiet" : "";
+
+            const firstRowCells = isFirstRow ? `
+              <td ${rowSpan} class="align-middle">${currentIndex}</td>
+              <td ${rowSpan} class="align-middle">
+                ${course.HoTen}<br/>(Cơ hữu - ${course.MaPhongBan})
+              </td>
+            ` : "";
+
+            const lastRowCells = isFirstRow ? `
+              <td ${rowSpan} class="align-middle text-center">${totalSoTiet.toFixed(2)}</td>
+              <td ${rowSpan} class="align-middle text-center">
+                ${course.TongSoTietCaNam ? parseFloat(course.TongSoTietCaNam).toFixed(2) : "0.00"}
+              </td>
+              <td ${rowSpan} class="align-middle">${course.MaKhoa || course.MaPhongBan}</td>
+            ` : "";
+
+            return `
+              <tr class="${alertClass}" data-department="${course.MaKhoa || course.MaPhongBan}" data-name="${teacher.toLowerCase()}">
+                ${firstRowCells}
+                <td>${course.TenDeTai}</td>
+                <td>${course.SinhVien}</td>
+                <td>${course.MaSV}</td>
+                <td>${course.Dot}</td>
+                <td>${course.NamHoc}</td>
+                <td>${formatDate(course.NgayBatDau)}</td>
+                <td>${formatDate(course.NgayKetThuc)}</td>
+                <td class="text-center val-sotiet">${course.SoTiet}</td>
+                ${lastRowCells}
+              </tr>
+            `;
+          }).join("");
+        });
+
+        document.getElementById("tbody-cohuu").innerHTML = cohuuHTML;
+        calculateTotals();
+      }
+
       // Hàm sinh HTML string cho 1 nhóm giảng viên
       function generateGroupHTML(teacherName, courses, index, totalSoTiet) {
         return courses.map((course, idx) => {
@@ -451,6 +529,9 @@
         
         // Tính cho bảng Quân sự
         calculateTableSum("tbody-military", "qc-military");
+
+        // Tính cho bảng Cơ hữu
+        calculateTableSum("tbody-cohuu", "qc-cohuu");
       }
 
       // Hàm tính tổng chung (Reusable Function)
@@ -528,6 +609,7 @@
         // 3. Thực thi tìm kiếm trên cả 2 bảng
         filterTable("tbody-civilian");
         //filterTable("tbody-military");
+        filterTable("tbody-cohuu");
 
         // 4. Tính lại tổng số sau khi lọc
         calculateTotals();

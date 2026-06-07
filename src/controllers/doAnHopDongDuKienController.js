@@ -175,10 +175,86 @@ WHERE Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?
 
     const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
 
+    // ========== QUERY RIÊNG: GV Cơ hữu (không thuộc bảng gvmoi) ==========
+    let coHuuQuery = `
+      WITH gv1_cohuu AS (
+        SELECT 
+          SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien,
+          TenDeTai, SinhVien, MaSV, NgayBatDau, NgayKetThuc,
+          Dot, ki, NamHoc, MaPhongBan AS MaKhoa, he_dao_tao,
+          GiangVien2, 'GV1' AS Nguon
+        FROM doantotnghiep
+        WHERE GiangVien1 IS NOT NULL AND TRIM(GiangVien1) != ''
+          AND LOWER(TRIM(GiangVien1)) != 'không'
+      ),
+      gv2_cohuu AS (
+        SELECT 
+          SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien,
+          TenDeTai, SinhVien, MaSV, NgayBatDau, NgayKetThuc,
+          Dot, ki, NamHoc, MaPhongBan AS MaKhoa, he_dao_tao,
+          GiangVien2, 'GV2' AS Nguon
+        FROM doantotnghiep
+        WHERE GiangVien2 IS NOT NULL AND TRIM(GiangVien2) != ''
+          AND LOWER(TRIM(GiangVien2)) != 'không'
+      ),
+      all_gv_cohuu AS (
+        SELECT * FROM gv1_cohuu
+        UNION ALL
+        SELECT * FROM gv2_cohuu
+      ),
+      gv_cohuu_with_tiet AS (
+        SELECT 
+          a.GiangVien, a.TenDeTai, a.SinhVien, a.MaSV,
+          a.NgayBatDau, a.NgayKetThuc, a.Dot, a.ki,
+          a.NamHoc, a.MaKhoa, a.he_dao_tao,
+          CASE 
+            WHEN a.Nguon = 'GV1' AND (LOWER(TRIM(a.GiangVien2)) = 'không' OR TRIM(a.GiangVien2) = '') THEN std.tong_tiet
+            WHEN a.Nguon = 'GV1' THEN std.so_tiet_1
+            ELSE std.so_tiet_2
+          END AS SoTiet
+        FROM all_gv_cohuu a
+        JOIN sotietdoan std ON a.he_dao_tao = std.he_dao_tao
+        WHERE a.GiangVien NOT IN (SELECT HoTen FROM gvmoi)
+      ),
+      tong_tiet_cohuu AS (
+        SELECT GiangVien, SUM(SoTiet) AS TongSoTiet
+        FROM gv_cohuu_with_tiet
+        WHERE NamHoc = ?
+        GROUP BY GiangVien
+      )
+      SELECT 
+        g.GiangVien AS HoTen, g.TenDeTai, g.SinhVien, g.MaSV,
+        g.SoTiet, g.NgayBatDau, g.NgayKetThuc, g.Dot, g.ki,
+        g.NamHoc, g.MaKhoa,
+        nv.MaPhongBan, nv.id_User,
+        t.TongSoTiet AS TongSoTietCaNam
+      FROM gv_cohuu_with_tiet g
+      JOIN nhanvien nv ON g.GiangVien = nv.TenNhanVien
+      LEFT JOIN tong_tiet_cohuu t ON g.GiangVien = t.GiangVien
+      WHERE g.Dot = ? AND g.ki = ? AND g.NamHoc = ? AND g.he_dao_tao = ?
+    `;
+    let coHuuValues = [NamHoc, Dot, ki, NamHoc, heDaoTaoValue];
+
+    if (MaPhongBan != "ALL") {
+      coHuuQuery += ` AND g.MaKhoa = ?`;
+      coHuuValues.push(MaPhongBan);
+    }
+    coHuuQuery += ` ORDER BY TongSoTietCaNam DESC`;
+
+    const [resultCoHuu] = await connection.query(coHuuQuery, coHuuValues);
+
+    // Nhóm GV cơ hữu theo giảng viên
+    const groupedCoHuu = resultCoHuu.reduce((acc, current) => {
+      const teacher = current.HoTen;
+      if (!acc[teacher]) acc[teacher] = [];
+      acc[teacher].push(current);
+      return acc;
+    }, {});
+
     // Trả dữ liệu về client dưới dạng JSON
     res
       .status(200)
-      .json({ groupedByTeacher: groupedByTeacher, SoTietDinhMuc, SoQDList });
+      .json({ groupedByTeacher, groupedCoHuu, SoTietDinhMuc, SoQDList });
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu từ database:", error);
 

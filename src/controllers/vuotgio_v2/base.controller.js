@@ -51,6 +51,16 @@ const getTongHopGV = (req, res) => {
 };
 
 /**
+ * Render trang Cá Nhân Vượt Giờ Dự Kiến
+ */
+const getVuotGioCaNhan = (req, res) => {
+    // If idUser is provided in query, use it (for managers), otherwise use logged in user's ID
+    const idUser = req.query.idUser || req.session?.userId || req.session?.userInfo?.ID;
+    const namHoc = req.query.namHoc || '';
+    res.render("vuotgio_v2/vuotgio.caNhan.ejs", { idUser, namHoc, title: "Vượt giờ dự kiến cá nhân" });
+};
+
+/**
  * Render trang Tổng Hợp Khoa
  */
 const getTongHopKhoa = (req, res) => {
@@ -182,6 +192,7 @@ module.exports = {
     getThemKTHP,
     getDuyetKTHP,
     getTongHopGV,
+    getVuotGioCaNhan,
     getTongHopKhoa,
     getXuatFile,
     getHuongDanDATN,

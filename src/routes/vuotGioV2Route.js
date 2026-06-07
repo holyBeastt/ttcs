@@ -108,6 +108,7 @@ router.post("/duyet-kthp/approve/:ID", enforceKhoaFilter, checkDataLock, duyetKT
 // =====================================================
 
 router.get("/tong-hop-giang-vien", baseController.getTongHopGV);
+router.get("/ca-nhan", baseController.getVuotGioCaNhan);
 router.get("/tong-hop/giang-vien", tongHopController.tongHopTheoGV);
 router.get("/tong-hop-khoa", baseController.getTongHopKhoa);
 router.get("/tong-hop/khoa", tongHopController.tongHopTheoKhoa);
