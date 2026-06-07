@@ -609,6 +609,21 @@ const tongHopDuLieuGiangVien = async () => {
   }
 };
 
+// Hàm lấy dữ liệu map id he_dao_tao -> cap_do
+const getCapDoMapping = async () => {
+  try {
+    const [rows] = await pool.query("SELECT id, cap_do FROM he_dao_tao");
+    const capDoMap = {};
+    rows.forEach(row => {
+      capDoMap[row.id] = row.cap_do;
+    });
+    return capDoMap;
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu he_dao_tao:", error);
+    return {};
+  }
+};
+
 const formatDateValue = (dateValue) => {
   if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
     return null;
@@ -1867,8 +1882,6 @@ const updateQC = async (req, res) => {
   const userId = req.session.userId || req.session.userInfo?.ID || 0;
   const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
 
-  console.log("User ID:", userId);
-  console.log("User Name:", tenNhanVien);
 
   let connection;
 
@@ -1888,6 +1901,8 @@ const updateQC = async (req, res) => {
     //   ...gvmList.map((gvm) => gvm.name.trim()),
     //   ...coHuuList.map((nv) => nv.name.trim()),
     // ]);
+
+    const capDoMapping = await getCapDoMapping();
 
     const coHuuSet = new Set(coHuuList.map((nv) => nv.name.trim()));
     const gvmListSet = new Set(gvmList.map((gvm) => gvm.name.trim()));
@@ -1924,10 +1939,13 @@ const updateQC = async (req, res) => {
           continue;
         }
 
-        // Nếu là hệ đại học và tên chứa dấu ,
+        // Lấy cấp độ từ map, nếu không có thì gán mặc định để an toàn (ví dụ: gán 1 nếu bạn muốn kiểm tra)
+        const cap_do = capDoMapping[he_dao_tao];
+
+        // Nếu là hệ đại học và tên chứa dấu , (cap_do < 3 là đại học/cao đẳng)
         if (
           GiaoVienGiangDay?.includes(",") &&
-          he_dao_tao?.includes("Đại học")
+          cap_do < 3
         ) {
           error_gv_rows.push(
             `${LopHocPhan} (${TenLop}) - lớp đại học chỉ được 1 giảng viên và không có dấu ','`

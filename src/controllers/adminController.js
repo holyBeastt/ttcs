@@ -1042,16 +1042,46 @@ const AdminController = {
     } = req.body;
 
     try {
+      // Validate inputs and handle edge cases
+      if (!Id_User) {
+        return res.status(400).json({ message: "Không tìm thấy ID người dùng." });
+      }
+
+      const ModeHSL = parseWholeHsl(HSL);
+      if (ModeHSL === null || ModeHSL < 0) {
+        return res.status(400).json({
+          message: "Hệ số lương phải là số hợp lệ không âm. Vui lòng kiểm tra lại.",
+        });
+      }
+
+      const LuongValue = Luong !== undefined && Luong !== null ? String(Luong) : "";
+      if (LuongValue && !/^\d*$/.test(LuongValue)) {
+        return res.status(400).json({
+          message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
+        });
+      }
+
+      const cleanedPhanTram = PhanTramMienGiam ? String(PhanTramMienGiam).replace("%", "").trim() : "0";
+      const phanTram = parseFloat(cleanedPhanTram);
+      if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
+        return res.status(400).json({
+          message: "Phần trăm miễn giảm phải là số từ 0 đến 100. Vui lòng kiểm tra lại.",
+        });
+      }
+
       connection = await createPoolConnection(); // Lấy kết nối từ pool
 
       // Lấy dữ liệu cũ trước khi cập nhật
       const getOldDataQuery = `SELECT * FROM nhanvien WHERE id_User = ?`;
       const [oldData] = await connection.query(getOldDataQuery, [Id_User]);
+      
+      if (!oldData || oldData.length === 0) {
+        return res.status(404).json({ message: "Không tìm thấy thông tin nhân viên để cập nhật." });
+      }
+      
       const oldRecord = oldData[0];
 
       // Truy vấn để update dữ liệu vào cơ sở dữ liệu
-      const cleanedPhanTram = PhanTramMienGiam.replace("%", "").trim(); // Xóa dấu %
-      const phanTram = parseFloat(cleanedPhanTram); // Chuyển thành số thực
       const query = `UPDATE nhanvien SET 
         TenNhanVien = ?,
         NgaySinh = ?,
@@ -1124,6 +1154,12 @@ const AdminController = {
       });
     } catch (error) {
       console.error("Error executing query: ", error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          message: "Đã xảy ra lỗi hệ thống khi cập nhật thông tin",
+          error: error.message,
+        });
+      }
     } finally {
       if (connection) connection.release(); // Giải phóng kết nối
     }
