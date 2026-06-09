@@ -442,7 +442,7 @@ function renderCharts(data) {
 ════════════════════════════════════════════ */
 function viewDepartmentDetail(maKhoa) {
   const namHoc = document.getElementById('namHocXem')?.value || '';
-  window.location.href = `/v2/vuotgio/tong-hop-giang-vien?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
+  window.location.href = `/v2/vuotgio/thong-ke-sau-luu?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
 }
 
 function previewDepartment(maKhoa, tenKhoa) {

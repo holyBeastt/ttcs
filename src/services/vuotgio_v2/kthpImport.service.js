@@ -133,7 +133,7 @@ const parseExcelFile = async (buffer) => {
 /**
  * Import dữ liệu đã parse vào DB
  */
-const importToDB = async (workloadData, { ki, nam, user }) => {
+const importToDB = async (workloadData, { ki, nam, dot, user }) => {
     let connection;
     try {
         connection = await createPoolConnection();
@@ -217,6 +217,7 @@ const importToDB = async (workloadData, { ki, nam, user }) => {
                     item.khoa,
                     ki,
                     nam,
+                    dot || 1,
                     type,
                     item.tenHocPhan,
                     item.lopHocPhan,
@@ -242,7 +243,7 @@ const importToDB = async (workloadData, { ki, nam, user }) => {
         }
 
         await connection.commit();
-        await LogService.logChange(user.id, user.userName, "Import KTHP từ Excel", `Import thành công ${insertValues.length} bản ghi - Học kỳ ${ki}, Năm học ${nam}`);
+        await LogService.logChange(user.id, user.userName, "Import KTHP từ Excel", `Import thành công ${insertValues.length} bản ghi - Học kỳ ${ki}, Năm học ${nam}, Đợt ${dot || 1}`);
         
         return insertValues.length;
     } catch (error) {

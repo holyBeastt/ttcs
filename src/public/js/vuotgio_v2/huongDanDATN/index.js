@@ -81,13 +81,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!data.success) return;
             
             const select = document.getElementById("heDaoTaoFilter");
-            select.innerHTML = "";
+            select.innerHTML = '<option value="ALL">Tất cả hệ</option>';
             
-            data.data.forEach((item, index) => {
+            data.data.forEach((item) => {
                 const option = document.createElement("option");
                 option.value = item.id;
                 option.textContent = item.he_dao_tao;
-                if (index === 0) option.selected = true;
                 select.appendChild(option);
             });
         } catch (error) {

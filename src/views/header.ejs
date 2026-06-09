@@ -212,13 +212,13 @@
                 <a class="nav-link" href="/v2/vuotgio/danh-sach-lop-ngoai-qc">Đào Tạo Duyệt Danh Sách Lớp Ngoài Quy
                   Chuẩn</a>
                 <a class="nav-link" href="/v2/vuotgio/duyet-kthp">Khảo Thí Duyệt Coi, Chấm, Ra Đề Thi</a>
-                <a class="nav-link" href="/v2/vuotgio/thong-ke-giang-day">Thông tin giảng viên theo lớp</a>
+                <a class="nav-link" href="/v2/vuotgio/thong-ke-giang-day">Thông tin giảng dạy quy chuẩn</a>
                 <a class="nav-link" href="/v2/vuotgio/huong-dan-datn">Thông tin đồ án tốt nghiệp</a>
                 <a class="nav-link" href="/v2/vuotgio/huong-dan-tham-quan">Hướng dẫn tham quan thực tế</a>
-
+                <a class="nav-link" id="nav-tai-chinh-duyet-vuot-gio" href="/v2/vuotgio/tai-chinh-duyet">Tài chính duyệt vượt giờ</a>
 
                 <!-- ========== Dự Kiến ========== -->
-                <a class="nav-link" href="/v2/vuotgio/ca-nhan">Vượt giờ dự kiến cá nhân</a>
+                <a class="nav-link" href="/v2/vuotgio/ca-nhan-du-kien">Vượt giờ dự kiến cá nhân</a>
                 <a class="nav-link" href="/v2/vuotgio/tong-hop-giang-vien">Thông tin vượt giờ dự kiến</a>
                 <a class="nav-link" href="/v2/vuotgio/tong-hop-khoa">Thống kê vượt giờ</a>
                 <a class="nav-link" id="" href="/v3/nckh/thong-ke/hoc-vien">Thống kê NCKH</a>
@@ -569,10 +569,12 @@
       navLink_addFileQC.style.display = "none";
     }
 
-    if (maPhongBan !== APP_DEPARTMENTS.khaoThi || (userRole !== APP_ROLES.lanhDao_phong && userRole !== APP_ROLES.troLy_phong)) {
-      themFileKTHP.style.display = "none";
-    } else {
-      themFileKTHP.style.display = "";
+    if (themFileKTHP) {
+      if (maPhongBan !== APP_DEPARTMENTS.khaoThi || (userRole !== APP_ROLES.lanhDao_phong && userRole !== APP_ROLES.troLy_phong)) {
+        themFileKTHP.style.display = "none";
+      } else {
+        themFileKTHP.style.display = "";
+      }
     }
 
     // Vượt giờ: "Thêm Thông Tin Lớp Ngoài Quy Chuẩn" chỉ hiển thị cho Đào tạo (trợ lý + lãnh đạo)

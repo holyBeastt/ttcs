@@ -1,9 +1,13 @@
 /**
  * VUOT GIO V2 - Thống Kê Service
- * Projection mỏng từ Collection SDO của TongHopService
+ * Projection mỏng từ snapshot data (năm đã khóa) hoặc Collection SDO (chưa khóa).
+ *
+ * Luồng mới (post-snapshot):
+ *   - Năm đã khóa → đọc từ vg_so_tiet_tong_hop (instant)
+ *   - Năm chưa khóa → throw lỗi yêu cầu khóa trước
  */
 
-const tongHopService = require("./tongHop.service");
+const snapshotDataService = require("./snapshotData.service");
 const { NON_KHOA_GROUP_CODE } = require("../../repositories/vuotgio_v2/tongHop.repo");
 
 const NON_KHOA_GROUP_NAME = "Ban giám đốc & các phòng";
@@ -11,9 +15,9 @@ const NON_KHOA_GROUP_NAME = "Ban giám đốc & các phòng";
 const getThongKeKhoa = async (namHoc, khoaId) => {
     // Nếu khoaId là ALL hoặc không có, chúng ta sẽ lấy toàn trường và nhóm theo Khoa
     const isAll = !khoaId || khoaId === "ALL";
-    
-    // Gọi SDO gốc từ TongHopService
-    const sdoList = await tongHopService.getCollectionSDO(namHoc, isAll ? "ALL" : khoaId);
+
+    // Đọc từ snapshot (bắt buộc năm đã khóa, nếu chưa sẽ throw)
+    const sdoList = await snapshotDataService.getSnapshotSDOList(namHoc, isAll ? "ALL" : khoaId);
     
     if (isAll) {
         // Nhóm theo Khoa/Phòng
@@ -76,7 +80,7 @@ const getThongKeKhoa = async (namHoc, khoaId) => {
             summary
         };
     } else {
-        // Nếu đã chọn 1 khoa cụ thể, trả về danh sách GV của khoa đó (giữ logic cũ)
+        // Nếu đã chọn 1 khoa cụ thể, trả về danh sách GV của khoa đó
         const summary = {
             tongSoGV: sdoList.length,
             tongThucHien: sdoList.reduce((s, r) => s + (r.tongThucHien || 0), 0),

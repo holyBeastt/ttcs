@@ -181,6 +181,17 @@
                     <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
                         <option value="ALL" selected>Tất cả khoa</option>
                     </select>
+                    <select class="selectop" id="heDaoTao" style="width: 150px; margin: 0; box-shadow: none;">
+                        <option value="ALL">Tất cả hệ</option>
+                    </select>
+                    <select class="selectop" id="dot" style="width: 80px; margin: 0; box-shadow: none;">
+                        <option value="1">Đợt 1</option>
+                        <option value="2">Đợt 2</option>
+                    </select>
+                    <select class="selectop" id="ki" style="width: 80px; margin: 0; box-shadow: none;">
+                        <option value="1">Kỳ 1</option>
+                        <option value="2">Kỳ 2</option>
+                    </select>
                     <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
                         Hiển thị
                     </button>
@@ -208,6 +219,7 @@
                                 <th style="width: 70px;">Khoa</th>
                                 <th style="width: 140px;">Hệ đào tạo</th>
                                 <th style="width: 50px;">Kì</th>
+                                <th style="width: 50px;">Đợt</th>
                                 <th style="width: 200px;">Tên học phần</th>
                                 <th style="width: 100px;">Lớp HP</th>
                                 <th style="width: 100px;">Loại KTHP</th>
@@ -250,11 +262,11 @@
                         <form id="editForm">
                             <input type="hidden" id="editID" />
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Năm học</label>
                                     <select id="editNamHoc" class="form-select"></select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Học kỳ</label>
                                     <select id="editHocKy" class="form-select">
                                         <option value="1">Học kỳ 1</option>
@@ -262,7 +274,17 @@
                                         <option value="3">Học kỳ hè</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label">Đợt</label>
+                                    <select id="editDot" class="form-select">
+                                        <option value="1">Đợt 1</option>
+                                        <option value="2">Đợt 2</option>
+                                        <option value="3">Đợt 3</option>
+                                        <option value="4">Đợt 4</option>
+                                        <option value="5">Đợt 5</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label">Khoa</label>
                                     <select id="editKhoa" class="form-select"></select>
                                 </div>

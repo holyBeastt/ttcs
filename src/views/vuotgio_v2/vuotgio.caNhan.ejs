@@ -209,9 +209,13 @@
         <!-- Input ẩn lưu trữ tham số ban đầu -->
         <input type="hidden" id="initIdUser" value="<%= idUser %>" />
         <input type="hidden" id="initNamHoc" value="<%= namHoc %>" />
+        <input type="hidden" id="initMode" value="<%= mode %>" />
 
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="page-title"><i class="fas fa-user-clock me-2"></i> Bảng Kê Vượt Giờ Cá Nhân</h2>
+            <h2 class="page-title">
+                <i class="fas fa-user-clock me-2"></i> 
+                <%= mode === 'du-kien' ? 'Bảng Kê Vượt Giờ Cá Nhân (Dự Kiến)' : 'Bảng Kê Vượt Giờ Cá Nhân (Chính Thức)' %>
+            </h2>
             <div class="d-flex gap-2">
                 <select class="form-select w-auto" id="namHocFilter">
                     <!-- Danh sách năm học sẽ được load qua JS -->
@@ -237,14 +241,103 @@
                 <!-- Nội dung sẽ được render qua JS -->
             </div>
 
+            <!-- DATA SUMMARY BOX - KÌ 1 VÀ KÌ 2 -->
+            <!-- <div id="dataSummaryBox" class="card border-0 shadow-sm mb-4" style="display: none;">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Tổng Quan Dữ Liệu Theo Kì</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3" style="background-color: #eff6ff; border-color: #3b82f6 !important; border-left-width: 4px !important;">
+                                <h6 class="text-primary mb-3"><i class="fas fa-calendar-alt me-2"></i>Học Kỳ 1</h6>
+                                <div class="small">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>📚 Giảng dạy:</span>
+                                        <strong id="ky1GiangDay">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>📝 Lớp ngoài QC:</span>
+                                        <strong id="ky1LopNgoaiQC">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>✍️ Coi/Chấm thi:</span>
+                                        <strong id="ky1Kthp">0</strong>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Tổng quy chuẩn:</strong>
+                                        <strong class="text-primary" id="ky1Total">0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="border rounded p-3" style="background-color: #f0fdf4; border-color: #10b981 !important; border-left-width: 4px !important;">
+                                <h6 class="text-success mb-3"><i class="fas fa-calendar-alt me-2"></i>Học Kỳ 2</h6>
+                                <div class="small">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>📚 Giảng dạy:</span>
+                                        <strong id="ky2GiangDay">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>📝 Lớp ngoài QC:</span>
+                                        <strong id="ky2LopNgoaiQC">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>✍️ Coi/Chấm thi:</span>
+                                        <strong id="ky2Kthp">0</strong>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Tổng quy chuẩn:</strong>
+                                        <strong class="text-success" id="ky2Total">0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="dataWarningBox" class="alert alert-warning mt-3 mb-0" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="dataWarningText"></span>
+                    </div>
+                </div>
+            </div> -->
+
             <!-- CÁC BẢNG DỮ LIỆU CHI TIẾT -->
             <div id="tablesContainer">
                 <!-- Render động -->
             </div>
 
             <!-- TỔNG KẾT -->
-            <div class="summary-box" id="summaryBox">
+            <div id="summaryBox" style="margin-top: 20px; margin-bottom: 30px;">
                 <!-- Render động -->
+            </div>
+
+            <!-- BẢNG F TỔNG SỐ TIẾT THEO KHOA (Tạm thời) -->
+            <div id="tableFContainer" style="display: none; margin-top: 20px; margin-bottom: 30px;">
+                <h5 class="fw-bold mb-3" style="color: #1e293b;"><i class="fas fa-table me-2"></i> F. TỔNG SỐ TIẾT THỐNG KÊ THEO TỪNG HỆ ĐÀO TẠO (KHOA)</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered text-center table-custom" id="tableF">
+                        <thead style="background-color: #334155; color: #f1f5f9;">
+                            <tr>
+                                <th style="width: 50px;">TT</th>
+                                <th style="text-align: left;">Đối tượng</th>
+                                <th style="width: 150px;">Số tiết thực hiện HK 1</th>
+                                <th style="width: 150px;">Số tiết thực hiện HK 2</th>
+                                <th style="width: 150px;">Hướng dẫn ĐATN</th>
+                                <th style="width: 150px;">Tham quan thực tế</th>
+                                <th style="width: 150px;">Tổng số tiết cả năm</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableFBody">
+                        </tbody>
+                        <tfoot id="tableFFoot" style="background-color: #f1f5f9; font-weight: bold;">
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

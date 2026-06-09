@@ -11,7 +11,7 @@ const templatePreviewService = require("../../services/vuotgio_v2/templatePrevie
  */
 const getPreviewData = async (req, res) => {
     const { MaGV } = req.params;
-    const { namHoc } = req.query;
+    const { namHoc, isDuKien } = req.query;
 
     if (!namHoc || !MaGV) {
         return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học hoặc Giảng viên" });
@@ -21,7 +21,15 @@ const getPreviewData = async (req, res) => {
         const { format = 'pdf' } = req.query;
 
         // 1. Lấy SDO gốc từ bộ lõi Tổng hợp
-        const sdo = await tongHopService.getAtomicSDO(namHoc, decodeURIComponent(MaGV));
+        // Parse isDuKien: 'true' hoặc '1' → true, 'false' hoặc '0' → false, default → true
+        let isDuKienBool = true; // Default
+        if (isDuKien !== undefined) {
+            isDuKienBool = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
+        }
+        
+        console.info('[getPreviewData]', { MaGV, namHoc, isDuKien: isDuKienBool });
+        
+        const sdo = await tongHopService.getAtomicSDO(namHoc, decodeURIComponent(MaGV), null, isDuKienBool);
         if (!sdo) return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu giảng viên" });
 
         // Log chi tiết số lượng bản ghi để debug
@@ -67,7 +75,15 @@ const getPreviewKhoaData = async (req, res) => {
 
     try {
         const khoaDecoded = decodeURIComponent(khoa);
-        const summaries = await tongHopService.getCollectionSDODetail(namHoc, khoaDecoded);
+        // Parse isDuKien: 'true' hoặc '1' → true, 'false' hoặc '0' → false, default → true
+        let isDuKienBool = true; // Default
+        if (req.query.isDuKien !== undefined) {
+            isDuKienBool = req.query.isDuKien === 'true' || req.query.isDuKien === '1' || req.query.isDuKien === true;
+        }
+        
+        console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, isDuKien: isDuKienBool });
+        
+        const summaries = await tongHopService.getCollectionSDODetail(namHoc, khoaDecoded, isDuKienBool);
 
         if (!summaries || summaries.length === 0) {
             return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu cho khoa này" });
@@ -120,7 +136,8 @@ const getConsolidatedPreviewData = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getConsolidatedPreviewData:", error);
-        res.status(500).json({ success: false, message: error.message });
+        const status = error.statusCode || 500;
+        res.status(status).json({ success: false, message: error.message });
     }
 };
 
@@ -144,7 +161,8 @@ const getConsolidatedData = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getConsolidatedData:", error);
-        res.status(500).json({ success: false, message: error.message });
+        const status = error.statusCode || 500;
+        res.status(status).json({ success: false, message: error.message });
     }
 };
 

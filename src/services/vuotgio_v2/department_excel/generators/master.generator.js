@@ -1,7 +1,7 @@
 /**
  * Master Sheet Generator — Renders the "TỔNG HỢP" sheet.
  *
- * Layout mirrors vuotgio.tongHopGV.ejs:
+ * Layout mirrors vuotgio.thongTinVuotGioDuKien.ejs:
  *   - 36 columns (same as DepartmentLayout)
  *   - One row per lecturer (not per department)
  *   - Groups are separated by a group header row

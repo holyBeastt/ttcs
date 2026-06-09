@@ -533,6 +533,7 @@ async function handleFormSubmit(e) {
     const formData = {
         namhoc: document.getElementById('namHocForm').value,
         ki: document.getElementById('hocKyForm').value,
+        dot: document.getElementById('dotForm')?.value || 1,
         khoa: document.getElementById('khoaForm').value,
         tenhocphan: document.getElementById('tenHPForm').value,
         lophocphan: document.getElementById('lopForm').value,

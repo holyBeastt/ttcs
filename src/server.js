@@ -261,7 +261,6 @@ const tableQc = require("./routes/gvmRoute");
 const xoaQCDK = require("./routes/qcdkRoute");
 const nckhV3Route = require("./routes/nckhV3Route");
 const vuotGioV2Route = require("./routes/vuotGioV2Route");
-// const vuotGioDuKienRoute = require("./routes/vuotGioDuKienRoute");
 const { backupDatabase } = require("./controllers/backupController");
 
 
@@ -271,6 +270,5 @@ app.use("/", tableQc); // cấu hình import
 app.use("/", xoaQCDK);
 app.use("/v3/nckh", nckhV3Route); // NCKH V3 routes
 app.use("/v2/vuotgio", vuotGioV2Route); // VuotGio V2 routes
-// app.use("/v2/vuotgio-du-kien", vuotGioDuKienRoute); // VuotGio Du Kien routes
 
 // Thay đổi giới hạn kích thước payload (ví dụ: 10mb)

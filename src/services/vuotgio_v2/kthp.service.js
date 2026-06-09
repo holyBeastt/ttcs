@@ -47,6 +47,7 @@ const save = async (req, res) => {
             data.khoa,
             data.hoc_ky,
             data.nam_hoc,
+            data.dot || 1,
             data.hinh_thuc,
             data.ten_hoc_phan,
             data.lop_hoc_phan,
@@ -100,7 +101,7 @@ const saveBatch = async (req, res) => {
         const baseHeDaoTaoId = await getHeDaoTaoIdByName(connection, baseData.doi_tuong);
         const query = `
             INSERT INTO vg_coi_cham_ra_de
-            (id_user, giang_vien, khoa, hoc_ky, nam_hoc, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, he_dao_tao_id, bai_cham_1, bai_cham_2, tong_so, quy_chuan, ghi_chu, khoa_duyet, khao_thi_duyet, so_tc, so_sv)
+            (id_user, giang_vien, khoa, hoc_ky, nam_hoc, dot, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, he_dao_tao_id, bai_cham_1, bai_cham_2, tong_so, quy_chuan, ghi_chu, khoa_duyet, khao_thi_duyet, so_tc, so_sv)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
         `;
 
@@ -114,6 +115,7 @@ const saveBatch = async (req, res) => {
                 baseData.khoa,
                 baseData.hoc_ky,
                 baseData.nam_hoc,
+                baseData.dot || 1,
                 detail.hinh_thuc,
                 baseData.ten_hoc_phan,
                 baseData.lop_hoc_phan,
@@ -161,6 +163,29 @@ const getTable = async (req, res) => {
     }
 };
 
+const getTableData = async (req, res) => {
+    const { NamHoc, heDaoTao, dot, ki } = req.body;
+    const khoa = req.body.khoa || req.body.Khoa;
+    
+    let connection;
+    try {
+        connection = await createPoolConnection();
+        const results = await repo.getTable(connection, { 
+            namHoc: NamHoc, 
+            khoa: khoa,
+            heDaoTao: heDaoTao,
+            dot: dot,
+            ki: ki
+        });
+        res.json({ success: true, data: results });
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách KTHP (POST):", error);
+        res.status(500).json({ success: false, message: "Không thể truy xuất dữ liệu." });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
 const edit = async (req, res) => {
     const { ID } = req.params;
     const { userId, userName } = getUserContext(req);
@@ -179,6 +204,7 @@ const edit = async (req, res) => {
             data.khoa,
             data.hoc_ky,
             data.nam_hoc,
+            data.dot || 1,
             data.hinh_thuc,
             data.ten_hoc_phan,
             data.lop_hoc_phan,
@@ -346,15 +372,15 @@ const getMyList = async (req, res) => {
 };
 
 const deleteByFilter = async (req, res) => {
-    const { Ki, Nam, hocKy, namHoc } = req.body;
+    const { Ki, Nam, hocKy, namHoc, dot } = req.body;
     const kiVal = hocKy || Ki;
     const namVal = namHoc || Nam;
     const { userId, userName } = getUserContext(req);
     let connection;
     try {
         connection = await createPoolConnection();
-        const [result] = await repo.deleteByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal });
-        await LogService.logChange(userId, userName, "Xóa KTHP theo năm/kỳ", `Xóa ${result.affectedRows} bản ghi - Học kỳ ${kiVal}, Năm ${namVal}`);
+        const [result] = await repo.deleteByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal, dot: dot });
+        await LogService.logChange(userId, userName, "Xóa KTHP theo năm/kỳ/đợt", `Xóa ${result.affectedRows} bản ghi - Học kỳ ${kiVal}, Năm ${namVal}, Đợt ${dot || 'Tất cả'}`);
         res.json({ success: true, message: "Xóa dữ liệu thành công", affectedRows: result.affectedRows });
     } catch (error) {
         console.error("Lỗi khi xóa dữ liệu KTHP:", error);
@@ -365,13 +391,13 @@ const deleteByFilter = async (req, res) => {
 };
 
 const checkExistence = async (req, res) => {
-    const { Ki, Nam, hocKy, namHoc } = req.body;
+    const { Ki, Nam, hocKy, namHoc, dot } = req.body;
     const kiVal = hocKy || Ki;
     const namVal = namHoc || Nam;
     let connection;
     try {
         connection = await createPoolConnection();
-        const count = await repo.countByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal });
+        const count = await repo.countByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal, dot: dot });
         res.json({ exists: count > 0 });
     } catch (error) {
         console.error("Lỗi khi kiểm tra dữ liệu KTHP:", error);
@@ -441,6 +467,7 @@ module.exports = {
     save,
     saveBatch,
     getTable,
+    getTableData,
     edit,
     delete: deleteRecord,
     batchApprove,

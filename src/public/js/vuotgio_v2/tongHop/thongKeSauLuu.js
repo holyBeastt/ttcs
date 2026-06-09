@@ -88,6 +88,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (exportBtn) exportBtn.addEventListener('click', exportExcel);
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
 
+    // Chuyển sang thống kê Khoa
+    const btnSwitchToKhoa = document.getElementById('btnSwitchToKhoa');
+    if (btnSwitchToKhoa) {
+        btnSwitchToKhoa.addEventListener('click', () => {
+            const namHoc = document.getElementById('namHocXem').value;
+            window.location.href = `/v2/vuotgio/tong-hop-khoa?namHoc=${encodeURIComponent(namHoc)}`;
+        });
+    }
 
     // Toggle Summary
     const btnToggleSummary = document.getElementById('btnToggleSummary');
@@ -213,10 +221,9 @@ async function loadData() {
     try {
         Swal.showLoading();
 
-        // Trang "Thông tin vượt giờ dự kiến" phải xem dữ liệu DỰ KIẾN (chưa lưu)
-        const url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}&detail=1&isDuKien=true`;
+        const url = `/v2/vuotgio/tong-hop/giang-vien-snapshot?namHoc=${namHoc}&khoa=${khoa}`;
 
-        console.info('[tongHopGV] loadData request - DỰ KIẾN (chưa lưu)', { namHoc, khoa, isDuKien: true, url });
+        console.info('[tongHopGV] loadData request', { namHoc, khoa, url });
         const response = await fetch(url);
         const result = await response.json();
         Swal.close();
@@ -373,8 +380,8 @@ function renderTable(data) {
             <!-- Actions -->
             <td>
                 <div class="btn-group gap-1" role="group">
-                    <button class="btn btn-sm" style="background-color: #ffffff; color: #1d4ed8; border: 1px solid #1d4ed8; font-weight: bold;" onclick="openPersonalView('${row.id_User}', '${row.giangVien}')" title="Xem Bảng Web">
-                        <i class="fas fa-eye"></i>
+                    <button class="btn btn-sm" style="background-color: #ffffff; color: #ea580c; border: 1px solid #ea580c; font-weight: bold;" onclick="previewExcel('${row.id_User}', '${row.giangVien}')" title="Preview Excel/PDF">
+                        <i class="fas fa-file-pdf"></i>
                     </button>
                 </div>
             </td>
@@ -542,9 +549,9 @@ function filterTable() {
 
 function openPersonalView(maGV, hoTen) {
     const namHoc = document.getElementById('namHocXem').value;
-    // Trang này hiển thị dữ liệu dự kiến, nên link đến trang dự kiến
-    const url = `/v2/vuotgio/ca-nhan-du-kien?idUser=${encodeURIComponent(maGV)}&namHoc=${encodeURIComponent(namHoc)}`;
-    console.info('[vuotgio_v2.preview] click', { giangVien: hoTen, maGV, namHoc, url });
+    // Trang "Thống kê sau lưu" phải drill-down vào dữ liệu snapshot đã khóa
+    const url = `/v2/vuotgio/ca-nhan-sau-luu?idUser=${encodeURIComponent(maGV)}&namHoc=${encodeURIComponent(namHoc)}`;
+    console.info('[vuotgio_v2.thongKeSauLuu] click', { giangVien: hoTen, maGV, namHoc, url });
     window.open(url, '_blank');
 }
 

@@ -40,17 +40,18 @@ const chuanHoaNamHoc = (namHoc) => {
 /**
  * Lấy SDO nguyên bản (Atomic SDO) cho 1 giảng viên
  */
-const getAtomicSDO = async (namHocInput, id_User, connection) => withConnection(connection, async (activeConnection) => {
+const getAtomicSDO = async (namHocInput, id_User, connection = null, isDuKien = false) => withConnection(connection, async (activeConnection) => {
     const namHoc = chuanHoaNamHoc(namHocInput);
     const nv = await repo.getNhanVienById(activeConnection, id_User);
     if (!nv) return null;
+    const requireApproval = !isDuKien;
 
     const [giangDay, lopNgoaiQC, kthp, doAn, hdtq, nckhRecords, dinhMuc, chuNhiemKhoa] = await Promise.all([
-        repo.getGiangDayByIdUser(activeConnection, { namHoc, idUser: id_User }),
-        repo.getLopNgoaiQCByIdUser(activeConnection, { namHoc, idUser: id_User }),
-        repo.getKthpByIdUser(activeConnection, { namHoc, idUser: id_User }),
-        repo.getDoAnByIdUser(activeConnection, { namHoc, idUser: id_User }),
-        repo.getHuongDanThamQuanByIdUser(activeConnection, { namHoc, idUser: id_User }),
+        repo.getGiangDayByIdUser(activeConnection, { namHoc, idUser: id_User, isDuKien }),
+        repo.getLopNgoaiQCByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
+        repo.getKthpByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
+        repo.getDoAnByIdUser(activeConnection, { namHoc, idUser: id_User, isDuKien }),
+        repo.getHuongDanThamQuanByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
         id_User ? statsService.getLecturerRecords(id_User, namHoc) : [],
         repo.getDinhMuc(activeConnection),
         repo.getChuNhiemKhoaByKhoa(activeConnection, nv.maKhoa)
@@ -62,10 +63,10 @@ const getAtomicSDO = async (namHocInput, id_User, connection) => withConnection(
 /**
  * Lấy danh sách SDO cho tất cả GV trong khoa
  */
-const getCollectionSDO = async (namHocInput, khoa) => withConnection(null, async (connection) => {
+const getCollectionSDO = async (namHocInput, khoa, isDuKien = false) => withConnection(null, async (connection) => {
     const namHoc = chuanHoaNamHoc(namHocInput);
     const [rawData, nckhData, dinhMuc] = await Promise.all([
-        repo.getDuLieuThoTongHop(connection, { namHoc, khoa }),
+        repo.getDuLieuThoTongHop(connection, { namHoc, khoa, isDuKien, requireApproval: !isDuKien }),
         statsService.getLecturerSummary(namHoc, "ALL"),
         repo.getDinhMuc(connection)
     ]);
@@ -95,9 +96,10 @@ const getCollectionSDO = async (namHocInput, khoa) => withConnection(null, async
  * Lấy danh sách SDO chi tiết (bao gồm tableF) cho tất cả GV trong khoa.
  * Sử dụng batch fetch để giảm số lượng queries (từ N*8 xuống ~8).
  */
-const getCollectionSDODetail = async (namHocInput, khoa) => withConnection(null, async (connection) => {
+const getCollectionSDODetail = async (namHocInput, khoa, isDuKien = false) => withConnection(null, async (connection) => {
     const namHoc = chuanHoaNamHoc(namHocInput);
-    const rawData = await repo.getDuLieuThoTongHop(connection, { namHoc, khoa });
+    const requireApproval = !isDuKien;
+    const rawData = await repo.getDuLieuThoTongHop(connection, { namHoc, khoa, isDuKien, requireApproval });
 
     if (!rawData.length) return [];
 
@@ -106,11 +108,11 @@ const getCollectionSDODetail = async (namHocInput, khoa) => withConnection(null,
 
     // Batch fetch tất cả dữ liệu nguồn song song (~7 queries thay vì N*8)
     const [allGD, allLNQC, allKTHP, allDA, allHDTQ, nckhData, dinhMuc, allNV] = await Promise.all([
-        repo.getGiangDayByIds(connection, { namHoc, ids }),
-        repo.getLopNgoaiQCByIds(connection, { namHoc, ids }),
-        repo.getKthpByIds(connection, { namHoc, ids }),
-        repo.getDoAnByIds(connection, { namHoc, ids }),
-        repo.getHuongDanThamQuanByIds(connection, { namHoc, ids }),
+        repo.getGiangDayByIds(connection, { namHoc, ids, isDuKien }),
+        repo.getLopNgoaiQCByIds(connection, { namHoc, ids, requireApproval }),
+        repo.getKthpByIds(connection, { namHoc, ids, requireApproval }),
+        repo.getDoAnByIds(connection, { namHoc, ids, isDuKien }),
+        repo.getHuongDanThamQuanByIds(connection, { namHoc, ids, requireApproval }),
         statsService.getLecturerSummary(namHoc, "ALL"),
         repo.getDinhMuc(connection),
         repo.getNhanVienByIds(connection, ids),
@@ -164,37 +166,10 @@ const getCollectionSDODetail = async (namHocInput, khoa) => withConnection(null,
         });
         if (!sdo) continue;
 
-        sdoList.push({
-            id_User: sdo.id_User,
-            giangVien: sdo.giangVien,
-            maKhoa: sdo.maKhoa,
-            khoa: sdo.khoa,
-            isKhoa: sdo.isKhoa ?? row.isKhoa ?? 1,
-            chucVu: sdo.chucVu,
-            soTaiKhoan: sdo.soTaiKhoan,
-            nganHang: sdo.nganHang,
-            lyDoMienGiam: sdo.lyDoMienGiam,
-            phanTramMienGiam: sdo.phanTramMienGiam,
-            hsl: sdo.hsl,
-            luong: sdo.luong,
-            soTietGiangDay: sdo.soTietGiangDay,
-            soTietNgoaiQC: sdo.soTietNgoaiQC,
-            soTietKTHP: sdo.soTietKTHP,
-            soTietDoAn: sdo.soTietDoAn,
-            soTietHDTQ: sdo.soTietHDTQ,
-            tongThucHien: sdo.tongThucHien,
-            mienGiam: sdo.mienGiam,
-            dinhMucSauMienGiam: sdo.dinhMucSauMienGiam,
-            thieuTietGiangDay: sdo.thieuTietGiangDay,
-            thieuNCKH: sdo.thieuNCKH,
-            tongVuot: sdo.tongVuot,
-            thanhToan: sdo.thanhToan,
-            dinhMucChuan: sdo.dinhMucChuan,
-            soTietNCKH: sdo.soTietNCKH,
-            nam_hoc: sdo.nam_hoc,
-            tableF: sdo.tableF,
-            breakdown: sdo.breakdown
-        });
+        // Giữ nguyên toàn bộ SDO (bao gồm raw, tableE, tableF, breakdown)
+        // để hỗ trợ snapshot lưu trữ đầy đủ dữ liệu chi tiết
+        sdo.isKhoa = sdo.isKhoa ?? row.isKhoa ?? 1;
+        sdoList.push(sdo);
     }
 
     console.info(`[getCollectionSDODetail] Aggregated ${sdoList.length} records. Total luong: ${sdoList.reduce((s, r) => s + (r.luong || 0), 0)}. Sample:`, 

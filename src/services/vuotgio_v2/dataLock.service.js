@@ -1,10 +1,20 @@
 /**
  * VUOT GIO V2 - Data Lock Service
  * Service kiểm tra trạng thái khóa và thực thi logic khóa dữ liệu
+ *
+ * Khi khóa dữ liệu năm học, service sẽ:
+ *   1. Validate prerequisites (duyệt 2 cấp + duyệt tổng hợp tất cả khoa)
+ *   2. Tính toán SDO (Standardized Data Object) cho toàn bộ giảng viên
+ *   3. Lưu snapshot toàn trường vào bảng vg_so_tiet_tong_hop
+ *   4. Insert bản ghi khóa vào bảng vg_khoa_du_lieu
+ *   Tất cả trong 1 Transaction duy nhất (ACID).
  */
 
 const createPoolConnection = require("../../config/databasePool");
-const repo = require("../../repositories/vuotgio_v2/dataLock.repo");
+const dataLockRepo = require("../../repositories/vuotgio_v2/dataLock.repo");
+const snapshotRepo = require("../../repositories/vuotgio_v2/soTietTongHop.repo");
+const duyetTongHopRepo = require("../../repositories/vuotgio_v2/duyetTongHop.repo");
+const tongHopService = require("./tongHop.service");
 
 // ============================================================
 // Helper
@@ -57,7 +67,7 @@ const validateNamHocFormat = (namHoc) => {
  */
 const isLocked = async (namHoc) => {
     return await withConnection(null, async (connection) => {
-        const record = await repo.getLockRecord(connection, namHoc);
+        const record = await dataLockRepo.getLockRecord(connection, namHoc);
         return record !== null;
     });
 };
@@ -69,7 +79,7 @@ const isLocked = async (namHoc) => {
  */
 const getLockStatus = async (namHoc) => {
     return await withConnection(null, async (connection) => {
-        const record = await repo.getLockRecordWithUserName(connection, namHoc);
+        const record = await dataLockRepo.getLockRecordWithUserName(connection, namHoc);
 
         if (!record) {
             return { locked: false, lockInfo: null };
@@ -92,7 +102,7 @@ const getLockStatus = async (namHoc) => {
  */
 const checkPrerequisites = async (namHoc) => {
     return await withConnection(null, async (connection) => {
-        const results = await repo.getUnapprovedCounts(connection, namHoc);
+        const results = await dataLockRepo.getUnapprovedCounts(connection, namHoc);
 
         const errors = [];
         for (const item of results) {
@@ -117,14 +127,25 @@ const checkPrerequisites = async (namHoc) => {
 };
 
 /**
- * Thực hiện khóa dữ liệu
+ * Thực hiện khóa dữ liệu + lưu snapshot toàn trường.
+ * Đây là hàm chính, thực hiện trong 1 Transaction ACID:
+ *   Step 1: Validate (format, tồn tại năm học, chưa khóa, prerequisites)
+ *   Step 2: Tính toán SDO cho toàn bộ giảng viên
+ *   Step 3: BEGIN TRANSACTION
+ *     3a. INSERT bản ghi khóa (vg_khoa_du_lieu)
+ *     3b. Deactivate snapshot cũ (nếu re-lock)
+ *     3c. Bulk INSERT snapshot mới (vg_so_tiet_tong_hop)
+ *   Step 4: COMMIT
+ *
  * @param {string} namHoc - Năm học cần khóa
  * @param {number} userId - ID người thực hiện khóa
  * @param {string|null} ghiChu - Ghi chú tùy chọn
- * @returns {Promise<{success: boolean, message?: string, errors?: Array}>}
+ * @returns {Promise<{success: boolean, message?: string, errors?: Array, stats?: object}>}
  */
 const lockData = async (namHoc, userId, ghiChu) => {
-    // 1. Validate format năm học
+    // === Step 1: Validate ===
+
+    // 1a. Format năm học
     if (!validateNamHocFormat(namHoc)) {
         return {
             success: false,
@@ -132,9 +153,11 @@ const lockData = async (namHoc, userId, ghiChu) => {
         };
     }
 
-    return await withConnection(null, async (connection) => {
-        // 2. Kiểm tra năm học tồn tại trong DB
-        const exists = await repo.checkNamHocExists(connection, namHoc);
+    // Lấy connection để validate (chưa cần transaction)
+    const connection = await createPoolConnection();
+    try {
+        // 1b. Kiểm tra năm học tồn tại trong DB
+        const exists = await dataLockRepo.checkNamHocExists(connection, namHoc);
         if (!exists) {
             return {
                 success: false,
@@ -142,8 +165,8 @@ const lockData = async (namHoc, userId, ghiChu) => {
             };
         }
 
-        // 3. Kiểm tra chưa bị khóa
-        const existingLock = await repo.getLockRecord(connection, namHoc);
+        // 1c. Kiểm tra chưa bị khóa
+        const existingLock = await dataLockRepo.getLockRecord(connection, namHoc);
         if (existingLock) {
             return {
                 success: false,
@@ -151,8 +174,8 @@ const lockData = async (namHoc, userId, ghiChu) => {
             };
         }
 
-        // 4. Kiểm tra prerequisites (duyệt 2 cấp)
-        const prerequisiteResult = await repo.getUnapprovedCounts(connection, namHoc);
+        // 1d. Kiểm tra prerequisites: duyệt 2 cấp trên 3 bảng
+        const prerequisiteResult = await dataLockRepo.getUnapprovedCounts(connection, namHoc);
         const errors = [];
         for (const item of prerequisiteResult) {
             if (item.total === 0) continue;
@@ -165,7 +188,6 @@ const lockData = async (namHoc, userId, ghiChu) => {
                 });
             }
         }
-
         if (errors.length > 0) {
             return {
                 success: false,
@@ -174,8 +196,7 @@ const lockData = async (namHoc, userId, ghiChu) => {
             };
         }
 
-        // 4b. Kiểm tra tất cả khoa đã duyệt tổng hợp
-        const duyetTongHopRepo = require("../../repositories/vuotgio_v2/duyetTongHop.repo");
+        // 1e. Kiểm tra tất cả khoa đã duyệt tổng hợp
         const allApproved = await duyetTongHopRepo.isAllKhoaApproved(connection, namHoc);
         if (!allApproved) {
             const { totalKhoa, approvedKhoa } = await duyetTongHopRepo.getApprovalSummary(connection, namHoc);
@@ -185,22 +206,65 @@ const lockData = async (namHoc, userId, ghiChu) => {
             };
         }
 
-        // 5. Insert bản ghi khóa
+        // === Step 2: Tính toán SDO cho toàn bộ giảng viên ===
+        // getCollectionSDODetail tự quản lý connection riêng (withConnection nội bộ)
+        // Gọi với khoa = 'ALL' để lấy toàn trường
+        console.info(`[dataLock] Bắt đầu tính toán SDO toàn trường cho ${namHoc}...`);
+        const startTime = Date.now();
+        const sdoList = await tongHopService.getCollectionSDODetail(namHoc, "ALL");
+        const computeTime = Date.now() - startTime;
+        console.info(`[dataLock] Tính toán xong: ${sdoList.length} giảng viên trong ${computeTime}ms`);
+
+        if (!sdoList || sdoList.length === 0) {
+            return {
+                success: false,
+                message: "Không tìm thấy dữ liệu giảng viên nào để chốt",
+            };
+        }
+
+        // === Step 3: Transaction — Khóa + Snapshot ===
+        await connection.beginTransaction();
+
         try {
-            await repo.insertLockRecord(connection, { namHoc, userId, ghiChu });
-        } catch (error) {
+            // 3a. Insert bản ghi khóa
+            await dataLockRepo.insertLockRecord(connection, { namHoc, userId, ghiChu });
+
+            // 3b + 3c. Deactivate cũ + Bulk insert snapshot mới
+            const snapshotResult = await snapshotRepo.saveSnapshot(
+                connection, namHoc, sdoList, userId, ghiChu
+            );
+
+            // === Step 4: COMMIT ===
+            await connection.commit();
+
+            console.info(`[dataLock] Khóa thành công: ${namHoc}, version=${snapshotResult.version}, rows=${snapshotResult.affectedRows}`);
+
+            return {
+                success: true,
+                message: "Khóa dữ liệu và lưu snapshot thành công",
+                stats: {
+                    version: snapshotResult.version,
+                    totalGV: snapshotResult.affectedRows,
+                    computeTimeMs: computeTime,
+                },
+            };
+        } catch (txError) {
+            await connection.rollback();
+            console.error("[dataLock] Transaction failed, rolled back:", txError);
+
             // Xử lý race condition: MySQL error code 1062 (duplicate key)
-            if (error.code === "ER_DUP_ENTRY" || error.errno === 1062) {
+            if (txError.code === "ER_DUP_ENTRY" || txError.errno === 1062) {
                 return {
                     success: false,
                     message: "Dữ liệu năm học này đã được khóa",
                 };
             }
-            throw error;
-        }
 
-        return { success: true, message: "Khóa dữ liệu thành công" };
-    });
+            throw txError;
+        }
+    } finally {
+        if (connection) connection.release();
+    }
 };
 
 module.exports = {

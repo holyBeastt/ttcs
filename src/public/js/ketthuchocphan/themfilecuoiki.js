@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Check data existence on server
-    async function checkDataExistence(kiValue, namValue) {
+    async function checkDataExistence(kiValue, namValue, dotValue) {
         // Lấy dữ liệu đã chỉnh sửa từ các bảng
         const raDeData = extractEditedData('raDeTableContainer', columnDefs.raDe, 'Ra Đề');
         const coiThiData = extractEditedData('coiThiTableContainer', columnDefs.coiThi, 'Coi Thi');
@@ -222,14 +222,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch(`${BASE_URL}/import-kthp/checkfile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue })
+                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue, dot: dotValue })
             });
             if (!response.ok) throw new Error('Kiểm tra dữ liệu thất bại');
             const data = await response.json();
             if (data.exists) {
-                showModal(kiValue, namValue);
+                showModal(kiValue, namValue, dotValue);
             } else {
-                saveData(kiValue, namValue);
+                saveData(kiValue, namValue, dotValue);
             }
         } catch (error) {
             showAlert('error', 'Kiểm tra dữ liệu file quy chuẩn thất bại!');
@@ -238,19 +238,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Show modal for data conflict resolution
-    function showModal(kiValue, namValue) {
+    function showModal(kiValue, namValue, dotValue) {
         const modal = document.getElementById('action-modal');
         document.getElementById('modal-message').innerHTML = 
-            `Đã tồn tại dữ liệu của Kì ${kiValue}, Năm ${namValue}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?<br>Lưu ý: XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
+            `Đã tồn tại dữ liệu của Đợt ${dotValue}, Kì ${kiValue}, Năm ${namValue}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?<br>Lưu ý: XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
         modal.style.display = 'block';
 
         document.getElementById('btn-delete').onclick = () => {
             modal.style.display = 'none';
-            deleteFile(kiValue, namValue);
+            deleteFile(kiValue, namValue, dotValue);
         };
         document.getElementById('btn-append').onclick = () => {
             modal.style.display = 'none';
-            appendData(kiValue, namValue);
+            appendData(kiValue, namValue, dotValue);
         };
         document.getElementById('btn-cancel').onclick = () => {
             modal.style.display = 'none';
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Save data to server with custom messages
-    async function saveDataToServer(kiValue, namValue, dataTam, messages) {
+    async function saveDataToServer(kiValue, namValue, dotValue, dataTam, messages) {
         try {
             const response = await fetch(`${BASE_URL}/import-kthp/save`, {
                 method: 'POST',
@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     Nam: namValue,
                     hocKy: kiValue,
                     namHoc: namValue,
+                    dot: dotValue,
                     data: dataTam // Truyền thêm dataTam
                 })
             });
@@ -286,12 +287,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Delete existing data and save new
-    async function deleteFile(kiValue, namValue) {
+    async function deleteFile(kiValue, namValue, dotValue) {
         try {
             const response = await fetch(`${BASE_URL}/import-kthp/delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue })
+                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue, dot: dotValue })
             });
             if (!response.ok) throw new Error('Xóa dữ liệu thất bại');
             const messages = {
@@ -299,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 failure: 'Xóa dữ liệu cũ thành công, nhưng thêm dữ liệu mới thất bại.',
                 error: 'Có lỗi xảy ra trong quá trình thêm dữ liệu mới.'
             };
-            await saveDataToServer(kiValue, namValue, dataTam, messages);
+            await saveDataToServer(kiValue, namValue, dotValue, dataTam, messages);
         } catch (error) {
             showAlert('error', 'Xóa dữ liệu thất bại');
             console.error('Error:', error);
@@ -307,33 +308,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Append new data
-    async function appendData(kiValue, namValue) {
+    async function appendData(kiValue, namValue, dotValue) {
         const messages = {
             success: 'Chèn thành công',
             failure: 'Chèn thêm thất bại',
             error: 'Gửi dữ liệu thất bại'
         };
-        await saveDataToServer(kiValue, namValue, dataTam, messages);
+        await saveDataToServer(kiValue, namValue, dotValue, dataTam, messages);
     }
 
     // Save data when no conflict
-    async function saveData(kiValue, namValue) {
+    async function saveData(kiValue, namValue, dotValue) {
         const messages = {
             success: 'Thêm file thành công',
             failure: 'Thêm file thất bại',
             error: 'Gửi dữ liệu thất bại'
         };
-        await saveDataToServer(kiValue, namValue, dataTam,messages);
+        await saveDataToServer(kiValue, namValue, dotValue, dataTam,messages);
     }
 
     // Handle import button click
     document.getElementById('import').addEventListener('click', function() {
+        const dotValue = document.getElementById('dotSelect').value;
         const kiValue = document.getElementById('comboboxki').value;
         const namValue = document.getElementById('NamHoc').value;
-        if (!kiValue || !namValue) {
+        if (!kiValue || !namValue || !dotValue) {
             return showAlert('warning', 'Vui lòng chọn Đợt, Kỳ và Năm học trước khi thêm!');
         }
-        checkDataExistence(kiValue, namValue);
+        checkDataExistence(kiValue, namValue, dotValue);
     });
 
 

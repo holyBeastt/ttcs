@@ -272,6 +272,10 @@
 		<%- include('../header') %>
 
 		<div class="page-wrap">
+			<div class="alert alert-info shadow-sm" role="alert">
+				<i class="bi bi-info-circle me-2"></i>
+				Sau khi phân hệ mời giảng hoàn thiện mới có dữ liệu chính thức trong bảng, nếu không có dữ liệu, vui lòng xem <a href="/v2/vuotgio/tong-hop-giang-vien" class="alert-link">thông tin vượt giờ dự kiến</a>.
+			</div>
 			<div class="panel">
 				<div class="title">Thống kê lớp giảng dạy theo giảng viên </div>
 
@@ -286,19 +290,23 @@
 
 					<div class="loc d-flex">
 						<select id="filterDot" class="selectop mx-1">
-							<option value="">Đợt</option>
+							<option value="ALL" selected>Tất cả đợt</option>
+							<option value="1">Đợt 1</option>
+							<option value="2">Đợt 2</option>
 						</select>
 						<select id="filterKi" class="selectop mx-1">
-							<option value="">Kỳ</option>
+							<option value="ALL" selected>Tất cả kỳ</option>
+							<option value="1">Kỳ 1</option>
+							<option value="2">Kỳ 2</option>
 						</select>
 						<select id="filterNamHoc" class="selectop mx-1">
-							<option value="">Năm học</option>
+							<option value="ALL">Tất cả năm học</option>
 						</select>
 						<select id="filterKhoa" class="selectop mx-1">
-							<option value="">Khoa</option>
+							<option value="ALL" selected>Tất cả khoa</option>
 						</select>
 						<select id="filterHeDaoTao" class="selectop mx-1">
-							<option value="">Hệ đào tạo</option>
+							<option value="ALL" selected>Tất cả hệ đào tạo</option>
 						</select>
 						
 						<button class="btn text-nowrap mx-2" id="btnShow" style="height: 45px">Hiển thị</button>
@@ -367,7 +375,6 @@
 				heDaoTao: document.getElementById("filterHeDaoTao"),
 				search: document.getElementById("searchInput"),
 				btnShow: document.getElementById("btnShow"),
-				btnReset: document.getElementById("btnReset"),
 				tableBody: document.getElementById("dataTableBody"),
 				totalTeachers: document.getElementById("totalTeachers"),
 				totalCourses: document.getElementById("totalCourses"),
@@ -515,11 +522,11 @@
 
 			function getFilterPayload() {
 				return {
-					dot: els.dot.value,
-					ki: els.ki.value,
-					namHoc: els.namHoc.value,
-					khoa: els.khoa.value,
-					heDaoTao: els.heDaoTao.value,
+					dot: els.dot.value === "ALL" ? null : els.dot.value,
+					ki: els.ki.value === "ALL" ? null : els.ki.value,
+					namHoc: els.namHoc.value === "ALL" ? null : els.namHoc.value,
+					khoa: els.khoa.value === "ALL" ? null : els.khoa.value,
+					heDaoTao: els.heDaoTao.value === "ALL" ? null : els.heDaoTao.value,
 				};
 			}
 
@@ -538,26 +545,65 @@
 				}
 			}
 
+			async function loadNamHoc() {
+				try {
+					const response = await fetch("/api/namhoc");
+					const data = await response.json();
+					els.namHoc.innerHTML = '<option value="ALL">Tất cả năm học</option>';
+					data.forEach((item, index) => {
+						const option = document.createElement("option");
+						option.value = item.NamHoc;
+						option.textContent = item.NamHoc;
+						if (item.trangthai === 1 || (index === 0 && !data.some(i => i.trangthai === 1))) {
+							option.selected = true;
+						}
+						els.namHoc.appendChild(option);
+					});
+				} catch (error) {
+					console.error("Error loading NamHoc:", error);
+				}
+			}
+
+			async function loadKhoa() {
+				try {
+					const response = await fetch("/api/khoa");
+					const data = await response.json();
+					els.khoa.innerHTML = '<option value="ALL">Tất cả khoa</option>';
+					data.forEach(item => {
+						const option = document.createElement("option");
+						option.value = item.MaPhongBan;
+						option.textContent = item.TenPhongBan || item.MaPhongBan;
+						els.khoa.appendChild(option);
+					});
+				} catch (error) {
+					console.error("Error loading Khoa:", error);
+				}
+			}
+
+			async function loadHeDaoTaoFilter() {
+				try {
+					const response = await fetch("/api/gvm/v1/he-dao-tao");
+					const data = await response.json();
+					if (!data.success) return;
+					els.heDaoTao.innerHTML = '<option value="ALL">Tất cả hệ</option>';
+					data.data.forEach((item, index) => {
+						if (item.he_dao_tao && item.he_dao_tao.toLowerCase().includes('đồ án')) return;
+						const option = document.createElement("option");
+						option.value = item.id;
+						option.textContent = item.he_dao_tao;
+						els.heDaoTao.appendChild(option);
+					});
+				} catch (error) {
+					console.error("Error loading He Dao Tao:", error);
+				}
+			}
+
 			async function loadFilters() {
-				const response = await fetch("/v2/vuotgio/thong-ke-giang-day/filters");
-				const json = await response.json();
-				if (!json.success) {
-					throw new Error("Không tải được bộ lọc");
-				}
-
-				setSelectOptions(els.dot, json.data.dot, { defaultLabel: "Đợt" });
-				setSelectOptions(els.ki, json.data.ki, { defaultLabel: "Kỳ" });
-				setSelectOptions(els.namHoc, json.data.namHoc, { defaultLabel: "Năm học" });
-				setSelectOptions(els.khoa, json.data.khoa, { defaultLabel: "Khoa" });
-				setSelectOptions(els.heDaoTao, json.data.heDaoTao, {
-					isHeDaoTao: true,
-					defaultLabel: "Hệ đào tạo",
-				});
-
-				// Mặc định chọn năm học mới nhất nếu có.
-				if (els.namHoc.options.length > 1) {
-					els.namHoc.selectedIndex = 1;
-				}
+				await Promise.all([
+					loadNamHoc(),
+					loadKhoa(),
+					loadHeDaoTaoFilter()
+				]);
 			}
 
 			async function loadData() {
@@ -575,16 +621,6 @@
 
 				state.rawGroups = json.data || [];
 				applyClientSearch();
-			}
-
-			function resetFilters() {
-				[els.dot, els.ki, els.namHoc, els.khoa, els.heDaoTao].forEach((s) => {
-					s.value = "ALL";
-				});
-				if (els.namHoc.options.length > 1) {
-					els.namHoc.selectedIndex = 1;
-				}
-				els.search.value = "";
 			}
 
 			async function initPage() {

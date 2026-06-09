@@ -47,24 +47,75 @@ const getDuyetKTHP = (req, res) => {
  * Render trang Tổng Hợp Giảng Viên
  */
 const getTongHopGV = (req, res) => {
-    res.render("vuotgio_v2/vuotgio.tongHopGV.ejs");
+    res.render("vuotgio_v2/vuotgio.thongTinVuotGioDuKien.ejs");
+};
+
+/**
+ * Render trang Tài chính duyệt vượt giờ
+ */
+const getTaiChinhDuyet = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.taiChinhDuyet.ejs");
 };
 
 /**
  * Render trang Cá Nhân Vượt Giờ Dự Kiến
  */
-const getVuotGioCaNhan = (req, res) => {
-    // If idUser is provided in query, use it (for managers), otherwise use logged in user's ID
+const getVuotGioCaNhanDuKien = (req, res) => {
     const idUser = req.query.idUser || req.session?.userId || req.session?.userInfo?.ID;
     const namHoc = req.query.namHoc || '';
-    res.render("vuotgio_v2/vuotgio.caNhan.ejs", { idUser, namHoc, title: "Vượt giờ dự kiến cá nhân" });
+    res.render("vuotgio_v2/vuotgio.caNhan.ejs", { 
+        idUser, 
+        namHoc, 
+        title: "Vượt giờ dự kiến cá nhân",
+        mode: "du-kien" 
+    });
 };
+
+/**
+ * Render trang Cá Nhân Vượt Giờ Chính Thức
+ */
+const getVuotGioCaNhanChinhThuc = (req, res) => {
+    const idUser = req.query.idUser || req.session?.userId || req.session?.userInfo?.ID;
+    const namHoc = req.query.namHoc || '';
+    res.render("vuotgio_v2/vuotgio.caNhan.ejs", { 
+        idUser, 
+        namHoc, 
+        title: "Vượt giờ chính thức cá nhân",
+        mode: "chinh-thuc" 
+    });
+};
+
+/**
+ * Render trang Cá Nhân Vượt Giờ Sau Lưu (Snapshot)
+ */
+const getVuotGioCaNhanSauLuu = (req, res) => {
+    const idUser = req.query.idUser || req.session?.userId || req.session?.userInfo?.ID;
+    const namHoc = req.query.namHoc || '';
+    res.render("vuotgio_v2/vuotgio.caNhan.ejs", {
+        idUser,
+        namHoc,
+        title: "Vượt giờ sau lưu cá nhân",
+        mode: "sau-luu"
+    });
+};
+
+/**
+ * @deprecated Use getVuotGioCaNhanDuKien instead
+ */
+const getVuotGioCaNhan = getVuotGioCaNhanDuKien;
 
 /**
  * Render trang Tổng Hợp Khoa
  */
 const getTongHopKhoa = (req, res) => {
     res.render("vuotgio_v2/vuotgio.tongHopKhoa.ejs");
+};
+
+/**
+ * Render trang Thống Kê Sau Lưu
+ */
+const getThongKeSauLuu = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.thongKeSauLuu.ejs");
 };
 
 /**
@@ -192,8 +243,13 @@ module.exports = {
     getThemKTHP,
     getDuyetKTHP,
     getTongHopGV,
-    getVuotGioCaNhan,
+    getTaiChinhDuyet,
+    getVuotGioCaNhan, // Deprecated - kept for backward compatibility
+    getVuotGioCaNhanDuKien,
+    getVuotGioCaNhanChinhThuc,
+    getVuotGioCaNhanSauLuu,
     getTongHopKhoa,
+    getThongKeSauLuu,
     getXuatFile,
     getHuongDanDATN,
     getHuongDanThamQuan,

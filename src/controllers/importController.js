@@ -2722,6 +2722,18 @@ const getHocPhanList = async (req, res) => {
   }
 };
 
+/**
+ * ⚠️ LƯU Ý KIẾN TRÚC LEGACY (RAW SQL IN CONTROLLER) ⚠️
+ * 
+ * 1. Hàm này thuộc luồng nghiệp vụ cũ, KHÔNG tuân thủ mô hình Controller -> Service -> Repository.
+ * 2. Mặc dù có gọi đến `giangDayService` từ thư mục `save_moigiang`, nhưng service đó CHỈ dùng để 
+ *    transform/map dữ liệu (như hàm `processQuyChuanData`, `transformGiangDayData`).
+ * 3. TUYỆT ĐỐI KHÔNG tìm kiếm logic DB trong `repositories/vuotgioDuKien/giangDay.repo.js` vì nó 
+ *    là "dead code" (không hề được sử dụng).
+ * 4. Hành động lưu DB (INSERT INTO giangday) đang được viết HARD-CODE (bằng raw SQL pool.query) 
+ *    trực tiếp ngay bên trong hàm controller này!
+ */
+
 const insertGiangDay = async (
   req,
   res,
@@ -2731,27 +2743,22 @@ const insertGiangDay = async (
 ) => {
   const { dot, ki, namHoc } = req.body;
 
-  const query2 = `
-    SELECT
-      qc.*, 
-      gvmoi.*, 
-      SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) AS TenGiangVien
+  const query = `
+    SELECT *
     FROM quychuan qc
-    JOIN gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-    WHERE 
-    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 1
+    WHERE qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 1
   `;
 
   const value = [dot, ki, namHoc];
 
   try {
-    const [dataJoin] = await pool.query(query2, value);
-
-    // const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
-    // const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+    const [quychuanRows] = await pool.query(query, value);
 
     const giangDayService = require("../services/save_moigiang/giangDay.service");
-    const insertValues = giangDayService.transformGiangDayData(dataJoin, gvmList, daDuyetHetArray, true);
+    // nvList truyền rỗng vì quá trình join sẽ dùng gvmList cho MoiGiang = 1
+    const mergedArray = giangDayService.processQuyChuanData(quychuanRows, [], gvmList, true);
+
+    const insertValues = giangDayService.transformGiangDayData(mergedArray, gvmList, daDuyetHetArray, true);
     
     req.session.tmp += insertValues.length;
 
@@ -2781,148 +2788,18 @@ const insertGiangDay = async (
   }
 };
 
-const joinData = (dataArray, nhanvienList, gvmList) => {
-  // Mảng kết quả chứa các đối tượng sau khi gộp thông tin
-  const result = [];
-  // Duyệt qua mảng đối tượng dữ liệu
-  dataArray.forEach((item) => {
-    // Tách tên giảng viên từ trường GiaoVienGiangDay, có thể có nhiều giảng viên
-    const giaoVienGiangDayArray = item.GiaoVienGiangDay.split(","); // Nếu có nhiều giảng viên
-    giaoVienGiangDayArray.forEach((gv) => {
-      // Lấy tên giảng viên, bỏ phần (1) hay (2)
 
-      // Nếu là giảng viên (1) thì là Giảng viên cơ hữu
-      if (gv.includes("(1)")) {
-        const tenGiangVien = gv.trim().split("(")[0].trim();
-
-        // Tìm giảng viên trong danh sách nhanvienList
-        const nhanVien = nhanvienList.find(
-          (nv) =>
-            nv.TenNhanVien.toLowerCase().trim() ===
-            tenGiangVien.toLowerCase().trim()
-        );
-
-        if (nhanVien) {
-          // Tạo bản sao đối tượng gốc
-          const newItem = { ...item };
-
-          // Gộp tất cả thông tin từ nhanvien vào newItem
-          Object.keys(nhanVien).forEach((key) => {
-            if (!newItem.hasOwnProperty(key)) {
-              // Kiểm tra xem key đã có trong newItem chưa
-              newItem[key] = nhanVien[key]; // Gán giá trị từ nhanvien vào newItem
-            }
-          });
-
-          newItem.id_Gvm = 1;
-          newItem.GiaoVienGiangDay = `${tenGiangVien}`;
-
-          // Thêm vào mảng kết quả
-          result.push(newItem);
-        } else {
-          // Nếu không tìm thấy giảng viên trong danh sách, có thể ghi log hoặc xử lý theo cách khác
-          console.warn(`Không tìm thấy giảng viên: ${tenGiangVien}`);
-        }
-      } else {
-        const tenGiangVien = gv.trim().split("(")[0].trim();
-
-        // Tìm giảng viên trong danh sách
-        if (item.MoiGiang == 1) {
-          const gvmoi = gvmList.find(
-            (gvm) =>
-              gvm.HoTen.toLowerCase().trim() ===
-              tenGiangVien.toLowerCase().trim()
-          );
-
-          if (gvmoi) {
-            // Tạo bản sao đối tượng gốc
-            const newItem = { ...item };
-
-            // Gộp tất cả thông tin từ gvmoi vào newItem
-            Object.keys(gvmoi).forEach((key) => {
-              if (!newItem.hasOwnProperty(key)) {
-                // Kiểm tra xem key đã có trong newItem chưa
-                newItem[key] = gvmoi[key]; // Gán giá trị từ gvmoi vào newItem
-              }
-            });
-
-            newItem.id_Gvm = gvmoi.id_Gvm;
-            newItem.id_User = 1;
-            newItem.GiaoVienGiangDay = `${tenGiangVien}`;
-            newItem.isHdChinh = 0; // Thêm cột isHdChinh = 1
-
-            // Thêm vào mảng kết quả
-            result.push(newItem);
-          }
-        } else {
-          const nhanVien = nhanvienList.find(
-            (nv) =>
-              nv.TenNhanVien.toLowerCase().trim() ===
-              tenGiangVien.toLowerCase().trim()
-          );
-
-          if (nhanVien) {
-            // Tạo bản sao đối tượng gốc
-            const newItem = { ...item };
-
-            // Gộp tất cả thông tin từ nhanvien vào newItem
-            Object.keys(nhanVien).forEach((key) => {
-              if (!newItem.hasOwnProperty(key)) {
-                // Kiểm tra xem key đã có trong newItem chưa
-                newItem[key] = nhanVien[key]; // Gán giá trị từ nhanvien vào newItem
-              }
-            });
-
-            newItem.id_Gvm = 1;
-            newItem.GiaoVienGiangDay = `${tenGiangVien}`;
-            // Thêm vào mảng kết quả
-            result.push(newItem);
-          }
-        }
-      }
-    });
-  });
-
-  return result;
-};
-
-// tách tên giảng viên giảng dạy, đánh dấu 1, 2 kèm chia số tiết quy chuẩn
-const splitTeachers = (data) => {
-  const result = [];
-
-  data.forEach((item) => {
-    // Tách danh sách giảng viên từ trường 'GiaoVienGiangDay' bằng dấu phẩy
-    const teachers = item.GiaoVienGiangDay.split(",").map((teacher) =>
-      teacher.trim()
-    );
-
-    // Giả sử trường QC là giá trị của lớp gốc (100%)
-    const originalQC = item.QuyChuan || 100; // Nếu không có QC thì mặc định là 100%
-    const secondQC = parseFloat((originalQC * 0.7).toFixed(2));
-    const firstQC = originalQC - secondQC;
-
-    // Tạo đối tượng cho mỗi giảng viên, gắn dấu (1), (2) vào tên và chia tỷ lệ QC
-    teachers.forEach((teacher, index) => {
-      const newItem = { ...item }; // sao chép đối tượng gốc
-
-      // Gắn (1) và (2) vào tên giảng viên
-      newItem.GiaoVienGiangDay = `${teacher} (${index + 1})`;
-
-      // Điều chỉnh giá trị QC
-      if (index === 0) {
-        newItem.QuyChuan = firstQC;
-      } else if (index === 1) {
-        newItem.QuyChuan = secondQC;
-      } else {
-        newItem.QuyChuan = originalQC; // Nếu có nhiều hơn 2 giảng viên, giữ nguyên QC cho các trường hợp còn lại
-      }
-
-      result.push(newItem); // thêm vào mảng kết quả
-    });
-  });
-  return result;
-};
-
+/**
+ * ⚠️ LƯU Ý KIẾN TRÚC LEGACY (RAW SQL IN CONTROLLER) ⚠️
+ * 
+ * 1. Hàm này thuộc luồng nghiệp vụ cũ, KHÔNG tuân thủ mô hình Controller -> Service -> Repository.
+ * 2. Mặc dù có gọi đến `giangDayService` từ thư mục `save_moigiang`, nhưng service đó CHỈ dùng để 
+ *    transform/map dữ liệu (như hàm `processQuyChuanData`, `transformGiangDayData`).
+ * 3. TUYỆT ĐỐI KHÔNG tìm kiếm logic DB trong `repositories/vuotgioDuKien/giangDay.repo.js` vì nó 
+ *    là "dead code" (không hề được sử dụng).
+ * 4. Hành động lưu DB (INSERT INTO giangday) đang được viết HARD-CODE (bằng raw SQL pool.query) 
+ *    trực tiếp ngay bên trong hàm controller này!
+ */
 const insertGiangDay2 = async (
   req,
   res,
@@ -2933,49 +2810,21 @@ const insertGiangDay2 = async (
 ) => {
   const { dot, ki, namHoc } = req.body;
 
-  const query2 = `
-    SELECT
-      qc.*,
-      nhanvien.*,
-      SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) AS TenGiangVien
+  const query = `
+    SELECT *
     FROM quychuan qc
-    JOIN nhanvien ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = nhanvien.TenNhanVien
-    WHERE 
-    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 0 
-    AND qc.GiaoVienGiangDay NOT LIKE '%,%'
-  `;
-
-  // lấy lớp có 2 tên giảng viên
-  const query3 = `
-      SELECT *
-  FROM quychuan 
-  WHERE 
-    quychuan.DaLuu = 0 
-    AND quychuan.Dot = ?
-    AND quychuan.KiHoc = ? 
-    AND quychuan.NamHoc = ?
-    AND quychuan.GiaoVienGiangDay LIKE '%,%'
+    WHERE qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 0 
   `;
 
   const value = [dot, ki, namHoc];
-  // join bình thường với lớp 1 giảng viên
-  const [dataJoin] = await pool.query(query2, value);
-
-  // lấy các lớp 2 giảng viên
-  const [dataGiangVienSauDaiHoc] = await pool.query(query3, value);
-  const tachLopGiangVienSauDaiHoc = splitTeachers(dataGiangVienSauDaiHoc);
-  const gopLopSauDaiHocVoiBangNhanVien = joinData(
-    tachLopGiangVienSauDaiHoc,
-    nvList,
-    gvmList
-  );
-
-  // gộp 2 mảng dữ liệu
-  const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
-
+  
   try {
+    const [quychuanRows] = await pool.query(query, value);
+
     const giangDayService = require("../services/save_moigiang/giangDay.service");
-    const insertValues = giangDayService.transformGiangDayData(mergedArray, null, daDuyetHetArray, false);
+    const mergedArray = giangDayService.processQuyChuanData(quychuanRows, nvList, gvmList, false);
+
+    const insertValues = giangDayService.transformGiangDayData(mergedArray, gvmList, daDuyetHetArray, false);
     
     req.session.tmp += insertValues.length;
 

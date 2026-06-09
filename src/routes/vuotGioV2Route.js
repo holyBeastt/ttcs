@@ -98,6 +98,7 @@ router.get("/import-kthp/getSuggestions", kthpImportController.getSuggestions);
 
 router.get("/duyet-kthp", baseController.getDuyetKTHP);
 router.get("/duyet-kthp/:NamHoc/:Khoa", enforceKhoaFilter, duyetKTHPController.getTable);
+router.post("/duyet-kthp/data", enforceKhoaFilter, duyetKTHPController.getTableData);
 router.post("/duyet-kthp/batch-approve", enforceKhoaFilter, checkDataLock, duyetKTHPController.batchApprove);
 router.post("/duyet-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.edit);
 router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.delete);
@@ -108,8 +109,14 @@ router.post("/duyet-kthp/approve/:ID", enforceKhoaFilter, checkDataLock, duyetKT
 // =====================================================
 
 router.get("/tong-hop-giang-vien", baseController.getTongHopGV);
-router.get("/ca-nhan", baseController.getVuotGioCaNhan);
+router.get("/tai-chinh-duyet", baseController.getTaiChinhDuyet);
+router.get("/thong-ke-sau-luu", baseController.getThongKeSauLuu);
+router.get("/ca-nhan", baseController.getVuotGioCaNhan); // Deprecated - redirects to du-kien
+router.get("/ca-nhan-du-kien", baseController.getVuotGioCaNhanDuKien);
+router.get("/ca-nhan-chinh-thuc", baseController.getVuotGioCaNhanChinhThuc);
+router.get("/ca-nhan-sau-luu", baseController.getVuotGioCaNhanSauLuu);
 router.get("/tong-hop/giang-vien", tongHopController.tongHopTheoGV);
+router.get("/tong-hop/giang-vien-snapshot", tongHopController.tongHopTheoGVSnapshot);
 router.get("/tong-hop-khoa", baseController.getTongHopKhoa);
 router.get("/tong-hop/khoa", tongHopController.tongHopTheoKhoa);
 router.get("/tong-hop/chi-tiet/:MaGV", tongHopController.chiTietGV);
@@ -118,10 +125,13 @@ router.get("/tong-hop/preview-khoa/:khoa", previewController.getPreviewKhoaData)
 router.get("/tong-hop/preview-consolidated", previewController.getConsolidatedPreviewData);
 router.get("/tong-hop/consolidated-data", previewController.getConsolidatedData);
 router.get("/tong-hop/data-chuan/:MaGV", tongHopController.getStandardSummaryData);
+router.get("/tong-hop/data-snapshot/:MaGV", tongHopController.getSnapshotSummaryData);
 
-// Khóa dữ liệu
+// Khóa dữ liệu + Snapshot
 router.get("/trang-thai-khoa", dataLockController.getLockStatus);
 router.post("/tong-hop/khoa-du-lieu", dataLockController.lockData);
+router.get("/snapshot", dataLockController.getSnapshot);
+router.get("/snapshot/chi-tiet", dataLockController.getSnapshotDetail);
 
 // Duyệt tổng hợp theo khoa
 const duyetTongHopController = require("../controllers/vuotgio_v2/duyetTongHop.controller");

@@ -38,7 +38,7 @@ const getTable = async (connection, { namHoc, dot, ki, khoa, heDaoTao }) => {
         params.push(ki);
     }
     query += buildKhoaFilter(khoa, "MaPhongBan", params);
-    if (heDaoTao) {
+    if (heDaoTao && heDaoTao !== "ALL") {
         query += ` AND he_dao_tao = ?`;
         params.push(heDaoTao);
     }
@@ -83,7 +83,7 @@ const getChiTiet = async (connection, { giangVien, namHoc, dot, ki, khoa, heDaoT
         params.push(ki);
     }
     query += buildKhoaFilter(khoa, "MaPhongBan", params);
-    if (heDaoTao) {
+    if (heDaoTao && heDaoTao !== "ALL") {
         query += ` AND he_dao_tao = ?`;
         params.push(heDaoTao);
     }

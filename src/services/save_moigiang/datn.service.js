@@ -1,3 +1,12 @@
+/**
+ * LƯU Ý KIẾN TRÚC QUAN TRỌNG:
+ * Service này (và thư mục save_moigiang nói chung) ĐỘC QUYỀN phục vụ 2 nghiệp vụ:
+ * 1. Vượt giờ dự kiến (tính toán on-the-fly trên RAM, không lưu DB).
+ * 2. Lưu dữ liệu Mời giảng (tính tiền, thuế, insert vào giangday, exportdoantotnghiep, hopdonggvmoi).
+ * 
+ * 🚫 TUYỆT ĐỐI KHÔNG SỬ DỤNG service này cho luồng "Vượt giờ chính thức" của giảng viên cơ hữu.
+ * Luồng chính thức của GV cơ hữu đã được chuyển sang thư mục `vuotgio_v2` (dùng cơ chế Data Lock & Snapshot).
+ */
 const createPoolConnection = require("../../config/databasePool");
 const datnRepo = require("../../repositories/vuotgioDuKien/datn.repo");
 
@@ -39,7 +48,21 @@ const calculateDonGiaWithCache = (tienLuongCache, gvInfo, he_dao_tao) => {
     }
 };
 
-const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, allGV, config) => {
+/**
+ * Hàm share dùng chung (Lõi logic biến đổi dữ liệu Đồ án):
+ * 
+ * SỬ DỤNG CHO 2 NGHIỆP VỤ:
+ * 1. Mời giảng lưu (isDuKien = false):
+ *    - Dữ liệu thô lấy từ luồng phê duyệt (chỉ lấy các bản ghi đã được Khoa duyệt, chưa lưu).
+ *    - Thực hiện logic lọc TaiChinhDuyet, DaLuu và kiểm tra daDuyetHetArray.
+ *    - Output trả về (values) sẽ được dùng để insert chính thức vào bảng `exportdoantotnghiep` và tính tiền cho GV mời.
+ * 
+ * 2. Vượt giờ dự kiến (isDuKien = true):
+ *    - Dữ liệu thô lấy trực tiếp từ bảng `doantotnghiep`.
+ *    - Bỏ qua các ràng buộc duyệt (TaiChinhDuyet, DaLuu) để hiển thị trước dữ liệu "on-the-fly" lên giao diện Dự kiến.
+ *    - Không lưu vào DB, chỉ mapping ra format để render View.
+ */
+const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, allGV, config, isDuKien = false) => {
     const values = [];
     const errors = [];
 
@@ -56,15 +79,24 @@ const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, all
     const { NamHoc, ki, Dot } = config; // Nhận từ tham số bên ngoài để đảm bảo giống controller
 
     data.forEach((item) => {
-        // filter logic (giống y chang filter trong doAnChinhThucController)
-        if (item.TaiChinhDuyet == 0 || item.DaLuu == 1 || !daDuyetHetArray.includes(item.MaPhongBan)) {
-            return; // Bỏ qua
+        // filter logic
+        if (!isDuKien) {
+            // Luồng chính thức: Yêu cầu Tài chính duyệt và chưa lưu, khoa đã duyệt hết
+            if (item.TaiChinhDuyet == 0 || item.DaLuu == 1 || !daDuyetHetArray.includes(item.MaPhongBan)) {
+                return; // Bỏ qua
+            }
+        } else {
+            // Luồng dự kiến: Không quan tâm TaiChinhDuyet hay DaLuu. 
+            // Có thể bỏ qua những dòng chưa được Khoa duyệt nếu cần thiết, 
+            // nhưng hiện tại để mô phỏng data "Dự kiến" thì ta lấy tất (tuỳ thuộc vào nghiệp vụ, thường Dự kiến thì lấy hết hoặc chỉ lấy KhoaDuyet=1)
+            // (Thêm điều kiện nếu có)
         }
 
         let SoQD = "không";
         let SoNguoi = 2; // Mặc định là 2 giảng viên
 
         if (
+            item.GiangVien2 == null ||
             item.GiangVien2.toLowerCase() == "null" ||
             item.GiangVien2.toLowerCase() == "không" ||
             item.GiangVien2 == ""
@@ -76,10 +108,12 @@ const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, all
         let GiangVien, CCCD, isMoiGiang;
         let matchedItem1;
 
+        if (!item.GiangVien1) return; // Nếu ko có giảng viên 1 thì bỏ qua
+
         if (item.GiangVien1.includes("-")) {
             GiangVien = item.GiangVien1.split("-")[0].trim();
             CCCD = item.GiangVien1.split("-")[2].trim();
-            isMoiGiang = item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
+            isMoiGiang = item.GiangVien1.split("-")[1].trim().toLowerCase() == "cơ hữu" ? 0 : 1;
 
             const normalizedGV1 = GiangVien.trim();
             matchedItem1 = allGV.find((arr) => arr.HoTen.trim() == normalizedGV1);
@@ -122,12 +156,6 @@ const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, all
         } else if (SoNguoi == 2) {
             SoTiet = soTietConfig.so_tiet_1;
         }
-
-        // Calculate TienMoiGiang but we don't save it to exportdoantotnghiep here
-        // const TienMoiGiang = calculateDonGiaWithCache(tienLuongCache, matchedItem1, item.he_dao_tao);
-        // const ThanhTien = SoTiet * TienMoiGiang;
-        // const Thue = 0;
-        // const ThucNhan = ThanhTien;
 
         values.push([
             item.SinhVien || null,
@@ -175,7 +203,7 @@ const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, all
             if (item.GiangVien2.includes("-")) {
                 GiangVien = item.GiangVien2.split("-")[0].trim();
                 CCCD = item.GiangVien2.split("-")[2].trim();
-                isMoiGiang = item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
+                isMoiGiang = item.GiangVien2.split("-")[1].trim().toLowerCase() == "cơ hữu" ? 0 : 1;
 
                 const normalizedGV2 = GiangVien.trim();
                 matchedItem2 = allGV.find((arr) => arr.HoTen.trim() == normalizedGV2);
@@ -205,10 +233,6 @@ const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, all
             }
 
             SoTiet = soTietConfig.so_tiet_2;
-            // const TienMoiGiang2 = calculateDonGiaWithCache(tienLuongCache, matchedItem2, item.he_dao_tao);
-            // const ThanhTien2 = SoTiet * TienMoiGiang2;
-            // const Thue2 = 0;
-            // const ThucNhan2 = ThanhTien2;
 
             values.push([
                 item.SinhVien || null,
@@ -254,12 +278,92 @@ const transformDoAnData = (data, daDuyetHetArray, soTietMap, tienLuongCache, all
     return { values, errors };
 };
 
-const getDoAnTotNghiepDuKien = async (namHoc, khoaId, dot, kiHoc) => {
+const getDoAnTotNghiepDuKien = async (namHoc, khoaId, dot, kiHoc, isMoiGiang = 0) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        const rows = await datnRepo.getDoAnTotNghiepDuKien(connection, namHoc, khoaId, dot, kiHoc);
-        return rows;
+        
+        // 1. Query raw data từ doantotnghiep
+        let queryData = "SELECT * FROM doantotnghiep WHERE NamHoc = ?";
+        let params = [namHoc];
+        if (khoaId && khoaId !== 'ALL') {
+            queryData += " AND MaPhongBan = ?";
+            params.push(khoaId);
+        }
+        if (dot && dot !== 'ALL') {
+            queryData += " AND Dot = ?";
+            params.push(dot);
+        }
+        if (kiHoc && kiHoc !== 'ALL') {
+            queryData += " AND ki = ?";
+            params.push(kiHoc);
+        }
+        const [data] = await connection.query(queryData, params);
+
+        if (!data || data.length === 0) return [];
+
+        // 2. Query cấu hình số tiết
+        const [soTietDoanConfig] = await connection.query('SELECT * FROM sotietdoan');
+        const soTietMap = {};
+        soTietDoanConfig.forEach(config => {
+            soTietMap[config.he_dao_tao] = {
+                tong_tiet: config.tong_tiet,
+                so_tiet_1: config.so_tiet_1,
+                so_tiet_2: config.so_tiet_2
+            };
+        });
+
+        // 3. Query toàn bộ giảng viên để truyền vào transform (giống hệt getGVData)
+        const normalizeName = (name) => name ? name.replace(/\s*\(.*?\)\s*/g, "").trim() : "";
+        const [gvms] = await connection.query(`SELECT HoTen, CCCD, isQuanDoi FROM gvmoi`);
+        const [nvs] = await connection.query(`SELECT TenNhanVien, CCCD FROM nhanvien`);
+        
+        const allGV = [
+            ...gvms.map((item) => ({
+                HoTen: item.HoTen,
+                CCCD: item.CCCD,
+                BienChe: "Giảng viên mời",
+                HoTenReal: normalizeName(item.HoTen),
+                isQuanDoi: item.isQuanDoi
+            })),
+            ...nvs.map((item) => ({
+                HoTen: item.TenNhanVien,
+                CCCD: item.CCCD,
+                BienChe: "Cơ hữu",
+                HoTenReal: normalizeName(item.TenNhanVien),
+                isQuanDoi: null
+            })),
+        ];
+
+        // 4. Lấy daDuyetHetArray ảo (vì dự kiến không lọc theo duyệt)
+        const daDuyetHetArray = data.map(d => d.MaPhongBan);
+        const tienLuongCache = []; // Ko cần tính tiền cho dự kiến ở bước này
+
+        // 5. Gọi lõi transform dùng chung (pass isDuKien = true)
+        const { values } = transformDoAnData(data, daDuyetHetArray, soTietMap, tienLuongCache, allGV, { NamHoc: namHoc, ki: kiHoc, Dot: dot }, true);
+
+        // 6. Map dữ liệu trả về theo format chuẩn
+        // Format: { GiangVien_HienThi, MaPhongBan, SinhVien, KhoaSV, TenDeTai, SoTiet }
+        let filteredValues = values;
+        if (isMoiGiang !== 'ALL') {
+            filteredValues = values.filter(v => v[9] === isMoiGiang);
+        }
+
+        const mappedRows = filteredValues.map(v => ({ 
+            SinhVien: v[0],
+            KhoaDaoTao: v[2],
+            TenDeTai: v[4],
+            GiangVien_HienThi: v[7],
+            SoTiet: v[10],
+            MaPhongBan: v[13],
+            KhoaSV: v[34]
+        }));
+
+        return mappedRows;
+
+    } catch (err) {
+        console.error("Lỗi getDoAnTotNghiepDuKien:", err);
+        return [];
     } finally {
         if (connection) {
             connection.release();

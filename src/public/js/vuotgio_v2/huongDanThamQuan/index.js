@@ -204,6 +204,7 @@ $(document).ready(function () {
                 setSelectOptions($('#namHocFilter, #nam_hoc'), d.namHoc, "Chọn năm học");
                 setSelectOptions($('#khoaFilter'), d.khoa, "Tất cả khoa");
                 setSelectOptions($('#khoa'), d.khoa, "Chọn khoa");
+                setSelectOptions($('#heDaoTaoFilter'), d.heDaoTao.map(h => h.id), "Tất cả hệ", d.heDaoTao);
                 setSelectOptions($('#he_dao_tao_id'), d.heDaoTao.map(h => h.id), "Chọn hệ đào tạo", d.heDaoTao);
 
                 if (d.activeNamHoc) {
@@ -247,7 +248,8 @@ $(document).ready(function () {
             NamHoc: $('#namHocFilter').val(),
             Dot: $('#dotFilter').val(),
             KiHoc: $('#kiFilter').val(),
-            Khoa: $('#khoaFilter').val()
+            Khoa: $('#khoaFilter').val(),
+            HeDaoTao: $('#heDaoTaoFilter').val()
         };
 
         try {

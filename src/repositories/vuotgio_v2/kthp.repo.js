@@ -8,6 +8,7 @@ const buildSelect = () => `
     khoa,
     hoc_ky AS ki,
     hoc_ky,
+    dot,
     nam_hoc AS namhoc,
     nam_hoc,
     hinh_thuc AS hinhthuc,
@@ -36,7 +37,7 @@ const buildSelect = () => `
     so_sv
 `;
 
-const getTable = async (connection, { namHoc, khoa }) => {
+const getTable = async (connection, { namHoc, khoa, heDaoTao, dot, ki }) => {
     let query = `
         SELECT 
           t.id,
@@ -46,6 +47,7 @@ const getTable = async (connection, { namHoc, khoa }) => {
           t.khoa,
           t.hoc_ky AS ki,
           t.hoc_ky,
+          t.dot,
           t.nam_hoc AS namhoc,
           t.nam_hoc,
           t.hinh_thuc AS hinhthuc,
@@ -83,6 +85,21 @@ const getTable = async (connection, { namHoc, khoa }) => {
         params.push(khoa);
     }
 
+    if (heDaoTao && heDaoTao !== "ALL") {
+        query += ` AND t.he_dao_tao_id = ?`;
+        params.push(heDaoTao);
+    }
+
+    if (dot && dot !== "ALL") {
+        query += ` AND t.dot = ?`;
+        params.push(dot);
+    }
+
+    if (ki && ki !== "ALL") {
+        query += ` AND t.hoc_ky = ?`;
+        params.push(ki);
+    }
+
     query += ` ORDER BY t.giang_vien, t.ten_hoc_phan, t.hinh_thuc`;
     const [rows] = await connection.execute(query, params);
     return rows;
@@ -91,8 +108,8 @@ const getTable = async (connection, { namHoc, khoa }) => {
 const insert = async (connection, values) => {
     const query = `
         INSERT INTO ${COI_CHAM_RA_DE_TABLE}
-        (id_user, giang_vien, khoa, hoc_ky, nam_hoc, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, he_dao_tao_id, bai_cham_1, bai_cham_2, tong_so, quy_chuan, ghi_chu, khoa_duyet, khao_thi_duyet, so_tc, so_sv)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
+        (id_user, giang_vien, khoa, hoc_ky, nam_hoc, dot, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, he_dao_tao_id, bai_cham_1, bai_cham_2, tong_so, quy_chuan, ghi_chu, khoa_duyet, khao_thi_duyet, so_tc, so_sv)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
     `;
     return connection.execute(query, values);
 };
@@ -113,6 +130,7 @@ const update = async (connection, id, values) => {
             khoa = ?,
             hoc_ky = ?,
             nam_hoc = ?,
+            dot = ?,
             hinh_thuc = ?,
             ten_hoc_phan = ?,
             lop_hoc_phan = ?,
@@ -147,14 +165,23 @@ const updateBatchApproval = async (connection, records) => {
 const updateApproval = async (connection, id, value) =>
     connection.execute(`UPDATE ${COI_CHAM_RA_DE_TABLE} SET khoa_duyet = ? WHERE id = ?`, [value, id]);
 
-const deleteByYearAndSemester = async (connection, { namHoc, hocKy }) =>
-    connection.execute(`DELETE FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ?`, [namHoc, hocKy]);
+const deleteByYearAndSemester = async (connection, { namHoc, hocKy, dot }) => {
+    if (dot !== undefined && dot !== null && dot !== '') {
+        return connection.execute(`DELETE FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ? AND dot = ?`, [namHoc, hocKy, dot]);
+    }
+    return connection.execute(`DELETE FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ?`, [namHoc, hocKy]);
+};
 
-const countByYearAndSemester = async (connection, { namHoc, hocKy }) => {
-    const [rows] = await connection.execute(
-        `SELECT COUNT(*) AS count FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ?`,
-        [namHoc, hocKy]
-    );
+const countByYearAndSemester = async (connection, { namHoc, hocKy, dot }) => {
+    let query = `SELECT COUNT(*) AS count FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ?`;
+    let params = [namHoc, hocKy];
+    
+    if (dot !== undefined && dot !== null && dot !== '') {
+        query += ` AND dot = ?`;
+        params.push(dot);
+    }
+    
+    const [rows] = await connection.execute(query, params);
     return rows[0].count;
 };
 
@@ -168,6 +195,7 @@ const getByLecturerName = async (connection, { name, namHoc, hocKy }) => {
           t.khoa,
           t.hoc_ky AS ki,
           t.hoc_ky,
+          t.dot,
           t.nam_hoc AS namhoc,
           t.nam_hoc,
           t.hinh_thuc AS hinhthuc,
@@ -206,7 +234,7 @@ const insertMany = async (connection, values) => {
     if (!values || values.length === 0) return { affectedRows: 0 };
     const query = `
         INSERT INTO ${COI_CHAM_RA_DE_TABLE}
-        (giang_vien, khoa, hoc_ky, nam_hoc, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, bai_cham_1, bai_cham_2, tong_so, quy_chuan, khoa_duyet, khao_thi_duyet, id_user, he_dao_tao_id)
+        (giang_vien, khoa, hoc_ky, nam_hoc, dot, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, bai_cham_1, bai_cham_2, tong_so, quy_chuan, khoa_duyet, khao_thi_duyet, id_user, he_dao_tao_id)
         VALUES ?
     `;
     return connection.query(query, [values]);

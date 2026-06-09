@@ -225,10 +225,10 @@ async function loadKhoaOptions() {
     }
 }
 
-// Load hệ đào tạo cho modal
+// Load hệ đào tạo cho modal và bộ lọc
 async function loadHeDaoTaoOptions() {
     try {
-        const response = await fetch('/api/gvm/v1/he-moi-giang');
+        const response = await fetch('/api/gvm/v1/he-dao-tao');
         if (!response.ok) {
             throw new Error(`Load he dao tao failed with status ${response.status}`);
         }
@@ -246,6 +246,8 @@ async function loadHeDaoTaoOptions() {
             .filter((item) => item.value);
 
         const editHeDaoTao = document.getElementById('editHeDaoTao');
+        const filterHeDaoTao = document.getElementById('heDaoTao');
+
         if (editHeDaoTao) {
             editHeDaoTao.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
             heDaoTaoList.forEach((item) => {
@@ -253,6 +255,17 @@ async function loadHeDaoTaoOptions() {
                 option.value = String(item.value);
                 option.textContent = String(item.value);
                 editHeDaoTao.appendChild(option);
+            });
+        }
+
+        if (filterHeDaoTao) {
+            filterHeDaoTao.innerHTML = '<option value="ALL">Tất cả hệ</option>';
+            heDaoTaoList.forEach((item) => {
+                if (item.value && item.value.toLowerCase().includes('đồ án')) return;
+                const option = document.createElement('option');
+                option.value = String(item.id);
+                option.textContent = String(item.value);
+                filterHeDaoTao.appendChild(option);
             });
         }
     } catch (error) {
@@ -265,6 +278,9 @@ async function loadHeDaoTaoOptions() {
 async function loadData() {
     const namHoc = document.getElementById('namHocXem').value;
     const khoa = document.getElementById('khoaXem').value;
+    const heDaoTao = document.getElementById('heDaoTao').value;
+    const dot = document.getElementById('dot').value;
+    const ki = document.getElementById('ki').value;
     
     if (!namHoc) {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'warning');
@@ -272,10 +288,21 @@ async function loadData() {
     }
 
     try {
-        const response = await fetch(`/v2/vuotgio/duyet-kthp/${namHoc}/${khoa}`);
+        const payload = {
+            NamHoc: namHoc,
+            khoa: khoa,
+            heDaoTao: heDaoTao,
+            dot: dot,
+            ki: ki
+        };
+        const response = await fetch(`/v2/vuotgio/duyet-kthp/data`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
         const data = await response.json();
         
-        globalData = data;
+        globalData = data.data || data;
         renderTable(globalData);
         
         if (data.length === 0) {
@@ -324,8 +351,13 @@ function renderTable(data) {
 
         // Học kỳ
         const hocKyTd = document.createElement('td');
-        hocKyTd.textContent = row.ki || '';
+        hocKyTd.textContent = row.ki || row.hocKy || '';
         tableRow.appendChild(hocKyTd);
+
+        // Đợt
+        const dotTd = document.createElement('td');
+        dotTd.textContent = row.dot || 1;
+        tableRow.appendChild(dotTd);
 
         // Tên học phần
         const tenHPTd = document.createElement('td');
@@ -583,8 +615,9 @@ function editRecord(id) {
 
     // Fill modal
     document.getElementById('editID').value = record.id;
-    document.getElementById('editNamHoc').value = record.namhoc;
-    document.getElementById('editHocKy').value = record.ki || 1;
+    document.getElementById('editNamHoc').value = record.namhoc || record.namHoc;
+    document.getElementById('editHocKy').value = record.ki || record.hocKy || 1;
+    document.getElementById('editDot').value = record.dot || 1;
     document.getElementById('editKhoa').value = record.khoa;
     document.getElementById('editTenHP').value = record.tenhocphan || '';
     document.getElementById('editMaHP').value = record.mahocphan || '';
@@ -612,6 +645,7 @@ async function handleEditSubmit() {
         NamHoc: document.getElementById('editNamHoc').value,
         namhoc: document.getElementById('editNamHoc').value,
         ki: document.getElementById('editHocKy').value,
+        dot: document.getElementById('editDot').value,
         khoa: document.getElementById('editKhoa').value,
         tenhocphan: document.getElementById('editTenHP').value,
         mahocphan: document.getElementById('editMaHP').value,

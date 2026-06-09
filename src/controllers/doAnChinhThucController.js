@@ -394,6 +394,16 @@ const updateDoAn = async (req, res) => {
   }
 };
 
+/**
+ * ⚠️ LƯU Ý KIẾN TRÚC LEGACY (RAW SQL IN CONTROLLER) ⚠️
+ * 
+ * 1. Controller này trực tiếp thao tác thẳng với Database qua Raw SQL (pool.query) để lưu dữ liệu 
+ *    Đồ án tốt nghiệp (INSERT INTO exportdoantotnghiep, update log,...).
+ * 2. Hàm này CÓ GỌI `datnService` từ thư mục `save_moigiang` nhưng chỉ để tận dụng lại hàm map 
+ *    dữ liệu (VD: `transformDoAnData`), chứ KHÔNG dùng service này để giao tiếp với Database.
+ * 3. File `repositories/vuotgioDuKien/datn.repo.js` là FILE RÁC (Dead code), không tham gia vào luồng 
+ *    này. Đừng để các `require` ở đầu file đánh lừa rằng luồng này đang dùng chung Repo.
+ */
 const saveToDB = async (req, res) => {
   const NamHoc = req.query.namHoc;
   const MaPhongBan = req.query.MaPhongBan;
@@ -1061,6 +1071,16 @@ const calculateDonGiaWithCache = (tienLuongCache, gvInfo, he_dao_tao) => {
 
 const hopDongDAController = require("./hopDongDAController");
 
+/**
+ * ⚠️ LƯU Ý KIẾN TRÚC LEGACY (RAW SQL IN CONTROLLER) ⚠️
+ * 
+ * 1. Controller này trực tiếp thao tác thẳng với Database qua Raw SQL (pool.query) để lưu dữ liệu 
+ *    Đồ án tốt nghiệp (INSERT INTO exportdoantotnghiep, update log,...).
+ * 2. Hàm này CÓ GỌI `datnService` từ thư mục `save_moigiang` nhưng chỉ để tận dụng lại hàm map 
+ *    dữ liệu (VD: `transformDoAnData`), chứ KHÔNG dùng service này để giao tiếp với Database.
+ * 3. File `repositories/vuotgioDuKien/datn.repo.js` là FILE RÁC (Dead code), không tham gia vào luồng 
+ *    này. Đừng để các `require` ở đầu file đánh lừa rằng luồng này đang dùng chung Repo.
+ */
 const saveToExportDoAn = async (req, res) => {
   const Dot = req.body.Dot;
   const ki = req.body.ki;

@@ -36,7 +36,7 @@ const getTable = async (connection, { namHoc, dot, kiHoc, khoa, heDaoTao }) => {
         params.push(kiHoc);
     }
     query += buildKhoaFilter(khoa, "t.khoa", params);
-    if (heDaoTao) {
+    if (heDaoTao && heDaoTao !== "ALL") {
         query += ` AND t.he_dao_tao_id = ?`;
         params.push(heDaoTao);
     }

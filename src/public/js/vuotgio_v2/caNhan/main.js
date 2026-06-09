@@ -6,7 +6,8 @@ const getInitParams = () => {
     const urlParams = new URLSearchParams(window.location.search);
     return {
         idUser: urlParams.get('idUser') || document.getElementById('initIdUser').value,
-        namHoc: urlParams.get('namHoc') || document.getElementById('initNamHoc').value
+        namHoc: urlParams.get('namHoc') || document.getElementById('initNamHoc').value,
+        mode: document.getElementById('initMode')?.value || 'du-kien' // Fallback to du-kien
     };
 };
 
@@ -63,7 +64,7 @@ function hideError() {
 }
 
 async function loadData() {
-    const { idUser } = getInitParams();
+    const { idUser, mode } = getInitParams();
     const namHoc = document.getElementById('namHocFilter').value;
     
     if (!idUser || !namHoc) return;
@@ -73,13 +74,29 @@ async function loadData() {
     document.getElementById('contentWrapper').style.display = 'none';
     
     try {
-        const response = await fetch(`/v2/vuotgio/tong-hop/data-chuan/${encodeURIComponent(idUser)}?namHoc=${encodeURIComponent(namHoc)}`);
+        let apiPath;
+        let sourceMode;
+        if (mode === 'sau-luu') {
+            sourceMode = 'snapshot';
+            apiPath = `/v2/vuotgio/tong-hop/data-snapshot/${encodeURIComponent(idUser)}?namHoc=${encodeURIComponent(namHoc)}`;
+        } else {
+            const isDuKien = mode === 'du-kien';
+            sourceMode = isDuKien ? 'du-kien' : 'chinh-thuc';
+            apiPath = `/v2/vuotgio/tong-hop/data-chuan/${encodeURIComponent(idUser)}?namHoc=${encodeURIComponent(namHoc)}&isDuKien=${isDuKien}`;
+        }
+        
+        console.info('[caNhan.loadData]', { idUser, namHoc, mode, sourceMode, apiPath });
+            
+        const response = await fetch(apiPath);
         const result = await response.json();
         
         if (!result.success) {
             showError(result.message || 'Lỗi khi tải dữ liệu');
             return;
         }
+        
+        // ========== LOG CHI TIẾT DỮ LIỆU TRẢ VỀ ==========
+        logDetailedData(result.data, mode);
         
         renderData(result.data);
         
@@ -94,6 +111,177 @@ async function loadData() {
 
 function formatNumber(num) {
     return Number(num || 0).toFixed(2);
+}
+
+// ========== FUNCTION LOG CHI TIẾT DỮ LIỆU ==========
+function logDetailedData(data, mode) {
+    console.group(`%c📊 DỮ LIỆU TRẢ VỀ - MODE: ${mode.toUpperCase()}`, 'color: #3b82f6; font-weight: bold; font-size: 14px;');
+    
+    // 1. Thông tin chung
+    console.log('%c🎯 Thông tin giảng viên:', 'color: #10b981; font-weight: bold;');
+    console.table({
+        'ID User': data.id_User,
+        'Họ tên': data.giangVien,
+        'Khoa': data.khoa,
+        'Chức vụ': data.chucVu
+    });
+    
+    // 2. Giảng dạy - PHÂN TÁCH KÌ 1 VÀ KÌ 2
+    if (data.raw?.giangDay) {
+        console.group('%c📚 A.1. GIẢNG DẠY (từ quychuan/giangday)', 'color: #f59e0b; font-weight: bold;');
+        
+        const giangDay = data.raw.giangDay;
+        const gdKy1 = giangDay.filter(r => Number(r.HocKy ?? r.hoc_ky) === 1);
+        const gdKy2 = giangDay.filter(r => Number(r.HocKy ?? r.hoc_ky) === 2);
+        
+        console.log(`%c📌 Tổng số bản ghi: ${giangDay.length}`, 'color: #64748b; font-weight: bold;');
+        console.log(`   ├─ Kì 1: ${gdKy1.length} bản ghi`);
+        console.log(`   └─ Kì 2: ${gdKy2.length} bản ghi`);
+        
+        // Chi tiết kì 1
+        if (gdKy1.length > 0) {
+            console.group('%c🔵 KÌ 1 - Chi tiết:', 'color: #3b82f6;');
+            const sumKy1 = gdKy1.reduce((sum, r) => sum + (Number(r.QuyChuan || 0)), 0);
+            console.log(`Tổng quy chuẩn: ${sumKy1.toFixed(2)} tiết`);
+            console.table(gdKy1.map(r => ({
+                'Học phần': r.TenHocPhan || r.ten_hoc_phan || '',
+                'Lớp': r.Lop || r.lop || r.ten_lop || '',
+                'Hệ đào tạo': r.ten_he_dao_tao || r.he_dao_tao || '',
+                'Học kỳ': r.HocKy || r.hoc_ky,
+                'Quy chuẩn': Number(r.QuyChuan || 0).toFixed(2)
+            })));
+            console.groupEnd();
+        } else {
+            console.log('%c⚠️ KÌ 1: KHÔNG CÓ DỮ LIỆU', 'color: #ef4444; font-weight: bold;');
+        }
+        
+        // Chi tiết kì 2
+        if (gdKy2.length > 0) {
+            console.group('%c🟢 KÌ 2 - Chi tiết:', 'color: #10b981;');
+            const sumKy2 = gdKy2.reduce((sum, r) => sum + (Number(r.QuyChuan || 0)), 0);
+            console.log(`Tổng quy chuẩn: ${sumKy2.toFixed(2)} tiết`);
+            console.table(gdKy2.map(r => ({
+                'Học phần': r.TenHocPhan || r.ten_hoc_phan || '',
+                'Lớp': r.Lop || r.lop || r.ten_lop || '',
+                'Hệ đào tạo': r.ten_he_dao_tao || r.he_dao_tao || '',
+                'Học kỳ': r.HocKy || r.hoc_ky,
+                'Quy chuẩn': Number(r.QuyChuan || 0).toFixed(2)
+            })));
+            console.groupEnd();
+        } else {
+            console.log('%c⚠️ KÌ 2: KHÔNG CÓ DỮ LIỆU', 'color: #ef4444; font-weight: bold;');
+        }
+        
+        console.groupEnd();
+    }
+    
+    // 3. Lớp ngoài quy chuẩn - PHÂN TÁCH KÌ 1 VÀ KÌ 2
+    if (data.raw?.lopNgoaiQC) {
+        console.group('%c📝 Lớp Ngoài Quy Chuẩn', 'color: #f59e0b; font-weight: bold;');
+        
+        const lopNgoaiQC = data.raw.lopNgoaiQC;
+        const lnqcKy1 = lopNgoaiQC.filter(r => Number(r.hoc_ky ?? r.HocKy) === 1);
+        const lnqcKy2 = lopNgoaiQC.filter(r => Number(r.hoc_ky ?? r.HocKy) === 2);
+        
+        console.log(`%c📌 Tổng số bản ghi: ${lopNgoaiQC.length}`, 'color: #64748b; font-weight: bold;');
+        console.log(`   ├─ Kì 1: ${lnqcKy1.length} bản ghi`);
+        console.log(`   └─ Kì 2: ${lnqcKy2.length} bản ghi`);
+        
+        if (lnqcKy1.length > 0) {
+            const sumKy1 = lnqcKy1.reduce((sum, r) => sum + (Number(r.quy_chuan || 0)), 0);
+            console.log(`   Kì 1 tổng: ${sumKy1.toFixed(2)} tiết`);
+        }
+        if (lnqcKy2.length > 0) {
+            const sumKy2 = lnqcKy2.reduce((sum, r) => sum + (Number(r.quy_chuan || 0)), 0);
+            console.log(`   Kì 2 tổng: ${sumKy2.toFixed(2)} tiết`);
+        }
+        
+        console.groupEnd();
+    }
+    
+    // 4. KTHP (Coi thi, chấm thi) - PHÂN TÁCH KÌ 1 VÀ KÌ 2
+    if (data.raw?.kthp) {
+        console.group('%c✍️ A.2. COI THI - CHẤM THI - RA ĐỀ', 'color: #f59e0b; font-weight: bold;');
+        
+        const kthp = data.raw.kthp;
+        const kthpKy1 = kthp.filter(r => Number(r.hoc_ky ?? r.HocKy) === 1);
+        const kthpKy2 = kthp.filter(r => Number(r.hoc_ky ?? r.HocKy) === 2);
+        
+        console.log(`%c📌 Tổng số bản ghi: ${kthp.length}`, 'color: #64748b; font-weight: bold;');
+        console.log(`   ├─ Kì 1: ${kthpKy1.length} bản ghi`);
+        console.log(`   └─ Kì 2: ${kthpKy2.length} bản ghi`);
+        
+        if (kthpKy1.length > 0) {
+            const sumKy1 = kthpKy1.reduce((sum, r) => sum + (Number(r.quy_chuan || r.QuyChuan || 0)), 0);
+            console.log(`   Kì 1 tổng: ${sumKy1.toFixed(2)} tiết`);
+        }
+        if (kthpKy2.length > 0) {
+            const sumKy2 = kthpKy2.reduce((sum, r) => sum + (Number(r.quy_chuan || r.QuyChuan || 0)), 0);
+            console.log(`   Kì 2 tổng: ${sumKy2.toFixed(2)} tiết`);
+        }
+        
+        console.groupEnd();
+    }
+    
+    // 5. Đồ án tốt nghiệp
+    if (data.raw?.doAn && data.raw.doAn.length > 0) {
+        console.group('%c🎓 B. ĐỒ ÁN TỐT NGHIỆP', 'color: #8b5cf6; font-weight: bold;');
+        console.log(`Tổng số: ${data.raw.doAn.length} bản ghi`);
+        const sumDoAn = data.raw.doAn.reduce((sum, r) => sum + (Number(r.SoTiet || r.so_tiet || 0)), 0);
+        console.log(`Tổng quy chuẩn: ${sumDoAn.toFixed(2)} tiết`);
+        console.groupEnd();
+    }
+    
+    // 6. Hướng dẫn tham quan
+    if (data.raw?.huongDanThamQuan && data.raw.huongDanThamQuan.length > 0) {
+        console.group('%c🚌 C. HƯỚNG DẪN THAM QUAN', 'color: #06b6d4; font-weight: bold;');
+        console.log(`Tổng số: ${data.raw.huongDanThamQuan.length} bản ghi`);
+        const sumHdtq = data.raw.huongDanThamQuan.reduce((sum, r) => sum + (Number(r.so_tiet_quy_doi || 0)), 0);
+        console.log(`Tổng quy chuẩn: ${sumHdtq.toFixed(2)} tiết`);
+        console.groupEnd();
+    }
+    
+    // 7. NCKH
+    if (data.raw?.nckhRecords && data.raw.nckhRecords.length > 0) {
+        console.group('%c🔬 D. NGHIÊN CỨU KHOA HỌC', 'color: #ec4899; font-weight: bold;');
+        console.log(`Tổng số: ${data.raw.nckhRecords.length} bản ghi`);
+        const sumNckh = data.raw.nckhRecords.reduce((sum, r) => sum + (Number(r.soTietGiangVien || 0)), 0);
+        console.log(`Tổng số tiết: ${sumNckh.toFixed(2)} tiết`);
+        console.groupEnd();
+    }
+    
+    // 8. Tổng kết
+    console.group('%c📊 TỔNG KẾT', 'color: #dc2626; font-weight: bold; font-size: 14px;');
+    if (data.tableE) {
+        console.table({
+            'I. Tổng số tiết thực hiện (A+B+C)': formatNumber(data.tableE.i),
+            'II. Định mức phải giảng': formatNumber(data.tableE.ii),
+            'III. Chưa hoàn thành NCKH': formatNumber(data.tableE.iii),
+            'IV. Được giảm trừ': formatNumber(data.tableE.iv),
+            'V. Tổng vượt giờ': formatNumber(data.tableE.v),
+            'VI. Đề nghị thanh toán': formatNumber(data.tableE.vi || 0)
+        });
+    }
+    console.groupEnd();
+    
+    // 9. Cảnh báo nếu không có dữ liệu kì 2 trong chế độ dự kiến
+    if (mode === 'du-kien') {
+        const hasKy2GiangDay = data.raw?.giangDay?.some(r => Number(r.HocKy ?? r.hoc_ky) === 2);
+        const hasKy2Kthp = data.raw?.kthp?.some(r => Number(r.hoc_ky ?? r.HocKy) === 2);
+        const hasKy2LopNgoaiQC = data.raw?.lopNgoaiQC?.some(r => Number(r.hoc_ky ?? r.HocKy) === 2);
+        
+        if (!hasKy2GiangDay && !hasKy2Kthp && !hasKy2LopNgoaiQC) {
+            console.warn('%c⚠️ CẢNH BÁO: Không có dữ liệu KÌ 2 trong chế độ DỰ KIẾN!', 'background: #fbbf24; color: #000; font-weight: bold; padding: 5px;');
+            console.warn('Kiểm tra:');
+            console.warn('  1. Dữ liệu kì 2 có tồn tại trong bảng quychuan không?');
+            console.warn('  2. Hàm getVirtualGiangDay có lấy đúng dữ liệu không?');
+            console.warn('  3. Tham số isDuKien có được truyền đúng không?');
+        } else {
+            console.log('%c✅ CÓ DỮ LIỆU KÌ 2', 'background: #10b981; color: #fff; font-weight: bold; padding: 5px;');
+        }
+    }
+    
+    console.groupEnd();
 }
 
 // ==============================
@@ -450,11 +638,14 @@ function renderData(data) {
             </div>
             <div class="col-md-6">
                 <p class="mb-1"><strong>Định mức giảng dạy chuẩn:</strong> <strong class="text-primary">${formatNumber(data.dinhMucChuan)}</strong> tiết</p>
-                <p class="mb-1"><strong>Miễn giảm:</strong> <strong class="text-info">${formatNumber(data.phanTramMienGiam)}%</strong> (${data.lyDoMienGiam || 'Không'})</p>
+                <p class="mb-1"><strong>Miễn giảm:</strong> <strong class="text-info">${formatNumber(data.phanTramMienGiam)}%</strong> (${data.lyDoMienGiam || 'Chưa có lý do miễn giảm'})</p>
                 <p class="mb-1"><strong>Định mức thực tế:</strong> <strong class="text-success">${formatNumber(data.dinhMucSauMienGiam)}</strong> tiết</p>
             </div>
         </div>
     `;
+    
+    // 1.5. Render Data Summary Box (Kì 1 và Kì 2)
+    renderDataSummaryBox(data);
 
     // 2. Render Detailed Groups
     const container = document.getElementById('tablesContainer');
@@ -470,20 +661,137 @@ function renderData(data) {
     // 3. Render Summary (Table F equivalent)
     if (data.tableE) {
         document.getElementById('summaryBox').innerHTML = `
-            <h5 class="section-title st-sum"><i class="fas fa-file-invoice-dollar me-2"></i> E. TỔNG HỢP KHỐI LƯỢNG ĐÃ THỰC HIỆN VÀ ĐỀ NGHỊ THANH TOÁN VƯỢT GIỜ</h5>
-            <div class="table-responsive mt-2">
-                <table class="table table-bordered table-sm table-custom">
-                    <thead><tr><th style="width:80%">Nội dung công việc</th><th>Số tiết</th></tr></thead>
+            <h5 class="fw-bold mb-3" style="color: #1e293b;"><i class="fas fa-file-invoice-dollar me-2"></i> E. TỔNG HỢP KHỐI LƯỢNG ĐÃ THỰC HIỆN VÀ ĐỀ NGHỊ THANH TOÁN VƯỢT GIỜ</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered table-custom">
+                    <thead style="background-color: #334155; color: #f1f5f9;">
+                        <tr><th style="width:80%; text-align: left; padding-left: 10px;">Nội dung công việc</th><th style="text-align: center;">Số tiết</th></tr>
+                    </thead>
                     <tbody>
-                        <tr><td>I. Tổng số tiết thực hiện (A+B+C)</td><td class="text-end fw-bold">${formatNumber(data.tableE.i)}</td></tr>
-                        <tr><td>II. Số tiết định mức phải giảng</td><td class="text-end fw-bold">${formatNumber(data.tableE.ii)}</td></tr>
-                        <tr><td>III. Số tiết chưa hoàn thành NCKH</td><td class="text-end fw-bold text-danger">${formatNumber(data.tableE.iii)}</td></tr>
-                        <tr><td>IV. Số tiết được giảm trừ (theo lý do giảm trừ)</td><td class="text-end fw-bold">${formatNumber(data.tableE.iv)}</td></tr>
-                        <tr><td><strong>Tổng số tiết vượt giờ (I - II - III + IV)</strong></td><td class="text-end fw-bold">${formatNumber(data.tableE.v)}</td></tr>
-                        <tr><td><strong>Tổng số tiết vượt giờ đề nghị thanh toán (II - IV)</strong></td><td class="text-end fw-bold">${formatNumber(data.tableE.vi ?? 0)}</td></tr>
+                        <tr><td style="text-align: left; padding-left: 10px;">I. Tổng số tiết thực hiện (A+B+C)</td><td class="text-end fw-bold">${formatNumber(data.tableE.i)}</td></tr>
+                        <tr><td style="text-align: left; padding-left: 10px;">II. Số tiết định mức phải giảng</td><td class="text-end fw-bold">${formatNumber(data.tableE.ii)}</td></tr>
+                        <tr><td style="text-align: left; padding-left: 10px;">III. Số tiết chưa hoàn thành NCKH</td><td class="text-end fw-bold text-danger">${formatNumber(data.tableE.iii)}</td></tr>
+                        <tr><td style="text-align: left; padding-left: 10px;">IV. Số tiết được giảm trừ (theo lý do giảm trừ)</td><td class="text-end fw-bold">${formatNumber(data.tableE.iv)}</td></tr>
+                        <tr><td style="text-align: left; padding-left: 10px;"><strong>Tổng số tiết vượt giờ (I - II - III + IV)</strong></td><td class="text-end fw-bold" style="color: #1d4ed8;">${formatNumber(data.tableE.v)}</td></tr>
+                        <tr style="background-color: #f1f5f9;"><td style="text-align: left; padding-left: 10px;"><strong>Tổng số tiết vượt giờ đề nghị thanh toán (II - IV)</strong></td><td class="text-end fw-bold" style="color: #1d4ed8;">${formatNumber(data.tableE.vi ?? 0)}</td></tr>
                     </tbody>
                 </table>
             </div>
         `;
     }
+
+    // 4. Render Table F
+    renderTableF(data);
+}
+
+// ==================== DATA SUMMARY BOX RENDERING ====================
+function renderDataSummaryBox(data) {
+    const summaryBox = document.getElementById('dataSummaryBox');
+    
+    if (!summaryBox) return;
+
+    if (!data.raw) {
+        summaryBox.style.display = 'none';
+        return;
+    }
+    
+    // Tính toán dữ liệu kì 1 và kì 2
+    const giangDay = data.raw.giangDay || [];
+    const lopNgoaiQC = data.raw.lopNgoaiQC || [];
+    const kthp = data.raw.kthp || [];
+    
+    // Kì 1
+    const ky1GiangDay = giangDay.filter(r => Number(r.HocKy ?? r.hoc_ky) === 1);
+    const ky1LopNgoaiQC = lopNgoaiQC.filter(r => Number(r.hoc_ky ?? r.HocKy) === 1);
+    const ky1Kthp = kthp.filter(r => Number(r.hoc_ky ?? r.HocKy) === 1);
+    
+    const ky1GiangDaySum = ky1GiangDay.reduce((sum, r) => sum + Number(r.QuyChuan || 0), 0);
+    const ky1LopNgoaiQCSum = ky1LopNgoaiQC.reduce((sum, r) => sum + Number(r.quy_chuan || 0), 0);
+    const ky1KthpSum = ky1Kthp.reduce((sum, r) => sum + Number(r.quy_chuan || r.QuyChuan || 0), 0);
+    const ky1Total = ky1GiangDaySum + ky1LopNgoaiQCSum + ky1KthpSum;
+    
+    // Kì 2
+    const ky2GiangDay = giangDay.filter(r => Number(r.HocKy ?? r.hoc_ky) === 2);
+    const ky2LopNgoaiQC = lopNgoaiQC.filter(r => Number(r.hoc_ky ?? r.HocKy) === 2);
+    const ky2Kthp = kthp.filter(r => Number(r.hoc_ky ?? r.HocKy) === 2);
+    
+    const ky2GiangDaySum = ky2GiangDay.reduce((sum, r) => sum + Number(r.QuyChuan || 0), 0);
+    const ky2LopNgoaiQCSum = ky2LopNgoaiQC.reduce((sum, r) => sum + Number(r.quy_chuan || 0), 0);
+    const ky2KthpSum = ky2Kthp.reduce((sum, r) => sum + Number(r.quy_chuan || r.QuyChuan || 0), 0);
+    const ky2Total = ky2GiangDaySum + ky2LopNgoaiQCSum + ky2KthpSum;
+    
+    // Cập nhật UI
+    document.getElementById('ky1GiangDay').textContent = `${ky1GiangDay.length} lớp (${formatNumber(ky1GiangDaySum)} tiết)`;
+    document.getElementById('ky1LopNgoaiQC').textContent = `${ky1LopNgoaiQC.length} lớp (${formatNumber(ky1LopNgoaiQCSum)} tiết)`;
+    document.getElementById('ky1Kthp').textContent = `${ky1Kthp.length} lần (${formatNumber(ky1KthpSum)} tiết)`;
+    document.getElementById('ky1Total').textContent = formatNumber(ky1Total) + ' tiết';
+    
+    document.getElementById('ky2GiangDay').textContent = `${ky2GiangDay.length} lớp (${formatNumber(ky2GiangDaySum)} tiết)`;
+    document.getElementById('ky2LopNgoaiQC').textContent = `${ky2LopNgoaiQC.length} lớp (${formatNumber(ky2LopNgoaiQCSum)} tiết)`;
+    document.getElementById('ky2Kthp').textContent = `${ky2Kthp.length} lần (${formatNumber(ky2KthpSum)} tiết)`;
+    document.getElementById('ky2Total').textContent = formatNumber(ky2Total) + ' tiết';
+    
+    // Cảnh báo nếu thiếu dữ liệu kì 2 trong chế độ dự kiến
+    const { mode } = getInitParams();
+    const warningBox = document.getElementById('dataWarningBox');
+    const warningText = document.getElementById('dataWarningText');
+    
+    if (mode === 'du-kien' && ky2Total === 0) {
+        warningBox.style.display = 'block';
+        warningText.innerHTML = '<strong>CẢNH BÁO:</strong> Không có dữ liệu Học kỳ 2 trong chế độ Dự Kiến. Hãy kiểm tra dữ liệu trong bảng <code>quychuan</code>.';
+    } else if (mode === 'chinh-thuc' && ky2Total > 0) {
+        warningBox.style.display = 'block';
+        warningText.innerHTML = '<strong>LƯU Ý:</strong> Học kỳ 2 đã được lưu vào hệ thống chính thức.';
+    } else {
+        warningBox.style.display = 'none';
+    }
+    
+    summaryBox.style.display = 'block';
+}
+
+// ==================== TABLE F RENDERING ====================
+function renderTableF(data) {
+    const tableFContainer = document.getElementById('tableFContainer');
+    const tableFBody = document.getElementById('tableFBody');
+    const tableFFoot = document.getElementById('tableFFoot');
+
+    if (!tableFBody || !tableFFoot || !data || !data.tableF || !Array.isArray(data.tableF.rows)) {
+        if (tableFContainer) tableFContainer.style.display = 'none';
+        return;
+    }
+
+    const { rows, totals } = data.tableF;
+
+    const categories = [
+        { key: 'vn', label: 'Việt Nam' },
+        { key: 'lao', label: 'Lào' },
+        { key: 'cuba', label: 'Cuba' },
+        { key: 'cpc', label: 'Campuchia' },
+        { key: 'dongHP', label: 'Hệ đóng học phí' }
+    ];
+
+    tableFBody.innerHTML = rows.map((r, idx) => `
+        <tr>
+            <td>${idx + 1}</td>
+            <td style="text-align: left; padding-left: 10px;">${categories[idx] ? categories[idx].label : ''}</td>
+            <td>${formatNumber(r.hk1)}</td>
+            <td>${formatNumber(r.hk2)}</td>
+            <td>${formatNumber(r.do_an)}</td>
+            <td>${formatNumber(r.tham_quan)}</td>
+            <td style="font-weight: bold; color: #1d4ed8;">${formatNumber(r.tong)}</td>
+        </tr>
+    `).join('');
+
+    tableFFoot.innerHTML = `
+        <tr>
+            <td colspan="2" style="text-align: center; font-weight: bold;">Tổng:</td>
+            <td style="font-weight: bold;">${formatNumber(totals.hk1)}</td>
+            <td style="font-weight: bold;">${formatNumber(totals.hk2)}</td>
+            <td style="font-weight: bold;">${formatNumber(totals.do_an)}</td>
+            <td style="font-weight: bold;">${formatNumber(totals.tham_quan)}</td>
+            <td style="font-weight: bold; color: #1d4ed8;">${formatNumber(totals.tong)}</td>
+        </tr>
+    `;
+
+    if (tableFContainer) tableFContainer.style.display = 'block';
 }

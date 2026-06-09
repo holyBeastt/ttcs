@@ -130,20 +130,24 @@
             <!-- Toolbar -->
             <div class="header-actions" style="height: 45px">
                 <div class="loc d-flex">
-                    <select class="selectop" id="namHocFilter" style="width: 130px;"></select>
+                    <select class="selectop" id="namHocFilter" style="width: 130px;">
+                        <option value="">Chọn năm học</option>
+                    </select>
                     <select class="selectop" id="kiFilter" style="width: 100px;">
-                        <option value="1">Kì 1</option>
-                        <option value="2">Kì 2</option>
+                        <option value="1">Kỳ 1</option>
+                        <option value="2">Kỳ 2</option>
                     </select>
                     <select class="selectop" id="dotFilter" style="width: 100px;">
                         <option value="1">Đợt 1</option>
                         <option value="2">Đợt 2</option>
                     </select>
-                    <select class="selectop" id="khoaFilter" style="width: 200px;">
+                    <select class="selectop" id="khoaFilter" style="width: 150px;">
                         <option value="ALL">Tất cả khoa</option>
                     </select>
-                    
-                    <button id="loadDataBtn" class="btn text-nowrap mx-2">Hiển thị</button>
+                    <select class="selectop" id="heDaoTaoFilter" style="width: 150px;">
+                        <option value="ALL">Tất cả hệ</option>
+                    </select>
+                    <button id="loadDataBtn" class="btn btn-primary text-nowrap mx-2">Hiển thị</button>
                     <button id="updateApprovalBtn" class="btn btn-success text-nowrap" style="display: none;">CẬP NHẬT</button>
                 </div>
 

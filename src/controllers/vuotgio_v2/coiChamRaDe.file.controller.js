@@ -25,7 +25,7 @@ const readFileExcel = async (req, res) => {
  */
 const importWorkloadToDB = async (req, res) => {
     try {
-        const { ki, nam, hocKy, namHoc, workloadData } = req.body;
+        const { ki, nam, hocKy, namHoc, dot, workloadData } = req.body;
         const kiVal = hocKy || ki;
         const namVal = namHoc || nam;
         if (!req.session?.userId) {
@@ -36,7 +36,7 @@ const importWorkloadToDB = async (req, res) => {
             userName: req.session.TenNhanVien || req.session.username || 'Unknown'
         };
 
-        const count = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, user });
+        const count = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, dot, user });
         res.json({ success: true, message: `Đã import ${count} bản ghi thành công!` });
     } catch (error) {
         console.error("[importWorkloadToDB] Error:", error);
@@ -49,7 +49,7 @@ const importWorkloadToDB = async (req, res) => {
  */
 const saveWorkloadData = async (req, res) => {
     try {
-        const { Ki, Nam, hocKy, namHoc, data } = req.body;
+        const { Ki, Nam, hocKy, namHoc, dot, data } = req.body;
         const kiVal = hocKy || Ki;
         const namVal = namHoc || Nam;
 
@@ -85,7 +85,7 @@ const saveWorkloadData = async (req, res) => {
 
         let insertedCount = 0;
         if (workloadData.raDe.length > 0 || workloadData.coiThi.length > 0 || workloadData.chamThi.length > 0) {
-            insertedCount = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, user });
+            insertedCount = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, dot, user });
         }
 
         if (updates.length > 0) {

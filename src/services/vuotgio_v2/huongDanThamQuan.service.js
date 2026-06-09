@@ -25,7 +25,7 @@ const getFilters = async () => withConnection(null, async (connection) => {
     const [namRows] = await connection.query('SELECT NamHoc, trangthai FROM namhoc ORDER BY NamHoc DESC');
     const activeNamHoc = namRows.find(r => r.trangthai === 1)?.NamHoc || null;
     const [khoaRows] = await connection.query('SELECT DISTINCT MaPhongBan FROM phongban WHERE isKhoa = 1 ORDER BY MaPhongBan');
-    const [heDaoTaoRows] = await connection.query('SELECT id, he_dao_tao FROM he_dao_tao ORDER BY he_dao_tao');
+    const [heDaoTaoRows] = await connection.query("SELECT id, he_dao_tao FROM he_dao_tao WHERE LOWER(he_dao_tao) NOT LIKE '%đồ án%' ORDER BY he_dao_tao");
     const [gvRows] = await connection.query('SELECT id_User, TenNhanVien AS HoTen, MaPhongBan AS Khoa FROM nhanvien ORDER BY TenNhanVien');
 
     return {

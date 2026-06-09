@@ -15,7 +15,7 @@ rule/
 .agent/
 .serena
 .kiro
-
+.agents
 # AGENTS
 Automation_coding_agent.md
 

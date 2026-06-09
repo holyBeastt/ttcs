@@ -60,7 +60,7 @@ class DepartmentLayout {
 
   /**
    * Get color definitions for different sections
-   * Synchronized with vuotgio.tongHopGV.ejs styles
+   * Synchronized with vuotgio.thongTinVuotGioDuKien.ejs styles
    */
   static getColors() {
     return {

@@ -166,6 +166,10 @@
     <%- include('../header') %>
 
     <div class="vuotgio-v2-container">
+        <div class="alert alert-info shadow-sm" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            Sau khi phân hệ mời giảng hoàn thiện mới có dữ liệu chính thức trong bảng, nếu không có dữ liệu, vui lòng xem <a href="/v2/vuotgio/tong-hop-giang-vien" class="alert-link">thông tin vượt giờ dự kiến</a>.
+        </div>
         <!-- Page Header -->
         <div class="summary" id="summaryBox">
             <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
@@ -190,14 +194,12 @@
             <!-- Toolbar: Dropdowns + Buttons -->
             <div class="grid-toolbar">
                 <select class="selectop" id="dotFilter" style="width: 100px; margin: 0; box-shadow: none;">
-                    <!-- <option value="">Chọn đợt</option> -->
                     <option value="1">Đợt 1</option>
                     <option value="2">Đợt 2</option>
                 </select>
                 <select class="selectop" id="kiFilter" style="width: 100px; margin: 0; box-shadow: none;">
-                    <!-- <option value="">Chọn kì</option> -->
-                    <option value="1">Kì 1</option>
-                    <option value="2">Kì 2</option>
+                    <option value="1">Kỳ 1</option>
+                    <option value="2">Kỳ 2</option>
                 </select>
                 <select class="selectop" id="namHocFilter" style="width: 130px; margin: 0; box-shadow: none;">
                     <option value="">Chọn năm học</option>
@@ -206,7 +208,7 @@
                     <option value="ALL">Tất cả khoa</option>
                 </select>
                 <select class="selectop" id="heDaoTaoFilter" style="width: 150px; margin: 0; box-shadow: none;">
-                    <option value="">Chọn hệ ĐT</option>
+                    <option value="ALL">Tất cả hệ</option>
                 </select>
                 <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
                     Hiển thị
