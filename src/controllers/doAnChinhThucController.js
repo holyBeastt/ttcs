@@ -1176,14 +1176,17 @@ const saveToExportDoAn = async (req, res) => {
 
     if (values.length === 0) {
       // Dữ liệu đã được lưu hết
-      return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" });
-    } else {
-      const placeholders = daDuyetHetArray.map(() => "?").join(", ");
-      const updateQuery = `UPDATE doantotnghiep SET DaLuu = 1 WHERE MaPhongBan IN (${placeholders});`;
-
-      // Cập nhật lại cờ DaLuu trong bảng doantotnghiep
-      await connection.query(updateQuery, [...daDuyetHetArray]);
+      return res.status(200).json({ success: true, message: "Dữ liệu đã được cập nhật đầy đủ" });
     }
+
+    // Mở transaction đảm bảo tính toàn vẹn dữ liệu
+    await connection.beginTransaction();
+
+    const placeholders = daDuyetHetArray.map(() => "?").join(", ");
+    const updateQuery = `UPDATE doantotnghiep SET DaLuu = 1 WHERE MaPhongBan IN (${placeholders});`;
+
+    // Cập nhật lại cờ DaLuu trong bảng doantotnghiep
+    await connection.query(updateQuery, [...daDuyetHetArray]);
 
     // ✅ Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, 
@@ -1198,15 +1201,24 @@ const saveToExportDoAn = async (req, res) => {
     // Tính lại thuế
     await updateThueExportDoAn(Dot, ki, NamHoc, connection);
 
+    // Xác nhận transaction
+    await connection.commit();
+
     // Gửi phản hồi thành công
     res.status(200).json({
+      success: true,
       message: "Dữ liệu đã được lưu thành công vào cơ sở dữ liệu.",
       insertedRows: result.affectedRows,
     });
   } catch (error) {
     console.error("Lỗi khi lưu dữ liệu vào database:", error);
+    if (connection) await connection.rollback(); // Rollback nếu có lỗi
     if (!res.headersSent) {
-      res.status(500).send("Đã xảy ra lỗi khi lưu dữ liệu vào database!");
+      res.status(500).json({ 
+        success: false, 
+        message: "Lưu dữ liệu thất bại", 
+        error: error.sqlMessage || error.message 
+      });
     }
   } finally {
     if (connection) connection.release(); // Giải phóng kết nối

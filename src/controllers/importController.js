@@ -2514,7 +2514,7 @@ const TaiChinhCheckAll = async (Dot, KiHoc, NamHoc) => {
 
 const { DON_GIA_EXPR } = require('../queries/hopdongQueries');
 
-const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
+const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray, connection) => {
   const { dot, ki, namHoc } = req.body;
 
   // Lưu hệ đóng học phí
@@ -2547,12 +2547,12 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
   const value = [dot, ki, namHoc];
 
   try {
-    const [dataJoin] = await pool.query(query2, value);
+    const [dataJoin] = await connection.query(query2, value);
 
     // Kiểm tra xem có dữ liệu không
     if (!dataJoin || dataJoin.length === 0) {
       console.log("Không có dữ liệu hợp đồng");
-      return;
+      return 0;
     }
 
     //const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
@@ -2602,8 +2602,6 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             MaBoMon,
             DonGia,
           } = item;
-
-          req.session.tmp++;
 
           const DanhXung = getDanhXung(GioiTinh);
           // const getDanhXung = (GioiTinh) => {
@@ -2666,17 +2664,13 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
 
     // Thực hiện câu lệnh chèn
     if (insertValues.length > 0) {
-      await pool.query(queryInsert, [insertValues]);
+      await connection.query(queryInsert, [insertValues]);
     }
 
     // Trả về kết quả thành công
-    return;
+    return insertValues.length;
   } catch (err) {
-    console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
-    return {
-      success: false,
-      message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
-    };
+    throw err;
   }
 };
 
@@ -2739,7 +2733,8 @@ const insertGiangDay = async (
   res,
   gvmList,
   hocPhanList,
-  daDuyetHetArray
+  daDuyetHetArray,
+  connection
 ) => {
   const { dot, ki, namHoc } = req.body;
 
@@ -2752,19 +2747,17 @@ const insertGiangDay = async (
   const value = [dot, ki, namHoc];
 
   try {
-    const [quychuanRows] = await pool.query(query, value);
+    const [quychuanRows] = await connection.query(query, value);
 
     const giangDayService = require("../services/save_moigiang/giangDay.service");
     // nvList truyền rỗng vì quá trình join sẽ dùng gvmList cho MoiGiang = 1
     const mergedArray = giangDayService.processQuyChuanData(quychuanRows, [], gvmList, true);
 
     const insertValues = giangDayService.transformGiangDayData(mergedArray, gvmList, daDuyetHetArray, true);
-    
-    req.session.tmp += insertValues.length;
 
     // Kiểm tra xem có dữ liệu để chèn không
     if (insertValues.length === 0) {
-      return { success: false, message: "Không có dữ liệu để chèn!" };
+      return 0;
     }
 
     // Định nghĩa câu lệnh chèn
@@ -2776,15 +2769,11 @@ const insertGiangDay = async (
     `;
 
     // Thực hiện câu lệnh chèn
-    await pool.query(queryInsert, [insertValues]);
+    await connection.query(queryInsert, [insertValues]);
     // Trả về kết quả thành công
-    return { success: true, message: "Dữ liệu đã được chèn thành công!" };
+    return insertValues.length;
   } catch (err) {
-    console.error(err); // Ghi lại lỗi để gỡ lỗi
-    return {
-      success: false,
-      message: "Đã xảy ra lỗi trong quá trình thêm dl vào giảng dạy",
-    };
+    throw err;
   }
 };
 
@@ -2806,7 +2795,8 @@ const insertGiangDay2 = async (
   nvList,
   gvmList,
   hocPhanList,
-  daDuyetHetArray
+  daDuyetHetArray,
+  connection
 ) => {
   const { dot, ki, namHoc } = req.body;
 
@@ -2819,18 +2809,16 @@ const insertGiangDay2 = async (
   const value = [dot, ki, namHoc];
   
   try {
-    const [quychuanRows] = await pool.query(query, value);
+    const [quychuanRows] = await connection.query(query, value);
 
     const giangDayService = require("../services/save_moigiang/giangDay.service");
     const mergedArray = giangDayService.processQuyChuanData(quychuanRows, nvList, gvmList, false);
 
     const insertValues = giangDayService.transformGiangDayData(mergedArray, gvmList, daDuyetHetArray, false);
-    
-    req.session.tmp += insertValues.length;
 
     // Kiểm tra xem có dữ liệu để chèn không
     if (insertValues.length === 0) {
-      return { success: false, message: "Không có dữ liệu để chèn!" };
+      return 0;
     }
 
     // Định nghĩa câu lệnh chèn
@@ -2842,19 +2830,15 @@ const insertGiangDay2 = async (
     `;
 
     // Thực hiện câu lệnh chèn
-    await pool.query(queryInsert, [insertValues]);
+    await connection.query(queryInsert, [insertValues]);
     // Trả về kết quả thành công
-    return { success: true, message: "Dữ liệu đã được chèn thành công!" };
+    return insertValues.length;
   } catch (err) {
-    console.error(err); // Ghi lại lỗi để gỡ lỗi
-    return {
-      success: false,
-      message: "Đã xảy ra lỗi trong quá trình cập nhật thông tin.",
-    };
+    throw err;
   }
 };
 
-const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
+const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray, connection) => {
   const { dot, ki, namHoc } = req.body;
 
   // Lưu hệ sau đại học
@@ -2892,12 +2876,12 @@ GROUP BY
   const value = [dot, ki, namHoc];
 
   try {
-    const [dataJoin] = await pool.query(query, value);
+    const [dataJoin] = await connection.query(query, value);
 
     // Kiểm tra xem có dữ liệu không
     if (!dataJoin || dataJoin.length === 0) {
       console.log("Không có dữ liệu hợp đồng");
-      return;
+      return 0;
     }
 
     const insertValues = await Promise.all(
@@ -2942,8 +2926,6 @@ GROUP BY
             MaBoMon,
             DonGia,
           } = item;
-
-          req.session.tmp++;
 
           const DanhXung = getDanhXung(GioiTinh);
           // const getDanhXung = (GioiTinh) => {
@@ -3006,22 +2988,22 @@ GROUP BY
 
     // Thực hiện câu lệnh chèn
     if (insertValues.length > 0) {
-      await pool.query(queryInsert, [insertValues]);
+      await connection.query(queryInsert, [insertValues]);
     }
 
     // Trả về kết quả thành công
-    return;
+    return insertValues.length;
   } catch (err) {
-    console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
-    return {
-      success: false,
-      message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
-    };
+    throw err;
   }
 };
 
 const submitData2 = async (req, res) => {
+  let connection;
   try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
     const gvmList = await getGvmList(req, res);
     const nvList = await getNvList(req, res);
     const hocPhanList = await getHocPhanList(req, res);
@@ -3029,23 +3011,30 @@ const submitData2 = async (req, res) => {
     const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
     const daDuyetHetArray = daDuyetHet.split(",").filter((item) => item !== ""); // Chuyển đổi thành mảng và loại bỏ phần tử rỗng
 
+    if (daDuyetHetArray.length === 0) {
+      await connection.rollback();
+      return res.json({ message: "Không có khoa nào được duyệt toàn bộ." });
+    }
+
     // Thực hiện các cập nhật và thêm dữ liệu song song
-    const [updateResult, update2, insertResult] = await Promise.all([
-      saveDataGvmDongHocPhi(req, res, daDuyetHetArray), // Hợp đồng hệ đóng học phí
-      //saveDataGvmMatMa(req, res, daDuyetHetArray), // Hợp đồng hệ mật mã
-      saveHopDongGvmSauDaiHoc(req, res, daDuyetHetArray), // Hợp đồng sau đại học
-      insertGiangDay2(req, res, nvList, gvmList, hocPhanList, daDuyetHetArray), // Lưu các lớp cơ hữu vào bảng giảng dạy
-      insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray), // Lưu các lớp mời giảng vào bảng giảng dạy
+    const results = await Promise.all([
+      saveDataGvmDongHocPhi(req, res, daDuyetHetArray, connection), // Hợp đồng hệ đóng học phí
+      //saveDataGvmMatMa(req, res, daDuyetHetArray, connection), // Hợp đồng hệ mật mã
+      saveHopDongGvmSauDaiHoc(req, res, daDuyetHetArray, connection), // Hợp đồng sau đại học
+      insertGiangDay2(req, res, nvList, gvmList, hocPhanList, daDuyetHetArray, connection), // Lưu các lớp cơ hữu vào bảng giảng dạy
+      insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray, connection), // Lưu các lớp mời giảng vào bảng giảng dạy
     ]);
 
-    if (req.session.tmp == 0) {
-      req.session.tmp = 0;
-      return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" });
+    const totalInserted = results.reduce((acc, curr) => acc + (curr || 0), 0);
+
+    if (totalInserted === 0) {
+      await connection.commit();
+      return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ (không có dữ liệu mới để lưu)." });
     } else {
       const DaLuu = 1;
       const placeholders = daDuyetHetArray.map(() => "?").join(", ");
       const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Dot = ? and KiHoc = ? and NamHoc = ? AND Khoa IN (${placeholders});`;
-      await pool.query(updateQuery, [
+      await connection.query(updateQuery, [
         DaLuu,
         dot,
         ki,
@@ -3054,19 +3043,32 @@ const submitData2 = async (req, res) => {
       ]);
     }
 
-    // Đặt lại giá trị cho req.session.tmp
-    req.session.tmp = 0;
+    await connection.commit();
 
     // Chỉ trả về dữ liệu
     res.json({
-      message: "Lưu dữ liệu thành công",
-      updateResult,
-      update2,
-      insertResult,
+      success: true,
+      message: "Lưu dữ liệu thành công toàn bộ!",
+      insertedCount: totalInserted
     });
-  } catch (err) {
-    console.error("Lỗi không xác định:", err);
-    return res.status(500).json({ error: "Đã xảy ra lỗi không xác định." });
+  } catch (error) {
+    if (connection) await connection.rollback();
+    
+    console.error("Lỗi trong submitData2:", error);
+
+    if (error.code === 'ER_DUP_ENTRY') {
+        return res.status(400).json({
+            success: false,
+            message: `Thất bại: Phát hiện trùng lặp dữ liệu lớp học.<br>Chi tiết kỹ thuật: ${error.sqlMessage}`
+        });
+    }
+
+    return res.status(500).json({ 
+        success: false, 
+        message: `Lỗi hệ thống trong quá trình lưu.<br>Chi tiết kỹ thuật: ${error.message || error.sqlMessage || error.toString()}` 
+    });
+  } finally {
+    if (connection) connection.release();
   }
 };
 

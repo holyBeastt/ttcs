@@ -37,8 +37,11 @@ function saveContractDataMoiGiang() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(duLieu)
             })
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                .then(async response => {
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    }
                     return response.json();
                 })
                 .then(data => {
@@ -47,7 +50,7 @@ function saveContractDataMoiGiang() {
                 })
                 .catch(error => {
                     console.error("Error sending signal:", error);
-                    Swal.fire({ title: 'Lỗi!', text: 'Đã xảy ra lỗi trong quá trình lưu dữ liệu.', icon: 'error', confirmButtonText: 'OK' });
+                    Swal.fire({ title: 'Lỗi!', html: error.message || 'Đã xảy ra lỗi trong quá trình lưu dữ liệu.', icon: 'error', confirmButtonText: 'OK' });
                 })
                 .finally(() => {
                     showLoading(false);
@@ -90,8 +93,11 @@ function unsaveContractDataMoiGiang() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(duLieu)
             })
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                .then(async response => {
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    }
                     return response.json();
                 })
                 .then(data => {
@@ -100,7 +106,7 @@ function unsaveContractDataMoiGiang() {
                 })
                 .catch(error => {
                     console.error("Error sending signal:", error);
-                    Swal.fire({ title: 'Lỗi!', text: 'Đã xảy ra lỗi trong quá trình bỏ lưu dữ liệu.', icon: 'error', confirmButtonText: 'OK' });
+                    Swal.fire({ title: 'Lỗi!', html: error.message || 'Đã xảy ra lỗi trong quá trình bỏ lưu dữ liệu.', icon: 'error', confirmButtonText: 'OK' });
                 })
                 .finally(() => {
                     showLoading(false);

@@ -44,8 +44,11 @@ function approveContract() {
                         Swal.fire({ title: 'Lỗi!', text: response.message || 'Có lỗi xảy ra khi duyệt hợp đồng', icon: 'error', confirmButtonText: 'OK' });
                     }
                 },
-                error: function () {
-                    Swal.fire({ title: 'Lỗi!', text: 'Có lỗi xảy ra khi kết nối với server', icon: 'error', confirmButtonText: 'OK' });
+                error: function (jqXHR) {
+                    const errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.message 
+                        ? jqXHR.responseJSON.message 
+                        : 'Có lỗi xảy ra khi kết nối với server';
+                    Swal.fire({ title: 'Lỗi!', html: errorMsg, icon: 'error', confirmButtonText: 'OK' });
                 },
                 complete: function () {
                     showLoading(false);
@@ -95,8 +98,11 @@ function unapproveContract() {
                         Swal.fire({ title: 'Lỗi!', text: response.message || 'Có lỗi xảy ra khi bỏ duyệt hợp đồng', icon: 'error', confirmButtonText: 'OK' });
                     }
                 },
-                error: function () {
-                    Swal.fire({ title: 'Lỗi!', text: 'Có lỗi xảy ra khi kết nối với server', icon: 'error', confirmButtonText: 'OK' });
+                error: function (jqXHR) {
+                    const errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.message 
+                        ? jqXHR.responseJSON.message 
+                        : 'Có lỗi xảy ra khi kết nối với server';
+                    Swal.fire({ title: 'Lỗi!', html: errorMsg, icon: 'error', confirmButtonText: 'OK' });
                 },
                 complete: function () {
                     showLoading(false);

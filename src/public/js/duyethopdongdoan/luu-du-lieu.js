@@ -30,14 +30,27 @@ function saveContractDataDoAn() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData)
     })
-        .then(response => {
-            if (!response.ok) throw new Error("Lỗi khi gửi dữ liệu");
+        .then(async response => {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || errorData.message || "Lỗi khi gửi dữ liệu");
+            }
             return response.json();
         })
         .then(data => {
+            if (data.success === false || (data.message && data.message.includes("Có lỗi xảy ra"))) {
+                Swal.fire({
+                    title: "Cảnh báo",
+                    html: data.message,
+                    icon: "warning",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+            
             Swal.fire({
                 title: "Thông báo",
-                html: data.message,
+                html: data.message || "Dữ liệu đã được lưu thành công",
                 icon: "success",
                 confirmButtonText: "OK"
             });
@@ -47,8 +60,8 @@ function saveContractDataDoAn() {
         .catch(error => {
             console.error("Có lỗi xảy ra:", error);
             Swal.fire({
-                title: "Thông báo",
-                html: "Có lỗi xảy ra khi cập nhật dữ liệu.",
+                title: "Lưu dữ liệu thất bại",
+                html: `<span style="color: red; font-weight: bold;">${error.message}</span>`,
                 icon: "error"
             });
         })

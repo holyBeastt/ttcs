@@ -177,9 +177,11 @@ const getDoAnRowsByMode = async (connection, { namHoc, isDuKien = false }) => {
 
     const [rows] = await connection.execute(
         `SELECT da.*, 
+                COALESCE(da.id_User, nv.id_User) AS id_User,
                 COALESCE(hdt.he_dao_tao, da.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
          FROM exportdoantotnghiep da
          LEFT JOIN he_dao_tao hdt ON hdt.id = da.he_dao_tao
+         LEFT JOIN nhanvien nv ON da.CCCD IS NOT NULL AND da.CCCD != '' AND nv.CCCD = da.CCCD
          WHERE da.NamHoc = ? AND da.isMoiGiang = 0`,
         [namHoc]
     );

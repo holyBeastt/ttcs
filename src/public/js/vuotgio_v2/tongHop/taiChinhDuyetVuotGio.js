@@ -568,13 +568,13 @@ async function previewExcel(maGV, hoTen) {
         namHoc,
         khoa,
         previewMode,
-        url: `/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}`
+        url: `/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}&isDuKien=false`
     });
 
     Swal.showLoading();
 
     try {
-        const response = await fetch(`/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}`);
+        const response = await fetch(`/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}&isDuKien=false`);
         const result = await response.json();
 
         console.info('[vuotgio_v2.preview] result from server:', result);
