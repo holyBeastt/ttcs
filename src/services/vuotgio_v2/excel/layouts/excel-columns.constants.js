@@ -38,7 +38,7 @@ const columnsC = () => [
   { label: "Mô tả hoạt động", align: "center" },
   { label: "Khóa đào tạo", align: "center" },
   { label: "Theo QĐ", align: "center" },
-  { label: "Số ngày", align: "center", isNumeric: true },
+  { label: "Đối tượng", align: "center", highlightColumn: true },
   { label: "Số ngày", align: "center", isNumeric: true },
   { label: "Số tiết quy đổi", align: "center", isNumeric: true, includeInSubtotal: true },
 ];

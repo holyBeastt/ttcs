@@ -104,20 +104,22 @@ router.post("/duyet-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPC
 router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.delete);
 router.post("/duyet-kthp/approve/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.approve); // Deprecated, kept for compatibility
 
+
+
 // =====================================================
 // TỔNG HỢP
 // =====================================================
 
 router.get("/tong-hop-giang-vien", baseController.getTongHopGV);
 router.get("/tai-chinh-duyet", baseController.getTaiChinhDuyet);
-router.get("/thong-ke-sau-luu", baseController.getThongKeSauLuu);
+router.get("/thong-ke-ca-nhan", baseController.getThongKeCaNhan);
 router.get("/ca-nhan", baseController.getVuotGioCaNhan); // Deprecated - redirects to du-kien
 router.get("/ca-nhan-du-kien", baseController.getVuotGioCaNhanDuKien);
 router.get("/ca-nhan-chinh-thuc", baseController.getVuotGioCaNhanChinhThuc);
 router.get("/ca-nhan-sau-luu", baseController.getVuotGioCaNhanSauLuu);
 router.get("/tong-hop/giang-vien", tongHopController.tongHopTheoGV);
 router.get("/tong-hop/giang-vien-snapshot", tongHopController.tongHopTheoGVSnapshot);
-router.get("/tong-hop-khoa", baseController.getTongHopKhoa);
+router.get("/thong-ke-khoa", baseController.getThongKeKhoa);
 router.get("/tong-hop/khoa", tongHopController.tongHopTheoKhoa);
 router.get("/tong-hop/chi-tiet/:MaGV", tongHopController.chiTietGV);
 router.get("/tong-hop/preview/:MaGV", previewController.getPreviewData);

@@ -295,7 +295,7 @@ const getLopNgoaiQCByIdUser = async (connection, { namHoc, idUser, requireApprov
                 COALESCE(hdt.he_dao_tao, lnqc.he_dao_tao_id, 'Không xác định') AS ten_he_dao_tao
          FROM vg_lop_ngoai_quy_chuan lnqc
          LEFT JOIN he_dao_tao hdt ON hdt.id = lnqc.he_dao_tao_id
-         WHERE lnqc.nam_hoc = ? AND lnqc.id_User = ? ${requireApproval ? "AND lnqc.khoa_duyet = 1" : ""}
+         WHERE lnqc.nam_hoc = ? AND lnqc.id_User = ? ${requireApproval ? "AND lnqc.khoa_duyet = 1 AND lnqc.dao_tao_duyet = 1" : ""}
          ORDER BY lnqc.hoc_ky, lnqc.ma_hoc_phan`,
         [namHoc, idUser]
     );
@@ -308,7 +308,7 @@ const getKthpByIdUser = async (connection, { namHoc, idUser, requireApproval = t
                 COALESCE(hdt.he_dao_tao, kthp.doi_tuong, 'Không xác định') AS ten_he_dao_tao
          FROM vg_coi_cham_ra_de kthp
          LEFT JOIN he_dao_tao hdt ON hdt.id = kthp.he_dao_tao_id
-         WHERE kthp.nam_hoc = ? AND kthp.id_User = ? ${requireApproval ? "AND kthp.khoa_duyet = 1" : ""}
+         WHERE kthp.nam_hoc = ? AND kthp.id_User = ? ${requireApproval ? "AND kthp.khoa_duyet = 1 AND kthp.khao_thi_duyet = 1" : ""}
          ORDER BY kthp.hoc_ky, kthp.hinh_thuc`,
         [namHoc, idUser]
     );
@@ -326,7 +326,7 @@ const getHuongDanThamQuanByIdUser = async (connection, { namHoc, idUser, require
                 COALESCE(hdt.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
          FROM vg_huong_dan_tham_quan_thuc_te t
          LEFT JOIN he_dao_tao hdt ON hdt.id = t.he_dao_tao_id
-         WHERE t.nam_hoc = ? AND t.id_User = ? ${requireApproval ? "AND t.khoa_duyet = 1" : ""}`,
+         WHERE t.nam_hoc = ? AND t.id_User = ? ${requireApproval ? "AND t.khoa_duyet = 1 AND t.dao_tao_duyet = 1" : ""}`,
         [namHoc, idUser]
     );
     return rows;
@@ -408,10 +408,14 @@ const getDuLieuThoTongHop = async (connection, { namHoc, khoa, requireApproval =
         `;
     };
 
-    const approvedCond = requireApproval ? "AND khoa_duyet = 1" : "";
-    const [lnqc] = await connection.execute(queryDetails('vg_lop_ngoai_quy_chuan', 'nam_hoc', approvedCond), [namHoc, ...lecturerIds]);
-    const [kthp] = await connection.execute(queryDetails('vg_coi_cham_ra_de', 'nam_hoc', approvedCond), [namHoc, ...lecturerIds]);
-    const [hdtq] = await connection.execute(queryDetails('vg_huong_dan_tham_quan_thuc_te', 'nam_hoc', approvedCond), [namHoc, ...lecturerIds]);
+    // Điều kiện duyệt 2 cấp cho từng bảng
+    const approvedCondLNQC = requireApproval ? "AND khoa_duyet = 1 AND dao_tao_duyet = 1" : "";
+    const approvedCondKTHP = requireApproval ? "AND khoa_duyet = 1 AND khao_thi_duyet = 1" : "";
+    const approvedCondHDTQ = requireApproval ? "AND khoa_duyet = 1 AND dao_tao_duyet = 1" : "";
+    
+    const [lnqc] = await connection.execute(queryDetails('vg_lop_ngoai_quy_chuan', 'nam_hoc', approvedCondLNQC), [namHoc, ...lecturerIds]);
+    const [kthp] = await connection.execute(queryDetails('vg_coi_cham_ra_de', 'nam_hoc', approvedCondKTHP), [namHoc, ...lecturerIds]);
+    const [hdtq] = await connection.execute(queryDetails('vg_huong_dan_tham_quan_thuc_te', 'nam_hoc', approvedCondHDTQ), [namHoc, ...lecturerIds]);
     const doAnRows = await getDoAnRowsByMode(connection, { namHoc, isDuKien });
 
     const lnqcMap = new Map(lnqc.map(r => [r.id_User, r.total]));
@@ -490,7 +494,7 @@ const getLopNgoaiQCByIds = async (connection, { namHoc, ids, requireApproval = t
                 COALESCE(hdt.he_dao_tao, lnqc.he_dao_tao_id, 'Không xác định') AS ten_he_dao_tao
          FROM vg_lop_ngoai_quy_chuan lnqc
          LEFT JOIN he_dao_tao hdt ON hdt.id = lnqc.he_dao_tao_id
-         WHERE lnqc.nam_hoc = ? AND lnqc.id_User IN (${placeholders}) ${requireApproval ? "AND lnqc.khoa_duyet = 1" : ""}
+         WHERE lnqc.nam_hoc = ? AND lnqc.id_User IN (${placeholders}) ${requireApproval ? "AND lnqc.khoa_duyet = 1 AND lnqc.dao_tao_duyet = 1" : ""}
          ORDER BY lnqc.id_User, lnqc.hoc_ky, lnqc.ma_hoc_phan`,
         [namHoc, ...ids]
     );
@@ -505,7 +509,7 @@ const getKthpByIds = async (connection, { namHoc, ids, requireApproval = true })
                 COALESCE(hdt.he_dao_tao, kthp.doi_tuong, 'Không xác định') AS ten_he_dao_tao
          FROM vg_coi_cham_ra_de kthp
          LEFT JOIN he_dao_tao hdt ON hdt.id = kthp.he_dao_tao_id
-         WHERE kthp.nam_hoc = ? AND kthp.id_User IN (${placeholders}) ${requireApproval ? "AND kthp.khoa_duyet = 1" : ""}
+         WHERE kthp.nam_hoc = ? AND kthp.id_User IN (${placeholders}) ${requireApproval ? "AND kthp.khoa_duyet = 1 AND kthp.khao_thi_duyet = 1" : ""}
          ORDER BY kthp.id_User, kthp.hoc_ky, kthp.hinh_thuc`,
         [namHoc, ...ids]
     );
@@ -527,7 +531,7 @@ const getHuongDanThamQuanByIds = async (connection, { namHoc, ids, requireApprov
                 COALESCE(hdt.he_dao_tao, 'Không xác định') AS ten_he_dao_tao
          FROM vg_huong_dan_tham_quan_thuc_te t
          LEFT JOIN he_dao_tao hdt ON hdt.id = t.he_dao_tao_id
-         WHERE t.nam_hoc = ? AND t.id_User IN (${placeholders}) ${requireApproval ? "AND t.khoa_duyet = 1" : ""}`,
+         WHERE t.nam_hoc = ? AND t.id_User IN (${placeholders}) ${requireApproval ? "AND t.khoa_duyet = 1 AND t.dao_tao_duyet = 1" : ""}`,
         [namHoc, ...ids]
     );
     return rows;

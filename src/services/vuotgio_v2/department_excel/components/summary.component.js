@@ -140,7 +140,7 @@ class SummaryComponent {
           hAlign: col === 2 ? "left" : "center",
           vAlign: "middle",
           wrapText: true,
-          fontSize: 11.5
+          fontSize: 8.5
         };
         
         if (col >= 3) {
@@ -249,7 +249,8 @@ class SummaryComponent {
       const styleOpts = {
         bold: true,
         hAlign: col === 2 ? "left" : "center",
-        vAlign: "middle"
+        vAlign: "middle",
+        fontSize: 8.5
       };
       if (col >= 3 && col !== 29) {
         styleOpts.numFmt = "#,##0.00";
@@ -313,12 +314,12 @@ class SummaryComponent {
 
     const totalCell = totalRow.getCell(6);
     totalCell.value = PaymentCalculator.truncDecimals(totalPayment, 2);
-    CellFormatter.applyTotalStyle(totalCell, { bgColor: "D9E1F2" });
+    CellFormatter.applyTotalStyle(totalCell, { bgColor: "D9E1F2", fontSize: 8.5 });
 
     // Apply total style to remaining cells
     for (let col = 4; col <= 7; col += 1) {
       if (col !== 6) {
-        CellFormatter.applyTotalStyle(totalRow.getCell(col), { bgColor: "D9E1F2" });
+        CellFormatter.applyTotalStyle(totalRow.getCell(col), { bgColor: "D9E1F2", fontSize: 8.5 });
       }
     }
 
@@ -383,12 +384,13 @@ class SummaryComponent {
     totalCell.value = totalTien;
     CellFormatter.applyTotalStyle(totalCell, { 
       numFmt: "#,##0.00", 
-      bgColor: "EEF3FF" 
+      bgColor: "EEF3FF",
+      fontSize: 8.5
     });
 
     const noteCell = totalRow.getCell(7);
     noteCell.value = "";
-    CellFormatter.applyTotalStyle(noteCell, { bgColor: "EEF3FF" });
+    CellFormatter.applyTotalStyle(noteCell, { bgColor: "EEF3FF", fontSize: 8.5 });
 
     return {
       nextRow: currentRow + 1,
@@ -436,11 +438,11 @@ class SummaryComponent {
 
     const totalCell = totalRow.getCell(3);
     totalCell.value = PaymentCalculator.truncDecimals(totalPayment, 2);
-    CellFormatter.applyTotalStyle(totalCell);
+    CellFormatter.applyTotalStyle(totalCell, { fontSize: 8.5 });
 
     // Apply total style to remaining cells
     for (let col = 4; col <= 7; col += 1) {
-      CellFormatter.applyTotalStyle(totalRow.getCell(col));
+      CellFormatter.applyTotalStyle(totalRow.getCell(col), { fontSize: 8.5 });
     }
 
     return {

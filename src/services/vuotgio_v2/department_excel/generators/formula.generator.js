@@ -183,10 +183,10 @@ class FormulaGenerator {
       { numFmt, hAlign: 'center', vAlign: 'middle' }
     );
 
-    // Mức TT chuẩn (col 29): TRUNC(luong / 176, 1) theo tài liệu đặc tả
+    // Mức TT chuẩn (col 29): ROUND(luong / 176, 0)
     CellFormatter.applyFormula(
       ws.getCell(`${C.mucTT}${r}`),
-      `TRUNC(${C.luong}${r}/176,1)`,
+      `ROUND(${C.luong}${r}/176,0)`,
       bd.mucTT,
       { numFmt, hAlign: 'center', vAlign: 'middle' }
     );
@@ -213,7 +213,7 @@ class FormulaGenerator {
       ws.getCell(`${C.money_total}${r}`),
       `SUM(${C.money_vn}${r}:${C.money_dhp}${r})`,
       bd.money.total,
-      { numFmt, hAlign: 'center', vAlign: 'middle', fontSize: 11.5 }
+      { numFmt, hAlign: 'center', vAlign: 'middle', fontSize: 8.5 }
     );
 
     // Thực nhận (col 36): mirrors money_total for now
@@ -221,7 +221,7 @@ class FormulaGenerator {
       ws.getCell(`${C.thucNhan}${r}`),
       `${C.money_total}${r}`,
       bd.thucNhan,
-      { numFmt, hAlign: 'center', vAlign: 'middle', fontSize: 11.5 }
+      { numFmt, hAlign: 'center', vAlign: 'middle', fontSize: 8.5 }
     );
   }
 
@@ -240,7 +240,7 @@ class FormulaGenerator {
    */
   static writeFooterFormulas(ws, footerRow, dataStart, dataEnd, totals) {
     const numFmt = '#,##0.00';
-    const boldNumOpts = { numFmt, hAlign: 'center', vAlign: 'middle', fontSize: 11.5 };
+    const boldNumOpts = { numFmt, hAlign: 'center', vAlign: 'middle', fontSize: 8.5 };
 
     // Map: column index → key in totals object
     const colTotalsMap = {
@@ -283,7 +283,7 @@ class FormulaGenerator {
         result ?? 0,
         boldNumOpts
       );
-      cell.font = { bold: true, size: 11.5 };
+      cell.font = { bold: true, size: 8.5 };
     }
   }
 

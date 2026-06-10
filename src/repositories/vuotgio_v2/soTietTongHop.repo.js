@@ -21,13 +21,17 @@ const TABLE = "vg_so_tiet_tong_hop";
  */
 const getLatestSnapshot = async (connection, namHoc) => {
     const [rows] = await connection.execute(
-        `SELECT id, id_User, nam_hoc, version, so_tiet_dinh_muc, phan_tram_mien_giam,
-                so_tiet_mien_giam, tong_so_tiet_giang_day, tong_so_tiet_nckh,
-                no_nckh, vuot_thuc_te, vuot_thanh_toan,
-                ngay_chot, nguoi_chot_id, ghi_chu, chi_tiet
-         FROM ${TABLE}
-         WHERE nam_hoc = ? AND is_latest = 1
-         ORDER BY id_User`,
+        `SELECT s.id, s.id_User, s.nam_hoc, s.version, s.so_tiet_dinh_muc, s.phan_tram_mien_giam,
+                s.so_tiet_mien_giam, s.tong_so_tiet_giang_day, s.tong_so_tiet_nckh,
+                s.no_nckh, s.vuot_thuc_te, s.vuot_thanh_toan,
+                s.ngay_chot, s.nguoi_chot_id, s.ghi_chu, s.chi_tiet,
+                pb.isKhoa, nv_chot.TenNhanVien as nguoi_chot_name
+         FROM ${TABLE} s
+         LEFT JOIN nhanvien nv ON s.id_User = nv.id_User
+         LEFT JOIN phongban pb ON nv.phongban_id = pb.id
+         LEFT JOIN nhanvien nv_chot ON s.nguoi_chot_id = nv_chot.id_User
+         WHERE s.nam_hoc = ? AND s.is_latest = 1
+         ORDER BY pb.isKhoa DESC, pb.TenPhongBan, nv.TenNhanVien`,
         [namHoc]
     );
     return rows;

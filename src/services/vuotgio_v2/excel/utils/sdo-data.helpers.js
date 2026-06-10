@@ -107,33 +107,25 @@ const mapBRow = (r) => ({
 
 // ── C: Hướng dẫn tham quan ──────────────────────────────────────────────────
 
-const filterC = (summary, filterFn) => {
-  const all = summary?.raw?.huongDanThamQuan || summary?.raw?.hdtq || [];
-  return all.filter(filterFn);
+const filterC = (summary) => {
+  return summary?.raw?.huongDanThamQuan || summary?.raw?.hdtq || [];
 };
 
-const cFilterMatMa = (vungMien) => (r) => {
-  const ten = r.ten_he_dao_tao || r.he_dao_tao || r.HeDaoTao || "";
-  const c = classifyHeDaoTao(ten);
-  return c.isMatMa && c.vungMien === vungMien;
+const mapCRow = (r) => {
+  const ten = r.ten_he_dao_tao || r.he_dao_tao || r.HeDaoTao || r.doi_tuong || r.DoiTuong || "";
+  const doiTuongLabel = normalizeDoiTuongLabel(ten);
+  return {
+    cells: [
+      0,
+      r.mo_ta_hoat_dong || "",
+      r.nganh_hoc || "",
+      r.theo_qd || "",
+      doiTuongLabel,
+      toNum(r.so_ngay),
+      toNum(r.so_tiet_quy_doi),
+    ],
+  };
 };
-
-const cFilterDongHP = (r) => {
-  const ten = r.ten_he_dao_tao || r.he_dao_tao || r.HeDaoTao || "";
-  return !classifyHeDaoTao(ten).isMatMa;
-};
-
-const mapCRow = (r) => ({
-  cells: [
-    0,
-    r.mo_ta_hoat_dong || "",
-    r.nganh_hoc || "",
-    r.theo_qd || "",
-    toNum(r.so_ngay),
-    toNum(r.so_ngay),
-    toNum(r.so_tiet_quy_doi),
-  ],
-});
 
 // ── D: NCKH ─────────────────────────────────────────────────────────────────
 
@@ -220,8 +212,6 @@ module.exports = {
   bFilterDongHP,
   mapBRow,
   filterC,
-  cFilterMatMa,
-  cFilterDongHP,
   mapCRow,
   filterD,
   mapDRow,

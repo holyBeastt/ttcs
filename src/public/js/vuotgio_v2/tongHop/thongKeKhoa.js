@@ -122,13 +122,28 @@ async function loadData() {
     cachedData = result.data || [];
 
     renderTable(currentTab, cachedData);
-    renderFooter(cachedData, result.summary || {});
+    const summary = result.summary || {};
+    renderFooter(cachedData, summary);
     renderCharts(cachedData);
-    updateKpiCards(cachedData, result.summary || {});
+    updateKpiCards(cachedData, summary);
 
     const info = document.getElementById('toolbarInfo');
     if (info) {
       info.textContent = `${cachedData.length} đơn vị · Năm học ${namHoc}`;
+    }
+
+    const snapshotInfo = document.getElementById('snapshotInfo');
+    const snapshotDetails = document.getElementById('snapshotDetails');
+    if (snapshotInfo && snapshotDetails) {
+      if (summary.ngayChot) {
+        const d = new Date(summary.ngayChot);
+        const timeStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        snapshotDetails.textContent = `Lúc ${timeStr} ngày ${dateStr} bởi ${summary.nguoiChotName || summary.nguoiChotId || 'Hệ thống'}`;
+        snapshotInfo.style.display = 'block';
+      } else {
+        snapshotInfo.style.display = 'none';
+      }
     }
   } catch (error) {
     Swal.close();
@@ -442,7 +457,7 @@ function renderCharts(data) {
 ════════════════════════════════════════════ */
 function viewDepartmentDetail(maKhoa) {
   const namHoc = document.getElementById('namHocXem')?.value || '';
-  window.location.href = `/v2/vuotgio/thong-ke-sau-luu?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
+  window.location.href = `/v2/vuotgio/thong-ke-ca-nhan?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
 }
 
 function previewDepartment(maKhoa, tenKhoa) {

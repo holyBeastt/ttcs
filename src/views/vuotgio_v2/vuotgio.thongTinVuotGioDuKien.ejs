@@ -643,7 +643,7 @@
                     // Hoặc đơn giản hơn: lấy tổng từ cột vượt giờ + định mức (nhưng không chính xác)
                     // Chính xác nhất: sum cells index 17,18,19,20,21 (cả năm)
                     const parseVal = (td) => {
-                        const text = td ? td.textContent.trim().replace(/,/g, '') : '0';
+                        const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
                         return parseFloat(text) || 0;
                     };
 
@@ -676,7 +676,7 @@
                     // [27]=MứcTT, [28-33]=Tiền(VN,Lào,Cuba,CPC,ĐóngHP,Tổng), [34]=ThựcNhận, [35]=Actions
                     if (footCells.length >= 34) {
                         const parseVal = (td) => {
-                            const text = td ? td.textContent.trim().replace(/,/g, '') : '0';
+                            const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
                             return parseFloat(text) || 0;
                         };
                         const tongTietFoot = parseVal(footCells[16]) + parseVal(footCells[17]) + parseVal(footCells[18]) + parseVal(footCells[19]) + parseVal(footCells[20]);

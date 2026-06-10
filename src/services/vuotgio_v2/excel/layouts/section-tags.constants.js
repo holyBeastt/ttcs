@@ -12,11 +12,7 @@ const TAGS = {
   B_CUBA: "B_cuba",
   B_CPC: "B_cpc",
   B_DONG_HP: "B_dongHP",
-  C_VN: "C_vn",
-  C_LAO: "C_lao",
-  C_CUBA: "C_cuba",
-  C_CPC: "C_cpc",
-  C_DONG_HP: "C_dongHP",
+  C: "C",
 };
 
 module.exports = {

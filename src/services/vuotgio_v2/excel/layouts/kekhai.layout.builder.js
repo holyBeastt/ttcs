@@ -8,7 +8,7 @@ const {
 const {
   filterA1, mapA1Row, filterA2, mapA2Row,
   filterB, bFilterMatMa, bFilterDongHP, mapBRow,
-  filterC, cFilterMatMa, cFilterDongHP, mapCRow,
+  filterC, mapCRow,
   filterD, mapDRow, ensureRows, numberRows, normDate,
 } = require("../utils/sdo-data.helpers");
 
@@ -93,22 +93,22 @@ const buildBGroup = (summary) => {
 };
 
 const buildCGroup = (summary) => {
-  const makeBlock = (title, filterFn, subtotalLabel, metaTag) => ({
-    title: { label: title },
-    disableTitlePrefix: true,
-    columns: columnsC(),
-    sections: [{ label: "", subtotalLabel, metaTag, rows: ensureRows(numberRows(filterC(summary, filterFn).map(mapCRow))) }],
-  });
   return {
     title: { label: "HƯỚNG DẪN THAM QUAN THỰC TẾ CỦA HỌC VIÊN, SINH VIÊN" },
     blocks: [
-      makeBlock("C.1. Hướng dẫn cho sinh viên Mật mã đối tượng Việt Nam", cFilterMatMa("viet_nam"), "TỔNG C.1:", TAGS.C_VN),
-      makeBlock("C.2. Hướng dẫn cho sinh viên Mật mã đối tượng Lào", cFilterMatMa("lao"), "TỔNG C.2:", TAGS.C_LAO),
-      makeBlock("C.3. Hướng dẫn cho sinh viên Mật mã đối tượng Cuba", cFilterMatMa("cuba"), "TỔNG C.3:", TAGS.C_CUBA),
-      makeBlock("C.4. Hướng dẫn cho sinh viên Mật mã đối tượng Campuchia", cFilterMatMa("campuchia"), "TỔNG C.4:", TAGS.C_CPC),
-      makeBlock("C.5. Hướng dẫn cho sinh viên Đóng học phí", cFilterDongHP, "TỔNG C.5:", TAGS.C_DONG_HP),
+      {
+        columns: columnsC(),
+        sections: [
+          {
+            label: "",
+            subtotalLabel: "Cộng:",
+            metaTag: TAGS.C,
+            rows: ensureRows(numberRows(filterC(summary).map(mapCRow))),
+          },
+        ],
+      },
     ],
-    finalTotal: { label: "TỔNG C = C.1 + C.2 + C.3 + C.4 + C.5", colIndexes: [6] },
+    finalTotal: { label: "TỔNG C:", colIndexes: [6] },
   };
 };
 

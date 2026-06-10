@@ -106,15 +106,33 @@ const getSnapshotSDOList = async (namHoc, khoa) => {
                     _snapshotFallback: true,
                 };
             }
+            // Đảm bảo có thông tin isKhoa để group các phòng ban
+            if (row.isKhoa !== undefined) {
+                sdo.isKhoa = row.isKhoa;
+            }
             return sdo;
         });
 
         // 4. Lọc theo khoa nếu cần
+        const NON_KHOA_GROUP_CODE = "BGĐ&PHONG";
         if (khoa && khoa !== "ALL") {
-            sdoList = sdoList.filter(sdo => sdo.maKhoa === khoa);
+            if (khoa === NON_KHOA_GROUP_CODE) {
+                sdoList = sdoList.filter(sdo => Number(sdo.isKhoa) === 0);
+            } else {
+                sdoList = sdoList.filter(sdo => sdo.maKhoa === khoa || sdo.khoa === khoa);
+            }
         }
 
         console.info(`[snapshotData] Loaded ${sdoList.length} SDOs from snapshot for ${namHoc}${khoa && khoa !== 'ALL' ? ` (khoa=${khoa})` : ''}`);
+
+        // Gắn thêm metadata từ row đầu tiên (tất cả các row trong cùng 1 snapshot đều có metadata giống nhau)
+        if (sdoList.length > 0 && rows.length > 0) {
+            sdoList.metadata = {
+                ngay_chot: rows[0].ngay_chot,
+                nguoi_chot_id: rows[0].nguoi_chot_id,
+                nguoi_chot_name: rows[0].nguoi_chot_name
+            };
+        }
 
         return sdoList;
     });

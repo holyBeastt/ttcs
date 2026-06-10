@@ -72,7 +72,10 @@ const getThongKeKhoa = async (namHoc, khoaId) => {
             tongSoKhoa: dataByKhoa.length,
             tongThucHien: sdoList.reduce((s, r) => s + (r.tongThucHien || 0), 0),
             tongVuot: sdoList.reduce((s, r) => s + (r.tongVuot || 0), 0),
-            tongThanhToan: sdoList.reduce((s, r) => s + (r.thanhToan || 0), 0)
+            tongThanhToan: sdoList.reduce((s, r) => s + (r.thanhToan || 0), 0),
+            ngayChot: sdoList.metadata?.ngay_chot,
+            nguoiChotId: sdoList.metadata?.nguoi_chot_id,
+            nguoiChotName: sdoList.metadata?.nguoi_chot_name
         };
 
         return {
@@ -85,7 +88,10 @@ const getThongKeKhoa = async (namHoc, khoaId) => {
             tongSoGV: sdoList.length,
             tongThucHien: sdoList.reduce((s, r) => s + (r.tongThucHien || 0), 0),
             tongVuot: sdoList.reduce((s, r) => s + (r.tongVuot || 0), 0),
-            tongThanhToan: sdoList.reduce((s, r) => s + (r.thanhToan || 0), 0)
+            tongThanhToan: sdoList.reduce((s, r) => s + (r.thanhToan || 0), 0),
+            ngayChot: sdoList.metadata?.ngay_chot,
+            nguoiChotId: sdoList.metadata?.nguoi_chot_id,
+            nguoiChotName: sdoList.metadata?.nguoi_chot_name
         };
 
         return {

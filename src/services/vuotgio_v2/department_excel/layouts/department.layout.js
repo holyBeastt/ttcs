@@ -11,7 +11,7 @@ class DepartmentLayout {
     const columnWidths = [
       4,    // A - STT
       18,   // B - Họ tên Giảng viên
-      8.5,  // C - Thu nhập
+      13,   // C - Thu nhập
       9.5,  // D - Định mức giờ giảng
       7.5,  // E - Được giảm
       9.5,  // F - Số tiết chưa hoàn thành NCKH
@@ -37,14 +37,14 @@ class DepartmentLayout {
       5.5,  // Z - Vượt CPC
       7,    // AA - Vượt Đóng HP
       7,    // AB - Tổng vượt
-      8.5,  // AC - Mức TT chuẩn
-      8.5,  // AD - Thành tiền VN
-      8.5,  // AE - Thành tiền Lào
-      8.5,  // AF - Thành tiền Cuba
-      8.5,  // AG - Thành tiền CPC
-      8.5,  // AH - Thành tiền Đóng HP
-      11,   // AI - Tổng thành tiền
-      11    // AJ - Thực nhận
+      13,   // AC - Mức TT chuẩn
+      14,   // AD - Thành tiền VN
+      14,   // AE - Thành tiền Lào
+      14,   // AF - Thành tiền Cuba
+      14,   // AG - Thành tiền CPC
+      14,   // AH - Thành tiền Đóng HP
+      16,   // AI - Tổng thành tiền
+      16    // AJ - Thực nhận
     ];
 
     columnWidths.forEach((width, index) => {

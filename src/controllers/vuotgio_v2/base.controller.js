@@ -105,17 +105,17 @@ const getVuotGioCaNhanSauLuu = (req, res) => {
 const getVuotGioCaNhan = getVuotGioCaNhanDuKien;
 
 /**
- * Render trang Tổng Hợp Khoa
+ * Render trang Thống kê Khoa
  */
-const getTongHopKhoa = (req, res) => {
-    res.render("vuotgio_v2/vuotgio.tongHopKhoa.ejs");
+const getThongKeKhoa = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.thongKeKhoa.ejs");
 };
 
 /**
- * Render trang Thống Kê Sau Lưu
+ * Render trang Thống Kê Cá Nhân
  */
-const getThongKeSauLuu = (req, res) => {
-    res.render("vuotgio_v2/vuotgio.thongKeSauLuu.ejs");
+const getThongKeCaNhan = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.thongKeCaNhan.ejs");
 };
 
 /**
@@ -248,8 +248,8 @@ module.exports = {
     getVuotGioCaNhanDuKien,
     getVuotGioCaNhanChinhThuc,
     getVuotGioCaNhanSauLuu,
-    getTongHopKhoa,
-    getThongKeSauLuu,
+    getThongKeKhoa,
+    getThongKeCaNhan,
     getXuatFile,
     getHuongDanDATN,
     getHuongDanThamQuan,

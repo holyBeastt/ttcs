@@ -49,11 +49,11 @@ const buildTableFFormulaRows = (abcResults, options = {}) => {
   };
 
   const tagByCategory = {
-    vn: { b: TAGS.B_VN, c: TAGS.C_VN },
-    lao: { b: TAGS.B_LAO, c: TAGS.C_LAO },
-    cuba: { b: TAGS.B_CUBA, c: TAGS.C_CUBA },
-    cpc: { b: TAGS.B_CPC, c: TAGS.C_CPC },
-    dongHP: { b: TAGS.B_DONG_HP, c: TAGS.C_DONG_HP },
+    vn: { b: TAGS.B_VN },
+    lao: { b: TAGS.B_LAO },
+    cuba: { b: TAGS.B_CUBA },
+    cpc: { b: TAGS.B_CPC },
+    dongHP: { b: TAGS.B_DONG_HP },
   };
 
   return categories.map((category) => {
@@ -81,7 +81,7 @@ const buildTableFFormulaRows = (abcResults, options = {}) => {
 
     const tagGroup = tagByCategory[category.key];
     const doAn = sumRange(sectionMetaByTag.get(tagGroup?.b));
-    const thamQuan = sumRange(sectionMetaByTag.get(tagGroup?.c));
+    const thamQuan = sumIf(sectionMetaByTag.get(TAGS.C), category.label);
 
     return {
       hk1: buildSumExpr(hk1Parts),

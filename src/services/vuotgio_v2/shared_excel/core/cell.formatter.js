@@ -94,7 +94,7 @@ class CellFormatter {
     const defaultOptions = {
       hAlign: "center",
       vAlign: "middle",
-      fontSize: 11
+      fontSize: 8.5
     };
 
     const opts = { ...defaultOptions, ...options };
@@ -131,6 +131,9 @@ class CellFormatter {
     const opts = { ...defaultOptions, ...options };
 
     cell.font = { bold: opts.bold };
+    if (opts.fontSize) {
+      cell.font.size = opts.fontSize;
+    }
 
     if (opts.bgColor) {
       cell.fill = {

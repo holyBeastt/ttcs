@@ -9,7 +9,7 @@ class PaymentCalculator {
    * Calculate payment amount from overtime hours
    */
   static calculatePaymentAmount(overtimeHours, luong = 0) {
-    const rate = this.truncDecimals((luong || 0) / 176, 1);
+    const rate = Math.round((luong || 0) / 176);
     return this.truncDecimals((overtimeHours || 0) * rate, 2);
   }
 
@@ -91,12 +91,20 @@ class PaymentCalculator {
       };
     }
 
+    const vuot_vn = Math.round((breakdown.year_vn / yearTotal) * totalOvertime);
+    const vuot_lao = Math.round((breakdown.year_lao / yearTotal) * totalOvertime);
+    const vuot_cuba = Math.round((breakdown.year_cuba / yearTotal) * totalOvertime);
+    const vuot_cpc = Math.round((breakdown.year_cpc / yearTotal) * totalOvertime);
+    
+    // Hệ đóng học phí là hệ cuối cùng, dùng phép trừ phần dư để tổng 5 hệ đúng bằng totalOvertime
+    const vuot_dongHP = totalOvertime - (vuot_vn + vuot_lao + vuot_cuba + vuot_cpc);
+
     return {
-      vuot_vn: (breakdown.year_vn / yearTotal) * totalOvertime,
-      vuot_lao: (breakdown.year_lao / yearTotal) * totalOvertime,
-      vuot_cuba: (breakdown.year_cuba / yearTotal) * totalOvertime,
-      vuot_cpc: (breakdown.year_cpc / yearTotal) * totalOvertime,
-      vuot_dongHP: (breakdown.year_dongHP / yearTotal) * totalOvertime,
+      vuot_vn,
+      vuot_lao,
+      vuot_cuba,
+      vuot_cpc,
+      vuot_dongHP,
     };
   }
 
@@ -136,9 +144,9 @@ class PaymentCalculator {
     const vuot = this.distributeOvertimeProportionally(raw, vuotTong);
 
     // Bước 3: Tính thành tiền từng nhóm
-    // Công thức tính Mức TT chuẩn: TRUNC(luong / 176, 1) theo EXCEL_FORMULA_SPEC.md
+    // Công thức tính Mức TT chuẩn: ROUND(luong / 176, 0)
     // Luôn áp dụng công thức, nếu luong = 0 thì đơn giá là 0 (không fallback)
-    const rate = this.truncDecimals((luong || 0) / 176, 1);
+    const rate = Math.round((luong || 0) / 176);
     const moneyByGroup = {};
     let moneyTotal = 0;
     GROUPS.forEach(g => {

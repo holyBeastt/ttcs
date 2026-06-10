@@ -4,6 +4,7 @@
  */
 
 const tongHopService = require("../../services/vuotgio_v2/tongHop.service");
+const snapshotDataService = require("../../services/vuotgio_v2/snapshotData.service");
 const templatePreviewService = require("../../services/vuotgio_v2/templatePreview.service");
 
 /**
@@ -11,7 +12,7 @@ const templatePreviewService = require("../../services/vuotgio_v2/templatePrevie
  */
 const getPreviewData = async (req, res) => {
     const { MaGV } = req.params;
-    const { namHoc, isDuKien } = req.query;
+    const { namHoc } = req.query;
 
     if (!namHoc || !MaGV) {
         return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học hoặc Giảng viên" });
@@ -20,26 +21,20 @@ const getPreviewData = async (req, res) => {
     try {
         const { format = 'pdf' } = req.query;
 
-        // 1. Lấy SDO gốc từ bộ lõi Tổng hợp
-        // Parse isDuKien: 'true' hoặc '1' → true, 'false' hoặc '0' → false, default → true
-        let isDuKienBool = true; // Default
-        if (isDuKien !== undefined) {
-            isDuKienBool = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
-        }
+        console.info('[getPreviewData]', { MaGV, namHoc, mode: 'snapshot' });
         
-        console.info('[getPreviewData]', { MaGV, namHoc, isDuKien: isDuKienBool });
-        
-        const sdo = await tongHopService.getAtomicSDO(namHoc, decodeURIComponent(MaGV), null, isDuKienBool);
+        // Lấy SDO từ snapshotDataService thay vì tongHopService
+        const sdo = await snapshotDataService.getSnapshotSDOByUser(namHoc, decodeURIComponent(MaGV));
         if (!sdo) return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu giảng viên" });
 
         // Log chi tiết số lượng bản ghi để debug
-        console.info(`[Preview] GV: ${sdo.giangVien} (${MaGV}), Năm học: ${namHoc}`);
-        console.info(` - Giảng dạy: ${sdo.raw.giangDay.length}`);
-        console.info(` - Lớp ngoài QC: ${sdo.raw.lopNgoaiQC.length}`);
-        console.info(` - KTHP: ${sdo.raw.kthp.length}`);
-        console.info(` - Đồ án: ${sdo.raw.doAn.length}`);
-        console.info(` - Hướng dẫn TQ: ${sdo.raw.huongDanThamQuan?.length || sdo.raw.hdtq?.length || 0}`);
-        console.info(` - NCKH: ${sdo.raw.nckhRecords.length}`);
+        console.info(`[Preview] GV: ${sdo.giangVien || MaGV}, Năm học: ${namHoc}`);
+        console.info(` - Giảng dạy: ${sdo.raw?.giangDay?.length || 0}`);
+        console.info(` - Lớp ngoài QC: ${sdo.raw?.lopNgoaiQC?.length || 0}`);
+        console.info(` - KTHP: ${sdo.raw?.kthp?.length || 0}`);
+        console.info(` - Đồ án: ${sdo.raw?.doAn?.length || 0}`);
+        console.info(` - Hướng dẫn TQ: ${sdo.raw?.huongDanThamQuan?.length || sdo.raw?.hdtq?.length || 0}`);
+        console.info(` - NCKH: ${sdo.raw?.nckhRecords?.length || 0}`);
 
         // 2. Chuyển đổi SDO thành file preview (PDF)
         const previewResult = await templatePreviewService.buildTemplatePreviewPdf({ 
@@ -58,7 +53,8 @@ const getPreviewData = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getPreviewData:", error);
-        res.status(500).json({ success: false, message: error.message });
+        const status = error.statusCode || 500;
+        res.status(status).json({ success: false, message: error.message });
     }
 };
 
@@ -75,15 +71,10 @@ const getPreviewKhoaData = async (req, res) => {
 
     try {
         const khoaDecoded = decodeURIComponent(khoa);
-        // Parse isDuKien: 'true' hoặc '1' → true, 'false' hoặc '0' → false, default → true
-        let isDuKienBool = true; // Default
-        if (req.query.isDuKien !== undefined) {
-            isDuKienBool = req.query.isDuKien === 'true' || req.query.isDuKien === '1' || req.query.isDuKien === true;
-        }
         
-        console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, isDuKien: isDuKienBool });
+        console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, mode: 'snapshot' });
         
-        const summaries = await tongHopService.getCollectionSDODetail(namHoc, khoaDecoded, isDuKienBool);
+        const summaries = await snapshotDataService.getSnapshotSDOList(namHoc, khoaDecoded);
 
         if (!summaries || summaries.length === 0) {
             return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu cho khoa này" });
@@ -105,7 +96,8 @@ const getPreviewKhoaData = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getPreviewKhoaData:", error);
-        res.status(500).json({ success: false, message: error.message });
+        const status = error.statusCode || 500;
+        res.status(status).json({ success: false, message: error.message });
     }
 };
 

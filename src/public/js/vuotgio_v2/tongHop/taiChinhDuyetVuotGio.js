@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (btnSwitchToKhoa) {
         btnSwitchToKhoa.addEventListener('click', () => {
             const namHoc = document.getElementById('namHocXem').value;
-            window.location.href = `/v2/vuotgio/tong-hop-khoa?namHoc=${encodeURIComponent(namHoc)}`;
+            window.location.href = `/v2/vuotgio/thong-ke-khoa?namHoc=${encodeURIComponent(namHoc)}`;
         });
     }
 
