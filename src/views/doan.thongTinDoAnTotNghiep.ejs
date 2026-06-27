@@ -1049,14 +1049,13 @@
           khoaCheckboxTd = document.createElement("td");
           khoaCheckbox = document.createElement("input");
           khoaCheckbox.type = "checkbox";
+          khoaCheckbox.disabled = true;
           khoaCheckbox.style.marginLeft = "30px";
           khoaCheckbox.name = "khoa"; // Thêm thuộc tính name
           khoaCheckbox.checked = row.KhoaDuyet || false; // Dùng một trường cho checkbox
           khoaCheckbox.onchange = () => updateCheckAll("khoa"); // Gọi hàm khi checkbox thay đổi
           khoaCheckboxTd.appendChild(khoaCheckbox);
           tableRow.appendChild(khoaCheckboxTd);
-          // ẩn đi
-          khoaCheckbox.style.display = "none";
 
           let daoTaoCheckboxTd, daoTaoCheckbox;
 
@@ -1064,14 +1063,13 @@
           daoTaoCheckboxTd = document.createElement("td");
           daoTaoCheckbox = document.createElement("input");
           daoTaoCheckbox.type = "checkbox";
+          daoTaoCheckbox.disabled = true;
           daoTaoCheckbox.style.marginLeft = "30px";
           daoTaoCheckbox.name = "<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"; // Thêm thuộc tính name
           daoTaoCheckbox.checked = row.DaoTaoDuyet || false; // Dùng một trường cho checkbox
           daoTaoCheckbox.onchange = () => updateCheckAll("<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"); // Gọi hàm khi checkbox thay đổi
           daoTaoCheckboxTd.appendChild(daoTaoCheckbox);
           tableRow.appendChild(daoTaoCheckboxTd);
-          // ẩn đi
-          daoTaoCheckbox.style.display = "none";
 
           // Checkbox tài chính
           let VPCheckboxTd, VPCheckbox;
@@ -1079,27 +1077,19 @@
           VPCheckboxTd = document.createElement("td");
           VPCheckbox = document.createElement("input");
           VPCheckbox.type = "checkbox";
+          VPCheckbox.disabled = true;
           VPCheckbox.style.marginLeft = "30px";
           VPCheckbox.name = "<%= APP_DEPARTMENTS.vanPhong %>"; // Thêm thuộc tính name
           VPCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
           VPCheckbox.onchange = () => updateCheckAll("<%= APP_DEPARTMENTS.vanPhong %>"); // Gọi hàm khi checkbox thay đổi
           VPCheckboxTd.appendChild(VPCheckbox);
           tableRow.appendChild(VPCheckboxTd);
-          // Ẩn đi
-          VPCheckbox.style.display = "none";
 
           if (isKhoa == 1 && role == APP_ROLES.lanhDao_khoa) {
-            khoaCheckbox.style.display = "block";
+            khoaCheckbox.disabled = false;
           } else if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)) {
-            if (MaPhongBan == APP_DEPARTMENTS.daoTao) {
-              khoaCheckbox.style.display = "block";
-              daoTaoCheckbox.style.display = "block";
-              VPCheckbox.style.display = "none";
-            } else if (MaPhongBan == APP_DEPARTMENTS.vanPhong) {
-              // Sửa lỗi: hiển thị checkbox cho cột Văn Phòng
-              khoaCheckbox.style.display = "block";
-              daoTaoCheckbox.style.display = "block";
-              VPCheckbox.style.display = "block";
+            if (MaPhongBan == APP_DEPARTMENTS.vanPhong) {
+              VPCheckbox.disabled = false;
             }
           }
 
@@ -1994,18 +1984,11 @@
           document.getElementById("export-file-btn").style.display = "inline-block";
         } else if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong)) {
           if (MaPhongBan == APP_DEPARTMENTS.daoTao) {
-            // Ẩn cột 'VPColumn'
-            document.getElementById("VPColumn").style.display = "none";
             document.getElementById("updateDoAn").style.display =
               "inline-block";
             // Hiển thị nút xuất file cho Đào tạo
             document.getElementById("export-file-btn").style.display = "inline-block";
           } else if (MaPhongBan == APP_DEPARTMENTS.vanPhong) {
-            // Hiển thị tất cả các cột cho VP
-            document.getElementById("khoaColumn").style.display = "table-cell";
-            document.getElementById("daoTaoColumn").style.display =
-              "table-cell";
-            document.getElementById("VPColumn").style.display = "table-cell";
             document.getElementById("updateDoAn").style.display =
               "inline-block";
             document.getElementById("saveDataDoAn").style.display =
