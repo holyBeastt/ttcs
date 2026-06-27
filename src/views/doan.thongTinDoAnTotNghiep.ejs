@@ -1122,6 +1122,12 @@
             NgayKetThucInput.disabled = true;
           }
 
+          // Nếu Khoa đã duyệt, hiển thị dấu tích checkbox Khoa và không cho sửa
+          if (row.KhoaDuyet == 1) {
+            khoaCheckbox.style.display = "block";
+            khoaCheckbox.disabled = true;
+          }
+
           const KhoaCheck = localStorage.getItem("KhoaCheck");
           const DaoTaoCheck = localStorage.getItem("DaoTaoCheck");
           const VPCheck = localStorage.getItem("VPCheck");

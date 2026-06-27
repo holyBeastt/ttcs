@@ -579,11 +579,11 @@ const getInfoDoAn = async (req, res) => {
 
     if (MaPhongBan == "ALL") {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?";
+        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ? ORDER BY TT ASC";
       values = [Dot, ki, NamHoc, he_dao_tao];
     } else {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ? AND he_dao_tao = ?";
+        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ? AND he_dao_tao = ? ORDER BY TT ASC";
       values = [Dot, ki, NamHoc, MaPhongBan, he_dao_tao];
 
       [SoQDList] = await connection.query(SoQDquery, values);
