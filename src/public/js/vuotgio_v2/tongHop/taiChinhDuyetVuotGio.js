@@ -381,8 +381,8 @@ function renderTable(data) {
             <!-- Actions -->
             <td>
                 <div class="btn-group gap-1" role="group">
-                    <button class="btn btn-sm" style="background-color: #ffffff; color: #ea580c; border: 1px solid #ea580c; font-weight: bold;" onclick="previewExcel('${row.id_User}', '${row.giangVien}')" title="Preview Excel/PDF">
-                        <i class="fas fa-file-pdf"></i>
+                    <button class="btn btn-sm" style="background-color: #ffffff; color: #0ea5e9; border: 1px solid #0ea5e9; font-weight: bold;" onclick="openPersonalView('${row.id_User}', '${row.giangVien}')" title="Xem chi tiết">
+                        <i class="fas fa-eye"></i>
                     </button>
                 </div>
             </td>
@@ -536,6 +536,13 @@ function filterTable() {
         return hoTen.includes(gvFilter);
     });
 
+    console.log('[filterTable] Thông tin user theo bộ lọc:', filteredData.map(u => ({
+        id_User: u.id_User,
+        giangVien: u.giangVien,
+        khoa: u.khoa,
+        maKhoa: u.maKhoa
+    })));
+
     // 2. Render lại toàn bộ bảng dựa trên dữ liệu đã lọc
     // Việc gọi renderTable sẽ tự động xử lý lại STT và Group Header cho Khoa
     renderTable(filteredData);
@@ -556,251 +563,7 @@ function openPersonalView(maGV, hoTen) {
     window.open(url, '_blank');
 }
 
-// Preview Excel as PDF generated from xlsx + LibreOffice
-async function previewExcel(maGV, hoTen) {
-    const namHoc = document.getElementById('namHocXem').value;
-    const khoa = document.getElementById('khoaXem').value;
-    const previewMode = 'pdf';
 
-    console.info('[vuotgio_v2.preview] click', {
-        giangVien: hoTen,
-        maGV,
-        namHoc,
-        khoa,
-        previewMode,
-        url: `/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}&isDuKien=false`
-    });
-
-    Swal.showLoading();
-
-    try {
-        const response = await fetch(`/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}&isDuKien=false`);
-        const result = await response.json();
-
-        console.info('[vuotgio_v2.preview] result from server:', result);
-
-        if (result.success) {
-            console.info('[vuotgio_v2.preview] intermediate data keys:', Object.keys(result.data?.intermediateJson || {}));
-            if (result.data?.pdfBase64) {
-                console.info('[vuotgio_v2.preview] PDF base64 received, length:', result.data.pdfBase64.length);
-            }
-        }
-
-        if (!result.success) {
-            Swal.close();
-            Swal.fire('Lỗi', result.message || 'Không thể tải dữ liệu preview', 'error');
-            return;
-        }
-
-        if (result.data?.pdfBase64) {
-            renderExcelPdfPreview(result.data, hoTen, namHoc, khoa);
-        } else {
-            Swal.close();
-            Swal.fire('Lỗi', 'Không tạo được bản PDF preview', 'error');
-        }
-
-        if (Array.isArray(result.data?.warnings) && result.data.warnings.length > 0) {
-            console.warn('[preview-template] warnings:', result.data.warnings);
-            Swal.fire({
-                icon: 'warning',
-                title: 'Lưu ý preview',
-                text: result.data.warnings[0],
-                timer: 3500,
-                showConfirmButton: false,
-            });
-        }
-
-    } catch (error) {
-        Swal.close();
-        console.error('Error loading excel preview:', error);
-        Swal.fire('Lỗi', 'Không thể tải chi tiết', 'error');
-    }
-}
-
-function renderExcelPdfPreview(serverData, hoTen, namHoc, khoa) {
-    Swal.close();
-
-    if (previewPdfObjectUrl) {
-        URL.revokeObjectURL(previewPdfObjectUrl);
-        previewPdfObjectUrl = null;
-    }
-
-    const pdfBytes = atob(serverData.pdfBase64);
-    const byteNumbers = new Array(pdfBytes.length);
-    for (let i = 0; i < pdfBytes.length; i++) {
-        byteNumbers[i] = pdfBytes.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
-    previewPdfObjectUrl = URL.createObjectURL(pdfBlob);
-
-    const previewWindow = window.open('', '_blank');
-    if (!previewWindow) {
-        Swal.fire('Lỗi', 'Trình duyệt đã chặn cửa sổ preview mới. Vui lòng cho phép popup.', 'error');
-        return;
-    }
-
-    const escapeHtml = (text) => String(text || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-
-    const escapedTitle = escapeHtml(`Xem trước: ${hoTen || ''}`);
-    const escapedNamHoc = escapeHtml(namHoc || '');
-    const escapedKhoa = escapeHtml(khoa === 'ALL' ? 'Tất cả' : (khoa || ''));
-    
-    previewWindow.document.open();
-    previewWindow.document.write(`
-        <!DOCTYPE html>
-        <html lang="vi">
-        <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>${escapedTitle}</title>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-            <style>
-                html, body {
-                    margin: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: #fff;
-                    overflow: hidden;
-                    font-family: Arial, sans-serif;
-                }
-                .header {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 56px;
-                    background: #f1f5f9;
-                    color: #1e293b;
-                    display: flex;
-                    align-items: center;
-                    padding: 0 20px;
-                    gap: 20px;
-                    z-index: 1000;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    border-bottom: 1px solid #e2e8f0;
-                }
-                .header .info-group {
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    font-size: 14px;
-                }
-                .header .info-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    padding: 4px 10px;
-                    background: #fff;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 6px;
-                    white-space: nowrap;
-                }
-                .header .info-item strong {
-                    color: #64748b;
-                }
-                .header button {
-                    height: 36px;
-                    width: 36px;
-                    border: 1px solid #e2e8f0;
-                    background: #fff;
-                    color: #64748b;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 16px;
-                    transition: all 0.2s ease;
-                }
-                .header button:hover {
-                    background: #f8fafc;
-                    color: #1e293b;
-                }
-                .header button.close-btn {
-                    margin-left: auto;
-                }
-                .header button.close-btn:hover {
-                    background: #fee2e2;
-                    color: #ef4444;
-                    border-color: #fecaca;
-                }
-                .header .title {
-                    font-weight: 600;
-                    font-size: 16px;
-                    color: #0f172a;
-                }
-                .layout {
-                    display: flex;
-                    width: 100%;
-                    height: 100%;
-                    padding-top: 56px;
-                }
-                .sidebar {
-                    width: 260px;
-                    min-width: 260px;
-                    border-right: 1px solid #e5e7eb;
-                    background: #f8fafc;
-                    padding: 16px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-                .sidebar.hidden {
-                    display: none;
-                }
-                .sidebar .meta {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    font-size: 14px;
-                    color: #334155;
-                }
-                .meta-item {
-                    background: #fff;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 6px;
-                    padding: 10px 12px;
-                    line-height: 1.4;
-                }
-                .viewer {
-                    flex: 1;
-                    height: 100%;
-                    border: 0;
-                }
-            </style>
-            <script>
-                // Sidebar toggle removed as sidebar is gone
-            </script>
-        </head>
-        <body>
-            <div class="header">
-                <div class="title">${escapedTitle}</div>
-                <div class="info-group">
-                    <div class="info-item">
-                        <strong>Năm học:</strong> ${escapedNamHoc}
-                    </div>
-                    <div class="info-item">
-                        <strong>Khoa:</strong> ${escapedKhoa}
-                    </div>
-                </div>
-                <button class="close-btn" onclick="window.close()" title="Đóng">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="layout">
-                <iframe class="viewer" src="${previewPdfObjectUrl}#toolbar=0&navpanes=0" title="Excel PDF Preview"></iframe>
-            </div>
-        </body>
-        </html>
-    `);
-    previewWindow.document.close();
-}
 
 // ==================== EXPORT EXCEL ====================
 

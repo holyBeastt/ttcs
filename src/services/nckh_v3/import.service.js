@@ -363,23 +363,26 @@ const buildPreview = async (fileBuffer, type, namHocFromUI) => {
 // ─── Save Logic ─────────────────────────────────────────────────────────────
 
 /**
- * Save validated records to database within a single transaction.
+ * --- BUG #9 fix: per-record transaction thay vì all-or-nothing ---
+ * Mỗi record chạy trong transaction riêng. Record lỗi sẽ được ghi vào failedRecords
+ * và KHÔNG rollback các record đã thành công trước đó.
  */
 const saveToDatabase = async (records, userContext) => {
   if (!Array.isArray(records) || records.length === 0) {
     throw new Error("Không có dữ liệu để lưu.");
   }
 
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    await connection.beginTransaction();
+  let savedCount = 0;
+  const failedRecords = [];
 
-    let savedCount = 0;
+  for (const record of records) {
+    // Skip error rows đã được validate fail
+    if (record.status === "error") continue;
 
-    for (const record of records) {
-      // Skip error rows
-      if (record.status === "error") continue;
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      await connection.beginTransaction();
 
       const chung = record.chung;
 
@@ -427,30 +430,42 @@ const saveToDatabase = async (records, userContext) => {
         await nckhSoTietRepo.bulkInsert(connection, nckhId, participants);
       }
 
+      await connection.commit();
       savedCount += 1;
+    } catch (err) {
+      // Chỉ rollback record hiện tại, không ảnh hưởng các record đã thành công
+      if (connection) {
+        try { await connection.rollback(); } catch (_) { /* ignore */ }
+      }
+      const errorInfo = {
+        tenCongTrinh: record.chung?.tenCongTrinh || "(không rõ)",
+        loaiNckh: record.chung?.loaiNckh || null,
+        error: err.message || String(err),
+      };
+      failedRecords.push(errorInfo);
+      console.error("[NCKH V3 Import] Failed record:", errorInfo);
+    } finally {
+      if (connection) connection.release();
     }
-
-    await connection.commit();
-
-    // Log
-    try {
-      await LogService.logChange(
-        userContext.userId,
-        userContext.userName,
-        "NCKH V3",
-        `Import ${savedCount} công trình NCKH từ file Excel`
-      );
-    } catch (logErr) {
-      console.error("[NCKH V3 Import] Log failed:", logErr.message);
-    }
-
-    return { savedCount };
-  } catch (error) {
-    if (connection) await connection.rollback();
-    throw error;
-  } finally {
-    if (connection) connection.release();
   }
+
+  // Log tổng kết
+  try {
+    await LogService.logChange(
+      userContext.userId,
+      userContext.userName,
+      "NCKH V3",
+      `Import ${savedCount}/${records.length} công trình NCKH từ file Excel (${failedRecords.length} lỗi)`
+    );
+  } catch (logErr) {
+    console.error("[NCKH V3 Import] Log failed:", logErr.message);
+  }
+
+  return {
+    savedCount,
+    failedCount: failedRecords.length,
+    failedRecords,
+  };
 };
 
 module.exports = {

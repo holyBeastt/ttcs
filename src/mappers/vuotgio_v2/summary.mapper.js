@@ -5,6 +5,7 @@
 
 const base = require("./base.mapper");
 const PaymentCalculator = require("../../services/vuotgio_v2/department_excel/data/calculator");
+const OvertimePolicyFactory = require("./policies/OvertimePolicyFactory");
 
 /**
  * Công thức tính toán các chỉ số vượt giờ cốt lõi
@@ -20,40 +21,42 @@ const calculateOvertime = (params) => {
         soTietNCKH = 0,
         phanTramMienGiam = 0,
         dinhMucChuan = 280,
-        dinhMucNCKH = 280
+        dinhMucNCKH = 200
     } = params;
+
+    // --- BUG #5 fix: giữ exact arithmetic suốt quá trình, chỉ làm tròn ở output ---
+    // Phần trăm miễn giảm có thể là số thập phân (33.33, 50, 100). Không làm tròn sớm.
 
     // 1. Tổng số tiết thực hiện
     const tongThucHien = soTietGiangDay + soTietNgoaiQC + soTietKTHP + soTietDoAn + soTietHDTQ;
-    
-    // 4. Số tiết được giảm trừ
-    const mienGiam = dinhMucChuan * (base.toDecimal(phanTramMienGiam) / 100);
-    
+
+    // 4. Số tiết được giảm trừ (giữ exact, KHÔNG toFixed ở đây)
+    const mienGiam = dinhMucChuan * (Number(phanTramMienGiam) / 100);
+
     // 6. Số tiết sau giảm trừ (Mục 2 - Mục 4)
     const dinhMucSauMienGiam = dinhMucChuan - mienGiam;
 
-    // 3. Số tiết chưa hoàn thành NCKH
-    // Định mức NCKH cũng phải được hưởng giảm trừ tương ứng như định mức giảng dạy
-    const mienGiamNCKH = dinhMucNCKH * (base.toDecimal(phanTramMienGiam) / 100);
-    const dinhMucNCKHSauGiam = dinhMucNCKH - mienGiamNCKH;
-    const thieuNCKH = Math.max(0, dinhMucNCKHSauGiam - soTietNCKH);
-    
+    // 3. Số tiết chưa hoàn thành NCKH (NCKH KHÔNG có miễn giảm)
+    const thieuNCKH = Math.max(0, dinhMucNCKH - soTietNCKH);
+
     // 5. Tổng số tiết vượt giờ được thanh toán
-    // Công thức: (Mục 1 - Mục 3) - Mục 6
     let tongVuot = (tongThucHien - thieuNCKH) - dinhMucSauMienGiam;
     tongVuot = Math.max(0, tongVuot);
-    
+
     // Giới hạn thanh toán chỉ được phép <= Mục 6
     const thanhToan = Math.min(tongVuot, dinhMucSauMienGiam);
 
+    // --- CHỈ làm tròn ở output cuối cùng ---
+    const round2 = (v) => base.toDecimal(Math.round((Number(v) + Number.EPSILON) * 100) / 100);
+
     return {
-        tongThucHien: base.toDecimal(tongThucHien.toFixed(2)),
-        mienGiam: base.toDecimal(mienGiam.toFixed(2)),
-        dinhMucSauMienGiam: base.toDecimal(dinhMucSauMienGiam.toFixed(2)),
-        thieuTietGiangDay: base.toDecimal(Math.max(0, dinhMucSauMienGiam - tongThucHien).toFixed(2)),
-        thieuNCKH: base.toDecimal(thieuNCKH.toFixed(2)),
-        tongVuot: base.toDecimal(tongVuot.toFixed(2)),
-        thanhToan: base.toDecimal(thanhToan.toFixed(2)),
+        tongThucHien: round2(tongThucHien),
+        mienGiam: round2(mienGiam),
+        dinhMucSauMienGiam: round2(dinhMucSauMienGiam),
+        thieuTietGiangDay: round2(Math.max(0, dinhMucSauMienGiam - tongThucHien + thieuNCKH)),
+        thieuNCKH: round2(thieuNCKH),
+        tongVuot: round2(tongVuot),
+        thanhToan: round2(thanhToan),
         dinhMucChuan
     };
 };
@@ -174,9 +177,10 @@ const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc, extraInfo = {}) => {
     if (!nv) return null;
 
     const dmChuan = base.toDecimal(globalDinhMuc?.GiangDay) || 280;
-    const dmNCKH = base.toDecimal(globalDinhMuc?.NCKH) || 280;
+    const dmNCKH = base.toDecimal(globalDinhMuc?.NCKH) || 200;
 
-    const stats = calculateOvertime({
+    const calculator = OvertimePolicyFactory.getCalculator(namHoc);
+    const stats = calculator.calculate({
         soTietGiangDay: rawData.giangDay.reduce((s, r) => s + (base.toDecimal(r.QuyChuan) || 0), 0),
         soTietNgoaiQC: rawData.lopNgoaiQC.reduce((s, r) => s + (base.toDecimal(r.quy_chuan) || 0), 0),
         soTietKTHP: rawData.kthp.reduce((s, r) => s + (base.toDecimal(r.quy_chuan) || 0), 0),
@@ -235,12 +239,13 @@ const toAtomicSDO = (nv, rawData, namHoc, globalDinhMuc, extraInfo = {}) => {
  */
 const toCollectionSDO = (rawDataList, nckhMap, namHoc, globalDinhMuc) => {
     const dmChuan = base.toDecimal(globalDinhMuc?.GiangDay) || 280;
-    const dmNCKH = base.toDecimal(globalDinhMuc?.NCKH) || 280;
+    const dmNCKH = base.toDecimal(globalDinhMuc?.NCKH) || 200;
 
     return rawDataList.map(r => {
         const soTietNCKH = base.toDecimal(nckhMap.get(Number(r.id_User))) || 0;
         
-        const stats = calculateOvertime({
+        const calculator = OvertimePolicyFactory.getCalculator(namHoc);
+        const stats = calculator.calculate({
             soTietGiangDay: r.soTietGiangDay,
             soTietNgoaiQC: r.soTietNgoaiQC,
             soTietKTHP: r.soTietKTHP,
@@ -267,7 +272,6 @@ const toCollectionSDO = (rawDataList, nckhMap, namHoc, globalDinhMuc) => {
 };
 
 module.exports = {
-    calculateOvertime,
     toAtomicSDO,
     toCollectionSDO
 };

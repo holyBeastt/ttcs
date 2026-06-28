@@ -182,7 +182,7 @@ const getDoAnRowsByMode = async (connection, { namHoc, isDuKien = false }) => {
          FROM exportdoantotnghiep da
          LEFT JOIN he_dao_tao hdt ON hdt.id = da.he_dao_tao
          LEFT JOIN nhanvien nv ON da.CCCD IS NOT NULL AND da.CCCD != '' AND nv.CCCD = da.CCCD
-         WHERE da.NamHoc = ? AND da.isMoiGiang = 0`,
+         WHERE REPLACE(da.NamHoc, ' ', '') = REPLACE(?, ' ', '') AND da.isMoiGiang = 0`,
         [namHoc]
     );
     return rows;

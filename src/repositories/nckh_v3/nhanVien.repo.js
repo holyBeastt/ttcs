@@ -12,7 +12,7 @@ const listByKhoaId = async (connection, khoaId = "ALL") => {
     SELECT nv.id_User AS id, nv.id_User, nv.TenNhanVien, nv.MaPhongBan, pb.id AS khoa_id, pb.TenPhongBan
     FROM nhanvien nv
     INNER JOIN phongban pb ON pb.MaPhongBan = nv.MaPhongBan
-    WHERE pb.isKhoa = 1
+    WHERE 1=1
   `;
   const params = [];
 

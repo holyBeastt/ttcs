@@ -21,10 +21,10 @@ const withConnection = async (callback) => {
  */
 const getApprovalStatus = async (namHoc) => {
     return await withConnection(async (connection) => {
-        // Lấy danh sách tất cả khoa
+        // Lấy danh sách tất cả khoa/phòng ban
         const [khoaRows] = await connection.query(
             `SELECT MaPhongBan AS khoa, TenPhongBan AS tenKhoa 
-             FROM phongban WHERE isKhoa = 1 ORDER BY MaPhongBan`
+             FROM phongban ORDER BY MaPhongBan`
         );
 
         // Lấy trạng thái duyệt đã có

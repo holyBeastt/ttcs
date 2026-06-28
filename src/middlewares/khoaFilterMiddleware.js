@@ -20,15 +20,20 @@
 const enforceKhoaFilter = (req, res, next) => {
     const isKhoa = req.session?.isKhoa;
     const maPhongBan = req.session?.MaPhongBan;
+    const role = req.session?.role || req.session?.Quyen || "";
+
+    // Phân quyền Admin: Các vai trò thuộc phòng ban (Đào tạo, Tài chính, Khảo thí...)
+    const isAdmin = role === "Trợ lý" || role === "Lãnh đạo phòng" || role === "admin" || role === "ADMIN";
 
     // Gắn thông tin khoa vào request để các layer phía sau sử dụng
     req.khoaFilter = {
         isKhoa: isKhoa === 1 || isKhoa === "1",
         MaPhongBan: maPhongBan || null,
+        isAdmin: isAdmin,
     };
 
-    // Nếu user thuộc khoa → ép filter
-    if (req.khoaFilter.isKhoa && maPhongBan) {
+    // Nếu user KHÔNG PHẢI admin → ép filter theo phòng ban của user
+    if (!isAdmin && maPhongBan) {
         // Override route params
         if (req.params.Khoa !== undefined) {
             req.params.Khoa = maPhongBan;

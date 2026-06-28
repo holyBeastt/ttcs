@@ -25,12 +25,15 @@ const tongHopTheoGV = async (req, res) => {
         
         console.info("[tongHopTheoGV] request", { namHoc, khoa, detail: isDetail, isDuKien: isDuKienBool });
         
-        const data = isDetail
-            ? await tongHopService.getCollectionSDODetail(namHoc, khoa, isDuKienBool)
+        const result = isDetail
+            ? { data: await tongHopService.getCollectionSDODetail(namHoc, khoa, isDuKienBool), warnings: null }
             : await tongHopService.getCollectionSDO(namHoc, khoa, isDuKienBool);
-        
-        console.info("[tongHopTheoGV] response", { count: Array.isArray(data) ? data.length : 0, detail: isDetail });
-        res.json({ success: true, data });
+
+        const data = Array.isArray(result) ? result : result.data;
+        const warnings = (result && !Array.isArray(result)) ? result.warnings : null;
+
+        console.info("[tongHopTheoGV] response", { count: Array.isArray(data) ? data.length : 0, detail: isDetail, warnings: warnings ? warnings.missingNckhCount : 0 });
+        res.json({ success: true, data, warnings });
     } catch (error) {
         console.error("Lỗi khi tổng hợp vượt giờ theo GV:", error);
         res.status(500).json({ success: false, message: error.message || "Có lỗi xảy ra." });

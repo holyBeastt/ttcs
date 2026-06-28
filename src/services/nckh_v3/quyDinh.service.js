@@ -1,11 +1,14 @@
 const createPoolConnection = require("../../config/databasePool");
 
+// --- BUG #7 fix: cho phép chỉ định PRIMARY_TABLE qua env để đảm bảo deterministic ---
+const PRIMARY_TABLE = process.env.NCKH_QUYDINH_TABLE || "nckh_quydinhsogio";
+
 const TABLE_CANDIDATES = [
+  PRIMARY_TABLE,
   "admin_quydinhsogio",
-  "nckh_quydinhsogio",
   "nckh_quy_dinh_so_tiet",
   "nckh_quydinh_so_tiet",
-];
+].filter((v, i, arr) => arr.indexOf(v) === i); // de-dup
 
 const COLUMN_CANDIDATES = {
   id: ["ID", "id"],

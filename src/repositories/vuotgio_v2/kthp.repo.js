@@ -165,11 +165,20 @@ const updateBatchApproval = async (connection, records) => {
 const updateApproval = async (connection, id, value) =>
     connection.execute(`UPDATE ${COI_CHAM_RA_DE_TABLE} SET khoa_duyet = ? WHERE id = ?`, [value, id]);
 
-const deleteByYearAndSemester = async (connection, { namHoc, hocKy, dot }) => {
-    if (dot !== undefined && dot !== null && dot !== '') {
-        return connection.execute(`DELETE FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ? AND dot = ?`, [namHoc, hocKy, dot]);
+const deleteByYearAndSemester = async (connection, { namHoc, hocKy, dot, khoa }) => {
+    // Nếu có khoa (khoa đang login) thì PHẢI filter theo khoa để tránh xóa nhầm.
+    // Nếu khoa = 'ALL' hoặc không truyền thì chỉ admin mới được phép, và sẽ throw ở service.
+    const params = [namHoc, hocKy];
+    let query = `DELETE FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ?`;
+    if (khoa && khoa !== 'ALL') {
+        query += ` AND khoa = ?`;
+        params.push(khoa);
     }
-    return connection.execute(`DELETE FROM ${COI_CHAM_RA_DE_TABLE} WHERE nam_hoc = ? AND hoc_ky = ?`, [namHoc, hocKy]);
+    if (dot !== undefined && dot !== null && dot !== '') {
+        query += ` AND dot = ?`;
+        params.push(dot);
+    }
+    return connection.execute(query, params);
 };
 
 const countByYearAndSemester = async (connection, { namHoc, hocKy, dot }) => {

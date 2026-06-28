@@ -148,11 +148,24 @@
     (khoaList || []).forEach((khoa) => {
       const option = document.createElement("option");
       option.value = String(khoa.id);
+      // Gắn thêm data-code để dễ map với MaPhongBan của user
+      option.setAttribute("data-code", khoa.MaPhongBan);
       option.textContent = `${khoa.MaPhongBan} - ${khoa.TenPhongBan}`;
       el.khoaFilter.appendChild(option);
     });
 
-    // No auto-focusing to user's department, keep 'ALL' as default.
+    const userMaPhongBan = state.permission.maPhongBan;
+    // Nếu không phải là người có quyền xem chung toàn trường (không có canApprove)
+    // Và có mã phòng ban, ta sẽ tự động select phòng ban của họ và disable filter.
+    if (!state.permission.canApprove && userMaPhongBan) {
+      const targetOption = Array.from(el.khoaFilter.options).find(
+        (opt) => opt.getAttribute("data-code") === userMaPhongBan
+      );
+      if (targetOption) {
+        el.khoaFilter.value = targetOption.value;
+        el.khoaFilter.disabled = true;
+      }
+    }
   }
 
 

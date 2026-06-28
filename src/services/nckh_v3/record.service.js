@@ -353,8 +353,8 @@ const removeRecord = async (id, userContext) => {
       throw new Error("Không tìm thấy công trình");
     }
 
-    if (Number(current.vien_nc_duyet) === 1) {
-      throw new Error("Không được xóa công trình đã được Viện duyệt");
+    if (Number(current.khoa_duyet) === 1 || Number(current.vien_nc_duyet) === 1) {
+      throw new Error("Không được xóa công trình đã duyệt");
     }
 
     await nckhSoTietRepo.deleteByNckhId(connection, Number(id));

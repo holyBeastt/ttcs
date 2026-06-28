@@ -165,9 +165,18 @@ const lockData = async (namHoc, userId, ghiChu) => {
             };
         }
 
-        // 1c. Kiểm tra chưa bị khóa
-        const existingLock = await dataLockRepo.getLockRecord(connection, namHoc);
-        if (existingLock) {
+        // --- BUG #15 fix: Bắt đầu transaction + SELECT ... FOR UPDATE ---
+        // Trước đây chỉ SELECT thường → 2 request đồng thời có thể cùng pass check
+        // → cả 2 cùng INSERT → 1 fail với ER_DUP_ENTRY (đã có fallback catch)
+        // Giờ dùng FOR UPDATE để khóa row ngay khi SELECT, request khác phải đợi.
+        await connection.beginTransaction();
+
+        const [lockRows] = await connection.query(
+            `SELECT id FROM vg_khoa_du_lieu WHERE nam_hoc = ? FOR UPDATE`,
+            [namHoc]
+        );
+        if (lockRows.length > 0) {
+            await connection.rollback();
             return {
                 success: false,
                 message: "Dữ liệu năm học này đã được khóa",
@@ -189,6 +198,7 @@ const lockData = async (namHoc, userId, ghiChu) => {
             }
         }
         if (errors.length > 0) {
+            await connection.rollback();
             return {
                 success: false,
                 message: "Chưa đủ điều kiện khóa",
@@ -200,6 +210,7 @@ const lockData = async (namHoc, userId, ghiChu) => {
         const allApproved = await duyetTongHopRepo.isAllKhoaApproved(connection, namHoc);
         if (!allApproved) {
             const { totalKhoa, approvedKhoa } = await duyetTongHopRepo.getApprovalSummary(connection, namHoc);
+            await connection.rollback();
             return {
                 success: false,
                 message: `Chưa đủ điều kiện khóa: mới ${approvedKhoa}/${totalKhoa} khoa được duyệt tổng hợp`,
@@ -216,15 +227,14 @@ const lockData = async (namHoc, userId, ghiChu) => {
         console.info(`[dataLock] Tính toán xong: ${sdoList.length} giảng viên trong ${computeTime}ms`);
 
         if (!sdoList || sdoList.length === 0) {
+            await connection.rollback();
             return {
                 success: false,
                 message: "Không tìm thấy dữ liệu giảng viên nào để chốt",
             };
         }
 
-        // === Step 3: Transaction — Khóa + Snapshot ===
-        await connection.beginTransaction();
-
+        // === Step 3: Transaction đã bắt đầu ở BUG #15 fix (SELECT FOR UPDATE), chỉ cần commit ===
         try {
             // 3a. Insert bản ghi khóa
             await dataLockRepo.insertLockRecord(connection, { namHoc, userId, ghiChu });

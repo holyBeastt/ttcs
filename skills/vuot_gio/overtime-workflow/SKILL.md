@@ -14,8 +14,8 @@ This skill packages domain knowledge for the university's "vuotgio" (overtime/te
 ## What it does
 
 Provides agents with:
-- **Canonical formulas**: How overtime is calculated with NCKH deductions and caps
-- **Business rules**: Approval gates, inclusion criteria, rounding policies
+- **Canonical formulas**: How overtime is calculated with NCKH deductions and caps, handling multiple policy versions (V1 up to 2024-2025, V2 from 2025-2026 onwards).
+- **Business rules**: Approval gates, inclusion criteria, rounding policies, exemption/discount rules based on policy version.
 - **Drift detection**: Scripts to validate code against documented formulas
 - **Edge cases**: Handling of negative totals, missing quotas, partial approvals
 

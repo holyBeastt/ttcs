@@ -175,34 +175,42 @@ const setVienApproval = async (connection, id, vienNcDuyet, khoaDuyetWhenReset =
 };
 
 const bulkUpdateApprovals = async (connection, updates) => {
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return 0;
+  }
+
+  // --- BUG #14 fix: CASE WHEN thay vì N round-trips ---
+  // Tách riêng khoa_duyet và vien_nc_duyet thành 2 batch update
+  const escape = (val) => connection.escape(val);
+
+  const khoaUpdates = updates.filter((u) => u.khoaDuyet !== undefined);
+  const vienUpdates = updates.filter((u) => u.vienNcDuyet !== undefined);
+
   let totalAffected = 0;
 
-  for (const update of updates) {
-    const { id, khoaDuyet, vienNcDuyet } = update;
+  // Batch update khoa_duyet
+  if (khoaUpdates.length > 0) {
+    const cases = khoaUpdates
+      .map((u) => `WHEN ${Number(u.id)} THEN ${Number(u.khoaDuyet)}`)
+      .join(' ');
+    const ids = khoaUpdates.map((u) => Number(u.id)).join(',');
+    const [result] = await connection.query(
+      `UPDATE ${TABLE} SET khoa_duyet = CASE id ${cases} END WHERE id IN (${ids})`,
+      []
+    );
+    totalAffected += result.affectedRows;
+  }
 
-    let query = `UPDATE ${TABLE} SET `;
-    const params = [];
-    const setParts = [];
-
-    if (khoaDuyet !== undefined) {
-      setParts.push("khoa_duyet = ?");
-      params.push(khoaDuyet);
-    }
-
-    if (vienNcDuyet !== undefined) {
-      setParts.push("vien_nc_duyet = ?");
-      params.push(vienNcDuyet);
-    }
-
-    if (setParts.length === 0) {
-      continue;
-    }
-
-    query += setParts.join(", ");
-    query += " WHERE id = ?";
-    params.push(id);
-
-    const [result] = await connection.execute(query, params);
+  // Batch update vien_nc_duyet
+  if (vienUpdates.length > 0) {
+    const cases = vienUpdates
+      .map((u) => `WHEN ${Number(u.id)} THEN ${Number(u.vienNcDuyet)}`)
+      .join(' ');
+    const ids = vienUpdates.map((u) => Number(u.id)).join(',');
+    const [result] = await connection.query(
+      `UPDATE ${TABLE} SET vien_nc_duyet = CASE id ${cases} END WHERE id IN (${ids})`,
+      []
+    );
     totalAffected += result.affectedRows;
   }
 

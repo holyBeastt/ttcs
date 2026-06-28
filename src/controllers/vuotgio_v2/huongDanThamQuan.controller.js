@@ -13,7 +13,7 @@ const getFilters = async (req, res) => {
         const filters = await service.getFilters();
 
         // Nếu user thuộc khoa, chỉ trả về khoa của họ trong danh sách filter
-        if (req.khoaFilter?.isKhoa && req.khoaFilter.MaPhongBan) {
+        if (!req.khoaFilter?.isAdmin && req.khoaFilter?.MaPhongBan) {
             filters.khoa = [req.khoaFilter.MaPhongBan];
         }
 
@@ -38,7 +38,7 @@ const getTable = async (req, res) => {
         };
 
         // Enforce khoa filter: nếu user thuộc khoa, ép filter theo MaPhongBan
-        if (req.khoaFilter?.isKhoa && req.khoaFilter.MaPhongBan) {
+        if (!req.khoaFilter?.isAdmin && req.khoaFilter?.MaPhongBan) {
             filters.Khoa = req.khoaFilter.MaPhongBan;
         }
 
@@ -60,7 +60,7 @@ const save = async (req, res) => {
     };
 
     // Enforce khoa filter: nếu user thuộc khoa, ép khoa trong body
-    if (req.khoaFilter?.isKhoa && req.khoaFilter.MaPhongBan) {
+    if (!req.khoaFilter?.isAdmin && req.khoaFilter?.MaPhongBan) {
         req.body.khoa = req.khoaFilter.MaPhongBan;
     }
 

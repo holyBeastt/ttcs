@@ -6,7 +6,10 @@ Key files and responsibilities (project-specific):
   - `src/services/vuotgio_v2/tongHop.service.js` — build Atomic/Collection SDOs
 
 - Core formulas and mapping:
-  - `src/mappers/vuotgio_v2/summary.mapper.js` — `calculateOvertime`, `toAtomicSDO`, `toCollectionSDO`
+  - `src/mappers/vuotgio_v2/summary.mapper.js` — `calculateOvertime` delegates to `OvertimePolicyFactory`, `toAtomicSDO`, `toCollectionSDO`
+  - `src/mappers/vuotgio_v2/policies/OvertimePolicyFactory.js` — Strategy Pattern factory determining policy version based on academic year.
+  - `src/mappers/vuotgio_v2/policies/PolicyV1.js` — V1 calculation logic (<= 2024-2025).
+  - `src/mappers/vuotgio_v2/policies/PolicyV2.js` — V2 calculation logic (>= 2025-2026, 80% quota rule).
 
 - Repositories (data access):
   - `src/repositories/vuotgio_v2/tongHop.repo.js` — aggregation queries for giangday, lnqc, kthp, da, hdtq

@@ -39,10 +39,18 @@ const save = async (req, res) => {
             return res.status(400).json({ success: false, message: "Thiếu thông tin bắt buộc: Năm học, Tên HP, Giảng viên, Khoa, Hình thức" });
         }
 
+        // --- BUG #8 fix: throw lỗi thay vì fallback userId ---
         const lecturerId = await getLecturerIdByName(connection, data.giang_vien);
+        if (!lecturerId) {
+            console.error(`[KTHP] Không tìm thấy GV "${data.giang_vien}" trong DB`, { userId });
+            return res.status(400).json({
+                success: false,
+                message: `Giảng viên "${data.giang_vien}" không tồn tại trong hệ thống. Vui lòng kiểm tra lại tên.`
+            });
+        }
         const heDaoTaoId = await getHeDaoTaoIdByName(connection, data.doi_tuong);
         const [result] = await repo.insert(connection, [
-            lecturerId || userId,
+            lecturerId,
             data.giang_vien,
             data.khoa,
             data.hoc_ky,
@@ -97,7 +105,15 @@ const saveBatch = async (req, res) => {
             return res.status(400).json({ success: false, message: "Vui lòng nhập số tiết > 0 cho ít nhất 1 hình thức." });
         }
 
+        // --- BUG #8 fix: throw lỗi thay vì fallback userId ---
         const lecturerId = await getLecturerIdByName(connection, baseData.giang_vien);
+        if (!lecturerId) {
+            console.error(`[KTHP] saveBatch: Không tìm thấy GV "${baseData.giang_vien}" trong DB`);
+            return res.status(400).json({
+                success: false,
+                message: `Giảng viên "${baseData.giang_vien}" không tồn tại trong hệ thống.`
+            });
+        }
         const baseHeDaoTaoId = await getHeDaoTaoIdByName(connection, baseData.doi_tuong);
         const query = `
             INSERT INTO vg_coi_cham_ra_de
@@ -105,32 +121,45 @@ const saveBatch = async (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
         `;
 
+        // --- BUG #4 fix: bulk insert thay vì N round-trips ---
+        // Resolve các detailHeDaoTaoId trước (có thể tái sử dụng base nếu giống)
+        const detailHeDaoTaoIds = await Promise.all(normalizedDetails.map((d) =>
+            d.doi_tuong === baseData.doi_tuong
+                ? Promise.resolve(baseHeDaoTaoId)
+                : getHeDaoTaoIdByName(connection, d.doi_tuong)
+        ));
+
+        const values = normalizedDetails.map((detail, idx) => [
+            lecturerId,
+            baseData.giang_vien,
+            baseData.khoa,
+            baseData.hoc_ky,
+            baseData.nam_hoc,
+            baseData.dot || 1,
+            detail.hinh_thuc,
+            baseData.ten_hoc_phan,
+            baseData.lop_hoc_phan,
+            detail.doi_tuong,
+            detailHeDaoTaoIds[idx],
+            baseData.bai_cham_1,
+            baseData.bai_cham_2,
+            baseData.tong_so,
+            detail.quy_chuan,
+            baseData.ghi_chu,
+            baseData.so_tc,
+            baseData.so_sv,
+        ]);
+
         await connection.beginTransaction();
-        const insertedIds = [];
-        for (const detail of normalizedDetails) {
-            const detailHeDaoTaoId = detail.doi_tuong === baseData.doi_tuong ? baseHeDaoTaoId : await getHeDaoTaoIdByName(connection, detail.doi_tuong);
-            const [result] = await connection.execute(query, [
-                lecturerId || userId,
-                baseData.giang_vien,
-                baseData.khoa,
-                baseData.hoc_ky,
-                baseData.nam_hoc,
-                baseData.dot || 1,
-                detail.hinh_thuc,
-                baseData.ten_hoc_phan,
-                baseData.lop_hoc_phan,
-                detail.doi_tuong,
-                detailHeDaoTaoId,
-                baseData.bai_cham_1,
-                baseData.bai_cham_2,
-                baseData.tong_so,
-                detail.quy_chuan,
-                baseData.ghi_chu,
-                baseData.so_tc,
-                baseData.so_sv,
-            ]);
-            insertedIds.push(result.insertId);
-        }
+        const [bulkResult] = await connection.query(
+            `INSERT INTO vg_coi_cham_ra_de
+            (id_user, giang_vien, khoa, hoc_ky, nam_hoc, dot, hinh_thuc, ten_hoc_phan, lop_hoc_phan, doi_tuong, he_dao_tao_id, bai_cham_1, bai_cham_2, tong_so, quy_chuan, ghi_chu, khoa_duyet, khao_thi_duyet, so_tc, so_sv)
+            VALUES ?`,
+            [values]
+        );
+        // MySQL: insertId là ID đầu tiên; tính các ID còn lại bằng cách +1 cho mỗi row auto_increment
+        const firstId = bulkResult.insertId;
+        const insertedIds = values.map((_, idx) => firstId + idx);
         await connection.commit();
 
         try { await LogService.logChange(userId, userName, "Thêm KTHP batch", `Thêm batch KTHP gồm ${normalizedDetails.length} hình thức - HP: "${baseData.ten_hoc_phan}" - GV: "${baseData.giang_vien}"`); } catch (error) { console.error("Lỗi khi ghi log:", error); }
@@ -195,11 +224,19 @@ const edit = async (req, res) => {
     try {
         connection = await createPoolConnection();
         const data = mapper.toEntity(req.body);
+        // --- BUG #8 fix: throw lỗi thay vì fallback ---
         const lecturerId = await getLecturerIdByName(connection, data.giang_vien);
+        if (!lecturerId) {
+            console.error(`[KTHP] edit: Không tìm thấy GV "${data.giang_vien}" trong DB`);
+            return res.status(400).json({
+                success: false,
+                message: `Giảng viên "${data.giang_vien}" không tồn tại trong hệ thống.`
+            });
+        }
         const heDaoTaoId = await getHeDaoTaoIdByName(connection, data.doi_tuong);
 
         const [result] = await repo.update(connection, ID, [
-            lecturerId || userId,
+            lecturerId,
             data.giang_vien,
             data.khoa,
             data.hoc_ky,
@@ -372,15 +409,32 @@ const getMyList = async (req, res) => {
 };
 
 const deleteByFilter = async (req, res) => {
-    const { Ki, Nam, hocKy, namHoc, dot } = req.body;
+    const { Ki, Nam, hocKy, namHoc, dot, khoa: khoaBody } = req.body;
     const kiVal = hocKy || Ki;
     const namVal = namHoc || Nam;
     const { userId, userName } = getUserContext(req);
+
+    // --- BUG #2 fix: enforce khoa filter từ session ---
+    const userKhoa = req.khoaFilter?.MaPhongBan || req.session?.MaPhongBan || "";
+    const isAdmin = req.khoaFilter?.isAdmin || false;
+
+    // Nếu user không phải admin → bắt buộc khoa = session, không cho phép truyền khác.
+    let targetKhoa;
+    if (!isAdmin) {
+        if (khoaBody && khoaBody !== "ALL" && khoaBody !== userKhoa) {
+            return res.status(403).json({ success: false, message: "Không có quyền xóa dữ liệu khoa khác." });
+        }
+        targetKhoa = userKhoa;
+    } else {
+        // Admin: cho phép truyền khoa hoặc 'ALL' để xóa tất cả
+        targetKhoa = khoaBody || "ALL";
+    }
+
     let connection;
     try {
         connection = await createPoolConnection();
-        const [result] = await repo.deleteByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal, dot: dot });
-        await LogService.logChange(userId, userName, "Xóa KTHP theo năm/kỳ/đợt", `Xóa ${result.affectedRows} bản ghi - Học kỳ ${kiVal}, Năm ${namVal}, Đợt ${dot || 'Tất cả'}`);
+        const [result] = await repo.deleteByYearAndSemester(connection, { hocKy: kiVal, namHoc: namVal, dot, khoa: targetKhoa });
+        await LogService.logChange(userId, userName, "Xóa KTHP theo năm/kỳ/đợt", `Xóa ${result.affectedRows} bản ghi - Học kỳ ${kiVal}, Năm ${namVal}, Khoa: ${targetKhoa}, Đợt ${dot || 'Tất cả'}`);
         res.json({ success: true, message: "Xóa dữ liệu thành công", affectedRows: result.affectedRows });
     } catch (error) {
         console.error("Lỗi khi xóa dữ liệu KTHP:", error);
@@ -417,39 +471,46 @@ const updateBatch = async (req, res) => {
         connection = await createPoolConnection();
         await connection.beginTransaction();
 
-        for (const item of dataList) {
-            const id = item.id || item.ID;
-            const existing = await repo.getById(connection, id);
-            if (!existing) continue;
+        // --- BUG #4 fix: CASE WHEN cho batch update ---
+        // Tính toán các giá trị cho mỗi cột một lần, dùng CASE WHEN id = ? THEN ? để chỉ định giá trị theo id.
+        const escape = (val) => connection.escape(val);
 
-            const loai = item.loai || item.hinh_thuc || item.Type;
-            let baicham1 = 0, baicham2 = 0, tongso = 0;
-            if (loai === "Ra Đề" || loai === "Ra đề") tongso = item.soDe || item.tong_so || 0;
-            else if (loai === "Coi Thi" || loai === "Coi thi") tongso = item.soCa || item.tong_so || 0;
-            else if (loai === "Chấm Thi" || loai === "Chấm thi") {
-                baicham1 = item.soBaiCham1 || item.bai_cham_1 || 0;
-                baicham2 = item.soBaiCham2 || item.bai_cham_2 || 0;
-                tongso = item.tongSoBai || item.tong_so || 0;
+        const buildCase = (key, transform = (v) => v) => {
+            const parts = [];
+            for (const item of dataList) {
+                const id = Number(item.id || item.ID);
+                if (!id) continue;
+                parts.push(`WHEN ${id} THEN ${escape(transform(item))}`);
             }
+            return `CASE id ${parts.join(' ')} END`;
+        };
 
-            await connection.execute(
-                `UPDATE ${repo.COI_CHAM_RA_DE_TABLE} SET 
-                    ten_hoc_phan = ?, lop_hoc_phan = ?, hinh_thuc = ?, 
-                    bai_cham_1 = ?, bai_cham_2 = ?, tong_so = ?, quy_chuan = ?,
-                    khoa_duyet = ?, khao_thi_duyet = ?
-                WHERE id = ?`,
-                [
-                    item.tenHocPhan || item.ten_hoc_phan,
-                    item.lopHocPhan || item.lop_hoc_phan,
-                    loai,
-                    baicham1, baicham2, tongso,
-                    item.soTietQC || item.quy_chuan || 0,
-                    item.khoaduyet || item.khoa_duyet || 0,
-                    item.khaothiduyet || item.khao_thi_duyet || 0,
-                    id
-                ]
-            );
-        }
+        const buildIntCase = (key, def = 0) => {
+            const parts = [];
+            for (const item of dataList) {
+                const id = Number(item.id || item.ID);
+                if (!id) continue;
+                const val = Number(item[key] ?? def);
+                parts.push(`WHEN ${id} THEN ${val}`);
+            }
+            return `CASE id ${parts.join(' ')} END`;
+        };
+
+        const updateQuery = `
+            UPDATE ${repo.COI_CHAM_RA_DE_TABLE} SET
+                ten_hoc_phan = ${buildCase('tenHocPhan', (i) => i.tenHocPhan || i.ten_hoc_phan || null)},
+                lop_hoc_phan = ${buildCase('lopHocPhan', (i) => i.lopHocPhan || i.lop_hoc_phan || null)},
+                hinh_thuc = ${buildCase('loai', (i) => i.loai || i.hinh_thuc || i.Type || null)},
+                bai_cham_1 = ${buildIntCase('soBaiCham1')},
+                bai_cham_2 = ${buildIntCase('soBaiCham2')},
+                tong_so = ${buildIntCase('tongso')},
+                quy_chuan = ${buildIntCase('soTietQC')},
+                khoa_duyet = ${buildIntCase('khoaduyet')},
+                khao_thi_duyet = ${buildIntCase('khaothiduyet')}
+            WHERE id IN (${dataList.map((i) => Number(i.id || i.ID)).filter(Boolean).join(',')})
+        `;
+
+        await connection.query(updateQuery);
 
         await connection.commit();
         await LogService.logChange(userId, userName, "Cập nhật KTHP hàng loạt", `Cập nhật ${dataList.length} bản ghi`);

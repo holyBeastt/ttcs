@@ -846,11 +846,13 @@ const AdminController = {
   },
   suggest: async (req, res) => {
     const query = req.params.query;
+    const { buildLikePattern } = require("../utils/sql-escape");
+    const pattern = buildLikePattern(query); // escapes %, _, \\ rồi thêm %...%
     let connection = await createPoolConnection();
     try {
       const results = await connection.query(
-        "SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ?",
-        [`%${query}%`]
+        "SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ? ESCAPE '\\\\'",
+        [pattern]
       );
       res.json(results);
     } catch (error) {
@@ -865,11 +867,13 @@ const AdminController = {
   suggestPb: async (req, res) => {
     const query = req.params.query;
     const MaPhongBan = req.params.MaPhongBan;
+    const { buildLikePattern } = require("../utils/sql-escape");
+    const pattern = buildLikePattern(query); // escapes %, _, \\ rồi thêm %...%
     let connection = await createPoolConnection();
     try {
       const results = await connection.query(
-        "SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ? AND MaPhongBan = ?",
-        [`%${query}%`, MaPhongBan]
+        "SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ? ESCAPE '\\\\' AND MaPhongBan = ?",
+        [pattern, MaPhongBan]
       );
       res.json(results);
     } catch (error) {

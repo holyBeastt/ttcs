@@ -67,10 +67,15 @@ class ImportController {
 
       const result = await importService.saveToDatabase(records, userContext);
 
+      const hasFailures = result.failedCount > 0;
       return res.json({
-        success: true,
-        message: `Import thành công ${result.savedCount} công trình NCKH.`,
+        success: !hasFailures, // success = true nếu tất cả OK; false nếu có record lỗi
+        message: hasFailures
+          ? `Import thành công ${result.savedCount} công trình, ${result.failedCount} bản ghi lỗi.`
+          : `Import thành công ${result.savedCount} công trình NCKH.`,
         savedCount: result.savedCount,
+        failedCount: result.failedCount,
+        failedRecords: result.failedRecords,
       });
     } catch (error) {
       console.error("[NCKH V3 Import] Save error:", error);

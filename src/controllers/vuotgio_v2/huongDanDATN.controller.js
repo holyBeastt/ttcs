@@ -11,7 +11,7 @@ const service = require("../../services/vuotgio_v2/datn.service");
 const getTable = async (req, res) => {
     try {
         const filters = {
-            NamHoc: req.query.NamHoc,
+            namHoc: req.query.NamHoc,
             dot: req.query.Dot,
             ki: req.query.Ki,
             khoa: req.query.Khoa,

@@ -11,14 +11,19 @@
  */
 const classify = (tenHeDaoTao) => {
     const name = String(tenHeDaoTao || "").toLowerCase();
-    const isMatMa = name.includes("mật mã");
 
     let vungMien = "viet_nam";
     if (name.includes("lào")) vungMien = "lao";
     else if (name.includes("campuchia")) vungMien = "campuchia";
     else if (name.includes("cuba")) vungMien = "cuba";
 
-    return { isMatMa, vungMien };
+    // Phân loại Đóng học phí
+    const isDongHP = name.includes("đóng học phí") || name.includes("đồ án cao học");
+    
+    // Mật mã bao gồm các hệ có chữ "mật mã" HOẶC hệ của nước ngoài (vì có hệ thiếu chữ mật mã như 'Đồ án ĐH Campuchia')
+    const isMatMa = name.includes("mật mã") || vungMien !== "viet_nam";
+
+    return { isMatMa, vungMien, isDongHP };
 };
 
 /**
@@ -27,7 +32,11 @@ const classify = (tenHeDaoTao) => {
  * @returns {string} vn | lao | cuba | cpc | dongHP
  */
 const getCategoryKey = (tenHeDaoTao) => {
-    const { isMatMa, vungMien } = classify(tenHeDaoTao);
+    const { isMatMa, vungMien, isDongHP } = classify(tenHeDaoTao);
+    
+    if (isDongHP) return "dongHP";
+    
+    // Nếu không phải đóng HP, và cũng không phải mật mã (và không có vùng miền) -> rơi vào đóng HP fallback
     if (!isMatMa) return "dongHP";
 
     const regionToCategory = {

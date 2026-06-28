@@ -89,7 +89,17 @@ const getCollectionSDO = async (namHocInput, khoa, isDuKien = false) => withConn
         });
     }
 
-    return mapper.toCollectionSDO(rawData, nckhMap, namHoc, dinhMuc);
+    const sdoList = mapper.toCollectionSDO(rawData, nckhMap, namHoc, dinhMuc);
+    return {
+        data: sdoList,
+        warnings: missingNckh.length
+            ? {
+                missingNckhCount: missingNckh.length,
+                message: `${missingNckh.length} giảng viên chưa có dữ liệu NCKH — có thể ảnh hưởng đến tính vượt giờ.`,
+                sample: missingNckh.slice(0, 20),
+            }
+            : null,
+    };
 });
 
 /**
@@ -172,8 +182,8 @@ const getCollectionSDODetail = async (namHocInput, khoa, isDuKien = false) => wi
         sdoList.push(sdo);
     }
 
-    console.info(`[getCollectionSDODetail] Aggregated ${sdoList.length} records. Total luong: ${sdoList.reduce((s, r) => s + (r.luong || 0), 0)}. Sample:`, 
-        sdoList.slice(0, 5).map(r => ({ gv: r.giangVien, luong: r.luong })));
+    // console.info(`[getCollectionSDODetail] Aggregated ${sdoList.length} records. Total luong: ${sdoList.reduce((s, r) => s + (r.luong || 0), 0)}. Sample:`, 
+    //     sdoList.slice(0, 51).map(r => ({ gv: r.giangVien, luong: r.luong })));
 
     return sdoList;
 });

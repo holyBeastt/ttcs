@@ -12,7 +12,7 @@ const templatePreviewService = require("../../services/vuotgio_v2/templatePrevie
  */
 const getPreviewData = async (req, res) => {
     const { MaGV } = req.params;
-    const { namHoc } = req.query;
+    const { namHoc, isDuKien } = req.query;
 
     if (!namHoc || !MaGV) {
         return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học hoặc Giảng viên" });
@@ -20,11 +20,22 @@ const getPreviewData = async (req, res) => {
 
     try {
         const { format = 'pdf' } = req.query;
+        let sdo;
 
-        console.info('[getPreviewData]', { MaGV, namHoc, mode: 'snapshot' });
-        
-        // Lấy SDO từ snapshotDataService thay vì tongHopService
-        const sdo = await snapshotDataService.getSnapshotSDOByUser(namHoc, decodeURIComponent(MaGV));
+        const isLocked = await snapshotDataService.isYearLocked(namHoc);
+
+        if (isLocked) {
+            console.info('[getPreviewData]', { MaGV, namHoc, mode: 'snapshot' });
+            sdo = await snapshotDataService.getSnapshotSDOByUser(namHoc, decodeURIComponent(MaGV));
+        } else {
+            let isDuKienBool = true;
+            if (isDuKien !== undefined) {
+                isDuKienBool = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
+            }
+            console.info('[getPreviewData]', { MaGV, namHoc, mode: 'live', isDuKien: isDuKienBool });
+            sdo = await tongHopService.getAtomicSDO(namHoc, decodeURIComponent(MaGV), null, isDuKienBool);
+        }
+
         if (!sdo) return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu giảng viên" });
 
         // Log chi tiết số lượng bản ghi để debug
@@ -63,7 +74,7 @@ const getPreviewData = async (req, res) => {
  */
 const getPreviewKhoaData = async (req, res) => {
     const { khoa } = req.params;
-    const { namHoc } = req.query;
+    const { namHoc, isDuKien } = req.query;
 
     if (!namHoc || !khoa) {
         return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học hoặc Khoa" });
@@ -72,9 +83,20 @@ const getPreviewKhoaData = async (req, res) => {
     try {
         const khoaDecoded = decodeURIComponent(khoa);
         
-        console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, mode: 'snapshot' });
-        
-        const summaries = await snapshotDataService.getSnapshotSDOList(namHoc, khoaDecoded);
+        const isLocked = await snapshotDataService.isYearLocked(namHoc);
+        let summaries;
+
+        if (isLocked) {
+            console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, mode: 'snapshot' });
+            summaries = await snapshotDataService.getSnapshotSDOList(namHoc, khoaDecoded);
+        } else {
+            let isDuKienBool = true;
+            if (isDuKien !== undefined) {
+                isDuKienBool = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
+            }
+            console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, mode: 'live', isDuKien: isDuKienBool });
+            summaries = await tongHopService.getCollectionSDODetail(namHoc, khoaDecoded, isDuKienBool);
+        }
 
         if (!summaries || summaries.length === 0) {
             return res.status(404).json({ success: false, message: "Không tìm thấy dữ liệu cho khoa này" });

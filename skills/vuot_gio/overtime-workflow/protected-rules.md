@@ -6,10 +6,11 @@ These rules are project-specific and must be treated as authoritative before cha
    - If `sotietdinhmuc` row is missing, default `dinhMucChuan = 280` and `dinhMucNCKH = 280`.
 
 2. Discount application (`phanTramMienGiam`)
-   - `phanTramMienGiam` is applied to both teaching quota (`dinhMucChuan`) and NCKH quota (`dinhMucNCKH`) before computing deficits.
+   - **Policy V1 (<= 2024-2025):** `phanTramMienGiam` is applied directly to the teaching quota (`dinhMucChuan = 280`).
+   - **Policy V2 (>= 2025-2026):** If `phanTramMienGiam > 0`, the teaching quota (`dinhMucChuan`) is immediately capped at 80% (224 hours). The `phanTramMienGiam` percentage is NOT applied as a continuous multiplier. NCKH quota (`dinhMucNCKH`) remains unaffected by exemptions in both rules, any deficit is purely `max(0, dinhMucNCKH - soTietNCKH)`.
 
 3. NCKH shortfall reduces payable overtime
-   - Compute `thieuNCKH = max(0, dinhMucNCKHSauGiam - soTietNCKH)`. This value reduces the effective teaching before computing overtime.
+   - Compute `thieuNCKH = max(0, dinhMucNCKH - soTietNCKH)`. This value reduces the effective teaching before computing overtime. NCKH quota (`dinhMucNCKH`) does not get reductions from `phanTramMienGiam`.
 
 4. Non-negativity
    - Raw overtime below zero is treated as zero (no negative payouts).

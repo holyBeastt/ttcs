@@ -14,7 +14,7 @@ const crypto = require('crypto');
 
 const fixturesPath = path.join(__dirname, '..', 'examples', 'fixtures.json');
 // project root is three levels up from this script: skills/overtime-workflow/scripts -> project
-const mapperPath = path.join(__dirname, '..', '..', '..', 'src', 'mappers', 'vuotgio_v2', 'summary.mapper.js');
+const mapperPath = path.join(__dirname, '..', '..', '..', '..', 'src', 'mappers', 'vuotgio_v2', 'summary.mapper.js');
 
 function checksumOfFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');

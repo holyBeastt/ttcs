@@ -219,7 +219,7 @@ const getLecturerIdsByNames = async (connection, names) => {
 };
 
 const getKhoaList = async (connection) => {
-    const [rows] = await connection.query(`SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`);
+    const [rows] = await connection.query(`SELECT MaPhongBan FROM phongban`);
     return rows.map((row) => row.MaPhongBan);
 };
 

@@ -30,9 +30,7 @@ const importAuthMiddleware = (req, res, next) => {
   const vienNcCode = process.env.VIEN_NCKH_HTPT || "NCKHHTQT";
 
   const hasRole = role === troLyPhong || role === lanhDaoPhong;
-  // TODO: Bật lại kiểm tra phòng ban sau khi test xong
-  // const hasDept = maPhongBan === vienNcCode;
-  const hasDept = true;
+  const hasDept = maPhongBan === vienNcCode;
 
   if (!hasRole || !hasDept) {
     if (req.headers["content-type"]?.includes("json") || req.xhr) {

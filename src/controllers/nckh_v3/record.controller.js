@@ -2,7 +2,17 @@ const recordService = require("../../services/nckh_v3/record.service");
 
 const list = async (req, res) => {
   try {
-    const { namHoc, khoaId = "ALL" } = req.query;
+    let { namHoc, khoaId = "ALL" } = req.query;
+
+    const isKhoa = req.session?.isKhoa;
+    const maPhongBan = req.session?.MaPhongBan;
+
+    // Enforce backend access control: 
+    // Faculty users (isKhoa = 1) can ONLY view their own department's data.
+    if ((isKhoa === 1 || isKhoa === "1") && maPhongBan) {
+      khoaId = maPhongBan;
+    }
+
     const data = await recordService.list(namHoc, khoaId);
     res.json({ success: true, data });
   } catch (error) {

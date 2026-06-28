@@ -131,7 +131,10 @@ const getApprovalSummary = async (connection, namHoc) => {
 
     // Lấy số khoa đã duyệt
     const [approvedRows] = await connection.execute(
-        `SELECT COUNT(*) AS approved FROM ${TABLE} WHERE nam_hoc = ? AND van_phong_duyet = 1`,
+        `SELECT COUNT(d.id) AS approved 
+         FROM ${TABLE} d
+         JOIN phongban p ON d.khoa = p.MaPhongBan
+         WHERE d.nam_hoc = ? AND d.van_phong_duyet = 1 AND p.isKhoa = 1`,
         [namHoc]
     );
     const approvedKhoa = approvedRows[0].approved;
