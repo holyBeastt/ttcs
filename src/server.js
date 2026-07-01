@@ -79,6 +79,9 @@ const uyNhiemChiRoute = require("./routes/uyNhiemChiRoute");
 const kytubatdauKhoaRoute = require("./routes/kytubatdauKhoaRoute");
 const syncRoute = require("./routes/syncRoute");
 
+// [NEW] Admin chỉnh sửa thông tin lõi Mời giảng (chỉ ADMIN)
+const adminMoiGiangCoreInfoRoute = require("./routes/adminMoiGiangCoreInfoRoute");
+
 const app = express();
 const port = process.env.PORT || 8888;
 const hostname = process.env.HOST_NAME;
@@ -242,6 +245,9 @@ app.use("/", phongHocRoute);
 app.use("/uy-nhiem-chi", uyNhiemChiRoute);
 app.use("/", kytubatdauKhoaRoute);
 app.use("/sync", syncRoute);
+
+// [NEW] Admin chỉnh sửa thông tin lõi Mời giảng (chỉ ADMIN)
+app.use("/api/v1/admin/moi-giang", adminMoiGiangCoreInfoRoute);
 
 // Mobile API Routes
 const refreshTokenRoute = require("./routes/refreshTokenRoute");

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Thông tin giảng dạy cốt lõi</title>
+
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+  <!-- Toastify CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+
+  <style>
+    .filter-container {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .filter-container select, .filter-container input, .filter-container button {
+      height: 38px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <%- include('adminHeader') %>
+
+  <div class="container-fluid mt-4 px-4">
+    <h3 class="mb-4">Chỉnh sửa thông tin lõi (Mời giảng)</h3>
+
+    <!-- Filter Bar -->
+    <div class="filter-container">
+      <select class="form-select w-auto" id="combobox-dot">
+        <option value="">Đợt</option>
+      </select>
+      
+      <select class="form-select w-auto" id="comboboxki">
+        <option value="">Kỳ</option>
+      </select>
+      
+      <select class="form-select w-auto" id="NamHoc">
+        <option value="">Năm học</option>
+      </select>
+
+      <select class="form-select w-auto" id="heDaoTao">
+        <option value="ALL">Tất cả hệ</option>
+      </select>
+
+      <button id="getData" class="btn btn-primary px-4">
+        <i class="bi bi-search"></i> Hiển thị
+      </button>
+    </div>
+
+    <!-- AG Grid Container -->
+    <div id="myGrid" class="ag-theme-alpine" style="height: 600px; width: 100%;"></div>
+
+  </div>
+
+  <!-- jQuery & Bootstrap -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SweetAlert2 & Toastify -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+  <!-- AG Grid -->
+  <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css">
+  <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css">
+
+  <script>
+    let gridOptions;
+    let globalData = [];
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      
+      // Khởi tạo các combobox
+      await loadComboboxOptions();
+      await loadHeDaoTaoFromAPI();
+
+      // Sự kiện nút hiển thị
+      document.getElementById('getData').addEventListener('click', loadTableData);
+
+      // Định nghĩa columns cho AG Grid
+      const columnDefs = [
+        { headerName: "STT", valueGetter: "node.rowIndex + 1", width: 70, pinned: 'left' },
+        { headerName: "ID", field: "ID", hide: true },
+        { headerName: "Lớp học phần", field: "LopHocPhan", editable: true, width: 220, filter: true },
+        { headerName: "Tên lớp", field: "TenLop", editable: true, width: 150, filter: true },
+        { headerName: "Số TC", field: "SoTinChi", editable: true, width: 90, type: 'numericColumn' },
+        { headerName: "GV theo TKB", field: "GiaoVien", editable: true, width: 200, filter: true },
+        { headerName: "Khoa", field: "Khoa", editable: true, width: 100, filter: true },
+        { headerName: "LL", field: "LL", editable: true, width: 90, type: 'numericColumn' },
+        { headerName: "Quy chuẩn", field: "QuyChuan", editable: true, width: 120, type: 'numericColumn' },
+        { headerName: "Version", field: "version", hide: true }
+      ];
+
+      gridOptions = {
+        columnDefs: columnDefs,
+        rowData: [],
+        defaultColDef: {
+          resizable: true,
+          sortable: true
+        },
+        stopEditingWhenCellsLoseFocus: true,
+        // Bắt sự kiện auto-save
+        onCellValueChanged: async function (params) {
+          const updatedField = params.colDef.field;
+          const newValue = params.newValue;
+          const oldValue = params.oldValue;
+
+          if (newValue === oldValue) return; 
+
+          const data = params.data;
+          
+          if (['SoTinChi', 'LL', 'QuyChuan'].includes(updatedField) && isNaN(Number(newValue))) {
+             Toastify({ text: "Giá trị phải là số hợp lệ!", backgroundColor: "#f44336" }).showToast();
+             params.node.setDataValue(updatedField, oldValue);
+             return;
+          }
+
+          try {
+            // Backend expects { records: [{ id, LopHocPhan, TenLop, SoTinChi, GiaoVien, Khoa, LL, QuyChuan, version }] }
+            const payload = {
+              records: [{
+                id: data.ID,
+                LopHocPhan: updatedField === 'LopHocPhan' ? newValue : data.LopHocPhan,
+                TenLop: updatedField === 'TenLop' ? newValue : data.TenLop,
+                SoTinChi: updatedField === 'SoTinChi' ? newValue : data.SoTinChi,
+                GiaoVien: updatedField === 'GiaoVien' ? newValue : data.GiaoVien,
+                Khoa: updatedField === 'Khoa' ? newValue : data.Khoa,
+                LL: updatedField === 'LL' ? newValue : data.LL,
+                QuyChuan: updatedField === 'QuyChuan' ? newValue : data.QuyChuan,
+                version: data.version || 0
+              }]
+            };
+
+            const response = await fetch('/api/v1/admin/moi-giang/core-info', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              Toastify({ text: "✅ Cập nhật thành công", backgroundColor: "#4CAF50" }).showToast();
+              if (result.data && result.data.newVersion !== undefined) {
+                 params.node.setDataValue('version', result.data.newVersion);
+              }
+            } else if (response.status === 409) {
+              Swal.fire({
+                title: 'Dữ liệu không đồng bộ!',
+                text: 'Dữ liệu này đã được sửa bởi phiên khác. Vui lòng tải lại.',
+                icon: 'warning'
+              });
+              params.node.setDataValue(updatedField, oldValue); 
+            } else {
+              Toastify({ text: "❌ " + (result.message || "Lỗi cập nhật"), backgroundColor: "#f44336" }).showToast();
+              params.node.setDataValue(updatedField, oldValue); 
+            }
+          } catch (error) {
+            console.error(error);
+            Toastify({ text: "❌ Lỗi mạng", backgroundColor: "#f44336" }).showToast();
+            params.node.setDataValue(updatedField, oldValue); 
+          }
+        }
+      };
+
+      const gridDiv = document.getElementById('myGrid');
+      new agGrid.Grid(gridDiv, gridOptions);
+    });
+
+    // Helper Functions
+    async function loadComboboxOptions() {
+      try {
+        const response = await fetch('/getNamHoc');
+        const data = await response.json();
+        
+        if (data.success) {
+          data.NamHoc.forEach(item => $('#NamHoc').append(`<option value="${item.NamHoc}">${item.NamHoc}</option>`));
+          data.Ki.forEach(item => $('#comboboxki').append(`<option value="${item.value}">${item.Ki}</option>`));
+          data.Dot.forEach(item => $('#combobox-dot').append(`<option value="${item.value}">${item.Dot}</option>`));
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+      }
+    }
+
+    async function loadHeDaoTaoFromAPI() {
+      try {
+        const response = await fetch('/api/gvm/v1/he-moi-giang');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          result.data.forEach(item => {
+            $('#heDaoTao').append(`<option value="${item.id}">${item.he_dao_tao}</option>`);
+          });
+        }
+      } catch (error) {
+        console.error('Lỗi khi gọi API hệ đào tạo:', error);
+      }
+    }
+
+    async function loadTableData() {
+      const dotValue = document.getElementById('combobox-dot').value;
+      const kiValue = document.getElementById('comboboxki').value;
+      const namValue = document.getElementById('NamHoc').value;
+      const heDaoTaoValue = document.getElementById('heDaoTao').value;
+
+      if (!dotValue || !kiValue || !namValue) {
+        Toastify({ text: "Vui lòng chọn Đợt, Kỳ, Năm học", backgroundColor: "#f44336" }).showToast();
+        return;
+      }
+
+      const requestData = {
+        Dot: dotValue,
+        Ki: kiValue,
+        Nam: namValue,
+        HeDaoTao: heDaoTaoValue,
+      };
+
+      try {
+        const response = await fetch('/api/v1/qc/thong-tin-giang-day', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestData),
+        });
+
+        if (!response.ok) {
+          Swal.fire('Thông báo', 'Không có dữ liệu cho thời gian này.', 'info');
+          gridOptions.api.setRowData([]);
+          return;
+        }
+
+        const data = await response.json();
+        globalData = data.results || [];
+        gridOptions.api.setRowData(globalData);
+        
+      } catch (error) {
+        console.error("Lỗi lấy dữ liệu bảng:", error);
+        Swal.fire('Lỗi', 'Có lỗi xảy ra khi lấy dữ liệu', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
