@@ -79,4 +79,15 @@ const updateCoreInfo = async (records, performedBy) => {
   return { updated: updatedList };
 };
 
-module.exports = { updateCoreInfo, DomainError };
+/**
+ * Xóa một record theo ID.
+ *
+ * @param {number} id
+ * @returns {Promise<boolean>}
+ */
+const deleteCoreInfo = async (id) => {
+  const affectedRows = await adminCoreInfoRepository.deleteRecord(id);
+  return affectedRows > 0;
+};
+
+module.exports = { updateCoreInfo, deleteCoreInfo, DomainError };

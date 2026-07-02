@@ -110,8 +110,23 @@ const runInTransaction = async (callback) => {
   }
 };
 
+/**
+ * Xóa một record theo ID.
+ *
+ * @param {number} id
+ * @param {object|null} trx
+ * @returns {Promise<number>} Số dòng bị ảnh hưởng
+ */
+const deleteRecord = async (id, trx = null) => {
+  const conn = trx || pool;
+  const sql = `DELETE FROM ?? WHERE ID = ?`;
+  const [result] = await conn.query(sql, [TABLE_QC, id]);
+  return result.affectedRows;
+};
+
 module.exports = {
   updateRecord,
+  deleteRecord,
   recordExists,
   insertAuditLog,
   runInTransaction,

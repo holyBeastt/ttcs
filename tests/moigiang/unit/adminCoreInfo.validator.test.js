@@ -283,4 +283,21 @@ describe('validateCoreInfoPayload', () => {
       expect(err.message).toContain('[records[0]');
     }
   });
+
+  it('ignore extra fields in the record payload', () => {
+    // Giả lập AG Grid gửi lên các trường disabled (SoSinhVien, NgayBatDau, HeSoLopDong...)
+    const recordWithExtraFields = {
+      ...validRecord(),
+      SoSinhVien: 100,
+      NgayBatDau: '2023-01-01',
+      HeSoLopDong: 1.5,
+      BoMon: 'Unknown'
+    };
+    
+    // Validator vẫn phải pass thành công và bỏ qua những trường thừa này ở service (service tự destructure)
+    const result = validateCoreInfoPayload({ records: [recordWithExtraFields] });
+    expect(result.records).toHaveLength(1);
+    expect(result.records[0].LopHocPhan).toBe('ATTT101');
+  });
 });
+

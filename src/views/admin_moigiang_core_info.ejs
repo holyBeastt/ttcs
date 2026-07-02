@@ -18,20 +18,40 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
   <style>
-    .filter-container {
-      background-color: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+    /* Sao chép y nguyên CSS từ tkb.thoiKhoaBieuChinhThuc */
+    .header-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
       align-items: center;
+      gap: 10px;
+      justify-content: space-between;
     }
-
-    .filter-container select, .filter-container input, .filter-container button {
-      height: 38px;
+    .right {
+      margin-top: 20px;
+    }
+    .btn {
+      height: 45px;
+      margin-left: 5px;
+      padding: 6px 14px !important;
+      white-space: nowrap;
+    }
+    .tkb-input {
+      width: 263px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .tkb-input-container {
+      margin-left: 5px;
+      margin-bottom: 10px;
+    }
+    /* Kế thừa CSS từ styles.css cho các ID cũ */
+    #mg-dot, #mg-ki, #mg-nam-hoc, #mg-khoa, #mg-he-dao-tao {
+      width: 150px;
+      color: #5476f0;
+    }
+    .selectop {
+      padding: 0 10px !important;
     }
   </style>
 
@@ -43,31 +63,57 @@
   <div class="container-fluid mt-4 px-4">
     <h3 class="mb-4">Chỉnh sửa thông tin lõi (Mời giảng)</h3>
 
-    <!-- Filter Bar -->
-    <div class="filter-container">
-      <select class="form-select w-auto" id="combobox-dot">
-        <option value="">Đợt</option>
-      </select>
-      
-      <select class="form-select w-auto" id="comboboxki">
-        <option value="">Kỳ</option>
-      </select>
-      
-      <select class="form-select w-auto" id="NamHoc">
-        <option value="">Năm học</option>
-      </select>
+    <div class="container-fluid my-4" style="padding-left: 0px">
+      <div class="flex-grow-1">
+        <div class="header-actions">
+          <div class="left">
+            <button class="btn" id="them-vao-qc-du-kien" style="margin-bottom: 0px; display: none">
+              Thêm vào quy chuẩn dự kiến
+            </button>
+          </div>
+          <div class="right" style="margin-top: 0px">
+            <div class="loc d-flex align-items-center">
+              <!-- Combo box đợt -->
+              <select class="selectop" id="mg-dot">
+                <option value="">Đợt</option>
+              </select>
 
-      <select class="form-select w-auto" id="heDaoTao">
-        <option value="ALL">Tất cả hệ</option>
-      </select>
+              <!-- Combo box kì -->
+              <select class="selectop" id="mg-ki">
+                <option value="">Kì</option>
+              </select>
 
-      <button id="getData" class="btn btn-primary px-4">
-        <i class="bi bi-search"></i> Hiển thị
-      </button>
+              <!-- Combo box Năm -->
+              <select class="selectop" id="mg-nam-hoc">
+                <option value="">Chọn năm học</option>
+              </select>
+              <select class="selectop" id="mg-khoa">
+                <option value="">Chọn khoa</option>
+              </select>
+
+              <!-- Combo box hệ đào tạo -->
+              <select class="selectop" id="mg-he-dao-tao" style="width: max-content">
+                <option value="ALL">Tất cả hệ đào tạo</option>
+              </select>
+
+              <button id="getData" class="btn text-nowrap" style="margin-top: 17px">Hiển thị</button>
+              <button id="xoa-TKB" class="btn text-nowrap" style="margin-top: 17px">Xóa</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="tkb-input-container">
+              <input type="text" placeholder="Tìm kiếm theo Tên..." class="search tkb-input" id="find-by-class-name" />           
+          </div>
+
+          <!-- Bảng dữ liệu -->
+          <div id="table-container" class="ag-theme-alpine" style="height: 500px; width: 100%;">
+            <div id="myGrid" style="height: 100%; width: 100%;"></div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- AG Grid Container -->
-    <div id="myGrid" class="ag-theme-alpine" style="height: 600px; width: 100%;"></div>
 
   </div>
 
@@ -86,29 +132,72 @@
 
   <script>
     let gridOptions;
+    let gridApi; // Khai báo biến toàn cục cho gridApi để tránh undefined ở bản v31+
     let globalData = [];
 
     document.addEventListener("DOMContentLoaded", async function () {
-      
-      // Khởi tạo các combobox
-      await loadComboboxOptions();
+
+      // Tải hệ đào tạo từ API (Đợt/Kỳ/NămHọc/Khoa dùng jQuery ready riêng bên dưới)
       await loadHeDaoTaoFromAPI();
 
       // Sự kiện nút hiển thị
       document.getElementById('getData').addEventListener('click', loadTableData);
 
-      // Định nghĩa columns cho AG Grid
+      // Sự kiện tìm kiếm (như TKB)
+      document.getElementById('find-by-class-name').addEventListener('input', function() {
+        const text = this.value;
+        if (gridApi) {
+          if (gridApi.setGridOption) {
+            gridApi.setGridOption('quickFilterText', text);
+          } else if (typeof gridApi.setQuickFilter === 'function') {
+            gridApi.setQuickFilter(text);
+          }
+        }
+      });
+
+      // Bắt event Xóa
+      document.getElementById('xoa-TKB').addEventListener('click', function() {
+         Swal.fire({
+            title: 'Chưa khả dụng',
+            text: 'Tính năng xóa chưa được triển khai cho module này!',
+            icon: 'info'
+         });
+      });
+
+      // Định nghĩa columns cho AG Grid - Y HỆT BÊN TKB VỀ THỨ TỰ VÀ STYLE
       const columnDefs = [
         { headerName: "STT", valueGetter: "node.rowIndex + 1", width: 70, pinned: 'left' },
-        { headerName: "ID", field: "ID", hide: true },
-        { headerName: "Lớp học phần", field: "LopHocPhan", editable: true, width: 220, filter: true },
-        { headerName: "Tên lớp", field: "TenLop", editable: true, width: 150, filter: true },
-        { headerName: "Số TC", field: "SoTinChi", editable: true, width: 90, type: 'numericColumn' },
-        { headerName: "GV theo TKB", field: "GiaoVien", editable: true, width: 200, filter: true },
+        { headerName: "Lớp học phần", field: "LopHocPhan", editable: true, width: 250, filter: true },
         { headerName: "Khoa", field: "Khoa", editable: true, width: 100, filter: true },
-        { headerName: "LL", field: "LL", editable: true, width: 90, type: 'numericColumn' },
-        { headerName: "Quy chuẩn", field: "QuyChuan", editable: true, width: 120, type: 'numericColumn' },
-        { headerName: "Version", field: "version", hide: true }
+        { headerName: "Giảng viên theo TKB", field: "GiaoVien", editable: true, width: 150, filter: true },
+        { headerName: "Ngày bắt đầu", field: "NgayBatDau", editable: false, width: 110, valueFormatter: (p) => p.value ? p.value.split('T')[0] : '' },
+        { headerName: "Ngày kết thúc", field: "NgayKetThuc", editable: false, width: 110, valueFormatter: (p) => p.value ? p.value.split('T')[0] : '' },
+        { headerName: "LL", field: "LL", editable: true, width: 50, type: 'numericColumn' },
+        { headerName: "Số SV", field: "SoSinhVien", editable: false, width: 70, type: 'numericColumn' },
+        { headerName: "HS lớp đông", field: "HeSoLopDong", editable: false, width: 100, type: 'numericColumn' },
+        { headerName: "HS ngoài giờ", field: "HeSoT7CN", editable: false, width: 90, type: 'numericColumn' },
+        { headerName: "QC", field: "QuyChuan", editable: true, width: 70, type: 'numericColumn' },
+        { headerName: "Hệ đào tạo", field: "he_dao_tao", editable: false, width: 150, filter: true },
+        // Các cột ẩn hoặc đặc thù của riêng màn Core Info được để phía sau cùng
+        { headerName: "Số TC", field: "SoTinChi", editable: true, width: 80, type: 'numericColumn' }, // Màn TKB k query lên
+        { headerName: "Tên lớp", field: "TenLop", editable: true, width: 150, filter: true }, // Đặc thù Core Info
+        { headerName: "Mã học phần", field: "MaHocPhan", hide: true }, 
+        { headerName: "ID", field: "ID", hide: true },
+        { headerName: "Năm học", field: "NamHoc", hide: true },
+        { headerName: "Version", field: "version", hide: true },
+        {
+          headerName: "Thao tác",
+          field: "actions",
+          pinned: "right",
+          filter: false,
+          editable: false,
+          width: 80,
+          cellRenderer: (params) => {
+            const id = params.data.ID; // Lấy ID từ dữ liệu (Quy chuẩn ID)
+            const stt = params.node.rowIndex + 1; // Lấy STT của dòng
+            return `<button onclick="deleteRow('${id}', ${stt})">Xóa</button>`;
+          }
+        }
       ];
 
       gridOptions = {
@@ -116,8 +205,17 @@
         rowData: [],
         defaultColDef: {
           resizable: true,
-          sortable: true
+          sortable: true,
+          filter: false,
+          editable: false,
+          cellStyle: {
+            fontSize: "14px", 
+            whiteSpace: "normal", 
+            wordWrap: "break-word", 
+            textAlign: "center"
+          }
         },
+        rowHeight: 40,
         stopEditingWhenCellsLoseFocus: true,
         // Bắt sự kiện auto-save
         onCellValueChanged: async function (params) {
@@ -173,38 +271,185 @@
                 icon: 'warning'
               });
               params.node.setDataValue(updatedField, oldValue); 
+            } else if (response.status === 401) {
+              handleApiError(result, response.status);
+              params.node.setDataValue(updatedField, oldValue);
+            } else if (response.status === 403) {
+              handleApiError(result, response.status);
+              params.node.setDataValue(updatedField, oldValue);
             } else {
-              Toastify({ text: "❌ " + (result.message || "Lỗi cập nhật"), backgroundColor: "#f44336" }).showToast();
-              params.node.setDataValue(updatedField, oldValue); 
+              handleApiError(result, response.status, 'Auto-save');
+              params.node.setDataValue(updatedField, oldValue);
             }
           } catch (error) {
-            console.error(error);
-            Toastify({ text: "❌ Lỗi mạng", backgroundColor: "#f44336" }).showToast();
+            console.error('[Admin Mời Giảng] Lỗi mạng hoặc không thể kết nối:', error);
+            showToast('error', 'Lỗi mạng — không thể kết nối đến server.');
             params.node.setDataValue(updatedField, oldValue); 
           }
         }
       };
 
       const gridDiv = document.getElementById('myGrid');
-      new agGrid.Grid(gridDiv, gridOptions);
+      if (typeof agGrid.createGrid === 'function') {
+        gridApi = agGrid.createGrid(gridDiv, gridOptions);
+      } else {
+        new agGrid.Grid(gridDiv, gridOptions);
+        gridApi = gridOptions.api;
+      }
     });
 
-    // Helper Functions
-    async function loadComboboxOptions() {
-      try {
-        const response = await fetch('/getNamHoc');
-        const data = await response.json();
-        
-        if (data.success) {
-          data.NamHoc.forEach(item => $('#NamHoc').append(`<option value="${item.NamHoc}">${item.NamHoc}</option>`));
-          data.Ki.forEach(item => $('#comboboxki').append(`<option value="${item.value}">${item.Ki}</option>`));
-          data.Dot.forEach(item => $('#combobox-dot').append(`<option value="${item.value}">${item.Dot}</option>`));
-        }
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu năm học:", error);
-      }
+    // ─── Utilities ───────────────────────────────────────────────────────────
+
+    /**
+     * Hiển thị Toastify toast với màu sắc phù hợp.
+     * @param {'success'|'error'|'info'} type
+     * @param {string} text
+     */
+    function showToast(type, text) {
+      const colors = { success: '#4CAF50', error: '#f44336', info: '#2196F3' };
+      Toastify({
+        text,
+        duration: 3000,
+        gravity: 'top',
+        position: 'right',
+        backgroundColor: colors[type] || '#333',
+      }).showToast();
     }
 
+    /**
+     * Xử lý lỗi HTTP trả về từ API theo chuẩn Enterprise.
+     * Luôn hiển thị thông báo UI rõ ràng thay vì nuốt lỗi.
+     *
+     * @param {object} result  - JSON body phản hồi từ backend
+     * @param {number} status  - HTTP status code
+     * @param {string} [context] - Ngữ cảnh thêm để log
+     */
+    function handleApiError(result, status, context = '') {
+      const msg = result?.message || 'Đã xảy ra lỗi không xác định.';
+      const errorCode = result?.errorCode || '';
+      const logPrefix = context ? `[${context}]` : '[API Error]';
+
+      console.error(`${logPrefix} HTTP ${status}`, errorCode, msg, result);
+
+      if (status === 401) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Phiên đăng nhập hết hạn',
+          text: msg,
+          confirmButtonText: 'Đăng nhập lại',
+        }).then(() => { window.location.href = '/'; });
+        return;
+      }
+
+      if (status === 403) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Không có quyền truy cập',
+          text: msg,
+        });
+        return;
+      }
+
+      if (status === 409) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Dữ liệu không đồng bộ',
+          text: 'Bản ghi này vừa được chỉnh sửa bởi phiên khác. Vui lòng tải lại trang.',
+          confirmButtonText: 'Tải lại',
+        }).then(() => { window.location.reload(); });
+        return;
+      }
+
+      if (status >= 500) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: msg + (errorCode ? ` (${errorCode})` : ''),
+        });
+        return;
+      }
+
+      // 400 và các lỗi khác
+      showToast('error', `❌ ${msg}`);
+    }
+
+    // ─── Helper Functions (copy y nguyên từ TKB) ──────────────────────────────────────────────
+
+    /**
+     * T\u1ea3i \u0110\u1ee3t, K\u1ef3, N\u0103m h\u1ecdc t\u1eeb API /getNamHoc
+     * Copy y nguy\u00ean l\u1ed9 tr\u00ecnh t\u1eeb tkb.thoiKhoaBieuChinhThuc.ejs
+     * D\u00f9ng ID mg-* \u0111\u1ec3 tr\u00e1nh xung \u0111\u1ed9t v\u1edbi adminHeader.ejs (v\u1ed1n c\u00f3 id="NamHoc", id="HeDaoTao")
+     */
+    $(document).ready(function () {
+      $('#mg-nam-hoc option[value=""]').remove();
+      $('#mg-ki option[value=""]').remove();
+      $('#mg-dot option[value=""]').remove();
+
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+            response.NamHoc.forEach(function (item) {
+              $('#mg-nam-hoc').append(`<option value="${item.NamHoc}">${item.NamHoc}</option>`);
+            });
+
+            // \u2705 T\u1ef1 \u0111\u1ed9ng ch\u1ecdn n\u0103m h\u1ecdc \u0111ang ho\u1ea1t \u0111\u1ed9ng (trangthai = 1 - hi\u1ec3n th\u1ecb \u0111\u1ea7u ti\u00ean)
+            if (response.NamHoc.length > 0) {
+              $('#mg-nam-hoc').val(response.NamHoc[0].NamHoc);
+            }
+
+            response.Ki.forEach(function (item) {
+              $('#mg-ki').append(`<option value="${item.value}">${item.Ki}</option>`);
+            });
+            response.Dot.forEach(function (item) {
+              $('#mg-dot').append(`<option value="${item.value}">${item.Dot}</option>`);
+            });
+          } else {
+            console.error('Kh\u00f4ng l\u1ea5y \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u n\u0103m h\u1ecdc:', response.message);
+          }
+        },
+        error: function (error) {
+          console.error('L\u1ed7i khi l\u1ea5y d\u1eef li\u1ec7u n\u0103m h\u1ecdc:', error);
+        },
+      });
+    });
+
+    /**
+     * T\u1ea3i danh s\u00e1ch Khoa t\u1eeb API /api/TKB/getKhoaList
+     * Copy y nguy\u00ean l\u1ed9 tr\u00ecnh t\u1eeb tkb.thoiKhoaBieuChinhThuc.ejs
+     */
+    $(document).ready(function () {
+      $('#mg-khoa option[value=""]').remove();
+
+      $.ajax({
+        url: '/api/TKB/getKhoaList',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+            $('#mg-khoa').prepend('<option value="ALL">T\u1ea5t c\u1ea3 khoa</option>');
+            response.MaPhongBan.forEach(function (item) {
+              $('#mg-khoa').append(`<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`);
+            });
+            $('#mg-khoa').append('<option value="Khac">Kh\u00e1c</option>');
+
+            if (!$('#mg-khoa option:selected').length) {
+              $('#mg-khoa').prepend('<option value="">Ch\u1ecdn Khoa</option>');
+            }
+          } else {
+            console.error('Kh\u00f4ng l\u1ea5y \u0111\u01b0\u1ee3c danh s\u00e1ch khoa:', response.message);
+          }
+        },
+        error: function (error) {
+          console.error('L\u1ed7i khi l\u1ea5y danh s\u00e1ch khoa:', error);
+        },
+      });
+    });
+
+    /**
+     * T\u1ea3i danh s\u00e1ch H\u1ec7 \u0111\u00e0o t\u1ea1o t\u1eeb API /api/gvm/v1/he-moi-giang
+     * Copy y nguy\u00ean l\u1ed9 tr\u00ecnh t\u1eeb tkb.thoiKhoaBieuChinhThuc.ejs
+     */
     async function loadHeDaoTaoFromAPI() {
       try {
         const response = await fetch('/api/gvm/v1/he-moi-giang');
@@ -212,27 +457,36 @@
         const result = await response.json();
 
         if (result.success && result.data) {
-          result.data.forEach(item => {
-            $('#heDaoTao').append(`<option value="${item.id}">${item.he_dao_tao}</option>`);
-          });
+          const heDaoTaoSelect = document.getElementById('mg-he-dao-tao');
+          if (heDaoTaoSelect) {
+            heDaoTaoSelect.innerHTML = '<option value="ALL">T\u1ea5t c\u1ea3 h\u1ec7 \u0111\u00e0o t\u1ea1o</option>';
+            result.data.forEach(item => {
+              const opt = document.createElement('option');
+              opt.value = item.id;
+              opt.textContent = item.he_dao_tao;
+              heDaoTaoSelect.appendChild(opt);
+            });
+          }
         }
       } catch (error) {
-        console.error('Lỗi khi gọi API hệ đào tạo:', error);
+        console.error('L\u1ed7i khi load h\u1ec7 \u0111\u00e0o t\u1ea1o:', error);
       }
     }
 
     async function loadTableData() {
-      const dotValue = document.getElementById('combobox-dot').value;
-      const kiValue = document.getElementById('comboboxki').value;
-      const namValue = document.getElementById('NamHoc').value;
-      const heDaoTaoValue = document.getElementById('heDaoTao').value;
+      const dotValue = document.getElementById('mg-dot').value;
+      const kiValue = document.getElementById('mg-ki').value;
+      const namValue = document.getElementById('mg-nam-hoc').value;
+      const khoaValue = document.getElementById('mg-khoa').value;
+      const heDaoTaoValue = document.getElementById('mg-he-dao-tao').value;
 
       if (!dotValue || !kiValue || !namValue) {
-        Toastify({ text: "Vui lòng chọn Đợt, Kỳ, Năm học", backgroundColor: "#f44336" }).showToast();
+        Toastify({ text: "Vui l\u00f2ng ch\u1ecdn \u0110\u1ee3t, K\u1ef3, N\u0103m h\u1ecdc", backgroundColor: "#f44336" }).showToast();
         return;
       }
 
       const requestData = {
+        Khoa: khoaValue,
         Dot: dotValue,
         Ki: kiValue,
         Nam: namValue,
@@ -240,26 +494,90 @@
       };
 
       try {
-        const response = await fetch('/api/v1/qc/thong-tin-giang-day', {
+        const response = await fetch('/api/v1/admin/moi-giang/core-info/data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestData),
         });
 
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-          Swal.fire('Thông báo', 'Không có dữ liệu cho thời gian này.', 'info');
-          gridOptions.api.setRowData([]);
+          handleApiError(data, response.status, 'loadTableData');
+          if (gridApi.setGridOption) { gridApi.setGridOption('rowData', []); } else { gridApi.setRowData([]); }
           return;
         }
 
-        const data = await response.json();
         globalData = data.results || [];
-        gridOptions.api.setRowData(globalData);
-        
+        if (gridApi.setGridOption) { gridApi.setGridOption('rowData', globalData); } else { gridApi.setRowData(globalData); }
+        if (globalData.length === 0) {
+          showToast('info', 'Không có dữ liệu cho bộ lọc đã chọn.');
+        }
       } catch (error) {
-        console.error("Lỗi lấy dữ liệu bảng:", error);
-        Swal.fire('Lỗi', 'Có lỗi xảy ra khi lấy dữ liệu', 'error');
+        console.error('[loadTableData] Lỗi mạng:', error);
+        Swal.fire('Lỗi kết nối', 'Không thể kết nối đến server. Vui lòng thử lại.', 'error');
       }
+    }
+    // Xử lý Xóa từng dòng trên lưới
+    async function deleteRow(id, stt) {
+      Swal.fire({
+        title: "Xác nhận xóa?",
+        html: `Bạn có chắc chắn muốn xóa dòng <b>${stt}</b> không?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Xóa",
+        cancelButtonText: "Hủy",
+        width: "auto",
+        padding: "20px",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await fetch(`/api/v1/admin/moi-giang/core-info/delete-row?id=${id}`, {
+              method: "DELETE",
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              
+              // Xóa dòng khỏi AG Grid
+              const rowNode = gridApi.getRowNode(id);
+              if (rowNode) {
+                gridApi.applyTransaction({ remove: [rowNode.data] });
+              }
+              
+              Swal.fire({
+                title: "Đã xóa!",
+                text: data.message || "Dòng dữ liệu đã được xóa.",
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+              });
+            } else {
+              Swal.fire({
+                title: "Lỗi",
+                text: "Có lỗi xảy ra khi xóa dữ liệu.",
+                icon: "error",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+              });
+            }
+          } catch (error) {
+            console.error("Lỗi khi gọi API xóa:", error);
+            Swal.fire({
+              title: "Lỗi",
+              text: "Không thể kết nối đến máy chủ.",
+              icon: "error",
+              confirmButtonText: "OK",
+              width: "auto",
+              padding: "20px",
+            });
+          }
+        }
+      });
     }
   </script>
 </body>

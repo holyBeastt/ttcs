@@ -5,13 +5,23 @@ const router = express.Router();
 
 const verifyToken = require('../middlewares/jwtMiddleware');
 const { requireAdminRole } = require('../middlewares/adminRoleMiddleware');
-const { updateCoreInfo, renderAdminSite } = require('../controllers/moigiang/adminCoreInfo.controller');
+const { updateCoreInfo, getCoreInfo, renderAdminSite, deleteCoreInfoRow } = require('../controllers/moigiang/adminCoreInfo.controller');
 
 /**
  * Route: GET /api/v1/admin/moi-giang/core-info/site
- * Trả về giao diện Admin chỉnh sửa thông tin mời giảng
+ * Trả về giao diện Admin chỉnh sửa thông tin mời giảng.
+ *
+ * Dùng session-based auth (requireAdminRole đọc req.session.role).
+ * KHÔNG dùng verifyToken (JWT) vì browser không gửi Authorization header khi navigate trang thường.
  */
-router.get('/core-info/site', verifyToken, requireAdminRole, renderAdminSite);
+router.get('/core-info/site', requireAdminRole, renderAdminSite);
+
+/**
+ * Route: POST /api/v1/admin/moi-giang/core-info/data
+ * Lấy dữ liệu bảng mời giảng cho Admin.
+ * Admin có thể lọc theo Khoa (không bị giới hạn bởi session.isKhoa như role thường).
+ */
+router.post('/core-info/data', requireAdminRole, getCoreInfo);
 
 /**
  * Route: PUT /api/v1/admin/moi-giang/core-info
@@ -28,5 +38,11 @@ router.get('/core-info/site', verifyToken, requireAdminRole, renderAdminSite);
  *             đến bất kỳ route file nào đang tồn tại trong hệ thống.
  */
 router.put('/core-info', verifyToken, requireAdminRole, updateCoreInfo);
+
+/**
+ * Route: DELETE /api/v1/admin/moi-giang/core-info/delete-row
+ * Xóa 1 record theo id.
+ */
+router.delete('/core-info/delete-row', requireAdminRole, deleteCoreInfoRow);
 
 module.exports = router;
