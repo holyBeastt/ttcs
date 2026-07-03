@@ -7,6 +7,14 @@ const verifyToken = require('../middlewares/jwtMiddleware');
 const { requireAdminRole } = require('../middlewares/adminRoleMiddleware');
 const { updateCoreInfo, getCoreInfo, renderAdminSite, deleteCoreInfoRow } = require('../controllers/moigiang/adminCoreInfo.controller');
 
+// Unified auth: if Authorization header is present, verify JWT. Else, rely on session auth in requireAdminRole.
+const unifiedAuth = (req, res, next) => {
+  if (req.headers['authorization']) {
+    return verifyToken(req, res, next);
+  }
+  next();
+};
+
 /**
  * Route: GET /api/v1/admin/moi-giang/core-info/site
  * Trả về giao diện Admin chỉnh sửa thông tin mời giảng.
@@ -37,7 +45,7 @@ router.post('/core-info/data', requireAdminRole, getCoreInfo);
  * QUAN TRỌNG: Route file này hoàn toàn độc lập, KHÔNG import hay ảnh hưởng
  *             đến bất kỳ route file nào đang tồn tại trong hệ thống.
  */
-router.put('/core-info', verifyToken, requireAdminRole, updateCoreInfo);
+router.put('/core-info', unifiedAuth, requireAdminRole, updateCoreInfo);
 
 /**
  * Route: DELETE /api/v1/admin/moi-giang/core-info/delete-row

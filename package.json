@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "node --test",
+    "test": "jest",
     "start": "nodemon ./src/server.js"
   },
   "repository": {
@@ -49,6 +49,7 @@
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
+    "jest": "^30.4.2",
     "nodemon": "2.0.20",
     "supertest": "^7.2.2"
   }

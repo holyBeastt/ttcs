@@ -18,7 +18,58 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
   <style>
-    /* Sao chép y nguyên CSS từ tkb.thoiKhoaBieuChinhThuc */
+    /* CSS cho bảng — copy y nguyên từ TKB */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .table th,
+    .table td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #dee2e6;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    .table th {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .table tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    .table tbody tr:hover {
+      background-color: #e2e6ea;
+    }
+
+    .table td {
+      vertical-align: middle;
+    }
+
+    .bg-custom {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .spinner-border {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+    }
+
     .header-actions {
       display: flex;
       flex-wrap: wrap;
@@ -26,25 +77,52 @@
       gap: 10px;
       justify-content: space-between;
     }
+
     .right {
       margin-top: 20px;
     }
+
     .btn {
       height: 45px;
       margin-left: 5px;
-      padding: 6px 14px !important;
-      white-space: nowrap;
     }
+
+    /* cảnh báo khi thiếu dữ liệu */
+    .warning-row {
+      background-color: #ffe6e6;
+      color: #ff0000;
+    }
+
     .tkb-input {
       width: 263px;
       padding: 8px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
     .tkb-input-container {
       margin-left: 5px;
       margin-bottom: 10px;
     }
+
+    .custom-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center !important;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      opacity: 0.8;
+    }
+
     /* Kế thừa CSS từ styles.css cho các ID cũ */
     #mg-dot, #mg-ki, #mg-nam-hoc, #mg-khoa, #mg-he-dao-tao {
       width: 150px;
@@ -54,67 +132,84 @@
       padding: 0 10px !important;
     }
   </style>
-
 </head>
 
 <body>
   <%- include('adminHeader') %>
 
-  <div class="container-fluid mt-4 px-4">
-    <h3 class="mb-4">Chỉnh sửa thông tin lõi (Mời giảng)</h3>
-
-    <div class="container-fluid my-4" style="padding-left: 0px">
-      <div class="flex-grow-1">
-        <div class="header-actions">
-          <div class="left">
-            <button class="btn" id="them-vao-qc-du-kien" style="margin-bottom: 0px; display: none">
-              Thêm vào quy chuẩn dự kiến
-            </button>
-          </div>
-          <div class="right" style="margin-top: 0px">
-            <div class="loc d-flex align-items-center">
-              <!-- Combo box đợt -->
-              <select class="selectop" id="mg-dot">
-                <option value="">Đợt</option>
-              </select>
-
-              <!-- Combo box kì -->
-              <select class="selectop" id="mg-ki">
-                <option value="">Kì</option>
-              </select>
-
-              <!-- Combo box Năm -->
-              <select class="selectop" id="mg-nam-hoc">
-                <option value="">Chọn năm học</option>
-              </select>
-              <select class="selectop" id="mg-khoa">
-                <option value="">Chọn khoa</option>
-              </select>
-
-              <!-- Combo box hệ đào tạo -->
-              <select class="selectop" id="mg-he-dao-tao" style="width: max-content">
-                <option value="ALL">Tất cả hệ đào tạo</option>
-              </select>
-
-              <button id="getData" class="btn text-nowrap" style="margin-top: 17px">Hiển thị</button>
-              <button id="xoa-TKB" class="btn text-nowrap" style="margin-top: 17px">Xóa</button>
-            </div>
-          </div>
+  <!-- Nội dung trang — cấu trúc giống hệt TKB -->
+  <div class="container-fluid my-4" style="padding-left: 0px">
+    <div class="flex-grow-1">
+      <div class="header-actions">
+        <div class="left">
+          <button class="btn" id="them-vao-qc-du-kien" style="margin-bottom: 0px; display: none">
+            Thêm vào quy chuẩn dự kiến
+          </button>
         </div>
 
-        <div>
-          <div class="tkb-input-container">
-              <input type="text" placeholder="Tìm kiếm theo Tên..." class="search tkb-input" id="find-by-class-name" />           
-          </div>
+        <div class="right" style="margin-top: 0px">
+          <div class="loc d-flex align-items-center">
+            <!-- Combo box đợt -->
+            <select class="selectop" id="mg-dot">
+              <option value="">Đợt</option>
+            </select>
 
-          <!-- Bảng dữ liệu -->
-          <div id="table-container" class="ag-theme-alpine" style="height: 500px; width: 100%;">
-            <div id="myGrid" style="height: 100%; width: 100%;"></div>
+            <!-- Combo box kì -->
+            <select class="selectop" id="mg-ki">
+              <option value="">Kì</option>
+            </select>
+
+            <!-- Combo box Năm -->
+            <select class="selectop" id="mg-nam-hoc">
+              <option value="">Chọn năm học</option>
+            </select>
+            <select class="selectop" id="mg-khoa">
+              <option value="">Chọn khoa</option>
+            </select>
+
+            <!-- Combo box hệ đào tạo -->
+            <select class="selectop" id="mg-he-dao-tao" style="width: max-content">
+              <option value="ALL">Tất cả hệ đào tạo</option>
+            </select>
+
+            <button
+              id="getData"
+              class="btn text-nowrap"
+              style="margin-top: 17px"
+            >
+              Hiển thị
+            </button>
+            <button
+              class="btn text-nowrap"
+              id="xoa-TKB"
+              style="margin-top: 17px"
+            >
+              Xóa
+            </button>
           </div>
         </div>
       </div>
-    </div>
 
+      <div>
+        <div class="tkb-input-container">
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo Tên..."
+            class="search tkb-input"
+            id="find-by-class-name"
+          />
+        </div>
+
+        <!-- Bảng dữ liệu -->
+        <div
+          id="table-container"
+          class="ag-theme-alpine"
+          style="height: 500px; width: 100%"
+        >
+          <div id="myGrid" style="height: 100%; width: 100%;"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- jQuery & Bootstrap -->
@@ -125,15 +220,19 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-  <!-- AG Grid -->
-  <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.js"></script>
+  <!-- AG Grid (dùng file local giống TKB) -->
   <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css">
   <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css">
+  <script src="/js/TKB/ag-grid-community.min.js"></script>
 
   <script>
     let gridOptions;
     let gridApi; // Khai báo biến toàn cục cho gridApi để tránh undefined ở bản v31+
     let globalData = [];
+
+    // Biến lưu danh sách hệ đào tạo — giống hệt TKB
+    let heDaoTaoList = [];
+    let heDaoTaoMap = {};
 
     document.addEventListener("DOMContentLoaded", async function () {
 
@@ -166,20 +265,27 @@
 
       // Định nghĩa columns cho AG Grid - Y HỆT BÊN TKB VỀ THỨ TỰ VÀ STYLE
       const columnDefs = [
-        { headerName: "STT", valueGetter: "node.rowIndex + 1", width: 70, pinned: 'left' },
+        { headerName: "STT", valueGetter: "node.rowIndex + 1", width: 70, pinned: 'left', cellStyle: { fontWeight: "bold", textAlign: "center" } },
         { headerName: "Lớp học phần", field: "LopHocPhan", editable: true, width: 250, filter: true },
         { headerName: "Khoa", field: "Khoa", editable: true, width: 100, filter: true },
         { headerName: "Giảng viên theo TKB", field: "GiaoVien", editable: true, width: 150, filter: true },
         { headerName: "Ngày bắt đầu", field: "NgayBatDau", editable: false, width: 110, valueFormatter: (p) => p.value ? p.value.split('T')[0] : '' },
         { headerName: "Ngày kết thúc", field: "NgayKetThuc", editable: false, width: 110, valueFormatter: (p) => p.value ? p.value.split('T')[0] : '' },
         { headerName: "LL", field: "LL", editable: true, width: 50, type: 'numericColumn' },
-        { headerName: "Số SV", field: "SoSinhVien", editable: false, width: 70, type: 'numericColumn' },
-        { headerName: "HS lớp đông", field: "HeSoLopDong", editable: false, width: 100, type: 'numericColumn' },
-        { headerName: "HS ngoài giờ", field: "HeSoT7CN", editable: false, width: 90, type: 'numericColumn' },
+        // { headerName: "Số SV", field: "SoSinhVien", editable: false, width: 70, type: 'numericColumn' }, // Tạm comment
+        // { headerName: "HS lớp đông", field: "HeSoLopDong", editable: false, width: 100, type: 'numericColumn' }, // Tạm comment
+        // { headerName: "HS ngoài giờ", field: "HeSoT7CN", editable: false, width: 90, type: 'numericColumn' }, // Tạm comment
         { headerName: "QC", field: "QuyChuan", editable: true, width: 70, type: 'numericColumn' },
-        { headerName: "Hệ đào tạo", field: "he_dao_tao", editable: false, width: 150, filter: true },
+        {
+          headerName: "Hệ đào tạo",
+          field: "he_dao_tao",
+          editable: false,
+          width: 150,
+          filter: true,
+          valueFormatter: (params) => heDaoTaoMap[params.value] || params.value || "",
+        },
         // Các cột ẩn hoặc đặc thù của riêng màn Core Info được để phía sau cùng
-        { headerName: "Số TC", field: "SoTinChi", editable: true, width: 80, type: 'numericColumn' }, // Màn TKB k query lên
+        // { headerName: "Số TC", field: "SoTinChi", editable: true, width: 80, type: 'numericColumn' }, // Tạm comment
         { headerName: "Tên lớp", field: "TenLop", editable: true, width: 150, filter: true }, // Đặc thù Core Info
         { headerName: "Mã học phần", field: "MaHocPhan", hide: true }, 
         { headerName: "ID", field: "ID", hide: true },
@@ -188,10 +294,9 @@
         {
           headerName: "Thao tác",
           field: "actions",
-          pinned: "right",
           filter: false,
           editable: false,
-          width: 80,
+          width: 120,
           cellRenderer: (params) => {
             const id = params.data.ID; // Lấy ID từ dữ liệu (Quy chuẩn ID)
             const stt = params.node.rowIndex + 1; // Lấy STT của dòng
@@ -200,6 +305,24 @@
         }
       ];
 
+      // Lấy từ localStorage nếu đã có
+      const storedKhoa = JSON.parse(localStorage.getItem('KhoaList')) || [];
+      const khoaArray = storedKhoa.map(item => item.MaPhongBan);
+
+      const khoaCol = columnDefs.find(col => col.field === 'Khoa');
+      if (khoaCol && khoaArray.length > 0) {
+        khoaCol.cellEditor = 'agSelectCellEditor';
+        khoaCol.cellEditorParams = { values: khoaArray };
+      }
+
+      // Gắn combobox cho cột Hệ đào tạo
+      const heDaoTaoCol = columnDefs.find(col => col.field === 'he_dao_tao');
+      if (heDaoTaoCol) {
+        heDaoTaoCol.cellEditor = 'agSelectCellEditor';
+        heDaoTaoCol.cellEditorParams = {
+          values: heDaoTaoList.map(item => item.id),
+        };
+      }
       gridOptions = {
         columnDefs: columnDefs,
         rowData: [],
@@ -208,6 +331,7 @@
           sortable: true,
           filter: false,
           editable: false,
+          headerClass: "custom-header",
           cellStyle: {
             fontSize: "14px", 
             whiteSpace: "normal", 
@@ -215,21 +339,30 @@
             textAlign: "center"
           }
         },
-        rowHeight: 40,
+        rowHeight: 50,
         stopEditingWhenCellsLoseFocus: true,
+        singleClickEdit: true,
+        enterMovesDownAfterEdit: true,
+        suppressClickEdit: false,
+        overlayNoRowsTemplate: '<span style="padding: 10px;">Không có dữ liệu</span>',
+        onGridReady: (params) => {
+          gridApi = params.api;
+          params.api.sizeColumnsToFit();
+        },
         // Bắt sự kiện auto-save
         onCellValueChanged: async function (params) {
           const updatedField = params.colDef.field;
           const newValue = params.newValue;
           const oldValue = params.oldValue;
 
-          if (newValue === oldValue) return; 
+          if (newValue === oldValue || updatedField === 'version') return; 
 
           const data = params.data;
           
           if (['SoTinChi', 'LL', 'QuyChuan'].includes(updatedField) && isNaN(Number(newValue))) {
              Toastify({ text: "Giá trị phải là số hợp lệ!", backgroundColor: "#f44336" }).showToast();
-             params.node.setDataValue(updatedField, oldValue);
+             params.data[updatedField] = oldValue;
+             params.api.refreshCells({ rowNodes: [params.node], force: true });
              return;
           }
 
@@ -261,8 +394,9 @@
 
             if (response.ok) {
               Toastify({ text: "✅ Cập nhật thành công", backgroundColor: "#4CAF50" }).showToast();
-              if (result.data && result.data.newVersion !== undefined) {
-                 params.node.setDataValue('version', result.data.newVersion);
+              if (result.updated && result.updated.length > 0) {
+                 params.data['version'] = result.updated[0].version;
+                 params.api.refreshCells({ rowNodes: [params.node], force: true });
               }
             } else if (response.status === 409) {
               Swal.fire({
@@ -270,21 +404,26 @@
                 text: 'Dữ liệu này đã được sửa bởi phiên khác. Vui lòng tải lại.',
                 icon: 'warning'
               });
-              params.node.setDataValue(updatedField, oldValue); 
+              params.data[updatedField] = oldValue;
+              params.api.refreshCells({ rowNodes: [params.node], force: true });
             } else if (response.status === 401) {
               handleApiError(result, response.status);
-              params.node.setDataValue(updatedField, oldValue);
+              params.data[updatedField] = oldValue;
+              params.api.refreshCells({ rowNodes: [params.node], force: true });
             } else if (response.status === 403) {
               handleApiError(result, response.status);
-              params.node.setDataValue(updatedField, oldValue);
+              params.data[updatedField] = oldValue;
+              params.api.refreshCells({ rowNodes: [params.node], force: true });
             } else {
               handleApiError(result, response.status, 'Auto-save');
-              params.node.setDataValue(updatedField, oldValue);
+              params.data[updatedField] = oldValue;
+              params.api.refreshCells({ rowNodes: [params.node], force: true });
             }
           } catch (error) {
             console.error('[Admin Mời Giảng] Lỗi mạng hoặc không thể kết nối:', error);
             showToast('error', 'Lỗi mạng — không thể kết nối đến server.');
-            params.node.setDataValue(updatedField, oldValue); 
+            params.data[updatedField] = oldValue;
+            params.api.refreshCells({ rowNodes: [params.node], force: true });
           }
         }
       };
@@ -428,13 +567,36 @@
         success: function (response) {
           if (response.success) {
             $('#mg-khoa').prepend('<option value="ALL">T\u1ea5t c\u1ea3 khoa</option>');
+            const khoaItems = [];
             response.MaPhongBan.forEach(function (item) {
               $('#mg-khoa').append(`<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`);
+              khoaItems.push(item.MaPhongBan);
             });
             $('#mg-khoa').append('<option value="Khac">Kh\u00e1c</option>');
+            khoaItems.push('Khac');
 
             if (!$('#mg-khoa option:selected').length) {
-              $('#mg-khoa').prepend('<option value="">Ch\u1ecdn Khoa</option>');
+              $('#mg-khoa').prepend('<option value="">Chọn Khoa</option>');
+            }
+
+            // Lưu vào localStorage giống hệt TKB
+            localStorage.setItem("KhoaList", JSON.stringify(response.MaPhongBan));
+
+            // Cập nhật cellEditorParams của cột Khoa sau khi có data
+            if (typeof gridOptions !== 'undefined' && gridOptions && gridOptions.columnDefs) {
+              const khoaColDef = gridOptions.columnDefs.find(function(c) { return c.field === 'Khoa'; });
+              if (khoaColDef) {
+                khoaColDef.editable = true;
+                khoaColDef.cellEditor = 'agSelectCellEditor';
+                khoaColDef.cellEditorParams = { values: khoaItems };
+                if (gridApi) {
+                  if (gridApi.setColumnDefs) {
+                    gridApi.setColumnDefs(gridOptions.columnDefs);
+                  } else if (gridApi.setGridOption) {
+                    gridApi.setGridOption('columnDefs', gridOptions.columnDefs);
+                  }
+                }
+              }
             }
           } else {
             console.error('Kh\u00f4ng l\u1ea5y \u0111\u01b0\u1ee3c danh s\u00e1ch khoa:', response.message);
@@ -479,6 +641,13 @@
       const namValue = document.getElementById('mg-nam-hoc').value;
       const khoaValue = document.getElementById('mg-khoa').value;
       const heDaoTaoValue = document.getElementById('mg-he-dao-tao').value;
+
+      // Build heDaoTaoMap từ localStorage — giống hệt TKB
+      heDaoTaoList = JSON.parse(localStorage.getItem('HE_DAO_TAO_CACHE')) || [];
+      heDaoTaoMap = {};
+      heDaoTaoList.forEach(item => {
+        heDaoTaoMap[item.id] = item.tenHe;
+      });
 
       if (!dotValue || !kiValue || !namValue) {
         Toastify({ text: "Vui l\u00f2ng ch\u1ecdn \u0110\u1ee3t, K\u1ef3, N\u0103m h\u1ecdc", backgroundColor: "#f44336" }).showToast();

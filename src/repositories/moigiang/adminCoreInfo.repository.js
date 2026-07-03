@@ -3,6 +3,26 @@
 require('dotenv').config();
 const pool = require('../../config/Pool');
 
+// Tự động tạo bảng audit log nếu chưa tồn tại
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS audit_log_moi_giang_core (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        record_id INT NOT NULL,
+        changed_by VARCHAR(255) NOT NULL,
+        changed_at DATETIME NOT NULL,
+        new_version INT NOT NULL,
+        changes_json TEXT NOT NULL,
+        INDEX (record_id)
+      )
+    `);
+    console.log('[Init] Checked/Created table audit_log_moi_giang_core');
+  } catch (err) {
+    console.error('[Init] Lỗi khởi tạo bảng audit_log_moi_giang_core:', err);
+  }
+})();
+
 // Tên bảng lấy từ biến môi trường (giống pattern các controller đã có)
 const TABLE_QC = process.env.DB_TABLE_QC || 'quychuan';
 
