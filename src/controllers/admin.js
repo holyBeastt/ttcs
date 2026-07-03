@@ -4,6 +4,7 @@ const pool = require("../config/Pool");
 const router = express.Router();
 const mysql = require("mysql2/promise");
 const { getBoMon } = require("./adminController");
+const bcrypt = require("bcrypt");
 const app = express();
 
 let accountLists;
@@ -217,8 +218,18 @@ const updatePassword = async (req, res) => {
 
     const account = results[0];
 
-    // So sánh mật khẩu nhập vào với mật khẩu trong CSDL
-    if (account.MatKhau !== currentPassword) {
+    let isMatch = false;
+
+    // So sánh mật khẩu nhập vào với mật khẩu trong CSDL (hỗ trợ cả plain text và bcrypt)
+    if (account.MatKhau && account.MatKhau.startsWith("$2b$")) {
+      isMatch = await bcrypt.compare(currentPassword, account.MatKhau);
+    } else {
+      if (account.MatKhau === currentPassword) {
+        isMatch = true;
+      }
+    }
+
+    if (!isMatch) {
       return res.redirect(
         `/changePassword?tenDangNhap=${encodeURIComponent(
           TenDangNhap
@@ -226,10 +237,14 @@ const updatePassword = async (req, res) => {
       );
     }
 
+    // Mã hóa mật khẩu mới trước khi cập nhật
+    const salt = await bcrypt.genSalt(10);
+    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
     // Cập nhật mật khẩu mới
     const updateQuery =
       "UPDATE taikhoannguoidung SET MatKhau = ? WHERE TenDangNhap = ?";
-    await connection.query(updateQuery, [newPassword, TenDangNhap]);
+    await connection.query(updateQuery, [hashedNewPassword, TenDangNhap]);
 
     return res.redirect(
       `/changePassword?tenDangNhap=${encodeURIComponent(
