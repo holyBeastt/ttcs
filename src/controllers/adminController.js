@@ -796,23 +796,22 @@ const AdminController = {
     try {
       connection = await createPoolConnection();
 
-      const [namHocPromise, kiPromise, dotPromise] = await Promise.all([
-        connection.query(
-          "SELECT * FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC"
-        ),
-        connection.query("SELECT * FROM `ki` ORDER BY trangthai DESC"),
-        connection.query("SELECT * FROM `dot` ORDER BY trangthai DESC"),
-      ]);
-
-      const [result1] = namHocPromise;
-      const [result2] = kiPromise;
-      const [result3] = dotPromise;
+      // Sequential database execution on single connection to avoid mysql2 queue issues
+      const [namHoc] = await connection.query(
+        "SELECT * FROM `namhoc` ORDER BY trangthai DESC, NamHoc ASC"
+      );
+      const [ki] = await connection.query(
+        "SELECT * FROM `ki` ORDER BY trangthai DESC"
+      );
+      const [dot] = await connection.query(
+        "SELECT * FROM `dot` ORDER BY trangthai DESC"
+      );
 
       res.json({
         success: true,
-        NamHoc: result1,
-        Ki: result2,
-        Dot: result3,
+        NamHoc: namHoc,
+        Ki: ki,
+        Dot: dot,
       });
     } catch (error) {
       console.error("Lỗi: ", error);

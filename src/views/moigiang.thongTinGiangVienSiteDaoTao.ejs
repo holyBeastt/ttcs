@@ -615,12 +615,17 @@
             });
           }
         } else {
-          console.error('API không trả về dữ liệu hợp lệ');
-          heDaoTaoList = [];
+          throw new Error('API không trả về dữ liệu hợp lệ');
         }
       } catch (error) {
         console.error('Lỗi khi gọi API hệ đào tạo:', error);
         heDaoTaoList = [];
+        Swal.fire({
+          title: 'Lỗi tải hệ đào tạo',
+          text: 'Không thể tải danh sách Hệ đào tạo. Vui lòng tải lại trang hoặc liên hệ quản trị viên!',
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        });
       }
     }
 
@@ -1729,40 +1734,64 @@
   </script>
   <script>
     $(document).ready(function() {
-      $('#NamHoc option[value=""]').remove();
-      $('#comboboxki option[value=""]').remove();
-      $('#combobox-dot option[value=""]').remove();
-
       $.ajax({
         url: '/getNamHoc',
         method: 'GET',
+        headers: {
+          'Accept': 'application/json' // Bắt buộc nhận JSON để tránh lỗi redirect của middleware
+        },
         success: function(response) {
           if (response.success) {
+            // Xóa option trống/placeholder CHỈ khi AJAX thành công
+            $('#NamHoc option[value=""]').remove();
+            $('#comboboxki option[value=""]').remove();
+            $('#combobox-dot option[value=""]').remove();
 
+            // Append dữ liệu & Tự động chọn item đang hoạt động (trangthai = 1)
             response.NamHoc.forEach(function(item) {
+              const selected = item.trangthai === 1 ? 'selected' : '';
               $('#NamHoc').append(
-                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                `<option value="${item.NamHoc}" ${selected}>${item.NamHoc}</option>`
               );
             });
 
             response.Ki.forEach(function(item) {
+              const selected = item.trangthai === 1 ? 'selected' : '';
               $('#comboboxki').append(
-                `<option value="${item.value}">${item.Ki}</option>`
+                `<option value="${item.value}" ${selected}>${item.Ki}</option>`
               );
             });
+
             response.Dot.forEach(function(item) {
+              const selected = item.trangthai === 1 ? 'selected' : '';
               $('#combobox-dot').append(
-                `<option value="${item.value}">${item.Dot}</option>`
+                `<option value="${item.value}" ${selected}>${item.Dot}</option>`
               );
             });
           } else {
-            console.error("Không lấy được dữ liệu năm học:", response.message);
+            showLoadErrorAlert("Không thể lấy dữ liệu cấu hình học kỳ từ máy chủ.");
           }
         },
-        error: function(error) {
-          console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        error: function(xhr, status, error) {
+          console.error("Lỗi tải Năm Học/Kì/Đợt:", error);
+          if (xhr.status === 401) {
+            showLoadErrorAlert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
+          } else {
+            showLoadErrorAlert("Lỗi hệ thống hoặc kết nối cơ sở dữ liệu thất bại.");
+          }
         }
       });
+
+      function showLoadErrorAlert(message) {
+        Swal.fire({
+          title: 'Lỗi tải dữ liệu',
+          text: message,
+          icon: 'error',
+          confirmButtonText: 'Tải lại trang'
+        }).then(() => {
+          location.reload();
+        });
+      }
     });
   </script>
   <script>
