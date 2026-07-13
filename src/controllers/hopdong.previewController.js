@@ -3,18 +3,42 @@ const Docxtemplater = require("docxtemplater");
 const fs = require("fs");
 const path = require("path");
 const createPoolConnection = require("../config/databasePool");
-const { exec } = require("child_process");
+const { exec, execSync } = require("child_process");
 const util = require("util");
 const execAsync = util.promisify(exec);
 
-// Configure LibreOffice path for Windows
-const LIBREOFFICE_PATH = "D:\\Libre\\program\\soffice.exe";
+/**
+ * Check if a command exists in the system PATH
+ */
+function isCommandAvailable(cmd) {
+  try {
+    const checkCmd = process.platform === "win32" ? `where ${cmd}` : `which ${cmd}`;
+    execSync(checkCmd, { stdio: "ignore" });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Configure default LibreOffice path based on OS
+const DEFAULT_LIBREOFFICE_PATHS = {
+  win32: "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
+  linux: "/usr/bin/soffice",
+  darwin: "/Applications/LibreOffice.app/Contents/MacOS/soffice"
+};
+
+const LIBREOFFICE_PATH = DEFAULT_LIBREOFFICE_PATHS[process.platform] || "soffice";
 
 // Alternative LibreOffice paths to try
 const ALTERNATIVE_PATHS = [
   "D:\\Libre\\program\\soffice.exe",
   "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
   "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe",
+  "/usr/bin/soffice",
+  "/usr/bin/libreoffice",
+  "/usr/local/bin/soffice",
+  "/usr/local/bin/libreoffice",
+  "/Applications/LibreOffice.app/Contents/MacOS/soffice",
 ];
 
 /**
@@ -23,14 +47,15 @@ const ALTERNATIVE_PATHS = [
 function getLibreOfficeConverter() {
   try {
     const libre = require("libreoffice-convert");
+    const resolvedPath = getAvailableLibreOfficePath() || LIBREOFFICE_PATH;
 
     // Set environment variable for this session
-    process.env.LIBREOFFICE_PATH = LIBREOFFICE_PATH;
+    process.env.LIBREOFFICE_PATH = resolvedPath;
 
     // Try to configure the library with custom path
     if (libre.config) {
       libre.config({
-        soffice: LIBREOFFICE_PATH,
+        soffice: resolvedPath,
       });
     }
 
@@ -45,36 +70,30 @@ function getLibreOfficeConverter() {
 }
 
 /**
- * Check if LibreOffice is available at the specified path
+ * Check if LibreOffice is available
  */
 function checkLibreOfficeAvailability() {
-  if (fs.existsSync(LIBREOFFICE_PATH)) {
-    return true;
-  } else {
-    console.warn(`LibreOffice not found at: ${LIBREOFFICE_PATH}`);
-
-    // Try alternative paths
-    for (const altPath of ALTERNATIVE_PATHS) {
-      if (fs.existsSync(altPath)) {
-        return true;
-      }
-    }
-
-    console.error("LibreOffice not found at any known paths");
-    return false;
-  }
+  return getAvailableLibreOfficePath() !== null;
 }
 
 /**
  * Get the first available LibreOffice path
  */
 function getAvailableLibreOfficePath() {
-  // Check main path first
+  // 1. Check if 'soffice' is globally available in system PATH
+  if (isCommandAvailable("soffice")) {
+    return "soffice";
+  }
+  if (isCommandAvailable("libreoffice")) {
+    return "libreoffice";
+  }
+
+  // 2. Check main path
   if (fs.existsSync(LIBREOFFICE_PATH)) {
     return LIBREOFFICE_PATH;
   }
 
-  // Try alternative paths
+  // 3. Try alternative paths
   for (const altPath of ALTERNATIVE_PATHS) {
     if (fs.existsSync(altPath)) {
       return altPath;
@@ -453,7 +472,7 @@ const previewContract = async (req, res) => {
     if (teacher.hasEnhancedData && teacher.trainingPrograms) {
       // Find specific training program data by ID
       const programData = teacher.trainingPrograms.find(
-        (p) => p.id === heHopDongId || p.id === parseInt(heHopDongId)
+        (p) => parseInt(p.id) === parseInt(heHopDongId) || String(p.id) === String(heHopDongId)
       );
       if (programData) {
         soTiet = programData.SoTiet;
@@ -539,6 +558,8 @@ const previewContract = async (req, res) => {
       Khóa: teacher.KhoaSinhVien,
       Ngành: teacher.Nganh,
     };
+
+    console.log("[Preview API] Render data:", data);
 
     // Choose template based on contract type name pattern matching
     let templateFileName;

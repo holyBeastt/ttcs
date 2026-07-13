@@ -21,3 +21,9 @@ docs/ppt/
 Automation_coding_agent.md
 
 firebase-service-account.json
+
+# DDEV
+.ddev/
+
+# Scratch files
+scratch/
