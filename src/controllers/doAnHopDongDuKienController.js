@@ -36,7 +36,7 @@ WITH
       ${CTE_TABLE_ALL},
 gv1 AS (
     SELECT 
-        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
+        TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien, 
         TenDeTai, 
         SinhVien, 
         MaSV,
@@ -55,7 +55,7 @@ gv1 AS (
 ),
 gv2 AS (
     SELECT 
-        SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien, 
+        TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien, 
         TenDeTai, 
         SinhVien,
         MaSV,
@@ -79,7 +79,7 @@ two_gv AS (
 ),
 one_gv AS (
     SELECT         
-        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
+        TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien, 
         TenDeTai, 
         SinhVien,
         MaSV,
@@ -161,7 +161,9 @@ WHERE Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?
 
     // Nhóm các môn học theo giảng viên
     const groupedByTeacher = result.reduce((acc, current) => {
-      const teacher = current.HoTen;
+      if (current.HoTen) current.HoTen = current.HoTen.trim();
+      const teacher = current.HoTen || "";
+      if (!teacher) return acc;
       if (!acc[teacher]) {
         acc[teacher] = [];
       }
@@ -179,7 +181,7 @@ WHERE Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?
     let coHuuQuery = `
       WITH gv1_cohuu AS (
         SELECT 
-          SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien,
+          TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
           TenDeTai, SinhVien, MaSV, NgayBatDau, NgayKetThuc,
           Dot, ki, NamHoc, MaPhongBan AS MaKhoa, he_dao_tao,
           GiangVien2, 'GV1' AS Nguon
@@ -189,7 +191,7 @@ WHERE Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?
       ),
       gv2_cohuu AS (
         SELECT 
-          SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien,
+          TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
           TenDeTai, SinhVien, MaSV, NgayBatDau, NgayKetThuc,
           Dot, ki, NamHoc, MaPhongBan AS MaKhoa, he_dao_tao,
           GiangVien2, 'GV2' AS Nguon
@@ -245,7 +247,8 @@ WHERE Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?
 
     // Nhóm GV cơ hữu theo giảng viên
     const groupedCoHuu = resultCoHuu.reduce((acc, current) => {
-      const teacher = current.HoTen;
+      if (current.HoTen) current.HoTen = current.HoTen.trim();
+      const teacher = current.HoTen || "";
       if (!acc[teacher]) acc[teacher] = [];
       acc[teacher].push(current);
       return acc;
