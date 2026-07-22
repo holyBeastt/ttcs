@@ -506,10 +506,39 @@ const exportMultipleContracts = async (req, res) => {
         default:
           return res.status(400).send("Loại hợp đồng không hợp lệ.");
       }
+/**
+ * Tự động soi Template Word và định dạng Số hợp đồng thông minh:
+ * - Nếu template đã gõ sẵn đuôi (/HĐ-ĐT), trả về số thuần (DA003)
+ * - Nếu template chưa có đuôi, trả về đầy đủ (DA003/HĐ-ĐT)
+ */
+const resolveContractNumberForTemplate = (zip, rawSoHopDong, suffix = "/HĐ-ĐT") => {
+  if (!rawSoHopDong || !rawSoHopDong.trim()) return "";
+  const fullSoHopDong = rawSoHopDong.trim();
+  const cleanNumber = fullSoHopDong.includes("/") ? fullSoHopDong.split("/")[0] : fullSoHopDong;
+
+  try {
+    const xmlText = zip.file("word/document.xml")?.asText() || "";
+    const textOnly = xmlText.replace(/<[^>]+>/g, "");
+    const cleanSuffix = suffix.replace(/^\//, "");
+
+    if (textOnly.includes(suffix) || (cleanSuffix && textOnly.includes(cleanSuffix))) {
+      return cleanNumber;
+    }
+  } catch (e) {
+    console.warn("Error reading template XML:", e);
+  }
+
+  return fullSoHopDong.includes("/") ? fullSoHopDong : `${fullSoHopDong} ${suffix}`;
+};
+
       // Tạo file Word từ template (giữ nguyên)
       const templatePath = path.resolve(__dirname, "../templates", templateFileName);
       const content = fs.readFileSync(templatePath, "binary");
       const zip = new PizZip(content);
+
+      // Smart auto-detection contract number format based on template XML
+      data.Số_hợp_đồng = resolveContractNumberForTemplate(zip, teacher.SoHopDong, "/HĐ-ĐT");
+      data.Số_thanh_lý = resolveContractNumberForTemplate(zip, teacher.SoThanhLyHopDong, "/HĐNT-ĐT");
 
       const doc = new Docxtemplater(zip, {
         paragraphLoop: true,

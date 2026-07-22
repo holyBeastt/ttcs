@@ -613,9 +613,12 @@ const exportMultipleContracts = async (req, res) => {
       const bangChuThucNhan = numberToWords(tienThucNhanText);
       const MucTien = teacher.SoTien / teacher.SoTiet;
 
+      const cleanSoHopDong = teacher.SoHopDong ? teacher.SoHopDong.split('/')[0] : "    ";
+      const cleanSoThanhLy = teacher.SoThanhLyHopDong ? teacher.SoThanhLyHopDong.split('/')[0] : "    ";
+
       const data = {
-        Số_hợp_đồng: teacher.SoHopDong || "    ",
-        Số_thanh_lý: teacher.SoThanhLyHopDong || "    ",
+        Số_hợp_đồng: cleanSoHopDong,
+        Số_thanh_lý: cleanSoThanhLy,
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: teacher.DanhXung,
@@ -703,6 +706,31 @@ const exportMultipleContracts = async (req, res) => {
         }
       }
 
+      /**
+       * Tự động soi Template Word và định dạng Số hợp đồng thông minh:
+       * - Nếu template đã gõ sẵn đuôi (/HĐ-ĐT), trả về số thuần (DA003)
+       * - Nếu template chưa có đuôi, trả về đầy đủ (DA003/HĐ-ĐT)
+       */
+      const resolveContractNumberForTemplate = (zip, rawSoHopDong, suffix = "/HĐ-ĐT") => {
+        if (!rawSoHopDong || !rawSoHopDong.trim()) return "";
+        const fullSoHopDong = rawSoHopDong.trim();
+        const cleanNumber = fullSoHopDong.includes("/") ? fullSoHopDong.split("/")[0] : fullSoHopDong;
+
+        try {
+          const xmlText = zip.file("word/document.xml")?.asText() || "";
+          const textOnly = xmlText.replace(/<[^>]+>/g, "");
+          const cleanSuffix = suffix.replace(/^\//, "");
+
+          if (textOnly.includes(suffix) || (cleanSuffix && textOnly.includes(cleanSuffix))) {
+            return cleanNumber;
+          }
+        } catch (e) {
+          console.warn("Error reading template XML:", e);
+        }
+
+        return fullSoHopDong.includes("/") ? fullSoHopDong : `${fullSoHopDong} ${suffix}`;
+      };
+
       const templatePath = path.resolve(
         __dirname,
         "../templates",
@@ -710,6 +738,10 @@ const exportMultipleContracts = async (req, res) => {
       );
       const content = fs.readFileSync(templatePath, "binary");
       const zip = new PizZip(content);
+
+      // Smart auto-detection contract number format based on template XML
+      data.Số_hợp_đồng = resolveContractNumberForTemplate(zip, teacher.SoHopDong, "/HĐ-ĐT");
+      data.Số_thanh_lý = resolveContractNumberForTemplate(zip, teacher.SoThanhLyHopDong, "/HĐNT-ĐT");
 
       const doc = new Docxtemplater(zip, {
         paragraphLoop: true,
@@ -1371,8 +1403,8 @@ const generateContractForTeacher = async (
     Thời_gian_thực_hiện: thoiGianThucHien,
     Mức_tiền: MucTien.toLocaleString("vi-VN"),
     Nơi_công_tác: teacher.NoiCongTac,
-    Số_hợp_đồng: teacher.SoHopDong || "",
-    Số_thanh_lý: teacher.SoThanhLyHopDong || "",
+    Số_hợp_đồng: teacher.SoHopDong ? teacher.SoHopDong.split('/')[0] : "",
+    Số_thanh_lý: teacher.SoThanhLyHopDong ? teacher.SoThanhLyHopDong.split('/')[0] : "",
     Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
   };
 
@@ -1388,6 +1420,10 @@ const generateContractForTeacher = async (
   );
   const content = fs.readFileSync(templatePath, "binary");
   const zip = new PizZip(content);
+
+  // Smart auto-detection contract number format based on template XML
+  data.Số_hợp_đồng = resolveContractNumberForTemplate(zip, teacher.SoHopDong, "/HĐ-ĐT");
+  data.Số_thanh_lý = resolveContractNumberForTemplate(zip, teacher.SoThanhLyHopDong, "/HĐNT-ĐT");
 
   const doc = new Docxtemplater(zip, {
     paragraphLoop: true,

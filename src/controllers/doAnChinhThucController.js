@@ -3,6 +3,7 @@ const pool = require("../config/Pool");
 const createPoolConnection = require("../config/databasePool");
 const datnService = require("../services/save_moigiang/datn.service");
 const chinhSuaDoAnController = require("./chinhSuaDoAnController");
+const { DON_GIA_EXPR } = require("../queries/hopdongQueries");
 require("dotenv").config();
 const {
   Document,
@@ -1227,6 +1228,18 @@ const saveToExportDoAn = async (req, res) => {
 
 const updateThueExportDoAn = async (dot, ki, namHoc, connection) => {
   try {
+    // 1. Cập nhật Đơn giá và Thành tiền trực tiếp bằng DON_GIA_EXPR chuẩn duy nhất của hệ thống
+    const updateDonGiaQuery = `
+      UPDATE exportdoantotnghiep ed
+      JOIN gvmoi gv ON ed.CCCD = gv.CCCD
+      SET 
+        ed.TienMoiGiang = ${DON_GIA_EXPR('ed', 'MaPhongBan')},
+        ed.ThanhTien = ed.SoTiet * ${DON_GIA_EXPR('ed', 'MaPhongBan')}
+      WHERE ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ?
+    `;
+    await connection.execute(updateDonGiaQuery, [dot, ki, namHoc]);
+
+    // 2. Cập nhật Thuế (10%) và Thực nhận (90%)
     const query = `
       UPDATE exportdoantotnghiep ed
       JOIN (
@@ -1256,7 +1269,7 @@ const updateThueExportDoAn = async (dot, ki, namHoc, connection) => {
     await connection.execute(query, params);
 
   } catch (error) {
-    console.error("Lỗi khi cập nhật thuế trong exportdoantotnghiep:", error);
+    console.error("Lỗi khi cập nhật đơn giá và thuế trong exportdoantotnghiep:", error);
     throw error;
   }
 };

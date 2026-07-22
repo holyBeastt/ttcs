@@ -837,6 +837,31 @@ const generateAdditionalFile = async (teacher, tempDir) => {
   return oldFilePath;
 };
 
+/**
+ * Tự động soi Template Word và định dạng Số hợp đồng thông minh:
+ * - Nếu template đã gõ sẵn đuôi (/HĐ-ĐT), trả về số thuần (DA003)
+ * - Nếu template chưa có đuôi, trả về đầy đủ (DA003/HĐ-ĐT)
+ */
+const resolveContractNumberForTemplate = (zip, rawSoHopDong, suffix = "/HĐ-ĐT") => {
+  if (!rawSoHopDong || !rawSoHopDong.trim()) return "";
+  const fullSoHopDong = rawSoHopDong.trim();
+  const cleanNumber = fullSoHopDong.includes("/") ? fullSoHopDong.split("/")[0] : fullSoHopDong;
+
+  try {
+    const xmlText = zip.file("word/document.xml")?.asText() || "";
+    const textOnly = xmlText.replace(/<[^>]+>/g, "");
+    const cleanSuffix = suffix.replace(/^\//, "");
+
+    if (textOnly.includes(suffix) || (cleanSuffix && textOnly.includes(cleanSuffix))) {
+      return cleanNumber;
+    }
+  } catch (e) {
+    console.warn("Error reading template XML:", e);
+  }
+
+  return fullSoHopDong.includes("/") ? fullSoHopDong : `${fullSoHopDong} ${suffix}`;
+};
+
 const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
   try {
     const soTiet = teacher.SoTiet || 0;
@@ -933,6 +958,10 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
 
     const content = fs.readFileSync(templatePath, "binary");
     const zip = new PizZip(content);
+
+    // Smart auto-detection contract number format based on template XML
+    data.Số_hợp_đồng = resolveContractNumberForTemplate(zip, teacher.SoHopDong, "/HĐ-ĐT");
+    data.Số_thanh_lý = resolveContractNumberForTemplate(zip, teacher.SoThanhLyHopDong, "/HĐNT-ĐT");
 
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
@@ -1354,7 +1383,13 @@ function createTransferDetailDocument(
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+              createCell(
+                row.SoHopDong
+                  ? (row.SoHopDong.includes("/") ? row.SoHopDong : `${row.SoHopDong} /HĐ-ĐT`)
+                  : "",
+                false,
+                1950
+              ), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
               createCell(row.DienThoai || ""),
               createCell(row.MaSoThue || ""),
