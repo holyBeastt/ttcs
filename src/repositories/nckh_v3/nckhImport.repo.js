@@ -68,39 +68,55 @@ const insertChungExtended = async (connection, data) => {
 };
 
 /**
- * Check for duplicate records by ma_so.
+ * Check for duplicate records by ma_so within the same loai_nckh and nam_hoc.
  * Returns an array of existing ma_so values from the provided list.
  */
-const findExistingMaSo = async (connection, maSoList) => {
+const findExistingMaSo = async (connection, maSoList, loaiNckh, namHoc) => {
   if (!maSoList.length) return [];
 
   const filtered = maSoList.filter((m) => m !== null && m !== undefined && String(m).trim() !== "");
   if (!filtered.length) return [];
 
   const placeholders = filtered.map(() => "?").join(", ");
-  const query = `SELECT ma_so FROM ${TABLE_CHUNG} WHERE ma_so IN (${placeholders})`;
-  const [rows] = await connection.execute(query, filtered);
+  const query = `
+    SELECT DISTINCT ma_so 
+    FROM ${TABLE_CHUNG} 
+    WHERE ma_so IN (${placeholders})
+      AND loai_nckh = ?
+      AND nam_hoc = ?
+  `;
+  const [rows] = await connection.execute(query, [...filtered, loaiNckh, namHoc]);
   return rows.map((r) => r.ma_so);
 };
 
 /**
- * Lookup nhanvien by MaSoCanBo codes.
- * Returns rows with id_User and MaSoCanBo.
+ * Lookup nhanvien by TenNhanVien names.
+ * Returns rows with id_User, TenNhanVien, MaNhanVien, and MaPhongBan.
  */
-const findNhanVienByMaCodes = async (connection, maCodes) => {
-  if (!maCodes.length) return [];
+const findNhanVienByNames = async (connection, names) => {
+  if (!names.length) return [];
 
-  const filtered = [...new Set(maCodes.filter((m) => m && String(m).trim()))];
+  const filtered = [...new Set(names.filter((n) => n && String(n).trim()))];
   if (!filtered.length) return [];
 
   const placeholders = filtered.map(() => "?").join(", ");
-  const query = `SELECT id_User, MaSoCanBo, TenNhanVien FROM nhanvien WHERE MaSoCanBo IN (${placeholders})`;
+  const query = `SELECT id_User, TenNhanVien, MaNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
   const [rows] = await connection.execute(query, filtered);
+  return rows;
+};
+
+/**
+ * Fetch all nhanvien to perform robust fuzzy matching in memory.
+ */
+const getAllNhanVien = async (connection) => {
+  const query = `SELECT id_User, TenNhanVien, MaNhanVien, MaPhongBan FROM nhanvien`;
+  const [rows] = await connection.execute(query);
   return rows;
 };
 
 module.exports = {
   insertChungExtended,
   findExistingMaSo,
-  findNhanVienByMaCodes,
+  findNhanVienByNames,
+  getAllNhanVien,
 };

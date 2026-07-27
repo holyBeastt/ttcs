@@ -64,6 +64,38 @@
           </div>
         <% } %>
       </div>
+
+      <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
+        <div class="form-row">
+          <div class="form-col">
+            <label class="form-label">Tên Tạp chí/Hội thảo</label>
+            <input id="tenTapChi" type="text" class="form-control" placeholder="Nhập tên Tạp chí/Hội thảo" />
+          </div>
+          <div class="form-col">
+            <label class="form-label">Số báo</label>
+            <input id="soBao" type="text" class="form-control" placeholder="Nhập số báo" />
+          </div>
+          <div class="form-col">
+            <label class="form-label">Số trích dẫn</label>
+            <input id="soTrichDan" type="number" min="0" step="1" class="form-control" placeholder="Nhập số trích dẫn" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label class="form-label">Số quyết định</label>
+            <input id="soQuyetDinh" type="text" class="form-control" placeholder="Nhập số quyết định" />
+          </div>
+          <div class="form-col">
+            <label class="form-label">Ngày quyết định</label>
+            <input id="ngayQuyetDinh" type="date" class="form-control" />
+          </div>
+          <div class="form-col">
+            <label class="form-label">Ngày công bố</label>
+            <input id="ngayNghiemThu" type="date" class="form-control" />
+          </div>
+        </div>
+      <% } %>
     </div>
 
     <div class="form-section">
@@ -107,6 +139,38 @@
           </div>
         </div>
       </div>
+
+      <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
+        <hr style="margin: 20px 0; border-color: #dee2e6;" />
+
+        <div class="form-row">
+          <div class="form-col autocomplete-wrapper">
+            <label class="form-label">
+              Tác giả liên hệ (Corresponding Author)
+              <label class="checkbox-label ms-2">
+                <input type="checkbox" id="tacGiaLienHeNgoaiToggle" /> Ngoài học viện
+              </label>
+            </label>
+            <input type="text" id="tacGiaLienHeInput" class="form-control" placeholder="Nhập tên tác giả liên hệ" />
+            <button type="button" id="addTacGiaLienHeBtn" class="btn btn-secondary mt-2">Thêm</button>
+            <div id="tacGiaLienHe-suggestions" class="suggestions-list"></div>
+          </div>
+
+          <div class="form-col" id="tacGiaLienHeDonViGroup">
+            <label class="form-label">Đơn vị công tác</label>
+            <input type="text" id="tacGiaLienHeDonVi" class="form-control" placeholder="Nhập đơn vị công tác" disabled />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col-full">
+            <label class="form-label">Danh sách tác giả liên hệ</label>
+            <div id="tacGiaLienHeTags" class="member-tags">
+              <span style="color: #999; font-style: italic;">Chưa có tác giả liên hệ</span>
+            </div>
+          </div>
+        </div>
+      <% } %>
 
       <% if (!selectedTypeMeta || selectedTypeMeta.hasSecondaryMembers !== false) { %>
         <hr style="margin: 20px 0; border-color: #dee2e6;" />

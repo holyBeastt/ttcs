@@ -16,7 +16,16 @@ const findById = async (connection, id) => {
   return rows[0] || null;
 };
 
+const findByCode = async (connection, code) => {
+  const [rows] = await connection.execute(
+    "SELECT id, MaPhongBan, TenPhongBan, isKhoa FROM phongban WHERE MaPhongBan = ? LIMIT 1",
+    [code]
+  );
+  return rows[0] || null;
+};
+
 module.exports = {
   listKhoa,
   findById,
+  findByCode,
 };

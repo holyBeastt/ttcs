@@ -7,6 +7,7 @@
       canApproveKhoa: false,
     },
     pendingApprovals: new Map(), // Map of id -> { khoaDuyet?, vienNcDuyet? }
+    currentSort: { key: null, direction: "asc" },
   };
 
   const el = {
@@ -19,6 +20,7 @@
     selectAllKhoaDuyet: null,
     selectAllVienDuyet: null,
     tableBody: null,
+    recordCountInfo: null,
   };
 
   const api = {
@@ -63,6 +65,7 @@
     el.selectAllKhoaDuyet = document.getElementById("selectAllKhoaDuyet");
     el.selectAllVienDuyet = document.getElementById("selectAllVienDuyet");
     el.tableBody = document.getElementById("recordsTableBody");
+    el.recordCountInfo = document.getElementById("recordCountInfo");
   }
 
   function normalizeText(value) {
@@ -170,6 +173,44 @@
 
 
 
+  function sortData() {
+    const { key, direction } = state.currentSort;
+    if (!key) return;
+
+    state.rawRows.sort((a, b) => {
+      let valA = "";
+      let valB = "";
+
+      if (key === "phan_loai") {
+        valA = String(a.phanLoai || "").trim().toLowerCase();
+        valB = String(b.phanLoai || "").trim().toLowerCase();
+      } else if (key === "ten_cong_trinh") {
+        valA = String(a.ten_cong_trinh || a.tenCongTrinh || "").trim().toLowerCase();
+        valB = String(b.ten_cong_trinh || b.tenCongTrinh || "").trim().toLowerCase();
+      }
+
+      if (valA < valB) return direction === "asc" ? -1 : 1;
+      if (valA > valB) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function updateSortIndicators() {
+    document.querySelectorAll("th.sortable").forEach((th) => {
+      const indicator = th.querySelector(".sort-indicator");
+      if (!indicator) return;
+      const key = th.getAttribute("data-sort");
+      if (key === state.currentSort.key) {
+        indicator.innerHTML =
+          state.currentSort.direction === "asc"
+            ? '<i class="bi bi-caret-up-fill"></i>'
+            : '<i class="bi bi-caret-down-fill"></i>';
+      } else {
+        indicator.innerHTML = "";
+      }
+    });
+  }
+
   function escapeHtml(value) {
     return String(value || "")
       .replace(/&/g, "&amp;")
@@ -215,6 +256,13 @@
   function renderRows() {
     if (!el.tableBody) return;
 
+    // Update record count
+    if (el.recordCountInfo) {
+      el.recordCountInfo.textContent = state.rows.length
+        ? `Hiển thị ${state.rows.length} / ${state.rawRows.length} công trình`
+        : "";
+    }
+
     if (!state.rows.length) {
       el.tableBody.innerHTML = `
         <tr>
@@ -224,71 +272,103 @@
       return;
     }
 
-    const html = state.rows.map((row, index) => {
-      const pending = state.pendingApprovals.get(row.id) || {};
-      const currentKhoaDuyet = pending.khoaDuyet !== undefined ? pending.khoaDuyet : row.khoaDuyet;
-      const currentVienDuyet = pending.vienNcDuyet !== undefined ? pending.vienNcDuyet : row.vienNcDuyet;
+    // Group rows by loaiNckhLabel
+    const groups = new Map();
+    for (const row of state.rows) {
+      const key = row.loaiNckhLabel || "Khác";
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key).push(row);
+    }
 
-      const canToggleKhoa = state.permission.canApproveKhoa && currentVienDuyet !== 1;
-      const canToggleVien = state.permission.canApprove && (currentKhoaDuyet === 1 || currentVienDuyet === 1);
+    let html = "";
+    let globalIndex = 0;
 
-      const tacGia = formatMultilineCell(row.tacGiaChinhDisplay || row.tacGiaChinh || "");
-      const thanhVien = formatMultilineCell(row.thanhVienDisplay || row.thanhVien || "");
-
-      return `
-        <tr data-id="${row.id}">
-          <td>${index + 1}</td>
-          <td>${escapeHtml(row.loaiNckhLabel)}</td>
-          <td>${escapeHtml(row.phanLoai)}</td>
-          <td class="text-start col-main">${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}</td>
-          <td>${escapeHtml(row.maSo || "")}</td>
-          <td>${escapeHtml(row.xepLoai || "")}</td>
-          <td>${formatDate(row.ngayNghiemThu)}</td>
-          <td class="text-start col-people">${tacGia || ""}</td>
-          <td class="text-start col-people">${thanhVien || ""}</td>
-          <td>${escapeHtml(row.maPhongBan || row.tenPhongBan || "")}</td>
-          <td>${formatHours(row.tongSoTiet)}</td>
-          <td>
-            <input
-              type="checkbox"
-              class="nckh-v3-checkbox nckh-v3-approval-khoa"
-              data-id="${row.id}"
-              ${currentKhoaDuyet === 1 ? "checked" : ""}
-              ${canToggleKhoa ? "" : "disabled"}
-            />
-          </td>
-          <td>
-            <input
-              type="checkbox"
-              class="nckh-v3-checkbox nckh-v3-approval-vien"
-              data-id="${row.id}"
-              ${currentVienDuyet === 1 ? "checked" : ""}
-              ${canToggleVien ? "" : "disabled"}
-            />
-          </td>
-          <td>
-            <button class="btn btn-sm btn-outline-info" data-action="detail" data-id="${row.id}">
-              <i class="bi bi-eye"></i>
-            </button>
-          </td>
-          <td>
-            ${state.permission.canApprove ? `
-              <button class="btn btn-sm btn-outline-danger ${currentVienDuyet === 1 ? 'disabled' : ''}" data-action="delete" data-id="${row.id}" ${currentVienDuyet === 1 ? 'disabled' : ''}>
-                <i class="bi bi-trash"></i>
-              </button>
-            ` : ""}
+    for (const [groupLabel, groupRows] of groups) {
+      html += `
+        <tr class="nckh-v3-group-header">
+          <td colspan="14">
+            <strong>${escapeHtml(groupLabel)}</strong>
+            <span class="nckh-v3-group-count">${groupRows.length}</span>
           </td>
         </tr>
       `;
-    }).join("");
+
+      for (const row of groupRows) {
+        globalIndex++;
+        const pending = state.pendingApprovals.get(row.id) || {};
+        const currentKhoaDuyet = pending.khoaDuyet !== undefined ? pending.khoaDuyet : row.khoaDuyet;
+        const currentVienDuyet = pending.vienNcDuyet !== undefined ? pending.vienNcDuyet : row.vienNcDuyet;
+
+        const canToggleKhoa = state.permission.canApproveKhoa && currentVienDuyet !== 1;
+        const canToggleVien = state.permission.canApprove && (currentKhoaDuyet === 1 || currentVienDuyet === 1);
+
+        const tacGia = formatMultilineCell(row.tacGiaChinhDisplay || row.tacGiaChinh || "");
+        const thanhVien = formatMultilineCell(row.thanhVienDisplay || row.thanhVien || "");
+
+        const deleteBtn = state.permission.canApprove
+          ? `<button class="btn-action btn btn-outline-danger ${currentVienDuyet === 1 ? 'disabled' : ''}" data-action="delete" data-id="${row.id}" ${currentVienDuyet === 1 ? 'disabled' : ''} title="Xóa">
+               <i class="bi bi-trash"></i>
+             </button>`
+          : "";
+
+        html += `
+          <tr data-id="${row.id}">
+            <td>${globalIndex}</td>
+            <td>${escapeHtml(row.phanLoai)}</td>
+            <td class="text-start col-main">${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}</td>
+            <td>${escapeHtml(row.maSo || "")}</td>
+            <td>${escapeHtml(row.xepLoai || "")}</td>
+            <td>${formatDate(row.ngayNghiemThu)}</td>
+            <td class="text-start col-people">${tacGia || ""}</td>
+            <td class="text-start col-people">${thanhVien || ""}</td>
+            <td>${escapeHtml(row.maPhongBan || row.tenPhongBan || "")}</td>
+            <td>${formatHours(row.tongSoTiet)}</td>
+            <td>
+              <input
+                type="checkbox"
+                class="nckh-v3-checkbox nckh-v3-approval-khoa"
+                data-id="${row.id}"
+                ${currentKhoaDuyet === 1 ? "checked" : ""}
+                ${canToggleKhoa ? "" : "disabled"}
+              />
+            </td>
+            <td>
+              <input
+                type="checkbox"
+                class="nckh-v3-checkbox nckh-v3-approval-vien"
+                data-id="${row.id}"
+                ${currentVienDuyet === 1 ? "checked" : ""}
+                ${canToggleVien ? "" : "disabled"}
+              />
+            </td>
+            <td class="col-actions">
+              <button class="btn-action btn btn-outline-info" data-action="detail" data-id="${row.id}" title="Chi tiết">
+                <i class="bi bi-eye"></i>
+              </button>
+              ${deleteBtn}
+            </td>
+          </tr>
+        `;
+      }
+    }
 
     el.tableBody.innerHTML = html;
   }
 
   function formatParticipants(participants, role) {
-    const list = (participants || []).filter((x) => x.vaiTro === role);
+    const list = (participants || []).filter((x) => 
+      role === "tac_gia"
+        ? (x.vaiTro === "tac_gia" || x.vaiTro === "tac_gia_lien_he")
+        : x.vaiTro === role
+    );
     if (!list.length) return "<em>Không có</em>";
-    return list.map((item) => escapeHtml(item.tenNhanVien || item.tenNgoai || "")).join("<br/>");
+    return list.map((item) => {
+      const name = item.tenNhanVien || item.tenNgoai || "";
+      const label = item.vaiTro === "tac_gia_lien_he" ? " (Liên hệ)" : "";
+      return escapeHtml(name) + label;
+    }).join("<br/>");
   }
 
   const HOI_DONG_ROLE_LABELS = {
@@ -402,9 +482,14 @@
     if (!checkbox) return;
 
     const newValue = checkbox.checked ? 1 : 0;
-    const affectedCount = state.rows.length;
 
     for (const row of state.rows) {
+      const pending = state.pendingApprovals.get(row.id) || {};
+      const currentVienDuyet = pending.vienNcDuyet !== undefined ? pending.vienNcDuyet : row.vienNcDuyet;
+
+      // Giống canToggleKhoa: không toggle khoa nếu viện đã duyệt
+      if (currentVienDuyet === 1) continue;
+
       if (!state.pendingApprovals.has(row.id)) {
         state.pendingApprovals.set(row.id, {});
       }
@@ -422,6 +507,14 @@
     const newValue = checkbox.checked ? 1 : 0;
 
     for (const row of state.rows) {
+      const pending = state.pendingApprovals.get(row.id) || {};
+      const currentKhoaDuyet = pending.khoaDuyet !== undefined ? pending.khoaDuyet : row.khoaDuyet;
+
+      // Giống canToggleVien: chỉ toggle viện khi khoa đã duyệt hoặc viện đã duyệt
+      const currentVienDuyet = pending.vienNcDuyet !== undefined ? pending.vienNcDuyet : row.vienNcDuyet;
+      const canToggleVien = currentKhoaDuyet === 1 || currentVienDuyet === 1;
+      if (!canToggleVien) continue;
+
       if (!state.pendingApprovals.has(row.id)) {
         state.pendingApprovals.set(row.id, {});
       }
@@ -484,6 +577,7 @@
     }
 
     state.rawRows = Array.isArray(result.data) ? result.data : [];
+    sortData();
     applyClientFilter();
   }
 
@@ -517,6 +611,7 @@
       el.selectAllVienDuyet.addEventListener("change", onSelectAllVienDuyet);
     }
 
+
     if (el.workNameSearchInput) {
       el.workNameSearchInput.addEventListener("input", applyClientFilter);
     }
@@ -532,6 +627,24 @@
         onVienDuyetChange(event);
       });
     }
+
+    // Attach sortable column headers click listeners
+    document.querySelectorAll("th.sortable").forEach((th) => {
+      th.addEventListener("click", () => {
+        const key = th.getAttribute("data-sort");
+        if (state.currentSort.key === key) {
+          state.currentSort.direction = state.currentSort.direction === "asc" ? "desc" : "asc";
+        } else {
+          state.currentSort.key = key;
+          state.currentSort.direction = "asc";
+        }
+        sortData();
+        applyClientFilter();
+        updateSortIndicators();
+      });
+    });
+
+    updateSortIndicators();
 
     await loadData();
   }

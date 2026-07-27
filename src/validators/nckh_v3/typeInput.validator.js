@@ -23,9 +23,18 @@ const validateMainPayload = (data) => {
   }
 };
 
-const validatePeopleInput = (tacGiaIds = [], thanhVienIds = [], tacGiaNgoai = [], thanhVienNgoai = []) => {
+const validatePeopleInput = (
+  tacGiaIds = [],
+  thanhVienIds = [],
+  tacGiaNgoai = [],
+  thanhVienNgoai = [],
+  tacGiaLienHeIds = [],
+  tacGiaLienHeNgoai = []
+) => {
   const totalTacGia = (Array.isArray(tacGiaIds) ? tacGiaIds.length : 0)
-    + (Array.isArray(tacGiaNgoai) ? tacGiaNgoai.length : 0);
+    + (Array.isArray(tacGiaNgoai) ? tacGiaNgoai.length : 0)
+    + (Array.isArray(tacGiaLienHeIds) ? tacGiaLienHeIds.length : 0)
+    + (Array.isArray(tacGiaLienHeNgoai) ? tacGiaLienHeNgoai.length : 0);
 
   if (totalTacGia === 0) {
     throw new Error("Cần ít nhất một người vai trò chính");
@@ -38,6 +47,7 @@ const validatePeopleInput = (tacGiaIds = [], thanhVienIds = [], tacGiaNgoai = []
   const allIds = [
     ...(Array.isArray(tacGiaIds) ? tacGiaIds : []),
     ...(Array.isArray(thanhVienIds) ? thanhVienIds : []),
+    ...(Array.isArray(tacGiaLienHeIds) ? tacGiaLienHeIds : []),
   ].map(Number);
 
   if (allIds.some((id) => Number.isNaN(id) || id <= 0)) {
@@ -51,6 +61,17 @@ const validatePeopleInput = (tacGiaIds = [], thanhVienIds = [], tacGiaNgoai = []
       }
       if (!item.donVi || !String(item.donVi).trim()) {
         throw new Error(`Người ngoài vai trò chính thứ ${i + 1} thiếu đơn vị công tác`);
+      }
+    });
+  }
+
+  if (Array.isArray(tacGiaLienHeNgoai)) {
+    tacGiaLienHeNgoai.forEach((item, i) => {
+      if (!item.ten || !String(item.ten).trim()) {
+        throw new Error(`Tác giả liên hệ ngoài thứ ${i + 1} thiếu tên`);
+      }
+      if (!item.donVi || !String(item.donVi).trim()) {
+        throw new Error(`Tác giả liên hệ ngoài thứ ${i + 1} thiếu đơn vị công tác`);
       }
     });
   }

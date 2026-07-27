@@ -63,6 +63,7 @@
     formatRole(role) {
       const r = String(role || "").toLowerCase();
       if (r === "tac_gia") return "Tác giả";
+      if (r === "tac_gia_lien_he") return "Tác giả chính & liên hệ";
       if (r === "thanh_vien") return "Thành viên";
       return role || "";
     },

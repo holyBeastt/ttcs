@@ -29,6 +29,7 @@
   // ── Role Label Map ──
   const ROLE_LABELS = {
     tac_gia: "Tác giả",
+    tac_gia_lien_he: "Tác giả liên hệ",
     thanh_vien: "Thành viên",
     chu_tich: "Chủ tịch",
     phan_bien: "Phản biện",
@@ -43,7 +44,7 @@
       const response = await fetch("/getNamHoc");
       const data = await response.json();
       const list = data.NamHoc || [];
-      
+
       list.forEach((item) => {
         const namHoc = item && item.NamHoc ? String(item.NamHoc) : "";
         if (!namHoc) return;
@@ -112,12 +113,26 @@
     currentPreviewData.forEach((record, index) => {
       const rowClass =
         record.status === "error" ? "row-error" :
-        record.status === "duplicate" ? "row-duplicate" : "";
+          record.status === "duplicate" ? "row-duplicate" : "";
 
       const statusHtml =
         record.status === "ok" ? '<span class="status-badge ok">OK</span>' :
-        record.status === "error" ? '<span class="status-badge error">Lỗi</span>' :
-        '<span class="status-badge duplicate">Trùng</span>';
+          record.status === "error" ? '<span class="status-badge error">Lỗi</span>' :
+            '<span class="status-badge duplicate">Trùng</span>';
+
+      // Helper to generate merged class names and title tooltips
+      const getCellMeta = (field, baseClass = "") => {
+        let cls = baseClass;
+        let titleAttr = "";
+        if (record.fieldErrors && record.fieldErrors[field]) {
+          cls += " cell-error";
+          titleAttr = ` title="${escapeHtml(record.fieldErrors[field])}"`;
+        } else if (record.fieldWarnings && record.fieldWarnings[field]) {
+          cls += " cell-warning";
+          titleAttr = ` title="${escapeHtml(record.fieldWarnings[field])}"`;
+        }
+        return `class="${cls.trim()}"${titleAttr}`;
+      };
 
       // Participants
       let participantsHtml = '<ul class="participant-list">';
@@ -146,14 +161,14 @@
         <tr class="${rowClass}" data-index="${index}">
           <td class="text-center">${index + 1}</td>
           <td class="text-center">${statusHtml}</td>
-          <td class="text-start">${escapeHtml(record.chung?.tenCongTrinh)}</td>
-          <td class="text-center">${escapeHtml(record.chung?.maSo || "—")}</td>
+          <td ${getCellMeta('tenCongTrinh', 'text-start')}>${escapeHtml(record.chung?.tenCongTrinh)}</td>
+          <td ${getCellMeta('maSo', 'text-center')}>${escapeHtml(record.chung?.maSo || "—")}</td>
           <td class="text-center">${escapeHtml(record.chung?.phanLoai || "—")}</td>
           <td class="text-center">${escapeHtml(record.chung?.namHoc || "—")}</td>
-          <td class="text-center"><strong>${record.chung?.tongSoTiet || 0}</strong></td>
+          <td ${getCellMeta('tongSoTiet', 'text-center')}><strong>${record.chung?.tongSoTiet || 0}</strong></td>
           <td class="text-center">${escapeHtml(record.chung?.ngayNghiemThu || "—")}</td>
           <td class="text-center">${escapeHtml(record.chung?.xepLoai || "—")}</td>
-          <td class="text-start">${participantsHtml}</td>
+          <td ${getCellMeta('participants', 'text-start')}>${participantsHtml}</td>
           <td class="text-start">${notesHtml || '<span style="color:#94a3b8">—</span>'}</td>
           <td class="text-center">
             <button class="btn-remove-row" title="Xóa dòng này" data-index="${index}">

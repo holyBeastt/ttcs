@@ -22,12 +22,17 @@
       margin: 0 auto;
     }
 
+    /* ── Toolbar ── */
     .nckh-v3-list-toolbar {
       display: flex;
       align-items: flex-end;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 16px;
+      padding: 12px 14px;
+      background: #f8f9fb;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
     }
 
     .nckh-v3-list-toolbar .form-select,
@@ -38,7 +43,7 @@
     }
 
     .nckh-v3-list-toolbar .toolbar-item {
-      min-width: 180px;
+      min-width: 160px;
     }
 
     .nckh-v3-list-toolbar .toolbar-item label {
@@ -49,57 +54,131 @@
       display: block;
     }
 
-    .nckh-v3-list-toolbar .toolbar-item select {
-      height: 42px;
-    }
-
+    .nckh-v3-list-toolbar .toolbar-item select,
     .nckh-v3-list-toolbar .toolbar-item input {
-      height: 42px;
+      height: 38px;
+      font-size: 0.875rem;
     }
 
     .nckh-v3-list-toolbar .toolbar-action {
       display: flex;
       align-items: flex-end;
-      gap: 8px;
+      gap: 6px;
     }
 
     .nckh-v3-list-toolbar .toolbar-action button {
-      height: 42px;
-      min-width: 140px;
+      height: 38px;
+      min-width: 100px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       line-height: 1.2;
+      font-size: 0.85rem;
+      gap: 5px;
     }
 
+    /* ── Table container ── */
     .nckh-v3-list-table {
       width: 100%;
-      overflow-x: auto; /* Just in case horizontal scrolling is needed, but vertical scrolling is natively on page */
+      overflow-x: auto;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
     }
 
-    .nckh-v3-list-table .table {
+    .nckh-v3-list-table table {
       margin-bottom: 0;
-      min-width: 1500px;
+      min-width: 1400px;
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
     }
 
+    /* ── Header ── */
     .nckh-v3-list-table thead th {
-      background: #f8f9fa;
+      background: #edf0f5;
+      color: #344054;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
       vertical-align: middle;
       white-space: nowrap;
+      padding: 10px 8px;
+      border-bottom: 2px solid #c5ccd6;
+      border-right: 1px solid #d8dde4;
+      position: sticky;
+      top: 0;
+      z-index: 2;
     }
 
-    .nckh-v3-list-table td, 
-    .nckh-v3-list-table th {
+    .nckh-v3-list-table thead th:last-child {
+      border-right: none;
+    }
+
+    /* ── Body cells ── */
+    .nckh-v3-list-table td {
       vertical-align: middle;
-      padding: 8px;
+      padding: 7px 8px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #e4e7ec;
+      border-right: 1px solid #eef0f4;
+      color: #344054;
+    }
+
+    .nckh-v3-list-table td:last-child {
+      border-right: none;
+    }
+
+    .nckh-v3-list-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ── Row hover ── */
+    .nckh-v3-list-table tbody tr {
+      transition: background-color 0.15s ease;
+    }
+
+    .nckh-v3-list-table tbody tr:hover {
+      background-color: #e8f0fe;
+    }
+
+    /* ── Row stripe (subtle) ── */
+    .nckh-v3-list-table tbody tr:nth-child(even) {
+      background-color: #fafbfc;
+    }
+    .nckh-v3-list-table tbody tr:nth-child(even):hover {
+      background-color: #e8f0fe;
     }
 
     .nckh-v3-list-table .col-main {
-      min-width: 260px;
+      min-width: 240px;
     }
 
     .nckh-v3-list-table .col-people {
       white-space: nowrap;
+    }
+
+    /* ── Action buttons in table: icon-only, compact ── */
+    .nckh-v3-list-table .btn-action {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: all 0.15s ease;
+    }
+
+    .nckh-v3-list-table .btn-action:hover:not(:disabled) {
+      transform: scale(1.12);
+    }
+
+    .nckh-v3-list-table .col-actions {
+      white-space: nowrap;
+      text-align: center;
+      width: 80px;
     }
 
     .nckh-v3-person-row {
@@ -113,9 +192,10 @@
     }
 
     .nckh-v3-checkbox {
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
       cursor: pointer;
+      accent-color: #4361ee;
     }
 
     .nckh-v3-checkbox:disabled {
@@ -123,7 +203,48 @@
       opacity: 0.45;
     }
 
+    /* ── Sortable header cursor ── */
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+    th.sortable:hover {
+      background-color: #dfe4ed !important;
+    }
 
+    /* ── Record count badge ── */
+    .nckh-v3-record-count {
+      font-size: 0.82rem;
+      color: #667085;
+      padding: 6px 0 0;
+    }
+
+    /* ── Group header row ── */
+    .nckh-v3-group-header td {
+      background: #dce4f0 !important;
+      font-size: 0.85rem;
+      padding: 8px 12px !important;
+      text-align: left !important;
+      border-bottom: 2px solid #b8c5d9 !important;
+      color: #1d2939;
+      letter-spacing: 0.01em;
+    }
+
+    .nckh-v3-group-header:hover td {
+      background: #d0d9ea !important;
+    }
+
+    .nckh-v3-group-count {
+      display: inline-block;
+      background: #4361ee;
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 1px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 
@@ -143,30 +264,28 @@
 
     <div class="nckh-v3-list-toolbar">
       <div class="toolbar-item">
-        <!-- <label for="namHocFilter">Năm học</label> -->
         <select id="namHocFilter" class="form-select"></select>
       </div>
 
       <div class="toolbar-item">
-        <!-- <label for="khoaFilter">Khoa</label> -->
         <select id="khoaFilter" class="form-select">
           <option value="ALL">Tất cả khoa</option>
         </select>
       </div>
 
-      <div class="toolbar-item" style="min-width: 260px;">
+      <div class="toolbar-item" style="min-width: 220px;">
         <input
           id="workNameSearchInput"
           class="form-control"
-          placeholder="Tên công trình"
+          placeholder="🔍 Tên công trình"
         />
       </div>
 
-      <div class="toolbar-item" style="min-width: 280px;">
+      <div class="toolbar-item" style="min-width: 220px;">
         <input
           id="authorMemberSearchInput"
           class="form-control"
-          placeholder="Tác giả / thành viên"
+          placeholder="🔍 Tác giả / thành viên"
         />
       </div>
 
@@ -175,28 +294,29 @@
           <i class="bi bi-search"></i> Hiển thị
         </button>
         <button id="submitApprovalsBtn" class="btn btn-success" style="display: none;">
-          <i class="bi bi-check-circle"></i> Duyệt
+          <i class="bi bi-check-circle"></i> Lưu
         </button>
       </div>
     </div>
 
+    <div id="recordCountInfo" class="nckh-v3-record-count"></div>
+
     <div class="nckh-v3-list-table">
-      <table border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
+      <table style="text-align: center;">
         <thead>
           <tr>
             <th>STT</th>
-            <th class="sortable" data-sort="loai_nckh" style="cursor:pointer">Loại NCKH <span class="sort-indicator"></span></th>
-            <th class="sortable" data-sort="phan_loai" style="cursor:pointer">Phân loại <span class="sort-indicator"></span></th>
-            <th class="sortable text-start" data-sort="ten_cong_trinh" style="cursor:pointer">Tên công trình <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="phan_loai">Phân loại <span class="sort-indicator"></span></th>
+            <th class="sortable text-start" data-sort="ten_cong_trinh">Tên công trình <span class="sort-indicator"></span></th>
             <th>Mã số / Số QĐ</th>
             <th>Xếp loại</th>
-            <th>Ngày nghiệm thu</th>
-            <th class="text-start">Tác giả chính/Chủ nhiệm</th>
+            <th>Ngày NT</th>
+            <th class="text-start">Tác giả / CN</th>
             <th class="text-start">Thành viên</th>
             <th>Khoa</th>
-            <th>Tổng số tiết</th>
-            <th style="width: 64px;">
-              <div style="font-size: 0.75rem; font-weight: bold; line-height: 1.3;">
+            <th>Số tiết</th>
+            <th style="width: 56px;">
+              <div style="line-height: 1.3;">
                 Khoa
                 <br />
                 <input
@@ -207,9 +327,9 @@
                 />
               </div>
             </th>
-            <th style="width: 64px;">
-              <div style="font-size: 0.75rem; font-weight: bold; line-height: 1.3;">
-                Viện NC
+            <th style="width: 56px;">
+              <div style="line-height: 1.3;">
+                Viện
                 <br />
                 <input
                   type="checkbox"
@@ -219,17 +339,12 @@
                 />
               </div>
             </th>
-            <th>Chi tiết</th>
-            <th style="width: 64px;">Xóa</th>
+            <th style="width: 80px;">Thao tác</th>
           </tr>
         </thead>
         <tbody id="recordsTableBody"></tbody>
       </table>
     </div>
-
-    <!-- <div class="nckh-v3-inline-note">
-      Nút sửa đang tạm ẩn theo yêu cầu. Trang này chỉ phục vụ xem và duyệt.
-    </div> -->
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -238,61 +353,6 @@
 
   <script src="/js/nckh_v3/main/permissions.js"></script>
   <script src="/js/nckh_v3/list/index.js"></script>
-  <script>
-    (function () {
-
-      // Sort logic
-      let currentSort = { key: null, direction: 'asc' };
-      const sortKeyToColumnIndex = {
-        'loai_nckh': 1,
-        'phan_loai': 2,
-        'ten_cong_trinh': 3
-      };
-
-      function compareRows(a, b, key, direction) {
-        let idx = sortKeyToColumnIndex[key];
-        let tdA = a.children[idx]?.innerText.trim().toLowerCase() || '';
-        let tdB = b.children[idx]?.innerText.trim().toLowerCase() || '';
-        if (tdA < tdB) return direction === 'asc' ? -1 : 1;
-        if (tdA > tdB) return direction === 'asc' ? 1 : -1;
-        return 0;
-      }
-
-      function updateSortIndicators() {
-        document.querySelectorAll('th.sortable').forEach(th => {
-          const indicator = th.querySelector('.sort-indicator');
-          if (!indicator) return;
-          if (th.dataset.sort === currentSort.key) {
-            indicator.innerHTML = currentSort.direction === 'asc' ? '<i class="bi bi-caret-up-fill"></i>' : '<i class="bi bi-caret-down-fill"></i>';
-          } else {
-            indicator.innerHTML = '';
-          }
-        });
-      }
-
-      function sortTable(key) {
-        const tableBody = document.getElementById('recordsTableBody');
-        if (!tableBody) return;
-        let rows = Array.from(tableBody.querySelectorAll('tr'));
-        let direction = 'asc';
-        if (currentSort.key === key) {
-          direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-        }
-        rows.sort((a, b) => compareRows(a, b, key, direction));
-        rows.forEach(row => tableBody.appendChild(row));
-        currentSort = { key, direction };
-        updateSortIndicators();
-      }
-
-      document.querySelectorAll('th.sortable').forEach(th => {
-        th.addEventListener('click', function () {
-          const key = th.dataset.sort;
-          sortTable(key);
-        });
-      });
-      updateSortIndicators();
-    })();
-  </script>
 </body>
 
 </html>

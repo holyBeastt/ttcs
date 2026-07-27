@@ -51,9 +51,10 @@ const toParticipantDisplay = (participant) => {
 
 const mergeParticipantsByRole = (participantRows, role) => {
   const map = new Map();
+  const roles = Array.isArray(role) ? role : [role];
 
   for (const row of participantRows) {
-    if (String(row.vai_tro || "") !== role) continue;
+    if (!roles.includes(String(row.vai_tro || ""))) continue;
 
     const normalized = toParticipantDisplay(row);
     if (!map.has(normalized.key)) {
@@ -125,11 +126,21 @@ const list = async (namHoc, khoaId) => {
     throw new Error("Thiếu năm học");
   }
 
-  const safeKhoaId = String(khoaId || "ALL").trim() || "ALL";
+  let safeKhoaId = String(khoaId || "ALL").trim() || "ALL";
 
   let connection;
   try {
     connection = await createPoolConnection();
+
+    if (safeKhoaId !== "ALL" && isNaN(Number(safeKhoaId))) {
+      const pb = await phongBanRepo.findByCode(connection, safeKhoaId);
+      if (pb) {
+        safeKhoaId = String(pb.id);
+      } else {
+        safeKhoaId = "0";
+      }
+    }
+
     const rows = await nckhChungRepo.listUnified(connection, String(namHoc).trim(), safeKhoaId);
     const records = rows.map(toSummaryRecord);
 
@@ -161,7 +172,7 @@ const list = async (namHoc, khoaId) => {
         };
       }
 
-      const tacGia = mergeParticipantsByRole(recordParticipants, "tac_gia");
+      const tacGia = mergeParticipantsByRole(recordParticipants, ["tac_gia", "tac_gia_lien_he"]);
       const thanhVien = mergeParticipantsByRole(recordParticipants, "thanh_vien");
 
       return {

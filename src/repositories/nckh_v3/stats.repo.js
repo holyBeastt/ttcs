@@ -87,7 +87,7 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
       st.vai_tro AS vai_tro_giang_vien,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st2.vai_tro = 'tac_gia' THEN TRIM(COALESCE(nv2.TenNhanVien, st2.ten_ngoai))
+          WHEN st2.vai_tro IN ('tac_gia', 'tac_gia_lien_he') THEN TRIM(COALESCE(nv2.TenNhanVien, st2.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st2.id ASC
@@ -174,7 +174,7 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
       c.ma_so,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st.vai_tro = 'tac_gia' THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
+          WHEN st.vai_tro IN ('tac_gia', 'tac_gia_lien_he') THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st.id ASC
@@ -312,7 +312,7 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
       c.ma_so,
       GROUP_CONCAT(
         DISTINCT CASE
-          WHEN st.vai_tro = 'tac_gia' THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
+          WHEN st.vai_tro IN ('tac_gia', 'tac_gia_lien_he') THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
           ELSE NULL
         END
         ORDER BY st.id ASC

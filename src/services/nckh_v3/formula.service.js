@@ -100,21 +100,29 @@ const buildParticipantsWithHours = (
   thanhVienIds,
   tacGiaNgoai = [],
   thanhVienNgoai = [],
-  soNamThucHien = 1
+  soNamThucHien = 1,
+  tacGiaLienHeIds = [],
+  tacGiaLienHeNgoai = []
 ) => {
-  const uniqueTacGia = [...new Set(tacGiaIds.map(Number))];
-  const uniqueThanhVien = [...new Set(thanhVienIds.map(Number))]
-    .filter((id) => !uniqueTacGia.includes(id));
+  const uniqueLienHe = [...new Set((tacGiaLienHeIds || []).map(Number))];
+  const uniqueTacGia = [...new Set((tacGiaIds || []).map(Number))].filter((id) => !uniqueLienHe.includes(id));
+  const uniqueThanhVien = [...new Set((thanhVienIds || []).map(Number))]
+    .filter((id) => !uniqueTacGia.includes(id) && !uniqueLienHe.includes(id));
 
-  const ngoaiTacGia = Array.isArray(tacGiaNgoai) ? tacGiaNgoai : [];
-  const ngoaiThanhVien = Array.isArray(thanhVienNgoai) ? thanhVienNgoai : [];
+  const ngoaiLienHe = Array.isArray(tacGiaLienHeNgoai) ? tacGiaLienHeNgoai : [];
+  const ngoaiTacGia = (Array.isArray(tacGiaNgoai) ? tacGiaNgoai : [])
+    .filter((x) => !ngoaiLienHe.some((lh) => lh.ten === x.ten));
+  const ngoaiThanhVien = (Array.isArray(thanhVienNgoai) ? thanhVienNgoai : [])
+    .filter((x) => !ngoaiTacGia.some((tg) => tg.ten === x.ten) && !ngoaiLienHe.some((lh) => lh.ten === x.ten));
 
-  const tongSoNguoi = uniqueTacGia.length + uniqueThanhVien.length + ngoaiTacGia.length + ngoaiThanhVien.length;
+  const tongSoNguoi = uniqueTacGia.length + uniqueThanhVien.length + uniqueLienHe.length +
+                      ngoaiTacGia.length + ngoaiThanhVien.length + ngoaiLienHe.length;
   if (tongSoNguoi === 0) {
     throw new Error("Danh sach nguoi tham gia khong duoc rong");
   }
 
-  const totalTacGia = uniqueTacGia.length + ngoaiTacGia.length;
+  // Cả tác giả chính và tác giả liên hệ đều thuộc nhóm Tác giả chính khi chia giờ
+  const totalTacGia = uniqueTacGia.length + ngoaiTacGia.length + uniqueLienHe.length + ngoaiLienHe.length;
   if (totalTacGia === 0) {
     throw new Error("Phai co it nhat 1 tac gia");
   }
@@ -123,6 +131,8 @@ const buildParticipantsWithHours = (
   const base = quyDoiSoTietStandard(T, tongSoNguoi, totalTacGia, soNamThucHien);
 
   const baseParticipants = [
+    ...uniqueLienHe.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "tac_gia_lien_he", soTiet: base.tacGia })),
+    ...ngoaiLienHe.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "tac_gia_lien_he", soTiet: base.tacGia })),
     ...uniqueTacGia.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "tac_gia", soTiet: base.tacGia })),
     ...ngoaiTacGia.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "tac_gia", soTiet: base.tacGia })),
     ...uniqueThanhVien.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "thanh_vien", soTiet: base.thanhVien })),
@@ -156,16 +166,23 @@ const buildParticipantsWithEqualHours = (
   thanhVienIds,
   tacGiaNgoai = [],
   thanhVienNgoai = [],
-  soNamThucHien = 1
+  soNamThucHien = 1,
+  tacGiaLienHeIds = [],
+  tacGiaLienHeNgoai = []
 ) => {
-  const uniqueTacGia = [...new Set((tacGiaIds || []).map(Number))];
+  const uniqueLienHe = [...new Set((tacGiaLienHeIds || []).map(Number))];
+  const uniqueTacGia = [...new Set((tacGiaIds || []).map(Number))].filter((id) => !uniqueLienHe.includes(id));
   const uniqueThanhVien = [...new Set((thanhVienIds || []).map(Number))]
-    .filter((id) => !uniqueTacGia.includes(id));
+    .filter((id) => !uniqueTacGia.includes(id) && !uniqueLienHe.includes(id));
 
-  const ngoaiTacGia = Array.isArray(tacGiaNgoai) ? tacGiaNgoai : [];
-  const ngoaiThanhVien = Array.isArray(thanhVienNgoai) ? thanhVienNgoai : [];
+  const ngoaiLienHe = Array.isArray(tacGiaLienHeNgoai) ? tacGiaLienHeNgoai : [];
+  const ngoaiTacGia = (Array.isArray(tacGiaNgoai) ? tacGiaNgoai : [])
+    .filter((x) => !ngoaiLienHe.some((lh) => lh.ten === x.ten));
+  const ngoaiThanhVien = (Array.isArray(thanhVienNgoai) ? thanhVienNgoai : [])
+    .filter((x) => !ngoaiTacGia.some((tg) => tg.ten === x.ten) && !ngoaiLienHe.some((lh) => lh.ten === x.ten));
 
-  const tongSoNguoi = uniqueTacGia.length + uniqueThanhVien.length + ngoaiTacGia.length + ngoaiThanhVien.length;
+  const tongSoNguoi = uniqueTacGia.length + uniqueThanhVien.length + uniqueLienHe.length +
+                      ngoaiTacGia.length + ngoaiThanhVien.length + ngoaiLienHe.length;
   if (tongSoNguoi === 0) {
     throw new Error("Danh sách người tham gia không được rỗng");
   }
@@ -173,6 +190,8 @@ const buildParticipantsWithEqualHours = (
   const soTietMoiNguoi = quyDoiSoTietChiaDeu(Number(tongSoTiet), tongSoNguoi, soNamThucHien);
 
   const baseParticipants = [
+    ...uniqueLienHe.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "tac_gia_lien_he", soTiet: soTietMoiNguoi })),
+    ...ngoaiLienHe.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "tac_gia_lien_he", soTiet: soTietMoiNguoi })),
     ...uniqueTacGia.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "tac_gia", soTiet: soTietMoiNguoi })),
     ...ngoaiTacGia.map((item) => ({ nhanvienId: null, tenNgoai: item.ten, donViNgoai: item.donVi || null, vaiTro: "tac_gia", soTiet: soTietMoiNguoi })),
     ...uniqueThanhVien.map((id) => ({ nhanvienId: id, tenNgoai: null, donViNgoai: null, vaiTro: "thanh_vien", soTiet: soTietMoiNguoi })),
@@ -217,7 +236,9 @@ const buildParticipantsByMode = (
   tacGiaNgoai = [],
   thanhVienNgoai = [],
   soNamThucHien = 1,
-  vaiTro = null
+  vaiTro = null,
+  tacGiaLienHeIds = [],
+  tacGiaLienHeNgoai = []
 ) => {
   if (mode === "equal") {
     return buildParticipantsWithEqualHours(
@@ -226,7 +247,9 @@ const buildParticipantsByMode = (
       thanhVienIds,
       tacGiaNgoai,
       thanhVienNgoai,
-      soNamThucHien
+      soNamThucHien,
+      tacGiaLienHeIds,
+      tacGiaLienHeNgoai
     );
   }
 
@@ -240,7 +263,9 @@ const buildParticipantsByMode = (
     thanhVienIds,
     tacGiaNgoai,
     thanhVienNgoai,
-    soNamThucHien
+    soNamThucHien,
+    tacGiaLienHeIds,
+    tacGiaLienHeNgoai
   );
 };
 

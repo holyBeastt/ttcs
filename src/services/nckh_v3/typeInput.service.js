@@ -10,27 +10,14 @@ const responseMapper = require("../../mappers/nckh_v3/response.mapper");
 const formulaService = require("./formula.service");
 const validator = require("../../validators/nckh_v3/typeInput.validator");
 const quyDinhService = require("./quyDinh.service");
+const NCKHImportStrategyFactory = require("./import/strategy.factory");
+const NCKHSaveService = require("./import/save.service");
 
 const HOI_DONG_ROLES = new Set(["chu_tich", "phan_bien", "uy_vien"]);
 
 const getPhanLoaiOptions = async (loaiNckh) => {
   return quyDinhService.getQuyDinhSoGioByLoai(loaiNckh);
 };
-
-const assertNhanVienExist = async (connection, participants) => {
-  const ids = participants
-    .filter((item) => item.nhanvienId !== null && item.nhanvienId !== undefined)
-    .map((item) => Number(item.nhanvienId));
-
-  if (ids.length === 0) return;
-
-  const rows = await nhanVienRepo.getByIds(connection, ids);
-
-  if (rows.length !== ids.length) {
-    throw new Error("Có giảng viên không tồn tại trong danh sách tham gia");
-  }
-};
-
 
 const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
   const assertRecordType = (record) => {
@@ -40,108 +27,16 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
   };
 
   const create = async (payload, userContext) => {
-    validator.validateMainPayload(payload);
-
-    const tacGiaIds = Array.isArray(payload.tacGiaIds) ? payload.tacGiaIds : [];
-    const thanhVienIds = Array.isArray(payload.thanhVienIds) ? payload.thanhVienIds : [];
-    const tacGiaNgoai = Array.isArray(payload.tacGiaNgoai) ? payload.tacGiaNgoai : [];
-    const thanhVienNgoai = Array.isArray(payload.thanhVienNgoai) ? payload.thanhVienNgoai : [];
-
-    validator.validatePeopleInput(tacGiaIds, thanhVienIds, tacGiaNgoai, thanhVienNgoai);
-    const soNamThucHien = Number(payload.soNamThucHien || 1);
-    const vaiTroHoiDong = mode === "fixed" ? String(payload.vaiTro || "").trim() : null;
-
-    if (mode === "fixed") {
-      if (!vaiTroHoiDong) {
-        throw new Error("Thiếu vai trò hội đồng");
-      }
-      if (!HOI_DONG_ROLES.has(vaiTroHoiDong)) {
-        throw new Error("Vai trò hội đồng không hợp lệ");
-      }
-    }
-
-    let connection;
-    try {
-      connection = await createPoolConnection();
-      await connection.beginTransaction();
-
-      const participants = formulaService.buildParticipantsByMode(
-        mode,
-        Number(payload.tongSoTiet),
-        tacGiaIds,
-        thanhVienIds,
-        tacGiaNgoai,
-        thanhVienNgoai,
-        soNamThucHien,
-        vaiTroHoiDong
-      );
-
-      await assertNhanVienExist(connection, participants);
-
-      const nckhId = await nckhChungRepo.insert(connection, {
-        tenCongTrinh: payload.tenCongTrinh,
-        loaiNckh,
-        phanLoai: payload.phanLoai,
-        namHoc: payload.namHoc,
-        tongSoTiet: Number(payload.tongSoTiet),
-        khoaDuyet: 0,
-        vienNcDuyet: 0,
-        ngayNghiemThu: payload.ngayNghiemThu,
-        xepLoai: payload.xepLoai,
-        maSo: payload.maSo,
-      });
-
-      await nckhSoTietRepo.bulkInsert(connection, nckhId, participants);
-
-      const total = formulaService.round2(await nckhSoTietRepo.sumHours(connection, nckhId));
-      const expected = formulaService.round2(Number(payload.tongSoTiet));
-
-      if (total !== expected) {
-        throw new Error(`Tổng số tiết phân bổ (${total}) không khớp tổng số tiết công trình (${expected})`);
-      }
-
-      await connection.commit();
-
-      try {
-        await LogService.logChange(
-          userContext.userId,
-          userContext.userName,
-          "NCKH V3",
-          `Thêm ${logLabel}: \"${payload.tenCongTrinh}\" (ID: ${nckhId})`
-        );
-      } catch (err) {
-        console.error("[NCKH V3] Log failed:", err.message);
-      }
-
-      return { id: nckhId };
-    } catch (error) {
-      if (connection) await connection.rollback();
-      throw error;
-    } finally {
-      if (connection) connection.release();
-    }
+    const strategy = NCKHImportStrategyFactory.getStrategy("MANUAL");
+    const records = await strategy.process(payload, { loaiNckh, mode });
+    const result = await NCKHSaveService.save(records, userContext, "single");
+    return { id: result.savedIds[0] };
   };
 
   const update = async (id, payload, userContext) => {
-    validator.validateMainPayload(payload);
-
-    const tacGiaIds = Array.isArray(payload.tacGiaIds) ? payload.tacGiaIds : [];
-    const thanhVienIds = Array.isArray(payload.thanhVienIds) ? payload.thanhVienIds : [];
-    const tacGiaNgoai = Array.isArray(payload.tacGiaNgoai) ? payload.tacGiaNgoai : [];
-    const thanhVienNgoai = Array.isArray(payload.thanhVienNgoai) ? payload.thanhVienNgoai : [];
-
-    validator.validatePeopleInput(tacGiaIds, thanhVienIds, tacGiaNgoai, thanhVienNgoai);
-    const soNamThucHien = Number(payload.soNamThucHien || 1);
-    const vaiTroHoiDong = mode === "fixed" ? String(payload.vaiTro || "").trim() : null;
-
-    if (mode === "fixed") {
-      if (!vaiTroHoiDong) {
-        throw new Error("Thiếu vai trò hội đồng");
-      }
-      if (!HOI_DONG_ROLES.has(vaiTroHoiDong)) {
-        throw new Error("Vai trò hội đồng không hợp lệ");
-      }
-    }
+    const strategy = NCKHImportStrategyFactory.getStrategy("MANUAL");
+    const records = await strategy.process(payload, { loaiNckh, mode });
+    const record = records[0];
 
     let connection;
     try {
@@ -155,36 +50,36 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         throw new Error("Không được sửa công trình đã được viện duyệt");
       }
 
-      const participants = formulaService.buildParticipantsByMode(
-        mode,
-        Number(payload.tongSoTiet),
-        tacGiaIds,
-        thanhVienIds,
-        tacGiaNgoai,
-        thanhVienNgoai,
-        soNamThucHien,
-        vaiTroHoiDong
-      );
-
-      await assertNhanVienExist(connection, participants);
-
       await nckhChungRepo.updateById(connection, Number(id), {
-        tenCongTrinh: payload.tenCongTrinh,
+        tenCongTrinh: record.chung.tenCongTrinh,
         loaiNckh,
-        phanLoai: payload.phanLoai,
-        namHoc: payload.namHoc,
-        tongSoTiet: Number(payload.tongSoTiet),
-        ngayNghiemThu: payload.ngayNghiemThu,
-        xepLoai: payload.xepLoai,
-        maSo: payload.maSo,
+        phanLoai: record.chung.phanLoai,
+        namHoc: record.chung.namHoc,
+        tongSoTiet: record.chung.tongSoTiet,
+        ngayNghiemThu: record.chung.ngayNghiemThu,
+        xepLoai: record.chung.xepLoai,
+        maSo: record.chung.maSo,
       });
 
       await nckhSoTietRepo.deleteByNckhId(connection, Number(id));
-      await nckhSoTietRepo.bulkInsert(connection, Number(id), participants);
 
+      const participants = (record.participants || [])
+        .filter((p) => p.nhanvienId || p.tenNgoai)
+        .map((p) => ({
+          nhanvienId: p.nhanvienId || null,
+          tenNgoai: p.tenNgoai || null,
+          donViNgoai: p.donViNgoai || null,
+          vaiTro: p.vaiTro || "thanh_vien",
+          soTiet: p.soTiet || 0,
+          namThucHien: p.namThucHien || 1,
+        }));
+
+      if (participants.length > 0) {
+        await nckhSoTietRepo.bulkInsert(connection, Number(id), participants);
+      }
 
       const total = formulaService.round2(await nckhSoTietRepo.sumHours(connection, Number(id)));
-      const expected = formulaService.round2(Number(payload.tongSoTiet));
+      const expected = formulaService.round2(Number(record.chung.tongSoTiet));
 
       if (total !== expected) {
         throw new Error(`Tổng số tiết phân bổ (${total}) không khớp tổng số tiết công trình (${expected})`);

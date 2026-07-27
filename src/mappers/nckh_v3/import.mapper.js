@@ -13,8 +13,19 @@ const toIntOrNull = (v) => {
 };
 const toFloatOrNull = (v) => {
   if (v === null || v === undefined || v === "") return null;
-  const cleaned = String(v).replace(/\./g, "").replace(",", ".");
-  const n = parseFloat(cleaned);
+  let str = String(v).trim();
+  // If it contains both dot and comma (e.g. 1.500,50), remove dot, replace comma with dot
+  if (str.includes('.') && str.includes(',')) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  } 
+  // If it only contains comma (e.g. 150,5), replace it with dot
+  else if (str.includes(',') && !str.includes('.')) {
+    str = str.replace(',', '.');
+  }
+  // If it only contains dot (e.g. 150.5), we leave it alone. 
+  // (Assumes no thousand separator with dots like 1.500 without decimals)
+  
+  const n = parseFloat(str);
   return Number.isNaN(n) ? null : n;
 };
 
@@ -82,11 +93,12 @@ const parseMySQLDate = (v) => {
 };
 
 /**
- * Split a comma-separated string of employee codes into an array.
+ * Split a list of names by comma, semicolon, or newline.
+ * Do NOT split by spaces because name parts contain spaces.
  */
-const splitCodes = (str) =>
+const splitNames = (str) =>
   trimStr(str)
-    .split(/[,;，；\s]+/)
+    .split(/[,;，；\r\n\t]+/)
     .map((s) => s.trim())
     .filter(Boolean);
 
@@ -96,12 +108,13 @@ const splitCodes = (str) =>
  * File 1: Bài báo khoa học
  */
 const mapBaiBaoKhoaHoc = (row) => {
-  // Support both old and new headers for backward compatibility
-  const rawTacGia = row["Mã số TGC"] || row["Mã tác giả chính thuộc HV"];
-  const rawThanhVien = row["Mã số TV"] || row["Mã các tác giả khác thuộc HV"];
+  const rawTacGia = row["Tác giả chính"];
+  const rawThanhVien = row["Thành viên "] || row["Thành viên"];
+  const rawTacGiaLienHe = row["Tác giả liên hệ"] || row["Tác giả liên lạc"] || row["Tác giả gửi bài"] || row["Corresponding Author"] || row["Người liên hệ"];
 
-  const tacGiaChinh = splitCodes(rawTacGia);
-  const dongTacGia = splitCodes(rawThanhVien);
+  const tacGiaLienHeNames = splitNames(rawTacGiaLienHe);
+  const tacGiaNames = splitNames(rawTacGia).filter((name) => !tacGiaLienHeNames.includes(name));
+  const dongTacGiaNames = splitNames(rawThanhVien).filter((name) => !tacGiaLienHeNames.includes(name));
 
   return {
     chung: {
@@ -122,8 +135,9 @@ const mapBaiBaoKhoaHoc = (row) => {
       xepLoai: trimStr(row["Xếp loại"]) || null,
     },
     participants: {
-      tacGiaMaCodes: tacGiaChinh,
-      thanhVienMaCodes: dongTacGia,
+      tacGiaNames,
+      thanhVienNames: dongTacGiaNames,
+      tacGiaLienHeNames,
       ngoaiList: [],
     },
     namThucHien: toIntOrNull(row["Năm công bố"] || row["Năm thực hiện"]) || 1,
@@ -135,8 +149,6 @@ const mapBaiBaoKhoaHoc = (row) => {
  * File 2: Hướng dẫn sinh viên NCKH
  */
 const mapHuongDanSvNckh = (row) => {
-  const cbhd1 = trimStr(row["Mã CBHD1"]);
-  const cbhd2 = trimStr(row["Mã CBHD2"]);
   const lop = trimStr(row["Lớp"]);
 
   // Build external participants (sinh viên)
@@ -148,17 +160,20 @@ const mapHuongDanSvNckh = (row) => {
 
   const thanhVienStr = trimStr(row["Các thành viên khác"] || row["Các thành viên"]);
   if (thanhVienStr) {
-    thanhVienStr.split(/[,;]+/).forEach((name) => {
+    thanhVienStr.split(/[,;\r\n\t]+/).forEach((name) => {
       const n = name.trim();
       if (n) ngoaiList.push({ ten: n, donVi: lop || "Chưa rõ", vaiTro: "thanh_vien" });
     });
   }
 
-  const tacGiaMaCodes = [];
-  if (cbhd1) tacGiaMaCodes.push(cbhd1);
-
-  const thanhVienMaCodes = [];
-  if (cbhd2) thanhVienMaCodes.push(cbhd2);
+  const rawCbhd = row["Cán bộ hướng dẫn"];
+  const cbhdNames = splitNames(rawCbhd);
+  const tacGiaNames = [];
+  const thanhVienNames = [];
+  if (cbhdNames.length > 0) {
+    tacGiaNames.push(cbhdNames[0]);
+    thanhVienNames.push(...cbhdNames.slice(1));
+  }
 
   return {
     chung: {
@@ -180,8 +195,8 @@ const mapHuongDanSvNckh = (row) => {
       coQuanChuTri: trimStr(row["Cơ quan chủ trì"]) || null,
     },
     participants: {
-      tacGiaMaCodes,
-      thanhVienMaCodes,
+      tacGiaNames,
+      thanhVienNames,
       ngoaiList,
     },
     namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
@@ -193,18 +208,10 @@ const mapHuongDanSvNckh = (row) => {
  * File 3: Đề tài dự án
  */
 const mapDeTaiDuAn = (row) => {
-  const chuNhiem = trimStr(row["Mã số cán bộ"]);
-  const thanhVien = splitCodes(row["Mã các thành viên khác"] || row["Mã số các thành viên khác"] || row["Mã số thành viên"] || row["Mã thành viên"]);
+  const tacGiaNames = splitNames(row["Chủ nhiệm nhiệm vụ"]);
+  const thanhVien = splitNames(row["Các thành viên khác"]);
 
-  // Parse "Thời gian thực hiện" to get ngayNghiemThu
-  let ngayNghiemThu = null;
-  const thoiGian = trimStr(row["Thời gian thực hiện"]);
-  if (thoiGian) {
-    // Try to extract last date: "01/2024 - 12/2024" → "12/2024"
-    const parts = thoiGian.split(/[-–~]/);
-    const lastPart = (parts[parts.length - 1] || "").trim();
-    if (lastPart) ngayNghiemThu = parseMySQLDate(lastPart);
-  }
+  const ngayNghiemThu = parseMySQLDate(row["Ngày kết thúc"]) || null;
 
   return {
     chung: {
@@ -233,8 +240,8 @@ const mapDeTaiDuAn = (row) => {
       nguonKinhPhi: trimStr(row["Nguồn kinh phí"]) || null,
     },
     participants: {
-      tacGiaMaCodes: chuNhiem ? [chuNhiem] : [],
-      thanhVienMaCodes: thanhVien,
+      tacGiaNames,
+      thanhVienNames: thanhVien,
       ngoaiList: [],
     },
     namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
@@ -248,33 +255,24 @@ const mapDeTaiDuAn = (row) => {
  * Mode = "fixed" → each member gets a fixed amount of hours.
  */
 const mapThanhVienHoiDong = (row) => {
-  // Collect all role-code pairs
+  // Collect all role-name pairs
   const rolePairs = [];
 
-  const addRole = (maCol, vaiTro) => {
-    const ma = trimStr(row[maCol]);
-    if (ma) rolePairs.push({ ma, vaiTro });
+  const addRole = (nameCol, vaiTro) => {
+    const name = trimStr(row[nameCol]);
+    if (name) rolePairs.push({ name, vaiTro });
   };
 
-  const addRolesList = (maCol, vaiTro) => {
-    const codes = splitCodes(row[maCol]);
-    codes.forEach(ma => rolePairs.push({ ma, vaiTro }));
+  const addRolesList = (nameCol, vaiTro) => {
+    const names = splitNames(row[nameCol]);
+    names.forEach(name => rolePairs.push({ name, vaiTro }));
   };
 
-  // Support for old format columns
-  addRole("Mã số chủ tịch", "chu_tich");
-  addRole("Mã số phó chủ tịch", "chu_tich");
-  addRole("Mã số phản biện 1", "phan_bien");
-  addRole("Mã số phản biện 2", "phan_bien");
-  for (let i = 1; i <= 5; i++) {
-    addRole(`Mã số ủy viên ${i}`, "uy_vien");
-  }
-
-  // Support for new format columns (single column per role, separated by comma/semicolon)
-  addRole("Mã số cán bộ CT", "chu_tich");
-  addRole("Mã số cán bộ PCT", "chu_tich");
-  addRolesList("Mã số cán bộ PB", "phan_bien");
-  addRolesList("Mã số cán bộ UV", "uy_vien");
+  addRole("Chủ tịch", "chu_tich");
+  addRole("Phó Chủ tịch", "chu_tich");
+  addRole("Thư ký", "thu_ky");
+  addRolesList("Phản biện", "phan_bien");
+  addRolesList("Ủy viên", "uy_vien");
 
   return {
     chung: {
@@ -287,7 +285,7 @@ const mapThanhVienHoiDong = (row) => {
       soQuyetDinh: trimStr(row["Số Quyết định"] || row["Số quyết định"] || row["Quyết định giao"]) || null,
       ngayQuyetDinh: parseMySQLDate(row["Ngày quyết định"]) || null,
       xepLoai: trimStr(row["Kết quả"]) || null,
-      tongSoTiet: toFloatOrNull(row["Tổng số tiết"]) || 0,
+      tongSoTiet: 0,
       kinhPhi: null,
       tenTapChi: null,
       soBao: null,
@@ -305,8 +303,8 @@ const mapThanhVienHoiDong = (row) => {
  * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
  */
 const mapSachGiaoTrinh = (row) => {
-  const tacGiaChinh = splitCodes(row["Mã số Chủ biên"]);
-  const dongTacGia = splitCodes(row["Mã số Đồng tác giả"]);
+  const tacGiaChinh = splitNames(row["Chủ biên"]);
+  const dongTacGia = splitNames(row["Đồng tác giả"]);
 
   return {
     chung: {
@@ -329,8 +327,8 @@ const mapSachGiaoTrinh = (row) => {
       xepLoai: null,
     },
     participants: {
-      tacGiaMaCodes: tacGiaChinh,
-      thanhVienMaCodes: dongTacGia,
+      tacGiaNames: tacGiaChinh,
+      thanhVienNames: dongTacGia,
       ngoaiList: [],
     },
     namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
@@ -343,8 +341,8 @@ const mapSachGiaoTrinh = (row) => {
  * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
  */
 const mapSangKien = (row) => {
-  const tacGiaChinh = splitCodes(row["Mã số Tác giả chính"]);
-  const dongTacGia = splitCodes(row["Mã số Đồng tác giả"]);
+  const tacGiaChinh = splitNames(row["Tác giả chính"]);
+  const dongTacGia = splitNames(row["Đồng tác giả"]);
 
   return {
     chung: {
@@ -366,8 +364,8 @@ const mapSangKien = (row) => {
       ngayNghiemThu: null,
     },
     participants: {
-      tacGiaMaCodes: tacGiaChinh,
-      thanhVienMaCodes: dongTacGia,
+      tacGiaNames: tacGiaChinh,
+      thanhVienNames: dongTacGia,
       ngoaiList: [],
     },
     namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
@@ -380,8 +378,8 @@ const mapSangKien = (row) => {
  * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
  */
 const mapGiaiThuong = (row) => {
-  const tacGiaChinh = splitCodes(row["Mã số Người đạt giải chính"]);
-  const dongTacGia = splitCodes(row["Mã số Thành viên khác"]);
+  const tacGiaChinh = splitNames(row["Người đạt giải chính"]);
+  const dongTacGia = splitNames(row["Thành viên khác"]);
 
   return {
     chung: {
@@ -403,8 +401,8 @@ const mapGiaiThuong = (row) => {
       ngayNghiemThu: null,
     },
     participants: {
-      tacGiaMaCodes: tacGiaChinh,
-      thanhVienMaCodes: dongTacGia,
+      tacGiaNames: tacGiaChinh,
+      thanhVienNames: dongTacGia,
       ngoaiList: [],
     },
     namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,
@@ -417,8 +415,8 @@ const mapGiaiThuong = (row) => {
  * tongSoTiet = 0 → hệ thống tự tính dựa theo phanLoai
  */
 const mapDeXuatNghienCuu = (row) => {
-  const tacGiaChinh = splitCodes(row["Mã số Chủ nhiệm đề xuất"]);
-  const dongTacGia = splitCodes(row["Mã số Thành viên khác"]);
+  const tacGiaChinh = splitNames(row["Chủ nhiệm đề xuất"]);
+  const dongTacGia = splitNames(row["Thành viên khác"]);
 
   return {
     chung: {
@@ -440,8 +438,8 @@ const mapDeXuatNghienCuu = (row) => {
       ngayNghiemThu: null,
     },
     participants: {
-      tacGiaMaCodes: tacGiaChinh,
-      thanhVienMaCodes: dongTacGia,
+      tacGiaNames: tacGiaChinh,
+      thanhVienNames: dongTacGia,
       ngoaiList: [],
     },
     namThucHien: toIntOrNull(row["Năm thực hiện"]) || 1,

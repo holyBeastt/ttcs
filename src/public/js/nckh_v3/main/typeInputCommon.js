@@ -217,6 +217,13 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     const tacGiaDonVi = document.getElementById("tacGiaDonVi");
     const addTacGiaBtn = document.getElementById("addTacGiaBtn");
 
+    const tacGiaLienHeInput = document.getElementById("tacGiaLienHeInput");
+    const tacGiaLienHeSuggestions = document.getElementById("tacGiaLienHe-suggestions");
+    const tacGiaLienHeTags = document.getElementById("tacGiaLienHeTags");
+    const tacGiaLienHeNgoaiToggle = document.getElementById("tacGiaLienHeNgoaiToggle");
+    const tacGiaLienHeDonVi = document.getElementById("tacGiaLienHeDonVi");
+    const addTacGiaLienHeBtn = document.getElementById("addTacGiaLienHeBtn");
+
     const hasSecondaryMembers = config.hasSecondaryMembers !== false;
     const thanhVienInput = document.getElementById("thanhVienInput");
     const thanhVienSuggestions = document.getElementById("thanhVien-suggestions");
@@ -228,8 +235,10 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     const state = {
       tacGiaIds: [],
       thanhVienIds: [],
+      tacGiaLienHeIds: [],
       tacGiaNgoai: [],
       thanhVienNgoai: [],
+      tacGiaLienHeNgoai: [],
     };
 
     const phanLoaiMap = new Map((phanLoaiOptions || []).map((item) => [item.PhanLoai, Number(item.SoGio)]));
@@ -313,6 +322,25 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
       );
     };
 
+    const rerenderTacGiaLienHe = () => {
+      if (config.loaiNckh !== "BAIBAO") return;
+
+      renderTags(
+        tacGiaLienHeTags,
+        state.tacGiaLienHeIds,
+        state.tacGiaLienHeNgoai,
+        (index) => {
+          state.tacGiaLienHeIds.splice(index, 1);
+          rerenderTacGiaLienHe();
+        },
+        (index) => {
+          state.tacGiaLienHeNgoai.splice(index, 1);
+          rerenderTacGiaLienHe();
+        },
+        "Chưa có tác giả liên hệ"
+      );
+    };
+
     const rerenderThanhVien = () => {
       if (!hasSecondaryMembers) return;
 
@@ -333,6 +361,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     };
 
     rerenderTacGia();
+    rerenderTacGiaLienHe();
     rerenderThanhVien();
 
     const toggleExternalMode = (checkbox, donViInput, addBtn, suggestionContainer) => {
@@ -354,10 +383,17 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
 
     if (addTacGiaBtn) addTacGiaBtn.style.display = "none";
     if (addThanhVienBtn) addThanhVienBtn.style.display = "none";
+    if (addTacGiaLienHeBtn) addTacGiaLienHeBtn.style.display = "none";
 
     if (tacGiaNgoaiToggle) {
       tacGiaNgoaiToggle.addEventListener("change", () => {
         toggleExternalMode(tacGiaNgoaiToggle, tacGiaDonVi, addTacGiaBtn, tacGiaSuggestions);
+      });
+    }
+
+    if (tacGiaLienHeNgoaiToggle) {
+      tacGiaLienHeNgoaiToggle.addEventListener("change", () => {
+        toggleExternalMode(tacGiaLienHeNgoaiToggle, tacGiaLienHeDonVi, addTacGiaLienHeBtn, tacGiaLienHeSuggestions);
       });
     }
 
@@ -391,13 +427,28 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         }
       }
       state.thanhVienIds = state.thanhVienIds.filter((x) => x !== nId);
+      state.tacGiaLienHeIds = state.tacGiaLienHeIds.filter((x) => x !== nId);
       rerenderTacGia();
       rerenderThanhVien();
+      rerenderTacGiaLienHe();
+    };
+
+    const addTacGiaLienHeInternal = (id) => {
+      const nId = Number(id);
+      if (!Number.isFinite(nId)) return;
+      if (!state.tacGiaLienHeIds.includes(nId)) {
+        state.tacGiaLienHeIds.push(nId);
+      }
+      state.tacGiaIds = state.tacGiaIds.filter((x) => x !== nId);
+      state.thanhVienIds = state.thanhVienIds.filter((x) => x !== nId);
+      rerenderTacGia();
+      rerenderThanhVien();
+      rerenderTacGiaLienHe();
     };
 
     const addThanhVienInternal = (id) => {
       const nId = Number(id);
-      if (!Number.isFinite(nId) || state.tacGiaIds.includes(nId)) return;
+      if (!Number.isFinite(nId) || state.tacGiaIds.includes(nId) || state.tacGiaLienHeIds.includes(nId)) return;
       if (!state.thanhVienIds.includes(nId)) {
         state.thanhVienIds.push(nId);
       }
@@ -411,6 +462,16 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
       (gv) => addTacGiaInternal(gv.id),
       () => !!(tacGiaNgoaiToggle && tacGiaNgoaiToggle.checked)
     );
+
+    if (config.loaiNckh === "BAIBAO") {
+      setupAutocomplete(
+        tacGiaLienHeInput,
+        tacGiaLienHeSuggestions,
+        giangVienList || [],
+        (gv) => addTacGiaLienHeInternal(gv.id),
+        () => !!(tacGiaLienHeNgoaiToggle && tacGiaLienHeNgoaiToggle.checked)
+      );
+    }
 
     if (hasSecondaryMembers) {
       setupAutocomplete(
@@ -456,6 +517,34 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
       });
     }
 
+    if (addTacGiaLienHeBtn && tacGiaLienHeInput) {
+      addTacGiaLienHeBtn.addEventListener("click", () => {
+        const isNgoai = !!(tacGiaLienHeNgoaiToggle && tacGiaLienHeNgoaiToggle.checked);
+        if (isNgoai) {
+          const name = String(tacGiaLienHeInput.value || "").trim();
+          const unit = String((tacGiaLienHeDonVi && tacGiaLienHeDonVi.value) || "").trim();
+          if (!name || !unit) {
+            Swal.fire("Thiếu thông tin", "Người ngoài học viện cần tên và đơn vị công tác.", "warning");
+            return;
+          }
+
+          state.tacGiaLienHeNgoai.push({ ten: name, donVi: unit });
+          tacGiaLienHeInput.value = "";
+          tacGiaLienHeDonVi.value = "";
+          rerenderTacGiaLienHe();
+          return;
+        }
+
+        const gv = findByNameExact(tacGiaLienHeInput.value) || findByNameFirstMatch(tacGiaLienHeInput.value);
+        if (!gv) {
+          Swal.fire("Không tìm thấy", "Vui lòng chọn từ danh sách gợi ý.", "warning");
+          return;
+        }
+        addTacGiaLienHeInternal(gv.id);
+        tacGiaLienHeInput.value = "";
+      });
+    }
+
     if (addThanhVienBtn && thanhVienInput) {
       addThanhVienBtn.addEventListener("click", () => {
         const isNgoai = !!(thanhVienNgoaiToggle && thanhVienNgoaiToggle.checked);
@@ -491,28 +580,44 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         formEl.reset();
         state.tacGiaIds = [];
         state.thanhVienIds = [];
+        state.tacGiaLienHeIds = [];
         state.tacGiaNgoai = [];
         state.thanhVienNgoai = [];
+        state.tacGiaLienHeNgoai = [];
         rerenderTacGia();
+        rerenderTacGiaLienHe();
         rerenderThanhVien();
 
         if (tacGiaNgoaiToggle) tacGiaNgoaiToggle.checked = false;
+        if (tacGiaLienHeNgoaiToggle) tacGiaLienHeNgoaiToggle.checked = false;
         if (thanhVienNgoaiToggle) thanhVienNgoaiToggle.checked = false;
         if (tacGiaDonVi) {
           tacGiaDonVi.disabled = true;
           tacGiaDonVi.value = "";
+        }
+        if (tacGiaLienHeDonVi) {
+          tacGiaLienHeDonVi.disabled = true;
+          tacGiaLienHeDonVi.value = "";
         }
         if (thanhVienDonVi) {
           thanhVienDonVi.disabled = true;
           thanhVienDonVi.value = "";
         }
         if (addTacGiaBtn) addTacGiaBtn.style.display = "none";
+        if (addTacGiaLienHeBtn) addTacGiaLienHeBtn.style.display = "none";
         if (addThanhVienBtn) addThanhVienBtn.style.display = "none";
 
         if (xepLoaiEl) xepLoaiEl.value = "Đạt";
         if (ngayNghiemThuEl) ngayNghiemThuEl.value = "";
         if (maSoEl) maSoEl.value = "";
         if (vaiTroHoiDongEl) vaiTroHoiDongEl.value = "chu_tich";
+
+        // Reset extended inputs if present
+        if (document.getElementById("tenTapChi")) document.getElementById("tenTapChi").value = "";
+        if (document.getElementById("soBao")) document.getElementById("soBao").value = "";
+        if (document.getElementById("soTrichDan")) document.getElementById("soTrichDan").value = "";
+        if (document.getElementById("soQuyetDinh")) document.getElementById("soQuyetDinh").value = "";
+        if (document.getElementById("ngayQuyetDinh")) document.getElementById("ngayQuyetDinh").value = "";
 
         rerenderPhanLoaiForCurrentContext();
       });
@@ -535,21 +640,31 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         phanLoai: selectedPhanLoai,
         namHoc: String((namHocEl?.value || "")).trim(),
         tongSoTiet: tongSoTietByPhanLoai,
-        tongSoTiet: tongSoTietByPhanLoai,
         soNamThucHien: Number(soNamThucHienEl?.value || 1),
         tacGiaIds: ensureArrayUniqueNumbers(state.tacGiaIds),
         thanhVienIds: ensureArrayUniqueNumbers(state.thanhVienIds),
+        tacGiaLienHeIds: ensureArrayUniqueNumbers(state.tacGiaLienHeIds),
         tacGiaNgoai: [...state.tacGiaNgoai],
         thanhVienNgoai: [...state.thanhVienNgoai],
+        tacGiaLienHeNgoai: [...state.tacGiaLienHeNgoai],
         xepLoai: xepLoaiEl ? xepLoaiEl.value : null,
         ngayNghiemThu: ngayNghiemThuEl ? ngayNghiemThuEl.value : null,
         maSo: maSoEl ? maSoEl.value : null,
         vaiTro: vaiTroHoiDongEl ? String(vaiTroHoiDongEl.value || "").trim() : null,
+
+        // Collect new metadata fields
+        tenTapChi: document.getElementById("tenTapChi") ? String(document.getElementById("tenTapChi").value).trim() : null,
+        soBao: document.getElementById("soBao") ? String(document.getElementById("soBao").value).trim() : null,
+        soTrichDan: document.getElementById("soTrichDan") && document.getElementById("soTrichDan").value !== "" ? Number(document.getElementById("soTrichDan").value) : null,
+        soQuyetDinh: document.getElementById("soQuyetDinh") ? String(document.getElementById("soQuyetDinh").value).trim() : null,
+        ngayQuyetDinh: document.getElementById("ngayQuyetDinh") ? document.getElementById("ngayQuyetDinh").value || null : null,
       };
 
       if (config.mode === "fixed") {
         payload.thanhVienIds = [];
         payload.thanhVienNgoai = [];
+        payload.tacGiaLienHeIds = [];
+        payload.tacGiaLienHeNgoai = [];
       }
 
       const validation = validatePayload(payload, hasSecondaryMembers, config);
