@@ -45,6 +45,9 @@ const updateRecord = async (record, trx = null) => {
       GiaoVien   = ?,
       Khoa       = ?,
       LL         = ?,
+      SoSinhVien = ?,
+      HeSoLopDong= ?,
+      HeSoT7CN   = ?,
       QuyChuan   = ?,
       version    = version + 1
     WHERE ID = ? AND version = ?
@@ -57,6 +60,9 @@ const updateRecord = async (record, trx = null) => {
     record.GiaoVien,
     record.Khoa,
     record.LL,
+    record.SoSinhVien,
+    record.HeSoLopDong,
+    record.HeSoT7CN,
     record.QuyChuan,
     record.id,
     record.version,

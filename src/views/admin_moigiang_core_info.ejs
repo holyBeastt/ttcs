@@ -272,9 +272,9 @@
         { headerName: "Ngày bắt đầu", field: "NgayBatDau", editable: false, width: 110, valueFormatter: (p) => p.value ? p.value.split('T')[0] : '' },
         { headerName: "Ngày kết thúc", field: "NgayKetThuc", editable: false, width: 110, valueFormatter: (p) => p.value ? p.value.split('T')[0] : '' },
         { headerName: "LL", field: "LL", editable: true, width: 50, type: 'numericColumn' },
-        // { headerName: "Số SV", field: "SoSinhVien", editable: false, width: 70, type: 'numericColumn' }, // Tạm comment
-        // { headerName: "HS lớp đông", field: "HeSoLopDong", editable: false, width: 100, type: 'numericColumn' }, // Tạm comment
-        // { headerName: "HS ngoài giờ", field: "HeSoT7CN", editable: false, width: 90, type: 'numericColumn' }, // Tạm comment
+        { headerName: "Số SV", field: "SoSinhVien", editable: true, width: 70, type: 'numericColumn' },
+        { headerName: "HS lớp đông", field: "HeSoLopDong", editable: true, width: 100, type: 'numericColumn' },
+        { headerName: "HS ngoài giờ", field: "HeSoT7CN", editable: true, width: 90, type: 'numericColumn' },
         { headerName: "QC", field: "QuyChuan", editable: true, width: 70, type: 'numericColumn' },
         {
           headerName: "Hệ đào tạo",
@@ -285,7 +285,7 @@
           valueFormatter: (params) => heDaoTaoMap[params.value] || params.value || "",
         },
         // Các cột ẩn hoặc đặc thù của riêng màn Core Info được để phía sau cùng
-        // { headerName: "Số TC", field: "SoTinChi", editable: true, width: 80, type: 'numericColumn' }, // Tạm comment
+        { headerName: "Số TC", field: "SoTinChi", editable: true, width: 80, type: 'numericColumn' },
         { headerName: "Tên lớp", field: "TenLop", editable: true, width: 150, filter: true }, // Đặc thù Core Info
         { headerName: "Mã học phần", field: "MaHocPhan", hide: true }, 
         { headerName: "ID", field: "ID", hide: true },
@@ -371,12 +371,16 @@
             const payload = {
               records: [{
                 id: data.ID,
+                updatedField: updatedField,
                 LopHocPhan: updatedField === 'LopHocPhan' ? newValue : data.LopHocPhan,
                 TenLop: updatedField === 'TenLop' ? newValue : data.TenLop,
                 SoTinChi: updatedField === 'SoTinChi' ? newValue : data.SoTinChi,
                 GiaoVien: updatedField === 'GiaoVien' ? newValue : data.GiaoVien,
                 Khoa: updatedField === 'Khoa' ? newValue : data.Khoa,
                 LL: updatedField === 'LL' ? newValue : data.LL,
+                SoSinhVien: updatedField === 'SoSinhVien' ? newValue : data.SoSinhVien,
+                HeSoLopDong: updatedField === 'HeSoLopDong' ? newValue : data.HeSoLopDong,
+                HeSoT7CN: updatedField === 'HeSoT7CN' ? newValue : data.HeSoT7CN,
                 QuyChuan: updatedField === 'QuyChuan' ? newValue : data.QuyChuan,
                 version: data.version || 0
               }]
@@ -395,7 +399,10 @@
             if (response.ok) {
               Toastify({ text: "✅ Cập nhật thành công", backgroundColor: "#4CAF50" }).showToast();
               if (result.updated && result.updated.length > 0) {
-                 params.data['version'] = result.updated[0].version;
+                 const updatedRow = result.updated[0];
+                 params.data['version'] = updatedRow.version;
+                 if (updatedRow.QuyChuan !== undefined) params.data['QuyChuan'] = updatedRow.QuyChuan;
+                 if (updatedRow.HeSoLopDong !== undefined) params.data['HeSoLopDong'] = updatedRow.HeSoLopDong;
                  params.api.refreshCells({ rowNodes: [params.node], force: true });
               }
             } else if (response.status === 409) {

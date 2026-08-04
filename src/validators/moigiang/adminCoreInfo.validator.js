@@ -170,6 +170,39 @@ const validateVersion = (value) => {
   }
 };
 
+const validateSoSinhVien = (value) => {
+  const n = Number(value);
+  if (value === undefined || value === null || isNaN(n) || !Number.isInteger(n) || n < 0) {
+    throw new ValidationError(
+      ERROR_CODES.VALIDATION.INVALID_SO_SINH_VIEN,
+      'Số sinh viên phải là số nguyên lớn hơn hoặc bằng 0.',
+      'SoSinhVien'
+    );
+  }
+};
+
+const validateHeSoLopDong = (value) => {
+  const n = parseFloat(value);
+  if (value === undefined || value === null || isNaN(n) || n < 0) {
+    throw new ValidationError(
+      ERROR_CODES.VALIDATION.INVALID_HE_SO_LOP_DONG,
+      'Hệ số lớp đông phải là số lớn hơn hoặc bằng 0.',
+      'HeSoLopDong'
+    );
+  }
+};
+
+const validateHeSoT7CN = (value) => {
+  const n = parseFloat(value);
+  if (value === undefined || value === null || isNaN(n) || n < 0) {
+    throw new ValidationError(
+      ERROR_CODES.VALIDATION.INVALID_HE_SO_T7CN,
+      'Hệ số ngoài giờ phải là số lớn hơn hoặc bằng 0.',
+      'HeSoT7CN'
+    );
+  }
+};
+
 // ─── Validate toàn bộ một record ─────────────────────────────────────────────
 
 /**
@@ -188,10 +221,14 @@ const validateSingleRecord = (record) => {
   validateGiaoVien(record.GiaoVien);
   validateKhoa(record.Khoa);
   validateVersion(record.version);
+  validateSoSinhVien(record.SoSinhVien);
+  validateHeSoLopDong(record.HeSoLopDong);
+  validateHeSoT7CN(record.HeSoT7CN);
 
   // Trả về record đã sanitize
   return {
     id: parseInt(record.id, 10),
+    updatedField: record.updatedField, // Truyền updatedField sang
     LopHocPhan: sanitizeString(record.LopHocPhan),
     TenLop: sanitizeString(record.TenLop),
     SoTinChi: parseInt(record.SoTinChi, 10),
@@ -199,6 +236,9 @@ const validateSingleRecord = (record) => {
     Khoa: sanitizeString(record.Khoa),
     LL: parseFloat(record.LL),
     QuyChuan: parseFloat(record.QuyChuan),
+    SoSinhVien: parseInt(record.SoSinhVien, 10),
+    HeSoLopDong: parseFloat(record.HeSoLopDong),
+    HeSoT7CN: parseFloat(record.HeSoT7CN),
     version: parseInt(record.version, 10),
   };
 };
