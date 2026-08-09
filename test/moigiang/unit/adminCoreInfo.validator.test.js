@@ -300,4 +300,3 @@ describe('validateCoreInfoPayload', () => {
     expect(result.records[0].LopHocPhan).toBe('ATTT101');
   });
 });
-

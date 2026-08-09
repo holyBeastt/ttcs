@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "jest",
+    "test": "npm run test:jest && npm run test:node",
+    "test:jest": "jest --runInBand",
+    "test:node": "node --test test/integration/data-sync.test.js test/mappers/summary.mapper.test.js test/services/nckh-formula.test.js test/utils/sql-escape.test.js",
     "start": "nodemon ./src/server.js"
   },
   "repository": {

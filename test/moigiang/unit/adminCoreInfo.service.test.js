@@ -7,12 +7,16 @@
  * Framework: Jest
  */
 
+// Mock toàn bộ repository module
+jest.mock('../../../src/repositories/moigiang/adminCoreInfo.repository', () => ({
+  updateRecord: jest.fn(),
+  recordExists: jest.fn(),
+  insertAuditLog: jest.fn(),
+  runInTransaction: jest.fn(),
+}));
+
 const { updateCoreInfo, DomainError } = require('../../../src/services/moigiang/adminCoreInfo.service');
 const { ERROR_CODES } = require('../../../src/constants/moigiang/errorCodes.constant');
-
-// Mock toàn bộ repository module
-jest.mock('../../../src/repositories/moigiang/adminCoreInfo.repository');
-
 const adminCoreInfoRepository = require('../../../src/repositories/moigiang/adminCoreInfo.repository');
 
 // ─── Fixture ─────────────────────────────────────────────────────────────────

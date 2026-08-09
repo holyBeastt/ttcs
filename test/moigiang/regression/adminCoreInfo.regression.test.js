@@ -24,7 +24,7 @@ describe('Regression: Các API cũ không bị ảnh hưởng', () => {
     const res = await request(app)
       .post('/api/v1/qc/thong-tin-giang-day')
       .set(authHeader)
-      .send({ Dot: '1', Ki: '1', Nam: '2024-2025', HeDaoTao: 'ALL' });
+      .send({ Dot: '1', Ki: '1', Nam: '2024 - 2025', HeDaoTao: 'ALL' });
 
     // Phải trả về 200 hoặc 404 (nếu không có dữ liệu), KHÔNG phải 500
     expect([200, 404, 204]).toContain(res.status);

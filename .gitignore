@@ -7,7 +7,6 @@ docs_private/
 plan/
 config_global/
 local_file/
-test/
 # docs/
 rule/
 .agent  
@@ -27,3 +26,6 @@ firebase-service-account.json
 
 # Scratch files
 scratch/
+
+# database
+database/
