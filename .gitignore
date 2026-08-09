@@ -27,5 +27,8 @@ firebase-service-account.json
 # Scratch files
 scratch/
 
+# Tests
+/test/
+
 # database
 database/
