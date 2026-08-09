@@ -85,10 +85,8 @@
       <div class="row mb-3">
         <div class="col-md-4 input-wrapper">
           <label for="ChucVu" class="form-label">Chức Vụ</label>
-          <select class="form-control text-center" id="ChucVu" name="ChucVu"
-            onchange="capNhatMienGiamTheoChucVu()" required>
-            <option value="">Chọn chức vụ</option>
-          </select>
+          <input type="text" class="form-control text-center" id="ChucVu" name="ChucVu" value="<%= user.ChucVu %>"
+            required>
         </div>
         <div class="col-md-4 input-wrapper d-flex justify-content-between">
           <!-- <div>
@@ -113,8 +111,9 @@
         </div>
         <div class="col-md-4 input-wrapper">
           <label class="form-label" for="LyDo">Lý do miễn giảm:</label>
-          <input type="text" class="form-control" name="LyDo" id="LyDo" value="" readonly
-            placeholder="Tự động theo chức vụ">
+          <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()">
+            <option value="">Chọn lý do miễn giảm</option>
+          </select>
         </div>
         <div class="col-md-4 input-wrapper" id="phanTramMienGiamWrapper" style="display: none;">
           <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
@@ -315,7 +314,7 @@
         } else {
           actionButton.style.display = 'none';
         }
-        fetchMienGiamTheoChucVu(); // Tải dữ liệu để đối chiếu theo chức vụ
+        fetchLyDo(); // Gọi hàm này để lấy lý do miễn giảm khi trang được tải
       });
     </script>
   <script>
@@ -332,90 +331,60 @@
       });
     </script>
     <script>
-      let danhSachMienGiam = [];
-
-      function fetchMienGiamTheoChucVu() {
-        fetch('/getmiengiam')
+      function fetchLyDo() {
+        const LyDo = "<%= user.LyDoMienGiam %>";
+        fetch(`/getmiengiam`)
           .then(response => response.json())
           .then(data => {
-            danhSachMienGiam = Array.isArray(data.lydo) ? data.lydo : [];
-            const chucVuSelect = document.getElementById('ChucVu');
-            const chucVuHienTai = <%- JSON.stringify(user.ChucVu ?? '') %>;
-
-            chucVuSelect.innerHTML = '<option value="">Chọn chức vụ</option>';
-            danhSachMienGiam
-              .filter(item => item.LyDo)
-              .forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.LyDo;
-                option.textContent = item.LyDo;
-                chucVuSelect.appendChild(option);
-              });
-
-            const chucVuPhuHop = timMienGiamTheoChucVu(chucVuHienTai);
-            if (chucVuPhuHop) {
-              chucVuSelect.value = chucVuPhuHop.LyDo;
-            } else if (chucVuHienTai.trim()) {
-              const optionHienTai = document.createElement('option');
-              optionHienTai.value = chucVuHienTai;
-              optionHienTai.textContent = chucVuHienTai;
-              optionHienTai.selected = true;
-              chucVuSelect.appendChild(optionHienTai);
+            const lyDoSelect = document.getElementById('LyDo');
+            lyDoSelect.innerHTML = ''; // Xóa các option cũ  
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Chọn lý do miễn giảm';
+            lyDoSelect.appendChild(emptyOption);
+            data.lydo.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item.LyDo;      // hoặc item.LyDo tuỳ bạn muốn lưu gì
+              option.textContent = item.LyDo;
+              // Nếu trùng với giá trị hiện tại => đặt selected
+              if (item.LyDo === LyDo) {
+                option.selected = true;
+              }
+              lyDoSelect.appendChild(option);
+            });
+            layPhanTramTuLyDo(); // Gọi hàm này để lấy phần trăm miễn giảm khi trang được tải
+              
             }
-            capNhatMienGiamTheoChucVu();
-          })
-          .catch(error => console.error('Lỗi khi tải dữ liệu miễn giảm:', error));
-      }
-
-      function chuanHoaChucVu(value) {
-        return String(value ?? '')
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .replace(/đ/g, 'd')
-          .replace(/[^a-z0-9]+/g, ' ')
-          .replace(/\bva tuong duong\b/g, '')
-          .replace(/\bkhoa\s*$/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
-      }
-
-      function timMienGiamTheoChucVu(chucVu) {
-        const chucVuKey = chuanHoaChucVu(chucVu);
-        if (!chucVuKey) return null;
-
-        const exactMatch = danhSachMienGiam.find(item =>
-          chuanHoaChucVu(item.LyDo) === chucVuKey
-        );
-        if (exactMatch) return exactMatch;
-
-        const prefixMatches = danhSachMienGiam.filter(item => {
-          const lyDoKey = chuanHoaChucVu(item.LyDo);
-          return lyDoKey.startsWith(`${chucVuKey} `) || chucVuKey.startsWith(`${lyDoKey} `);
-        });
-
-        return prefixMatches.length === 1 ? prefixMatches[0] : null;
-      }
-
-      function capNhatMienGiamTheoChucVu() {
-        const chucVu = document.getElementById('ChucVu').value;
-        const lyDoInput = document.getElementById('LyDo');
+          )
+          .catch(error => console.error('Error:', error));
+  
+        }
+    </script>
+    <script>
+      function layPhanTramTuLyDo() {
+        const lyDoValue = document.getElementById('LyDo').value;    
         const phanTramWrapper = document.getElementById('phanTramMienGiamWrapper');
         const phanTramInput = document.getElementById('PhanTramMienGiam');
-        const mienGiam = timMienGiamTheoChucVu(chucVu);
 
-        if (!mienGiam || !mienGiam.LyDo) {
-          lyDoInput.value = '';
+        if (!lyDoValue) {
           phanTramInput.value = '';
           phanTramWrapper.style.display = 'none';
           return;
         }
 
-        lyDoInput.value = mienGiam.LyDo;
         phanTramWrapper.style.display = '';
-        phanTramInput.value = `${mienGiam.PhanTramMienGiam} %`;
+    
+        fetch(`/getphantram/${lyDoValue}`)
+          .then(response => response.json())
+          .then(data => {
+            phanTramInput.value = data.phanTram[0].PhanTramMienGiam + ' %';
+          })
+          .catch(error => {
+            console.error('Lỗi khi lấy phần trăm miễn giảm:', error);
+            phanTramInput.value = '';
+          });
       }
-    </script>
+    </script>  
   </body>
 
 </html>
