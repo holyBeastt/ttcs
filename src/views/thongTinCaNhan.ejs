@@ -22,22 +22,21 @@
     <!-- <form id="infome" action="/infome/:id_User" method="POST"> -->
     <form id="formData">
       <div class="row mb-3">
-        <input type="hidden" name="Id_User" value="<%= user.id_User %> ">
+        <input type="hidden" name="Id_User" value="<%= user.id_User %>">
         <div class="col-md-4 input-wrapper">
           <label for="TenNhanVien" class="form-label">Tên Nhân Viên</label>
-          <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" value="<%= user.TenNhanVien %> "
+          <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" value="<%= user.TenNhanVien ?? '' %>"
             readonly>
         </div>
         <div class="col-md-4 input-wrapper d-flex justify-content-between">
           <div style="width: 50%;">
             <label for="NgaySinh" class="form-label">Ngày Sinh</label>
-            <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(user.NgaySinh.getTime() - (new Date().getTimezoneOffset() * 60000))
-            .toISOString().split('T')[0] %>"> 
+            <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= user.NgaySinh ? new Date(new Date(user.NgaySinh).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0] : '' %>">
           </div>
           <div>
             <label for="Luong" class="form-label">Lương</label>
-            <input type="text" class="form-control" id="Luong" name="Luong"
-              value="<%= user.Luong %>">
+            <input type="number" min="0" step="0.01" class="form-control" id="Luong" name="Luong"
+              value="<%= user.Luong ?? '' %>">
           </div>
         </div>
         <div class="col-md-4 input-wrapper">
@@ -106,17 +105,19 @@
             </select>
           </div> -->
           <div class="">
-            <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
-            <input type="text" class="form-control text-center" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= user.PhanTramMienGiam %>" readonly>
-          </div>
-          <div class="">
             <label for="HSL" class="form-label">Hệ số lương*</label>
             <input type="text" class="form-control text-center" id="HSL" name="HSL" value="<%= user.HSL %>" required>
           </div>
         </div>
         <div class="col-md-4 input-wrapper">
           <label class="form-label" for="LyDo">Lý do miễn giảm:</label>
-          <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()"></select>
+          <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()">
+            <option value="">Chọn lý do miễn giảm</option>
+          </select>
+        </div>
+        <div class="col-md-4 input-wrapper" id="phanTramMienGiamWrapper" style="display: none;">
+          <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
+          <input type="text" class="form-control text-center" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= user.PhanTramMienGiam ?? '' %>" readonly>
         </div>
         <!-- <div class="col-md-4 input-wrapper">
           <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay*</label>
@@ -215,19 +216,6 @@
   </script>
 
   <script>
-    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
-
-      if (tenDangNhap) {
-        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-      } else {
-        alert("Không tìm thấy TenDangNhap trong localStorage.");
-      }
-    });
-  </script>
-  <script>
     document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
@@ -243,7 +231,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       // Lắng nghe sự kiện click trên nút có id là submitBtn
-      document.getElementById("submitBtn").addEventListener("click", function (event) {
+      document.getElementById("formData").addEventListener("submit", function (event) {
         event.preventDefault();  // Ngừng hành vi gửi form mặc định
 
         const form = document.getElementById("formData");  // Lấy form theo id
@@ -268,14 +256,16 @@
             const phantram = formObject.PhanTramMienGiam;
 
             // Kiểm tra xem Luong có phải là chuỗi số không
-            if (!/^\d*$/.test(luong)) {
-                alert("Giá trị Lương phải là một dãy số hợp lệ hoặc để trống.");
+            if (luong && !/^\d+(?:\.\d+)?$/.test(luong)) {
+                alert("Giá trị Lương phải là số hợp lệ không âm hoặc để trống.");
                 return; // Dừng việc gửi dữ liệu nếu không hợp lệ
             }
-            if (!/^\d*$/.test(luong)) {
-                alert("Giá trị Phần trăm miễn giảm phải là một dãy số hợp lệ hoặc để trống.");
+            if (phantram && !/^\d+(?:\.\d+)?\s*%?$/.test(phantram)) {
+                alert("Giá trị phần trăm miễn giảm không hợp lệ.");
                 return; // Dừng việc gửi dữ liệu nếu không hợp lệ
             }
+
+            formObject.Luong = luong === "" ? null : Number(luong);
 
             // Sử dụng fetch để gửi dữ liệu đến server
             fetch(`/infome/${id_User}`, {
@@ -285,7 +275,13 @@
                 },
                 body: JSON.stringify(formObject) // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
             })
-            .then(response => response.json()) // Giả sử server trả về dữ liệu JSON
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.message || "Cập nhật thông tin thất bại.");
+                }
+                return data;
+            })
             .then(data => {
                 console.log("Dữ liệu phản hồi từ server:", data);
                 alert(data.message);
@@ -342,6 +338,10 @@
           .then(data => {
             const lyDoSelect = document.getElementById('LyDo');
             lyDoSelect.innerHTML = ''; // Xóa các option cũ  
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Chọn lý do miễn giảm';
+            lyDoSelect.appendChild(emptyOption);
             data.lydo.forEach(item => {
               const option = document.createElement('option');
               option.value = item.LyDo;      // hoặc item.LyDo tuỳ bạn muốn lưu gì
@@ -363,19 +363,25 @@
     <script>
       function layPhanTramTuLyDo() {
         const lyDoValue = document.getElementById('LyDo').value;    
+        const phanTramWrapper = document.getElementById('phanTramMienGiamWrapper');
+        const phanTramInput = document.getElementById('PhanTramMienGiam');
+
         if (!lyDoValue) {
-          document.getElementById('PhanTramMienGiam').value = '';
+          phanTramInput.value = '';
+          phanTramWrapper.style.display = 'none';
           return;
         }
+
+        phanTramWrapper.style.display = '';
     
         fetch(`/getphantram/${lyDoValue}`)
           .then(response => response.json())
           .then(data => {
-            document.getElementById('PhanTramMienGiam').value = data.phanTram[0].PhanTramMienGiam + ' %';
+            phanTramInput.value = data.phanTram[0].PhanTramMienGiam + ' %';
           })
           .catch(error => {
             console.error('Lỗi khi lấy phần trăm miễn giảm:', error);
-            document.getElementById('PhanTramMienGiam').value = '';
+            phanTramInput.value = '';
           });
       }
     </script>  

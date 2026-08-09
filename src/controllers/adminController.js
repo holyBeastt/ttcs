@@ -885,9 +885,24 @@ const AdminController = {
     }
   },
   infome: async (req, res) => {
-    const id_User = req.params.id_User;
     let connection;
     try {
+      const sessionUserId = Number(req.session?.userId);
+      const routeUserId = Number(req.params.id_User);
+
+      if (!Number.isInteger(sessionUserId) || sessionUserId <= 0) {
+        return res.status(401).send("Phiên đăng nhập không hợp lệ.");
+      }
+
+      if (!Number.isInteger(routeUserId) || routeUserId <= 0) {
+        return res.status(400).send("ID người dùng không hợp lệ.");
+      }
+
+      if (routeUserId !== sessionUserId) {
+        return res.status(403).send("Bạn không có quyền xem thông tin này.");
+      }
+
+      const id_User = sessionUserId;
       connection = await createPoolConnection();
 
       const query1 = "SELECT * FROM `nhanvien` WHERE id_User = ?";
@@ -1027,8 +1042,7 @@ const AdminController = {
   // },
 
   updateMe: async (req, res) => {
-    // Lấy các thông tin từ form
-    let connection; // Khai báo biến connection
+    let connection;
 
     const {
       TenNhanVien,
@@ -1036,18 +1050,25 @@ const AdminController = {
       HocVi,
       ChucVu,
       Luong,
-      Id_User,
-      TenDangNhap,
-      Quyen,
       HSL,
       PhanTramMienGiam,
       LyDo,
     } = req.body;
 
     try {
-      // Validate inputs and handle edge cases
-      if (!Id_User) {
-        return res.status(400).json({ message: "Không tìm thấy ID người dùng." });
+      const sessionUserId = Number(req.session?.userId);
+      const routeUserId = Number(req.params.id_User);
+
+      if (!Number.isInteger(sessionUserId) || sessionUserId <= 0) {
+        return res.status(401).json({ message: "Phiên đăng nhập không hợp lệ." });
+      }
+
+      if (!Number.isInteger(routeUserId) || routeUserId <= 0) {
+        return res.status(400).json({ message: "ID người dùng không hợp lệ." });
+      }
+
+      if (routeUserId !== sessionUserId) {
+        return res.status(403).json({ message: "Bạn không có quyền cập nhật thông tin này." });
       }
 
       const ModeHSL = parseWholeHsl(HSL);
@@ -1057,34 +1078,66 @@ const AdminController = {
         });
       }
 
-      const LuongValue = Luong !== undefined && Luong !== null ? String(Luong) : "";
-      if (LuongValue && !/^\d*$/.test(LuongValue)) {
-        return res.status(400).json({
-          message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
-        });
+      const tenNhanVien = String(TenNhanVien ?? "").trim();
+      if (!tenNhanVien) {
+        return res.status(400).json({ message: "Tên nhân viên không được để trống." });
       }
 
-      const cleanedPhanTram = PhanTramMienGiam ? String(PhanTramMienGiam).replace("%", "").trim() : "0";
-      const phanTram = parseFloat(cleanedPhanTram);
-      if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
+      const ngaySinhValue = String(NgaySinh ?? "").trim();
+      const ngaySinh = ngaySinhValue === "" ? null : ngaySinhValue;
+      if (ngaySinh && !/^\d{4}-\d{2}-\d{2}$/.test(ngaySinh)) {
+        return res.status(400).json({ message: "Ngày sinh không hợp lệ." });
+      }
+
+      const luongValue = String(Luong ?? "").trim();
+      let luong = null;
+      if (luongValue !== "") {
+        if (!/^\d+(?:\.\d+)?$/.test(luongValue)) {
+          return res.status(400).json({
+            message: "Lương phải là số hợp lệ không âm. Vui lòng kiểm tra lại.",
+          });
+        }
+
+        luong = Number(luongValue);
+        if (!Number.isFinite(luong) || luong < 0) {
+          return res.status(400).json({
+            message: "Lương phải là số hợp lệ không âm. Vui lòng kiểm tra lại.",
+          });
+        }
+      }
+
+      const phanTramValue = String(PhanTramMienGiam ?? "")
+        .trim()
+        .replace(/\s*%\s*$/, "");
+      const phanTram = phanTramValue === "" ? 0 : Number(phanTramValue);
+      if (
+        (phanTramValue !== "" && !/^\d+(?:\.\d+)?$/.test(phanTramValue))
+        || !Number.isFinite(phanTram)
+        || phanTram < 0
+        || phanTram > 100
+      ) {
         return res.status(400).json({
           message: "Phần trăm miễn giảm phải là số từ 0 đến 100. Vui lòng kiểm tra lại.",
         });
       }
 
-      connection = await createPoolConnection(); // Lấy kết nối từ pool
+      const hocVi = String(HocVi ?? "").trim() || null;
+      const chucVu = String(ChucVu ?? "").trim() || null;
+      const lyDo = String(LyDo ?? "").trim() || null;
 
-      // Lấy dữ liệu cũ trước khi cập nhật
+      connection = await createPoolConnection();
+      await connection.beginTransaction();
+
       const getOldDataQuery = `SELECT * FROM nhanvien WHERE id_User = ?`;
-      const [oldData] = await connection.query(getOldDataQuery, [Id_User]);
-      
+      const [oldData] = await connection.query(getOldDataQuery, [sessionUserId]);
+
       if (!oldData || oldData.length === 0) {
+        await connection.rollback();
         return res.status(404).json({ message: "Không tìm thấy thông tin nhân viên để cập nhật." });
       }
-      
+
       const oldRecord = oldData[0];
 
-      // Truy vấn để update dữ liệu vào cơ sở dữ liệu
       const query = `UPDATE nhanvien SET 
         TenNhanVien = ?,
         NgaySinh = ?,
@@ -1097,65 +1150,77 @@ const AdminController = {
         WHERE id_User = ?`;
 
       const [updateResult] = await connection.query(query, [
-        TenNhanVien,
-        NgaySinh,
-        HocVi,
-        ChucVu,
+        tenNhanVien,
+        ngaySinh,
+        hocVi,
+        chucVu,
         ModeHSL,
-        Luong,
+        luong,
         phanTram,
-        LyDo,
-        Id_User,
+        lyDo,
+        sessionUserId,
       ]);
 
-      // Ghi log chi tiết các trường thay đổi
       try {
-        const userId = 1;
-        const tenNhanVien = 'ADMIN';
-        const khoa = 'DAOTAO';
+        const logUserId = sessionUserId;
+        const logUserName = req.session?.TenNhanVien || req.session?.username || tenNhanVien;
+        const khoa = req.session?.MaPhongBan || "";
         const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
+        const oldNgaySinh = oldRecord.NgaySinh instanceof Date
+          ? oldRecord.NgaySinh.toISOString().slice(0, 10)
+          : String(oldRecord.NgaySinh ?? "").slice(0, 10);
+        const oldLuong = oldRecord.Luong === null || oldRecord.Luong === undefined
+          ? null
+          : Number(oldRecord.Luong);
 
         let changes = [];
-        if (oldRecord.TenNhanVien !== TenNhanVien) {
-          changes.push(`TenNhanVien: "${oldRecord.TenNhanVien}" -> "${TenNhanVien}"`);
+        if (oldRecord.TenNhanVien !== tenNhanVien) {
+          changes.push(`TenNhanVien: "${oldRecord.TenNhanVien}" -> "${tenNhanVien}"`);
         }
-        if (oldRecord.NgaySinh !== NgaySinh) {
-          changes.push(`NgaySinh: "${oldRecord.NgaySinh}" -> "${NgaySinh}"`);
+        if (oldNgaySinh !== String(ngaySinh ?? "")) {
+          changes.push(`NgaySinh: "${oldRecord.NgaySinh ?? ""}" -> "${ngaySinh ?? ""}"`);
         }
-        if (oldRecord.HocVi !== HocVi) {
-          changes.push(`HocVi: "${oldRecord.HocVi}" -> "${HocVi}"`);
+        if (oldRecord.HocVi !== hocVi) {
+          changes.push(`HocVi: "${oldRecord.HocVi ?? ""}" -> "${hocVi ?? ""}"`);
         }
-        if (oldRecord.ChucVu !== ChucVu) {
-          changes.push(`ChucVu: "${oldRecord.ChucVu}" -> "${ChucVu}"`);
+        if (oldRecord.ChucVu !== chucVu) {
+          changes.push(`ChucVu: "${oldRecord.ChucVu ?? ""}" -> "${chucVu ?? ""}"`);
         }
-          if (oldRecord.HSL !== ModeHSL) {
-            changes.push(`HSL: "${oldRecord.HSL}" -> "${ModeHSL}"`);
+        if (Number(oldRecord.HSL) !== ModeHSL) {
+          changes.push(`HSL: "${oldRecord.HSL ?? ""}" -> "${ModeHSL}"`);
         }
-        if (oldRecord.Luong !== Luong) {
-          changes.push(`Luong: "${oldRecord.Luong}" -> "${Luong}"`);
+        if (oldLuong !== luong) {
+          changes.push(`Luong: "${oldRecord.Luong ?? ""}" -> "${luong ?? ""}"`);
         }
-        if (oldRecord.PhanTramMienGiam !== phanTram) {
-          changes.push(`PhanTramMienGiam: "${oldRecord.PhanTramMienGiam}" -> "${phanTram}"`);
+        if (Number(oldRecord.PhanTramMienGiam || 0) !== phanTram) {
+          changes.push(`PhanTramMienGiam: "${oldRecord.PhanTramMienGiam ?? ""}" -> "${phanTram}"`);
         }
-        if (oldRecord.LyDoMienGiam !== LyDo) {
-          changes.push(`LyDoMienGiam: "${oldRecord.LyDoMienGiam}" -> "${LyDo}"`);
+        if (oldRecord.LyDoMienGiam !== lyDo) {
+          changes.push(`LyDoMienGiam: "${oldRecord.LyDoMienGiam ?? ""}" -> "${lyDo ?? ""}"`);
         }
 
         const logMessage = changes.length > 0
-          ? `Admin cập nhật thông tin nhân viên ID ${Id_User}: ${changes.join(', ')}`
-          : `Admin cập nhật thông tin nhân viên ID ${Id_User}: Không có thay đổi`;
+          ? `Cập nhật thông tin nhân viên ID ${sessionUserId}: ${changes.join(", ")}`
+          : `Cập nhật thông tin nhân viên ID ${sessionUserId}: Không có thay đổi`;
 
-        await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
+        await connection.query(logSql, [logUserId, logUserName, khoa, "Cập nhật thông tin cá nhân", logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
       }
 
-      console.log(`${TenNhanVien.trim()} vừa thay đổi thông tin cá nhân`);
-      // console.log("Bảng role đã được cập nhật:", roleUpdateResult);
+      await connection.commit();
+      console.log(`${tenNhanVien} vừa thay đổi thông tin cá nhân`);
       res.status(200).json({
         message: `Cập nhật thông tin thành công`,
       });
     } catch (error) {
+      if (connection) {
+        try {
+          await connection.rollback();
+        } catch (rollbackError) {
+          console.error("Lỗi rollback khi cập nhật thông tin:", rollbackError);
+        }
+      }
       console.error("Error executing query: ", error);
       if (!res.headersSent) {
         res.status(500).json({
