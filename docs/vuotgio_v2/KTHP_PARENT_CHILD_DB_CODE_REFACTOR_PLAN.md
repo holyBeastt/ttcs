@@ -306,8 +306,7 @@ Contract chuẩn mới:
     "examDate": "2026-01-20",
     "shift": "Ca 1",
     "duration": 90,
-    "room": "P101",
-    "shiftCount": 1
+    "room": "P101"
   }
 }
 ```
@@ -336,7 +335,7 @@ CREATE TABLE vg_kthp (
   dot                 INT NOT NULL DEFAULT 1,
   loai_kthp           VARCHAR(32) NOT NULL,
 
-  ten_hoc_phan        VARCHAR(255) NOT NULL,
+  ten_hoc_phan        VARCHAR(255) NULL,
   ma_hoc_phan         VARCHAR(100) NULL,
   lop_hoc_phan        VARCHAR(255) NULL,
   so_tc               INT NULL,
@@ -425,7 +424,6 @@ CREATE TABLE vg_kthp_coi_thi (
   ca_thi              VARCHAR(100) NULL,
   thoi_gian           INT NULL,
   phong_thi           VARCHAR(255) NULL,
-  so_ca               INT NOT NULL DEFAULT 1,
   PRIMARY KEY (kthp_id),
   CONSTRAINT fk_vg_kthp_coi_thi_parent
     FOREIGN KEY (kthp_id) REFERENCES vg_kthp(id) ON DELETE CASCADE
@@ -440,10 +438,8 @@ dữ liệu thiếu ngày, migration contract mới đổi thành `NOT NULL`.
 ```sql
 CREATE TABLE vg_kthp_cham_thi (
   kthp_id             INT NOT NULL,
-  bai_cham_1          INT NOT NULL DEFAULT 0,
-  bai_cham_2          INT NOT NULL DEFAULT 0,
-  tong_so_bai         INT NOT NULL DEFAULT 0,
   vai_tro             VARCHAR(100) NULL,
+  so_bai_phach        INT NULL,
   PRIMARY KEY (kthp_id),
   CONSTRAINT fk_vg_kthp_cham_thi_parent
     FOREIGN KEY (kthp_id) REFERENCES vg_kthp(id) ON DELETE CASCADE
@@ -453,14 +449,12 @@ CREATE TABLE vg_kthp_cham_thi (
 Validation:
 
 ```text
-bai_cham_1 >= 0
-bai_cham_2 >= 0
-tong_so_bai >= 0
+so_bai_phach >= 0 ở tầng DB để bảo toàn dữ liệu legacy;
+policy import mới bắt buộc so_bai_phach > 0
 ```
 
-Không tự ép `tong_so_bai = bai_cham_1 + bai_cham_2` vì file thực tế có thể
-dùng vai trò và số bài/phách theo cách khác. Policy phải tính/đối chiếu và cảnh
-báo nếu không khớp.
+`vai_tro` lưu nguyên văn giá trị từ header `Vai trò`; không tách `Chấm 1` và
+`Chấm 2` thành hai cột riêng.
 
 ## 6. Migration dữ liệu
 
@@ -533,13 +527,11 @@ COI_THI:
   ca_thi              -> vg_kthp_coi_thi.ca_thi
   thoi_gian           -> vg_kthp_coi_thi.thoi_gian
   phong_thi           -> vg_kthp_coi_thi.phong_thi
-  tong_so             -> vg_kthp_coi_thi.so_ca
+  không có mapping số lượng; không tạo `so_ca`
 
 CHAM_THI:
-  bai_cham_1          -> vg_kthp_cham_thi.bai_cham_1
-  bai_cham_2          -> vg_kthp_cham_thi.bai_cham_2
-  tong_so             -> vg_kthp_cham_thi.tong_so_bai
   vai_tro             -> vg_kthp_cham_thi.vai_tro
+  so_bai_phach        -> vg_kthp_cham_thi.so_bai_phach
 ```
 
 ### 6.4. Validation bắt buộc
@@ -698,6 +690,14 @@ NganHangCauHoiImportPolicy
 
 `KthpDuplicateService` query parent join detail. Fingerprint theo loại:
 
+Candidate query trong DB phải lọc trực tiếp theo scope:
+
+```text
+id_user + nam_hoc + hoc_ky + dot + he_dao_tao_id
+```
+
+Không chỉ lọc theo năm học rồi mới loại trừ bằng fingerprint ở application.
+
 ```text
 Common:
   activityType + employeeId + academicYear + semester + round
@@ -770,8 +770,7 @@ Không gửi một cụm field thi chung rồi copy vào mọi `details`. Payloa
         "examDate": "2026-01-20",
         "shift": "Ca 1",
         "duration": 90,
-        "room": "P101",
-        "shiftCount": 1
+        "room": "P101"
       }
     }
   ]

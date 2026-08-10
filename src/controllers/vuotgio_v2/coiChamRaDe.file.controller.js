@@ -1,130 +1,158 @@
-/**
- * VUOT GIO V2 - Coi Chấm Ra Đề (KTHP) File Controller
- * Date: 2026-04-28
- */
+"use strict";
 
-const service = require("../../services/vuotgio_v2/kthp.service");
 const importService = require("../../services/vuotgio_v2/kthpImport.service");
+const {
+    KTHP_SOURCES,
+} = require("../../services/vuotgio_v2/kthp-import/dto/kthpImport.dto");
 
-/**
- * Phân loại dữ liệu từ file Excel
- */
-const readFileExcel = async (req, res) => {
-    try {
-        if (!req.file) return res.status(400).json({ error: 'Không có file được tải lên' });
-        const data = await importService.parseExcelFile(req.file.buffer);
-        res.json(data);
-    } catch (error) {
-        console.error("[readFileExcel] Error:", error);
-        res.status(500).json({ error: 'Lỗi khi xử lý file' });
-    }
+const getActor = (req) => ({
+    id: req.session?.userId,
+    userName: req.session?.TenNhanVien || req.session?.username || "Unknown",
+});
+
+const getContext = (req) => {
+    const source = { ...(req.body?.context || {}), ...(req.body || {}) };
+    return {
+        academicYear: source.academicYear || source.namHoc || source.Nam || source.nam,
+        semester: source.semester || source.hocKy || source.Ki || source.ki,
+        round: source.round || source.dot,
+        educationSystemId: source.educationSystemId || source.heDaoTaoId,
+        educationSystemName: source.educationSystemName || source.heDaoTao,
+        fileName: req.file?.originalname || null,
+        allowedDepartment: req.khoaFilter?.isAdmin
+            ? null
+            : (req.khoaFilter?.MaPhongBan || null),
+    };
 };
 
-/**
- * Import dữ liệu từ bộ nhớ/client vào DB
- */
-const importWorkloadToDB = async (req, res) => {
+const statusForError = (error) => {
+    if (error.code === "UNAUTHENTICATED") return 401;
+    if (error.code === "PREVIEW_TOKEN_FORBIDDEN") return 403;
+    if (error.code?.startsWith("PREVIEW_TOKEN")) return 409;
+    return 400;
+};
+
+const previewExcel = async (req, res) => {
     try {
-        const { ki, nam, hocKy, namHoc, dot, workloadData } = req.body;
-        const kiVal = hocKy || ki;
-        const namVal = namHoc || nam;
-        if (!req.session?.userId) {
-            return res.status(401).json({ success: false, message: "Vui lòng đăng nhập để tiếp tục" });
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "Không có file được tải lên." });
         }
-        const user = {
-            id: req.session.userId,
-            userName: req.session.TenNhanVien || req.session.username || 'Unknown'
-        };
-
-        const count = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, dot, user });
-        res.json({ success: true, message: `Đã import ${count} bản ghi thành công!` });
-    } catch (error) {
-        console.error("[importWorkloadToDB] Error:", error);
-        res.status(500).json({ error: "Lỗi khi import dữ liệu vào database!" });
-    }
-};
-
-/**
- * Lưu dữ liệu từ file Excel (bao gồm thêm mới và chỉnh sửa)
- */
-const saveWorkloadData = async (req, res) => {
-    try {
-        const { Ki, Nam, hocKy, namHoc, dot, data } = req.body;
-        const kiVal = hocKy || Ki;
-        const namVal = namHoc || Nam;
-
-        const workloadData = {
-            raDe: [],
-            coiThi: [],
-            chamThi: []
-        };
-
-        const updates = [];
-
-        if (Array.isArray(data)) {
-            data.forEach(item => {
-                const type = item.Type || item.type;
-                if (item.id || item.ID) {
-                    updates.push(item);
-                } else {
-                    if (type === "Ra Đề" || type === "Ra đề") {
-                        workloadData.raDe.push(item);
-                    } else if (type === "Coi Thi" || type === "Coi thi") {
-                        workloadData.coiThi.push(item);
-                    } else if (type === "Chấm Thi" || type === "Chấm thi") {
-                        workloadData.chamThi.push(item);
-                    }
-                }
+        if (!/\.xlsx?$/iu.test(req.file.originalname || "")) {
+            return res.status(400).json({
+                success: false,
+                message: "Định dạng file không hợp lệ; chỉ chấp nhận .xlsx hoặc .xls.",
             });
         }
-
-        const user = {
-            id: req.session?.userId || 1,
-            userName: req.session?.TenNhanVien || req.session?.username || 'Unknown'
-        };
-
-        let insertedCount = 0;
-        if (workloadData.raDe.length > 0 || workloadData.coiThi.length > 0 || workloadData.chamThi.length > 0) {
-            insertedCount = await importService.importToDB(workloadData, { ki: kiVal, nam: namVal, dot, user });
-        }
-
-        if (updates.length > 0) {
-            req.body.data = updates;
-            return service.updateBatch(req, res);
-        }
-
-        return res.json({ success: true, message: `Đã lưu ${insertedCount} bản ghi thành công!` });
+        const result = await importService.preview({
+            source: KTHP_SOURCES.EXCEL,
+            input: req.file,
+            context: getContext(req),
+            actor: getActor(req),
+        });
+        return res.json({ success: true, ...result });
     } catch (error) {
-        console.error("[saveWorkloadData] Error:", error);
-        res.status(500).json({ success: false, message: "Lỗi khi lưu dữ liệu!" });
+        console.error("[KTHP] Preview Excel thất bại:", error);
+        return res.status(statusForError(error)).json({
+            success: false,
+            code: error.code,
+            message: error.message || "Không thể preview file KTHP.",
+        });
     }
 };
 
-/**
- * Gợi ý học phần
- */
+const previewData = async (req, res) => {
+    try {
+        const source = req.body?.source;
+        if (!Object.values(KTHP_SOURCES).includes(source)) {
+            return res.status(400).json({
+                success: false,
+                code: "KTHP_SOURCE_UNSUPPORTED",
+                message: "Nguồn dữ liệu KTHP không hợp lệ.",
+            });
+        }
+        const result = await importService.preview({
+            source,
+            input: req.body?.input,
+            context: getContext(req),
+            actor: getActor(req),
+        });
+        return res.json({ success: true, ...result });
+    } catch (error) {
+        console.error("[KTHP] Preview dữ liệu thất bại:", error);
+        return res.status(statusForError(error)).json({
+            success: false,
+            code: error.code,
+            message: error.message || "Không thể preview dữ liệu KTHP.",
+        });
+    }
+};
+
+// Một endpoint preview dùng chung cho cả upload Excel và dữ liệu JSON.
+// Multer chỉ xử lý multipart; request JSON sẽ đi thẳng vào previewData.
+const preview = (req, res) => (req.file ? previewExcel(req, res) : previewData(req, res));
+
+const commitPreview = async (req, res) => {
+    try {
+        const result = await importService.commit({
+            previewToken: req.body?.previewToken,
+            actor: getActor(req),
+        });
+        return res.json({
+            success: true,
+            ...result,
+            message: `Đã lưu ${result.saved} bản ghi`
+                + (result.skipped ? `, bỏ qua ${result.skipped} bản ghi trùng.` : "."),
+        });
+    } catch (error) {
+        console.error("[KTHP] Commit preview thất bại:", error);
+        return res.status(statusForError(error)).json({
+            success: false,
+            code: error.code,
+            message: error.message || "Không thể lưu dữ liệu KTHP.",
+        });
+    }
+};
+
+const attachPreviewContext = (req, res, next) => {
+    try {
+        const context = importService.getPreviewContext(
+            req.body?.previewToken,
+            getActor(req)
+        );
+        req.body.namHoc = context.academicYear;
+        req.body.NamHoc = context.academicYear;
+        return next();
+    } catch (error) {
+        return res.status(statusForError(error)).json({
+            success: false,
+            code: error.code,
+            message: error.message,
+        });
+    }
+};
+
 const getSuggestions = async (req, res) => {
     let connection;
     try {
-        const pool = require("../../config/databasePool");
-        connection = await pool();
-        const [rows] = await connection.execute("SELECT DISTINCT TenHP AS value FROM quychuan ORDER BY TenHP");
-        res.json(rows);
+        const createPoolConnection = require("../../config/databasePool");
+        connection = await createPoolConnection();
+        const [rows] = await connection.execute(
+            "SELECT id_User, TenNhanVien, MaPhongBan FROM nhanvien ORDER BY TenNhanVien"
+        );
+        return res.json(rows);
     } catch (error) {
-        res.status(500).json([]);
+        console.error("[KTHP] Không tải được danh sách giảng viên:", error);
+        return res.status(500).json({ success: false, message: "Không tải được danh sách giảng viên." });
     } finally {
         if (connection) connection.release();
     }
 };
 
-
-// --- Export các hàm từ service để giữ tương thích Route ---
 module.exports = {
-    getWorkload: (req, res) => res.json({ raDe: [], coiThi: [], chamThi: [] }), // Placeholder cho client cũ
-    readFileExcel,
-    importWorkloadToDB,
-    deleteWorkloadData: service.deleteByFilter,
-    saveWorkloadData,
-    checkDataExistence: service.checkExistence,
+    preview,
+    previewExcel,
+    previewData,
+    commitPreview,
+    attachPreviewContext,
     getSuggestions,
 };

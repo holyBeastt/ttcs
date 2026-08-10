@@ -66,9 +66,24 @@
             font-size: 0.85rem;
         }
 
-        .fixed-section {
-            height: 500px;
-            overflow-y: auto;
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th.sortable:hover {
+            background-color: #e9ecef;
+        }
+
+        .sort-indicator {
+            display: inline-block;
+            width: 1em;
+            margin-left: 3px;
+        }
+
+        #renderInfo {
+            height: auto;
+            overflow: visible;
         }
 
         /* Summary Popup Styles */
@@ -202,7 +217,7 @@
                 </div>
 
                 <!-- Filter Row -->
-                <div class="d-flex my-3" style="height: 70px">
+                <div class="d-flex my-3">
                     <input type="text" id="filterGiangVien" placeholder="Tìm theo tên giảng viên"
                         class="form-control m-2 search" />
                     <input type="text" id="filterHocPhan" placeholder="Tìm theo tên học phần"
@@ -210,21 +225,26 @@
                 </div>
 
                 <!-- Table Section -->
-                <div id="renderInfo" class="fixed-section">
+                <div id="renderInfo">
                     <table class="text-center" style="width: 100%">
                         <thead>
                             <tr>
                                 <th style="width: 40px;">STT</th>
-                                <th style="width: 180px;">Giảng viên</th>
-                                <th style="width: 70px;">Khoa</th>
-                                <th style="width: 140px;">Hệ đào tạo</th>
+                                <th style="width: 150px;">Giảng viên</th>
+                                <th class="sortable" data-sort-key="khoa" style="width: 70px;"
+                                    title="Sắp xếp theo khoa">
+                                    Khoa <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
                                 <th style="width: 50px;">Kì</th>
                                 <th style="width: 50px;">Đợt</th>
-                                <th style="width: 200px;">Tên học phần</th>
-                                <th style="width: 100px;">Lớp HP</th>
-                                <th style="width: 100px;">Loại KTHP</th>
+                                <th style="width: 150px;">Tên học phần</th>
+                                <th class="sortable" data-sort-key="activityType" style="width: 100px;"
+                                    title="Sắp xếp theo loại kết thúc học phần">
+                                    Loại KTHP <span class="sort-indicator" aria-hidden="true"></span>
+                                </th>
+                                <th style="width: 320px;">Thông tin chi tiết</th>
                                 <th style="width: 80px;">Số tiết QC</th>
-                                <th style="width: 160px;">Ghi chú</th>
+                                <th style="width: 120px;">Ghi chú</th>
                                 <th style="width: 80px;" id="khoaColumn">
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="check me-1" type="checkbox" id="checkAllKhoa"
@@ -286,7 +306,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Khoa</label>
-                                    <select id="editKhoa" class="form-select"></select>
+                                    <select id="editKhoa" class="form-select" disabled></select>
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -306,7 +326,7 @@
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Giảng viên</label>
-                                    <input type="text" id="editGiangVien" class="form-control" />
+                                    <select id="editGiangVien" class="form-select"></select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Lớp HP</label>
@@ -324,20 +344,64 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Loại KTHP</label>
-                                    <select id="editLoaiKTHP" class="form-select">
-                                        <option value="Ra đề">Ra đề</option>
-                                        <option value="Coi thi">Coi thi</option>
-                                        <option value="Chấm thi">Chấm thi</option>
-                                        <option value="Ngân hàng câu hỏi">Ngân hàng câu hỏi</option>
+                                    <select id="editLoaiKTHP" class="form-select" disabled>
+                                        <option value="RA_DE">Ra đề</option>
+                                        <option value="COI_THI">Coi thi</option>
+                                        <option value="CHAM_THI">Chấm thi</option>
+                                        <option value="NGAN_HANG_CAU_HOI">Ngân hàng câu hỏi</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Số tiết QC</label>
-                                    <input type="number" id="editSoTietQC" class="form-control" step="0.5" />
+                                    <input type="number" id="editSoTietQC" class="form-control" min="0.01" step="0.01" />
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Ghi chú</label>
                                     <input type="text" id="editGhiChu" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Hình thức thi</label>
+                                    <input type="text" id="editHinhThucThi" class="form-control" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Hệ số</label>
+                                    <input type="number" id="editHeSo" class="form-control" min="0" step="0.01" />
+                                </div>
+                            </div>
+                            <div class="row mb-3 d-none" data-kthp-detail-panel="RA_DE">
+                                <div class="col-md-4">
+                                    <label class="form-label">Số lượng</label>
+                                    <input type="number" id="editSoLuongRaDe" class="form-control" min="1" step="1" />
+                                </div>
+                            </div>
+                            <div class="row mb-3 d-none" data-kthp-detail-panel="COI_THI">
+                                <div class="col-md-3">
+                                    <label class="form-label">Ngày thi</label>
+                                    <input type="date" id="editNgayThi" class="form-control" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Ca thi</label>
+                                    <input type="text" id="editCaThi" class="form-control" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Thời gian</label>
+                                    <input type="number" id="editThoiGian" class="form-control" min="0" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Phòng thi</label>
+                                    <input type="text" id="editPhongThi" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row mb-3 d-none" data-kthp-detail-panel="CHAM_THI">
+                                <div class="col-md-6">
+                                    <label class="form-label">Số bài/phách</label>
+                                    <input type="number" id="editSoBaiPhach" class="form-control" min="1" step="1" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Vai trò</label>
+                                    <input type="text" id="editVaiTro" class="form-control" />
                                 </div>
                             </div>
                         </form>

@@ -7,6 +7,7 @@ const sections = [
     {
         id: 1,
         title: "Ra đề thi",
+        activityType: "RA_DE",
         saveType: "Ra đề",
         items: [
             { id: "1a", label: "Đề thi trắc nghiệm kèm theo đáp án", dvt: "01 đề thi", gio: 2.0 },
@@ -24,6 +25,7 @@ const sections = [
     {
         id: 2,
         title: "Coi thi, giám sát",
+        activityType: "COI_THI",
         saveType: "Coi thi",
         items: [
             { id: "2a", label: "Ca thi thời lượng <= 45 phút", dvt: "01 ca thi", gio: 0.3 },
@@ -39,6 +41,7 @@ const sections = [
     {
         id: 3,
         title: "Chấm thi",
+        activityType: "CHAM_THI",
         saveType: "Chấm thi",
         items: [
             { id: "3a", label: "Bài thi tự luận", dvt: "01 bài thi", gio: 0.1 },
@@ -57,6 +60,7 @@ const sections = [
     {
         id: 4,
         title: "Xây dựng ngân hàng câu hỏi thi",
+        activityType: "NGAN_HANG_CAU_HOI",
         saveType: "Ngân hàng câu hỏi",
         items: [
             { id: "4a", label: "Biên soạn cấu trúc nhóm câu hỏi (tự luận / thực hành / vấn đáp)", dvt: "lần", gio: 2.0 },
@@ -87,6 +91,7 @@ const state = {
 // Danh sách giảng viên cho autocomplete
 let giangVienList = [];
 let heDaoTaoList = [];
+let selectedEmployeeId = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -193,6 +198,7 @@ async function loadGiangVienList(khoa = '') {
 
         // Chuẩn hóa cấu trúc dữ liệu để autocomplete xử lý ổn định
         giangVienList = rawData.map((row) => ({
+            id: row.id_User || row.id,
             HoTen: row.HoTen || row.TenNhanVien || '',
             Khoa: row.Khoa || row.MaPhongBan || ''
         })).filter((row) => row.HoTen);
@@ -205,7 +211,7 @@ async function loadGiangVienList(khoa = '') {
 // Load danh sách hệ đào tạo cho trường đối tượng
 async function loadHeDaoTaoOptions() {
     try {
-        const response = await fetch('/api/gvm/v1/he-moi-giang');
+        const response = await fetch('/api/gvm/v1/he-dao-tao');
         if (!response.ok) {
             throw new Error(`Load he dao tao failed with status ${response.status}`);
         }
@@ -227,8 +233,9 @@ async function loadHeDaoTaoOptions() {
             doiTuongSelect.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
             heDaoTaoList.forEach((item) => {
                 const option = document.createElement('option');
-                option.value = String(item.value);
+                option.value = String(item.id);
                 option.textContent = String(item.value);
+                option.dataset.name = String(item.value);
                 doiTuongSelect.appendChild(option);
             });
         }
@@ -249,6 +256,7 @@ function setupAutocomplete(inputId, containerId) {
     const container = document.getElementById(containerId);
     
     input.addEventListener('input', () => {
+        selectedEmployeeId = null;
         const query = input.value.toLowerCase().trim();
         if (query.length < 2) {
             container.classList.remove('show');
@@ -268,7 +276,7 @@ function setupAutocomplete(inputId, containerId) {
         container.innerHTML = suggestions.map(gv => {
             const name = gv.HoTen || gv.TenNhanVien || '';
             const mon = gv.MonGiangDayChinh ? ` (${gv.MonGiangDayChinh})` : '';
-            return `<div class="suggestion-item" data-name="${name}">${name}${mon}</div>`;
+            return `<div class="suggestion-item" data-id="${gv.id || ''}" data-name="${name}">${name}${mon}</div>`;
         }).join('');
         
         container.classList.add('show');
@@ -276,6 +284,7 @@ function setupAutocomplete(inputId, containerId) {
         container.querySelectorAll('.suggestion-item').forEach(item => {
             item.addEventListener('click', () => {
                 input.value = item.dataset.name;
+                selectedEmployeeId = item.dataset.id || null;
                 container.classList.remove('show');
             });
         });
@@ -300,10 +309,12 @@ function isValidTeacher(name) {
     const normalizedInput = normalizeString(name);
     if (!normalizedInput) return false;
 
-    return giangVienList.some(gv => {
+    const match = giangVienList.find(gv => {
         const listName = normalizeString(gv.HoTen || gv.TenNhanVien || '');
         return listName === normalizedInput;
     });
+    if (match && !selectedEmployeeId) selectedEmployeeId = match.id || null;
+    return !!match;
 }
 
 function calcResult(item, sec) {
@@ -340,6 +351,28 @@ function fmt(n) {
     return Number(n || 0).toFixed(2).replace('.', ',');
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function describePreviewRow(dto) {
+    let detail;
+    if (dto.activityType === 'COI_THI') {
+        detail = `ngày ${dto.exam.date}, ${dto.exam.shift || 'không ghi ca'}`;
+    } else if (dto.activityType === 'CHAM_THI') {
+        detail = `${dto.exam.markedCount} bài/phách, vai trò ${dto.exam.role || 'không ghi'}`;
+    } else {
+        detail = `${dto.exam.quantity} đơn vị`;
+    }
+    return `<b>${escapeHtml(dto.activityName)}</b>: ${escapeHtml(detail)}`
+        + ` — ${escapeHtml(fmt(dto.standardHours))} giờ`;
+}
+
 function getSectionTotal(sectionId) {
     const sec = sections.find(s => s.id === sectionId);
     if (!sec) return 0;
@@ -348,11 +381,36 @@ function getSectionTotal(sectionId) {
 
 function buildDetailsForSave() {
     return sections
-        .map((sec) => ({
-            hinhthuc: sec.saveType,
-            sotietqc: parseFloat(getSectionTotal(sec.id).toFixed(2))
-        }))
-        .filter((d) => d.sotietqc > 0);
+        .map((sec) => {
+            const quantity = sec.items.reduce(
+                (sum, item) => sum + Number(state.inputs[item.id] || 0),
+                0
+            );
+            const standardHours = parseFloat(getSectionTotal(sec.id).toFixed(2));
+            let detail;
+            if (sec.activityType === 'COI_THI') {
+                detail = {
+                    examDate: document.getElementById('ngayThiForm').value,
+                    shift: document.getElementById('caThiForm').value,
+                    duration: document.getElementById('thoiGianForm').value,
+                    room: document.getElementById('phongThiForm').value,
+                };
+            } else if (sec.activityType === 'CHAM_THI') {
+                detail = {
+                    markedCount: quantity,
+                    role: document.getElementById('vaiTroForm').value,
+                };
+            } else {
+                detail = { quantity };
+            }
+            return {
+                activityType: sec.activityType,
+                displayType: sec.saveType,
+                standardHours,
+                detail,
+            };
+        })
+        .filter((item) => item.standardHours > 0);
 }
 
 function render() {
@@ -517,50 +575,105 @@ async function handleFormSubmit(e) {
         return;
     }
     
-    const details = buildDetailsForSave();
+    const items = buildDetailsForSave();
 
-    if (details.length === 0) {
+    if (items.length === 0) {
         Swal.fire('Lỗi', 'Vui lòng nhập số tiết cho ít nhất 1 hình thức.', 'error');
         return;
     }
 
-    const doiTuong = (document.getElementById('doiTuongForm')?.value || '').trim();
-    if (!doiTuong) {
+    const doiTuongSelect = document.getElementById('doiTuongForm');
+    const heDaoTaoId = (doiTuongSelect?.value || '').trim();
+    const doiTuong = doiTuongSelect?.selectedOptions?.[0]?.dataset?.name || '';
+    if (!heDaoTaoId) {
         Swal.fire('Lỗi', 'Vui lòng chọn Đối tượng cho lớp học phần.', 'error');
         return;
     }
 
     const formData = {
-        namhoc: document.getElementById('namHocForm').value,
-        ki: document.getElementById('hocKyForm').value,
-        dot: document.getElementById('dotForm')?.value || 1,
-        khoa: document.getElementById('khoaForm').value,
-        tenhocphan: document.getElementById('tenHPForm').value,
-        lophocphan: document.getElementById('lopForm').value,
-        sotc: document.getElementById('soTCForm').value || 0,
-        sosv: document.getElementById('siSoForm').value || 0,
-        doituong: doiTuong,
-        ghichu: document.getElementById('ghiChuForm').value,
-        giangvien: giangVien,
-        details
+        common: {
+            academicYear: document.getElementById('namHocForm').value,
+            semester: document.getElementById('hocKyForm').value,
+            round: document.getElementById('dotForm')?.value,
+            employee: {
+                id: selectedEmployeeId,
+                name: giangVien,
+                department: document.getElementById('khoaForm').value,
+            },
+            educationSystem: {
+                id: heDaoTaoId,
+                name: doiTuong,
+            },
+            course: {
+                name: document.getElementById('tenHPForm').value,
+                code: document.getElementById('maHPForm').value,
+                className: document.getElementById('lopForm').value,
+                credits: document.getElementById('soTCForm').value,
+                studentCount: document.getElementById('siSoForm').value,
+            },
+            examForm: document.getElementById('hinhThucThiForm').value,
+            coefficient: document.getElementById('heSoForm').value,
+            notes: document.getElementById('ghiChuForm').value,
+        },
+        items,
     };
 
     try {
-        const response = await fetch('/v2/vuotgio/them-kthp/batch', {
+        const previewResponse = await fetch('/v2/vuotgio/kthp-import/preview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify({ source: 'MANUAL', input: formData })
         });
-        const result = await response.json();
-        if (result.success) {
-            Swal.fire('Thành công', result.message, 'success');
-            document.getElementById('themKTHPForm').reset();
-            resetCalculator();
-        } else {
-            Swal.fire('Lỗi', result.message, 'error');
+        const preview = await previewResponse.json();
+        if (!previewResponse.ok || !preview.success) {
+            throw new Error(preview.message || 'Không thể kiểm tra dữ liệu');
         }
+        if (!preview.previewToken) {
+            const messages = (preview.errors || [])
+                .slice(0, 10)
+                .map((error) => `• ${escapeHtml(error.message)}`)
+                .join('<br>');
+            return Swal.fire({
+                title: 'Dữ liệu chưa hợp lệ',
+                html: messages || 'Không có bản ghi hợp lệ để lưu.',
+                icon: 'error'
+            });
+        }
+
+        const warningText = (preview.warnings || [])
+            .slice(0, 5)
+            .map((warning) => `• ${escapeHtml(warning.message)}`)
+            .join('<br>');
+        const previewItems = (preview.rows || [])
+            .map((row) => describePreviewRow(row.dto))
+            .join('<br>');
+        const confirmation = await Swal.fire({
+            title: 'Xác nhận dữ liệu',
+            html: `Sẽ lưu <b>${preview.summary.valid}</b> bản ghi.`
+                + (previewItems ? `<br><br>${previewItems}` : '')
+                + (warningText ? `<br><br>${warningText}` : ''),
+            icon: warningText ? 'warning' : 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Lưu dữ liệu',
+            cancelButtonText: 'Quay lại'
+        });
+        if (!confirmation.isConfirmed) return;
+
+        const commitResponse = await fetch('/v2/vuotgio/kthp-import/commit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ previewToken: preview.previewToken })
+        });
+        const result = await commitResponse.json();
+        if (!commitResponse.ok || !result.success) {
+            throw new Error(result.message || 'Không thể lưu dữ liệu');
+        }
+        await Swal.fire('Thành công', result.message, 'success');
+        document.getElementById('themKTHPForm').reset();
+        selectedEmployeeId = null;
+        resetCalculator();
     } catch (error) {
         console.error('Error saving:', error);
-        Swal.fire('Lỗi', 'Có lỗi xảy ra khi lưu', 'error');
+        Swal.fire('Lỗi', error.message || 'Có lỗi xảy ra khi lưu', 'error');
     }
 }

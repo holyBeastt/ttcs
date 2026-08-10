@@ -6,7 +6,7 @@ const SOURCE_ALIAS = {
     SoTietCTDT: "so_tiet_ctdt",
     QuyChuan: "quy_chuan",
   },
-  vg_coi_cham_ra_de: {
+  vg_kthp: {
     ten_hoc_phan: "ten_hoc_phan",
     hinh_thuc: "hinh_thuc",
     so_sv: "so_sv",

@@ -265,7 +265,7 @@ Module phân lớp quản lý tính toán giờ vượt chuẩn:
 | Sub-module | Route prefix | Mô tả |
 |---|---|---|
 | Lớp Ngoài QC | `/v2/vuotgio/lop-ngoai-quy-chuan/*` | CRUD, import Excel, duyệt/hủy duyệt từng bản ghi |
-| Kết Thúc HP | `/v2/vuotgio/them-kthp/*`, `/v2/vuotgio/import-kthp/*` | Nhập coi/chấm/ra đề thi |
+| Kết Thúc HP | `/v2/vuotgio/them-kthp/*`, `/v2/vuotgio/kthp-import/*` | Nhập coi/chấm/ra đề thi |
 | Tổng Hợp | `/v2/vuotgio/tong-hop/*` | Tổng hợp giờ theo GV & khoa, preview, duyệt |
 | Xuất File | `/v2/vuotgio/xuat-file/*` | Xuất Excel theo khoa, tổng hợp toàn trường |
 | Hướng Dẫn ĐATN | `/v2/vuotgio/huong-dan-datn/*` | Giờ hướng dẫn đồ án (read-only tổng hợp) |

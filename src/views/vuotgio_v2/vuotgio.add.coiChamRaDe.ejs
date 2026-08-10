@@ -585,7 +585,7 @@
                     <h3 class="meta-title">
                         <i class="fas fa-plus-circle me-2"></i>Thông tin kê khai
                     </h3>
-                    <a href="/v2/vuotgio/import-kthp" class="btn btn-outline-primary btn-sm">
+                    <a href="/v2/vuotgio/kthp-import" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-file-import me-1"></i>Thêm bằng file
                     </a>
                 </div>
@@ -657,6 +657,40 @@
                         <select id="doiTuongForm" class="form-select" required>
                             <option value="">-- Chọn hệ đào tạo --</option>
                         </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Hình thức thi</label>
+                        <input type="text" id="hinhThucThiForm" class="form-control" placeholder="Tự luận, trắc nghiệm..." />
+                    </div>
+                    <div>
+                        <label class="form-label">Hệ số</label>
+                        <input type="number" id="heSoForm" class="form-control" min="0" step="0.01" value="0" />
+                    </div>
+                </div>
+
+                <div class="meta-grid-3">
+                    <div>
+                        <label class="form-label">Ngày thi</label>
+                        <input type="date" id="ngayThiForm" class="form-control" />
+                    </div>
+                    <div>
+                        <label class="form-label">Ca thi</label>
+                        <input type="text" id="caThiForm" class="form-control" placeholder="VD: Ca 1, 7h30" />
+                    </div>
+                    <div>
+                        <label class="form-label">Thời gian (phút)</label>
+                        <input type="number" id="thoiGianForm" class="form-control" min="0" step="1" value="0" />
+                    </div>
+                </div>
+
+                <div class="meta-grid-3">
+                    <div>
+                        <label class="form-label">Phòng thi</label>
+                        <input type="text" id="phongThiForm" class="form-control" />
+                    </div>
+                    <div>
+                        <label class="form-label">Vai trò</label>
+                        <input type="text" id="vaiTroForm" class="form-control" placeholder="VD: Chấm 1, Chấm 2" />
                     </div>
                 </div>
 

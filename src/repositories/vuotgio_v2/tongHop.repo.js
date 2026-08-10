@@ -1,5 +1,6 @@
 const giangDayService = require("../../services/save_moigiang/giangDay.service");
 const { transformDoAnData } = require("../../services/save_moigiang/datn.service");
+const kthpRepo = require("./kthp.repo");
 
 const buildKhoaFilter = (khoa, field, params) => {
     if (khoa && khoa !== "ALL") {
@@ -303,16 +304,7 @@ const getLopNgoaiQCByIdUser = async (connection, { namHoc, idUser, requireApprov
 };
 
 const getKthpByIdUser = async (connection, { namHoc, idUser, requireApproval = true }) => {
-    const [rows] = await connection.execute(
-        `SELECT kthp.*, 
-                COALESCE(hdt.he_dao_tao, kthp.doi_tuong, 'Không xác định') AS ten_he_dao_tao
-         FROM vg_coi_cham_ra_de kthp
-         LEFT JOIN he_dao_tao hdt ON hdt.id = kthp.he_dao_tao_id
-         WHERE kthp.nam_hoc = ? AND kthp.id_User = ? ${requireApproval ? "AND kthp.khoa_duyet = 1 AND kthp.khao_thi_duyet = 1" : ""}
-         ORDER BY kthp.hoc_ky, kthp.hinh_thuc`,
-        [namHoc, idUser]
-    );
-    return rows;
+    return kthpRepo.getApprovedByUser(connection, { namHoc, idUser, requireApproval });
 };
 
 const getDoAnByIdUser = async (connection, { namHoc, idUser, isDuKien = false }) => {
@@ -410,11 +402,14 @@ const getDuLieuThoTongHop = async (connection, { namHoc, khoa, requireApproval =
 
     // Điều kiện duyệt 2 cấp cho từng bảng
     const approvedCondLNQC = requireApproval ? "AND khoa_duyet = 1 AND dao_tao_duyet = 1" : "";
-    const approvedCondKTHP = requireApproval ? "AND khoa_duyet = 1 AND khao_thi_duyet = 1" : "";
     const approvedCondHDTQ = requireApproval ? "AND khoa_duyet = 1 AND dao_tao_duyet = 1" : "";
     
     const [lnqc] = await connection.execute(queryDetails('vg_lop_ngoai_quy_chuan', 'nam_hoc', approvedCondLNQC), [namHoc, ...lecturerIds]);
-    const [kthp] = await connection.execute(queryDetails('vg_coi_cham_ra_de', 'nam_hoc', approvedCondKTHP), [namHoc, ...lecturerIds]);
+    const kthp = await kthpRepo.getTotalsByUserIds(connection, {
+        namHoc,
+        ids: lecturerIds,
+        requireApproval,
+    });
     const [hdtq] = await connection.execute(queryDetails('vg_huong_dan_tham_quan_thuc_te', 'nam_hoc', approvedCondHDTQ), [namHoc, ...lecturerIds]);
     const doAnRows = await getDoAnRowsByMode(connection, { namHoc, isDuKien });
 
@@ -502,18 +497,7 @@ const getLopNgoaiQCByIds = async (connection, { namHoc, ids, requireApproval = t
 };
 
 const getKthpByIds = async (connection, { namHoc, ids, requireApproval = true }) => {
-    if (!ids.length) return [];
-    const placeholders = buildPlaceholders(ids);
-    const [rows] = await connection.execute(
-        `SELECT kthp.*, 
-                COALESCE(hdt.he_dao_tao, kthp.doi_tuong, 'Không xác định') AS ten_he_dao_tao
-         FROM vg_coi_cham_ra_de kthp
-         LEFT JOIN he_dao_tao hdt ON hdt.id = kthp.he_dao_tao_id
-         WHERE kthp.nam_hoc = ? AND kthp.id_User IN (${placeholders}) ${requireApproval ? "AND kthp.khoa_duyet = 1 AND kthp.khao_thi_duyet = 1" : ""}
-         ORDER BY kthp.id_User, kthp.hoc_ky, kthp.hinh_thuc`,
-        [namHoc, ...ids]
-    );
-    return rows;
+    return kthpRepo.getApprovedByIds(connection, { namHoc, ids, requireApproval });
 };
 
 const getDoAnByIds = async (connection, { namHoc, ids, isDuKien = false }) => {

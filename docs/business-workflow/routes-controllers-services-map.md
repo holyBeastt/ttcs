@@ -71,20 +71,20 @@ POST /v2/vuotgio/lop-ngoai-qc/confirm-import   [KF, DL]
 ### Exam Workload (KTHP)
 
 ```
-POST /v2/vuotgio/them-kthp   [KF, DL]
-  → themKTHP.controller.js :: save()
-  → kthp.service.js :: save()
-      → kthp.repo.js :: insert()            → vg_coi_cham_ra_de
+POST /v2/vuotgio/kthp-import/preview   [KF]
+  → coiChamRaDe.file.controller.js :: preview()
+  → kthpImport.service.js :: preview()
+      → KTHP import pipeline             → preview token
 
-POST /v2/vuotgio/import-kthp/import   [KF, DL]
-  → coiChamRaDe.file.controller.js :: importWorkloadToDB()
-  → kthpImport.service.js :: importToDB()
-      → kthp.repo.js :: bulkInsert()        → vg_coi_cham_ra_de
+POST /v2/vuotgio/kthp-import/commit   [KF, DL]
+  → coiChamRaDe.file.controller.js :: commitPreview()
+  → kthpImport.service.js :: commit()
+      → kthpImportSave.service.js       → vg_kthp + child table
 
 POST /v2/vuotgio/duyet-kthp/batch-approve   [KF, DL]
   → duyetKTHP.controller.js :: batchApprove()
   → kthp.service.js :: batchApprove()
-      → kthp.repo.js :: batchSetKhoaDuyet() → vg_coi_cham_ra_de
+      → kthp.repo.js :: updateBatchApproval() → vg_kthp
 ```
 
 ### Data Lock

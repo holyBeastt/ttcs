@@ -5,6 +5,47 @@
 
 let globalData = []; // Biến toàn cục để lưu dữ liệu từ server
 let heDaoTaoList = [];
+let employeeList = [];
+let currentSort = { key: null, direction: 1 };
+
+function toViewRecord(dto) {
+    if (!dto || !dto.id || !dto.activityType || !dto.employee
+        || !dto.course || !dto.educationSystem || !dto.approval || !dto.detail) {
+        throw new Error('API KTHP không đúng canonical contract');
+    }
+    return {
+        id: dto.id,
+        activityType: dto.activityType,
+        hinhthuc: dto.displayType,
+        employeeId: dto.employee.id,
+        giangvien: dto.employee.name,
+        khoa: dto.employee.department,
+        namhoc: dto.academicYear,
+        ki: dto.semester,
+        dot: dto.round,
+        tenhocphan: dto.course.name,
+        mahocphan: dto.course.code,
+        lophocphan: dto.course.className,
+        sotc: dto.course.credits,
+        sosv: dto.course.studentCount,
+        heDaoTaoId: dto.educationSystem.id,
+        doituong: dto.educationSystem.name,
+        hinhthucthi: dto.examForm,
+        heso: dto.coefficient,
+        sotietqc: dto.standardHours,
+        ghichu: dto.notes,
+        khoaduyet: Number(dto.approval.departmentApproved),
+        khaothiduyet: Number(dto.approval.examOfficeApproved),
+        tongso: dto.detail.quantity ?? dto.detail.markedCount ?? 0,
+        ngaythi: dto.detail.examDate ?? null,
+        cathi: dto.detail.shift ?? null,
+        thoigian: dto.detail.duration ?? null,
+        phongthi: dto.detail.room ?? null,
+        sobaiphach: dto.detail.markedCount ?? 0,
+        vaitro: dto.detail.role ?? null,
+        detail: dto.detail,
+    };
+}
 
 function toFixedInput(value, decimals) {
     const num = parseFloat(value);
@@ -12,18 +53,17 @@ function toFixedInput(value, decimals) {
     return num.toFixed(decimals);
 }
 
-function setSelectValueWithFallback(select, value) {
-    if (!select) return;
-    const normalized = String(value ?? '').trim();
-    if (!normalized) return;
-    const exists = Array.from(select.options).some(option => option.value === normalized);
-    if (!exists) {
-        const option = document.createElement('option');
-        option.value = normalized;
-        option.textContent = normalized;
-        select.appendChild(option);
-    }
-    select.value = normalized;
+function appendDetailParts(cell, parts) {
+    parts.forEach(([label, value], index) => {
+        if (index > 0) {
+            cell.appendChild(document.createTextNode(' | '));
+        }
+
+        const labelElement = document.createElement('b');
+        labelElement.textContent = `${label}:`;
+        cell.appendChild(labelElement);
+        cell.appendChild(document.createTextNode(` ${value ?? ''}`));
+    });
 }
 
 // ==================== INITIALIZATION ====================
@@ -35,7 +75,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     await Promise.all([
         loadNamHocOptions(),
         loadKhoaOptions(),
-        loadHeDaoTaoOptions()
+        loadHeDaoTaoOptions(),
+        loadEmployeeOptions()
     ]);
     
     loadData();
@@ -48,6 +89,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Filter event listeners
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
     document.getElementById('filterHocPhan').addEventListener('input', filterTable);
+    document.querySelectorAll('th.sortable').forEach((header) => {
+        header.addEventListener('click', () => toggleSort(header.dataset.sortKey));
+    });
 
     // Setup permission-based UI
     setupUpdateButtonVisibility();
@@ -88,6 +132,7 @@ function setupColumnVisibility() {
     const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
+    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
 
     const checkAllKhoa = document.getElementById('checkAllKhoa');
     const checkAllKhaoThi = document.getElementById('checkAllKhaoThi');
@@ -103,6 +148,10 @@ function setupColumnVisibility() {
 
     // Phòng Khảo thí: Trợ lý duyệt (check), Lãnh đạo phòng bỏ duyệt (uncheck)
     if (MaPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong)) {
+        if (checkAllKhaoThi) checkAllKhaoThi.disabled = false;
+    }
+    if (MaPhongBan === banGiamDoc) {
+        if (checkAllKhoa) checkAllKhoa.disabled = false;
         if (checkAllKhaoThi) checkAllKhaoThi.disabled = false;
     }
 }
@@ -154,17 +203,38 @@ function canInteract(type) {
 }
 
 // Check if row can be edited/deleted
-// Chỉ GV_CNBM và Lãnh đạo khoa mới được sửa/xóa, và chỉ khi chưa duyệt
 function canEditDelete(data) {
     const role = localStorage.getItem('userRole');
+    const MaPhongBan = localStorage.getItem('MaPhongBan');
+
     const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
+    const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
 
-    // Chỉ GV_CNBM và Lãnh đạo khoa có quyền sửa/xóa
-    if (role !== gvCnbm && role !== lanhDaoKhoa) return false;
+    // Ban Giám đốc có toàn quyền
+    if (MaPhongBan === banGiamDoc) return true;
 
-    // Chỉ sửa/xóa khi chưa duyệt
-    return data.khoaduyet === 0 && data.khaothiduyet === 0;
+    // Check role của Khoa
+    const isKhoaUser = (role === gvCnbm || role === lanhDaoKhoa);
+    // Check role của Phòng Khảo thí
+    const isKhaoThiUser = (MaPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong));
+
+    if (!isKhoaUser && !isKhaoThiUser) return false;
+
+    // Khoa chỉ sửa/xóa được khi chưa duyệt Khoa và chưa duyệt Khảo thí
+    if (isKhoaUser) {
+        return data.khoaduyet === 0 && data.khaothiduyet === 0;
+    }
+
+    // Khảo thí sửa/xóa được khi Khảo thí chưa duyệt
+    if (isKhaoThiUser) {
+        return data.khaothiduyet === 0;
+    }
+
+    return false;
 }
 
 // ==================== DATA LOADING ====================
@@ -252,7 +322,7 @@ async function loadHeDaoTaoOptions() {
             editHeDaoTao.innerHTML = '<option value="">-- Chọn hệ đào tạo --</option>';
             heDaoTaoList.forEach((item) => {
                 const option = document.createElement('option');
-                option.value = String(item.value);
+                option.value = String(item.id);
                 option.textContent = String(item.value);
                 editHeDaoTao.appendChild(option);
             });
@@ -271,6 +341,37 @@ async function loadHeDaoTaoOptions() {
     } catch (error) {
         console.error('Error loading he dao tao:', error);
         heDaoTaoList = [];
+    }
+}
+
+async function loadEmployeeOptions() {
+    const select = document.getElementById('editGiangVien');
+    try {
+        const response = await fetch('/v2/vuotgio/kthp-import/suggestions');
+        const payload = await response.json();
+        if (!response.ok || !Array.isArray(payload)) {
+            throw new Error(payload.message || 'Không tải được danh sách giảng viên');
+        }
+        employeeList = payload;
+        select.innerHTML = '';
+        employeeList.forEach((employee) => {
+            const option = document.createElement('option');
+            option.value = String(employee.id_User);
+            option.textContent = `${employee.TenNhanVien} — ${employee.MaPhongBan || ''}`;
+            select.appendChild(option);
+        });
+        select.addEventListener('change', () => {
+            const employee = employeeList.find(
+                (item) => String(item.id_User) === select.value
+            );
+            if (employee) {
+                document.getElementById('editKhoa').value = employee.MaPhongBan;
+            }
+        });
+    } catch (error) {
+        select.innerHTML = '<option value="">Không tải được danh sách giảng viên</option>';
+        select.disabled = true;
+        console.error(error);
     }
 }
 
@@ -301,11 +402,17 @@ async function loadData() {
             body: JSON.stringify(payload),
         });
         const data = await response.json();
-        
-        globalData = data.data || data;
+        if (!response.ok || data.success !== true) {
+            throw new Error(data.message || 'API KTHP trả lỗi');
+        }
+        const canonicalRows = data.data;
+        if (!Array.isArray(canonicalRows)) {
+            throw new Error('API KTHP không trả danh sách');
+        }
+        globalData = canonicalRows.map(toViewRecord);
         renderTable(globalData);
         
-        if (data.length === 0) {
+        if (globalData.length === 0) {
             Swal.fire('Thông báo', 'Không có dữ liệu', 'info');
         }
     } catch (error) {
@@ -321,8 +428,9 @@ function renderTable(data) {
     tableBody.innerHTML = '';
 
     let STT = 1;
+    const rowsToRender = sortRows(data);
 
-    data.forEach((row, index) => {
+    rowsToRender.forEach((row, index) => {
         const tableRow = document.createElement('tr');
         tableRow.setAttribute('data-id', row.id);
         tableRow.setAttribute('data-index', index);
@@ -344,11 +452,6 @@ function renderTable(data) {
         khoaTd.textContent = row.khoa || '';
         tableRow.appendChild(khoaTd);
 
-        // Hệ đào tạo
-        const heDaoTaoTd = document.createElement('td');
-        heDaoTaoTd.textContent = row.doituong || row.doi_tuong || '';
-        tableRow.appendChild(heDaoTaoTd);
-
         // Học kỳ
         const hocKyTd = document.createElement('td');
         hocKyTd.textContent = row.ki || row.hocKy || '';
@@ -356,7 +459,7 @@ function renderTable(data) {
 
         // Đợt
         const dotTd = document.createElement('td');
-        dotTd.textContent = row.dot || 1;
+        dotTd.textContent = row.dot;
         tableRow.appendChild(dotTd);
 
         // Tên học phần
@@ -364,15 +467,41 @@ function renderTable(data) {
         tenHPTd.textContent = row.tenhocphan || '';
         tableRow.appendChild(tenHPTd);
 
-        // Lớp HP
-        const lopTd = document.createElement('td');
-        lopTd.textContent = row.lophocphan || '';
-        tableRow.appendChild(lopTd);
-
         // Loại KTHP (hinhthuc)
         const loaiTd = document.createElement('td');
         loaiTd.textContent = row.hinhthuc || '';
         tableRow.appendChild(loaiTd);
+
+        // Thông tin chi tiết
+        const detailTd = document.createElement('td');
+        detailTd.style.textAlign = 'left';
+        detailTd.style.fontSize = '0.9rem';
+        detailTd.style.whiteSpace = 'nowrap';
+        if (row.activityType === 'RA_DE' || row.activityType === 'NGAN_HANG_CAU_HOI') {
+            appendDetailParts(detailTd, [
+                ['Mã HP', row.mahocphan || ''],
+                ['Hình thức', row.hinhthucthi || ''],
+                ['Số đề', row.tongso || 0],
+                ['Hệ số', row.heso || 0],
+            ]);
+        } else if (row.activityType === 'COI_THI') {
+            appendDetailParts(detailTd, [
+                ['Ngày', row.ngaythi || ''],
+                ['Ca', row.cathi || ''],
+                ['Thời gian', `${row.thoigian || 0}m`],
+                ['Phòng', row.phongthi || ''],
+            ]);
+        } else if (row.activityType === 'CHAM_THI') {
+            appendDetailParts(detailTd, [
+                ['Mã HP', row.mahocphan || ''],
+                ['Vai trò', row.vaitro || ''],
+                ['Tổng bài', row.tongso || 0],
+                ['Hệ số', row.heso || 0],
+            ]);
+        } else {
+            detailTd.textContent = '';
+        }
+        tableRow.appendChild(detailTd);
 
         // Số tiết QC
         const qcTd = document.createElement('td');
@@ -456,6 +585,59 @@ function renderTable(data) {
     // Update Check All states
     updateCheckAll('khoa');
     updateCheckAll('khaoThi');
+}
+
+function getSortValue(row, key) {
+    if (key === 'activityType') {
+        return row.hinhthuc || row.activityType || '';
+    }
+    return row[key] || '';
+}
+
+function sortRows(data) {
+    if (!currentSort.key) return data;
+
+    return data
+        .map((row, index) => ({ row, index }))
+        .sort((a, b) => {
+            const aValue = String(getSortValue(a.row, currentSort.key));
+            const bValue = String(getSortValue(b.row, currentSort.key));
+            const result = aValue.localeCompare(bValue, 'vi', {
+                sensitivity: 'base',
+                numeric: true,
+            });
+
+            return result * currentSort.direction || a.index - b.index;
+        })
+        .map(({ row }) => row);
+}
+
+function toggleSort(key) {
+    if (currentSort.key === key) {
+        currentSort.direction *= -1;
+    } else {
+        currentSort = { key, direction: 1 };
+    }
+
+    updateSortIndicators();
+    renderTable(globalData);
+    filterTable();
+}
+
+function updateSortIndicators() {
+    document.querySelectorAll('th.sortable').forEach((header) => {
+        const indicator = header.querySelector('.sort-indicator');
+        const isActive = header.dataset.sortKey === currentSort.key;
+        header.setAttribute('aria-sort', isActive
+            ? currentSort.direction === 1 ? 'ascending' : 'descending'
+            : 'none');
+
+        if (indicator) {
+            indicator.textContent = isActive
+                ? currentSort.direction === 1 ? '▲' : '▼'
+                : '';
+        }
+    });
 }
 
 // ==================== UPDATE SUMMARY ====================
@@ -615,22 +797,38 @@ function editRecord(id) {
 
     // Fill modal
     document.getElementById('editID').value = record.id;
-    document.getElementById('editNamHoc').value = record.namhoc || record.namHoc;
-    document.getElementById('editHocKy').value = record.ki || record.hocKy || 1;
-    document.getElementById('editDot').value = record.dot || 1;
+    document.getElementById('editNamHoc').value = record.namhoc;
+    document.getElementById('editHocKy').value = record.ki;
+    document.getElementById('editDot').value = record.dot;
     document.getElementById('editKhoa').value = record.khoa;
     document.getElementById('editTenHP').value = record.tenhocphan || '';
     document.getElementById('editMaHP').value = record.mahocphan || '';
     document.getElementById('editSoTC').value = record.sotc || 0;
-    document.getElementById('editGiangVien').value = record.giangvien || '';
+    document.getElementById('editGiangVien').value = String(record.employeeId);
     document.getElementById('editLopHP').value = record.lophocphan || '';
-    document.getElementById('editSiSo').value = record.tongso || 0;
+    document.getElementById('editSiSo').value = record.sosv ?? '';
     const heDaoTaoSelect = document.getElementById('editHeDaoTao');
-    setSelectValueWithFallback(heDaoTaoSelect, record.doituong || record.doi_tuong || '');
+    heDaoTaoSelect.value = String(record.heDaoTaoId);
     const loaiSelect = document.getElementById('editLoaiKTHP');
-    setSelectValueWithFallback(loaiSelect, record.hinhthuc || 'Ra đề');
+    loaiSelect.value = record.activityType;
     document.getElementById('editSoTietQC').value = toFixedInput(record.sotietqc, 2) || 0;
     document.getElementById('editGhiChu').value = record.ghichu || '';
+    document.getElementById('editHinhThucThi').value = record.hinhthucthi || '';
+    document.getElementById('editHeSo').value = record.heso ?? '';
+    document.getElementById('editSoLuongRaDe').value = record.detail.quantity ?? '';
+    document.getElementById('editNgayThi').value = record.detail.examDate || '';
+    document.getElementById('editCaThi').value = record.detail.shift || '';
+    document.getElementById('editThoiGian').value = record.detail.duration ?? '';
+    document.getElementById('editPhongThi').value = record.detail.room || '';
+    document.getElementById('editSoBaiPhach').value = record.detail.markedCount ?? 0;
+    document.getElementById('editVaiTro').value = record.detail.role || '';
+    document.querySelectorAll('[data-kthp-detail-panel]').forEach((panel) => {
+        panel.classList.add('d-none');
+    });
+    const detailKind = record.activityType === 'COI_THI'
+        ? 'COI_THI'
+        : record.activityType === 'CHAM_THI' ? 'CHAM_THI' : 'RA_DE';
+    document.querySelector(`[data-kthp-detail-panel="${detailKind}"]`)?.classList.remove('d-none');
 
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
@@ -640,23 +838,46 @@ function editRecord(id) {
 // Handle edit submit
 async function handleEditSubmit() {
     const id = document.getElementById('editID').value;
-    
+    const currentRecord = globalData.find(record => String(record.id) === String(id)) || {};
+
+    let detail;
+    if (currentRecord.activityType === 'COI_THI') {
+        detail = {
+            examDate: document.getElementById('editNgayThi').value,
+            shift: document.getElementById('editCaThi').value,
+            duration: document.getElementById('editThoiGian').value,
+            room: document.getElementById('editPhongThi').value,
+        };
+    } else if (currentRecord.activityType === 'CHAM_THI') {
+        detail = {
+            markedCount: document.getElementById('editSoBaiPhach').value,
+            role: document.getElementById('editVaiTro').value,
+        };
+    } else {
+        detail = {
+            quantity: document.getElementById('editSoLuongRaDe').value,
+        };
+    }
+
     const formData = {
-        NamHoc: document.getElementById('editNamHoc').value,
-        namhoc: document.getElementById('editNamHoc').value,
-        ki: document.getElementById('editHocKy').value,
-        dot: document.getElementById('editDot').value,
+        activityType: currentRecord.activityType,
+        employeeId: document.getElementById('editGiangVien').value,
+        academicYear: document.getElementById('editNamHoc').value,
+        semester: document.getElementById('editHocKy').value,
+        round: document.getElementById('editDot').value,
         khoa: document.getElementById('editKhoa').value,
         tenhocphan: document.getElementById('editTenHP').value,
         mahocphan: document.getElementById('editMaHP').value,
         sotc: document.getElementById('editSoTC').value,
-        giangvien: document.getElementById('editGiangVien').value,
         lophocphan: document.getElementById('editLopHP').value,
-        tongso: document.getElementById('editSiSo').value,
-        doituong: document.getElementById('editHeDaoTao').value,
-        hinhthuc: document.getElementById('editLoaiKTHP').value,
-        sotietqc: document.getElementById('editSoTietQC').value,
-        ghichu: document.getElementById('editGhiChu').value
+        sosv: document.getElementById('editSiSo').value,
+        educationSystemId: document.getElementById('editHeDaoTao').value,
+        doituong: document.getElementById('editHeDaoTao').selectedOptions[0]?.textContent,
+        standardHours: document.getElementById('editSoTietQC').value,
+        notes: document.getElementById('editGhiChu').value,
+        examForm: document.getElementById('editHinhThucThi').value,
+        coefficient: document.getElementById('editHeSo').value,
+        detail,
     };
 
     try {
@@ -746,8 +967,8 @@ async function submitApprovals() {
             }
             updates.push({
                 id: id,
-                khoaduyet: khoaCheckbox?.checked ? 1 : 0,
-                khaothiduyet: khaoThiValue
+                khoaDuyet: khoaCheckbox?.checked ? 1 : 0,
+                khaoThiDuyet: khaoThiValue
             });
         }
     });

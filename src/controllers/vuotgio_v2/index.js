@@ -6,7 +6,6 @@
 
 const baseController = require('./base.controller');
 const lopNgoaiQCController = require('./lopNgoaiQC.controller');
-const themKTHPController = require('./themKTHP.controller');
 const duyetKTHPController = require('./duyetKTHP.controller');
 const tongHopController = require('./tongHop.controller');
 const xuatFileController = require('./xuatFile.controller');
@@ -17,7 +16,6 @@ module.exports = {
 
     // CRUD Controllers
     lopNgoaiQC: lopNgoaiQCController,
-    themKTHP: themKTHPController,
     duyetKTHP: duyetKTHPController,
 
     // Tổng hợp & Export

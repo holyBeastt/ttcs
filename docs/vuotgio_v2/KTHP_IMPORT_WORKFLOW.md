@@ -40,22 +40,16 @@ preview trả `EMPLOYEE_AMBIGUOUS` thay vì chọn ngẫu nhiên.
 
 ## API
 
-### Preview Excel
-
-`POST /v2/vuotgio/import-kthp/preview` (`multipart/form-data`)
-
-Các field:
-
-- `file`: `.xlsx` hoặc `.xls`, tối đa 10 MB.
-- `academicYear`
-- `semester`
-- `round`
-- `educationSystemId`
-- `educationSystemName` (tùy chọn; nếu có phải khớp ID)
-
-### Preview dữ liệu/form
+### Preview Excel hoặc dữ liệu/form
 
 `POST /v2/vuotgio/kthp-import/preview`
+
+Endpoint nhận cả hai dạng input:
+
+- `multipart/form-data`: có field `file` là `.xlsx` hoặc `.xls`, tối đa 10 MB,
+  kèm các field context `academicYear`, `semester`, `round`,
+  `educationSystemId` và tùy chọn `educationSystemName`.
+- `application/json`: dùng cho form thủ công hoặc các dòng Excel đã chỉnh sửa.
 
 ```json
 {

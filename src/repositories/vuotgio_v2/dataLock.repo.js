@@ -1,9 +1,9 @@
 const LOCK_TABLE = "vg_khoa_du_lieu";
 const LNQC_TABLE = "vg_lop_ngoai_quy_chuan";
-const KTHP_TABLE = "vg_coi_cham_ra_de";
 const HDTQ_TABLE = "vg_huong_dan_tham_quan_thuc_te";
 const NAMHOC_TABLE = "namhoc";
 const NHANVIEN_TABLE = "nhanvien";
+const kthpRepo = require("./kthp.repo");
 
 /**
  * Lấy bản ghi khóa theo năm học
@@ -62,7 +62,7 @@ const insertLockRecord = async (connection, { namHoc, userId, ghiChu }) => {
  *
  * Điều kiện duyệt 2 cấp:
  * - vg_lop_ngoai_quy_chuan: khoa_duyet = 1 AND dao_tao_duyet = 1
- * - vg_coi_cham_ra_de: khoa_duyet = 1 AND khao_thi_duyet = 1
+ * - vg_kthp: khoa_duyet = 1 AND khao_thi_duyet = 1
  * - vg_huong_dan_tham_quan_thuc_te: khoa_duyet = 1 AND dao_tao_duyet = 1
  */
 const getUnapprovedCounts = async (connection, namHoc) => {
@@ -77,15 +77,6 @@ const getUnapprovedCounts = async (connection, namHoc) => {
                      WHERE nam_hoc = ?`,
         },
         {
-            table: "Coi chấm ra đề",
-            tableName: KTHP_TABLE,
-            query: `SELECT 
-                        COUNT(*) AS total,
-                        SUM(CASE WHEN khoa_duyet = 1 AND khao_thi_duyet = 1 THEN 0 ELSE 1 END) AS unapproved
-                     FROM ${KTHP_TABLE}
-                     WHERE nam_hoc = ?`,
-        },
-        {
             table: "Hướng dẫn tham quan thực tế",
             tableName: HDTQ_TABLE,
             query: `SELECT 
@@ -96,8 +87,8 @@ const getUnapprovedCounts = async (connection, namHoc) => {
         },
     ];
 
-    const results = await Promise.all(
-        queries.map(async ({ table, tableName, query }) => {
+    const [lnqcResult, hdtqResult, kthpCounts] = await Promise.all([
+        ...queries.map(async ({ table, tableName, query }) => {
             const [rows] = await connection.execute(query, [namHoc]);
             const { total, unapproved } = rows[0];
             return {
@@ -106,10 +97,19 @@ const getUnapprovedCounts = async (connection, namHoc) => {
                 total: Number(total) || 0,
                 unapproved: Number(unapproved) || 0,
             };
-        })
-    );
+        }),
+        kthpRepo.getApprovalCounts(connection, { namHoc }),
+    ]);
 
-    return results;
+    return [
+        lnqcResult,
+        {
+            table: "Coi chấm ra đề",
+            tableName: kthpRepo.TABLES.PARENT,
+            ...kthpCounts,
+        },
+        hdtqResult,
+    ];
 };
 
 /**

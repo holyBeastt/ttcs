@@ -11,7 +11,6 @@ const router = express.Router();
 const baseController = require("../controllers/vuotgio_v2/base.controller");
 const lopNgoaiQCController = require("../controllers/vuotgio_v2/lopNgoaiQC.controller");
 const lopNgoaiQCImportController = require("../controllers/vuotgio_v2/lopNgoaiQCImport.controller");
-const themKTHPController = require("../controllers/vuotgio_v2/themKTHP.controller");
 const duyetKTHPController = require("../controllers/vuotgio_v2/duyetKTHP.controller");
 const kthpImportController = require("../controllers/vuotgio_v2/coiChamRaDe.file.controller");
 const tongHopController = require("../controllers/vuotgio_v2/tongHop.controller");
@@ -25,7 +24,10 @@ const { uploadSingleFile } = require("../middlewares/TKBImportMiddleware");
 const { checkDataLock } = require("../middlewares/dataLockMiddleware");
 const { enforceKhoaFilter } = require("../middlewares/khoaFilterMiddleware");
 const multer = require("multer");
-const uploadMemory = multer({ storage: multer.memoryStorage() });
+const uploadMemory = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+});
 
 // =====================================================
 // API DÙNG CHUNG
@@ -73,36 +75,30 @@ router.post("/lop-ngoai-qc/check-data-exist", enforceKhoaFilter, lopNgoaiQCImpor
 // =====================================================
 
 router.get("/them-kthp", baseController.getThemKTHP);
-router.post("/them-kthp", enforceKhoaFilter, checkDataLock, themKTHPController.save);
-router.post("/them-kthp/batch", enforceKhoaFilter, checkDataLock, themKTHPController.saveBatch);
-router.get("/them-kthp/:NamHoc/:Khoa", enforceKhoaFilter, themKTHPController.getTable);
-router.post("/them-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, themKTHPController.edit);
-router.delete("/them-kthp/:ID", enforceKhoaFilter, checkDataLock, themKTHPController.delete);
 
 // =====================================================
 // IMPORT KẾT THÚC HỌC PHẦN (FILE EXCEL)
 // =====================================================
 
-router.get("/import-kthp", baseController.getCoiChamRaDeThi);
-router.get("/import-kthp/api", enforceKhoaFilter, kthpImportController.getWorkload);
-router.post("/import-kthp/upload", enforceKhoaFilter, uploadMemory.single('file'), kthpImportController.readFileExcel);
-router.post("/import-kthp/import", enforceKhoaFilter, checkDataLock, kthpImportController.importWorkloadToDB);
-router.post("/import-kthp/checkfile", enforceKhoaFilter, kthpImportController.checkDataExistence);
-router.post("/import-kthp/delete", enforceKhoaFilter, checkDataLock, kthpImportController.deleteWorkloadData);
-router.post("/import-kthp/save", enforceKhoaFilter, checkDataLock, kthpImportController.saveWorkloadData);
-router.get("/import-kthp/getSuggestions", kthpImportController.getSuggestions);
+router.get("/kthp-import", baseController.getCoiChamRaDeThi);
+router.post(
+    "/kthp-import/preview",
+    enforceKhoaFilter,
+    uploadMemory.single("file"),
+    kthpImportController.preview
+);
+router.post("/kthp-import/commit", enforceKhoaFilter, kthpImportController.attachPreviewContext, checkDataLock, kthpImportController.commitPreview);
+router.get("/kthp-import/suggestions", kthpImportController.getSuggestions);
 
 // =====================================================
 // DUYỆT KẾT THÚC HỌC PHẦN
 // =====================================================
 
 router.get("/duyet-kthp", baseController.getDuyetKTHP);
-router.get("/duyet-kthp/:NamHoc/:Khoa", enforceKhoaFilter, duyetKTHPController.getTable);
 router.post("/duyet-kthp/data", enforceKhoaFilter, duyetKTHPController.getTableData);
 router.post("/duyet-kthp/batch-approve", enforceKhoaFilter, checkDataLock, duyetKTHPController.batchApprove);
 router.post("/duyet-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.edit);
 router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.delete);
-router.post("/duyet-kthp/approve/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.approve); // Deprecated, kept for compatibility
 
 
 

@@ -1,406 +1,372 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const BASE_URL = '/v2/vuotgio';
+    'use strict';
 
-    // Utility function for rendering tables with DataTables
-    function renderTable(data, containerId, columns, tableId = containerId + "Table") {
+    const BASE_URL = '/v2/vuotgio';
+    const columnDefs = {
+        raDe: ['hoVaTen', 'khoa', 'displayType', 'maHocPhan', 'tenHocPhan', 'hinhThucThi', 'soDe', 'heSo', 'soTietQC'],
+        coiThi: ['hoVaTen', 'khoa', 'displayType', 'ngayThi', 'caThi', 'thoiGian', 'phongThi', 'soTietQC'],
+        chamThi: ['hoVaTen', 'khoa', 'displayType', 'maHocPhan', 'tenHocPhan', 'vaiTro', 'soBaiPhach', 'heSo', 'soTietQC']
+    };
+    const labels = {
+        hoVaTen: 'Họ và tên',
+        khoa: 'Đơn vị',
+        displayType: 'Loại KTHP',
+        maHocPhan: 'Mã môn thi',
+        tenHocPhan: 'Tên môn thi',
+        hinhThucThi: 'Hình thức',
+        soDe: 'Số đề',
+        heSo: 'Hệ số',
+        soTietQC: 'Số giờ chuẩn',
+        ngayThi: 'Ngày thi',
+        caThi: 'Ca thi',
+        thoiGian: 'Thời gian',
+        phongThi: 'Phòng thi',
+        vaiTro: 'Vai trò',
+        soBaiPhach: 'Số bài/phách'
+    };
+
+    let employees = [];
+    let dataTam = [];
+
+    const showAlert = (icon, message) => Swal.fire({
+        title: icon === 'success' ? 'Thành công' : icon === 'warning' ? 'Chú ý' : 'Lỗi',
+        html: message,
+        icon,
+        confirmButtonText: 'OK'
+    });
+
+    const showLoading = (message = 'Vui lòng chờ trong khi dữ liệu được kiểm tra.') => {
+        Swal.fire({
+            title: 'Đang xử lý...',
+            html: message,
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+    };
+
+    const getContext = () => {
+        const educationSelect = document.getElementById('heDaoTaoSelect');
+        return {
+            academicYear: document.getElementById('NamHoc').value,
+            semester: document.getElementById('comboboxki').value,
+            round: document.getElementById('dotSelect').value,
+            educationSystemId: educationSelect.value,
+            educationSystemName: educationSelect.selectedOptions[0]?.dataset.name || ''
+        };
+    };
+
+    const validateContext = () => {
+        const context = getContext();
+        if (!context.academicYear || !context.semester || !context.round || !context.educationSystemId) {
+            showAlert('warning', 'Vui lòng chọn Hệ đào tạo, Đợt, Kỳ và Năm học trước khi xử lý file.');
+            return null;
+        }
+        return context;
+    };
+
+    const dtoToViewModel = (dto, status, issues) => {
+        const base = {
+            activityType: dto.activityType,
+            displayType: dto.activityName,
+            employeeId: dto.employee.id,
+            hoVaTen: dto.employee.name,
+            khoa: dto.employee.department,
+            maHocPhan: dto.course.code,
+            tenHocPhan: dto.course.name,
+            hinhThucThi: dto.exam.examForm,
+            heSo: dto.exam.coefficient,
+            soTietQC: dto.standardHours,
+            ngayThi: dto.exam.date || '',
+            caThi: dto.exam.shift,
+            thoiGian: dto.exam.duration,
+            phongThi: dto.exam.room,
+            vaiTro: dto.exam.role,
+            educationSystemId: dto.educationSystemId,
+            sourceRef: dto.sourceRef,
+            _status: status,
+            _issues: issues
+        };
+        if (dto.activityType === 'RA_DE'
+            || dto.activityType === 'NGAN_HANG_CAU_HOI') {
+            return { ...base, soDe: dto.exam.quantity };
+        }
+        if (dto.activityType === 'COI_THI') {
+            return base;
+        }
+        return {
+            ...base,
+            soBaiPhach: dto.exam.markedCount
+        };
+    };
+
+    const applyPreview = (preview) => {
+        dataTam = preview.rows.map((row) =>
+            dtoToViewModel(row.dto, row.status, [...row.errors, ...row.warnings]));
+        renderAll();
+        const summary = preview.summary;
+        const issueText = preview.errors.slice(0, 8)
+            .map((issue) => `• ${issue.sourceRef?.sheetName || ''} dòng ${issue.sourceRef?.rowNumber || '?'}${issue.sourceHeader ? `, cột ${issue.sourceHeader}` : ''}: ${issue.message}`)
+            .join('<br>');
+        return `Tổng: <b>${summary.total}</b> — hợp lệ: <b>${summary.valid}</b>`
+            + ` — lỗi: <b>${summary.invalid}</b> — trùng: <b>${summary.duplicate}</b>`
+            + (issueText ? `<hr>${issueText}` : '');
+    };
+
+    const renderTable = (items, containerId, columns) => {
         const container = document.getElementById(containerId);
         if (!container) return;
-        container.innerHTML = "";
-        if (!data || data.length === 0) {
+        container.innerHTML = '';
+        if (!items.length) {
             container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Không có dữ liệu để hiển thị.</p></div>';
             return;
         }
 
-        const headerTranslations = {
-            'hoVaTen': 'Họ và tên',
-            'khoa': 'Khoa',
-            'tenHocPhan': 'Tên học phần',
-            'lopHocPhan': 'Lớp học phần',
-            'doiTuong': 'Hệ đào tạo',
-            'soDe': 'Số đề',
-            'soCa': 'Số ca',
-            'soTietQC': 'Số tiết QC',
-            'soBaiCham1': 'Số bài chấm 1',
-            'soBaiCham2': 'Số bài chấm 2',
-            'tongSoBai': 'Tổng số bài'
-        };
-
-        const table = document.createElement("table");
-        table.className = "table table-bordered table-hover";
-        table.id = tableId;
-
-        const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-        columns.forEach(column => {
-            const th = document.createElement("th");
-            th.textContent = headerTranslations[column] || column;
-            headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
+        const table = document.createElement('table');
+        table.className = 'table table-bordered table-hover';
+        table.id = `${containerId}Table`;
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        [...columns.map((column) => labels[column] || column), 'Kiểm tra', 'Hành động']
+            .forEach((label) => {
+                const th = document.createElement('th');
+                th.textContent = label;
+                headRow.appendChild(th);
+            });
+        thead.appendChild(headRow);
         table.appendChild(thead);
 
-        // ➕ Thêm cột "Hành động"
-        const actionTh = document.createElement("th");
-        actionTh.textContent = "Hành động";
-        headerRow.appendChild(actionTh);
+        const tbody = document.createElement('tbody');
+        items.forEach((item) => {
+            const row = document.createElement('tr');
+            row.dataset.key = item._key;
+            if (item._status === 'invalid') row.classList.add('table-danger');
+            if (item._status === 'duplicate') row.classList.add('table-warning');
 
-        const tbody = document.createElement("tbody");
-        data.forEach((item, index) => {
-            const row = document.createElement("tr");
-            columns.forEach((column, colIndex) => {
-                const td = document.createElement("td");
-
-                if (colIndex === 0) {
-                    const input = document.createElement("input");
-                    input.setAttribute("list", "nhanSuSuggestions");
-                    input.className = "form-control form-control-sm";
-                    input.value = item[column] ?? "";
-
-                    // Auto-fill mã phòng ban khi chọn tên
-                    input.addEventListener("change", (e) => {
-                    const selected = nhanSuList.find(n => n.TenNhanVien === e.target.value);
-                    if (selected) {
-                        const maPhongBanTd = row.children[1]; // Cột thứ 2
-                        if (maPhongBanTd) maPhongBanTd.textContent = selected.MaPhongBan;
-                    }
+            columns.forEach((column, columnIndex) => {
+                const td = document.createElement('td');
+                if (columnIndex === 0) {
+                    const input = document.createElement('input');
+                    input.setAttribute('list', 'nhanSuSuggestions');
+                    input.className = 'form-control form-control-sm';
+                    input.value = item[column] ?? '';
+                    input.addEventListener('change', () => {
+                        const selected = employees.find((employee) => employee.TenNhanVien === input.value.trim());
+                        item.employeeId = selected?.id_User || null;
+                        item.hoVaTen = input.value.trim();
+                        if (selected) {
+                            item.khoa = selected.MaPhongBan;
+                            row.children[1].textContent = selected.MaPhongBan || '';
+                        }
                     });
-
                     td.appendChild(input);
-                } else if (colIndex === 1) {
-                    td.textContent = item[column] ?? ""; // Không editable
+                } else if (column === 'khoa' || column === 'displayType') {
+                    td.textContent = item[column] ?? '';
                 } else {
-                    td.contentEditable = true;
-                    td.textContent = item[column] ?? "";
+                    td.contentEditable = 'true';
+                    td.textContent = item[column] ?? '';
                 }
-
                 row.appendChild(td);
             });
 
+            const issueCell = document.createElement('td');
+            issueCell.textContent = (item._issues || []).map((issue) => issue.message).join('; ') || 'Hợp lệ';
+            row.appendChild(issueCell);
 
-            // ➕ Cột "Hành động"
-            const actionTd = document.createElement("td");
-            actionTd.innerHTML = `
-                <button class="btn-delete btn btn-sm btn-danger" data-index="${index}" data-type="${item.Type}"><i class="bi bi-trash"></i></button>
-            `;
-            row.appendChild(actionTd);
+            const actionCell = document.createElement('td');
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-sm btn-danger btn-delete';
+            button.dataset.key = item._key;
+            button.innerHTML = '<i class="bi bi-trash"></i>';
+            actionCell.appendChild(button);
+            row.appendChild(actionCell);
             tbody.appendChild(row);
         });
         table.appendChild(tbody);
         container.appendChild(table);
-
-        
-
-        $(`#${table.id}`).DataTable({
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
-            pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
-            order: [],
-            responsive: true
-        });
-    }
-
-    let nhanSuList = [] // Dùng để map mã sau này
-
-    async function loadNhanSuSuggestions() {
-    try {
-        const response = await fetch(`${BASE_URL}/import-kthp/getSuggestions`);
-        if (!response.ok) throw new Error("Lỗi khi tải danh sách");
-
-        nhanSuList = await response.json();
-
-        const datalist = document.createElement("datalist");
-        datalist.id = "nhanSuSuggestions";
-
-        nhanSuList.forEach(({ TenNhanVien, MaPhongBan }) => {
-        const option = document.createElement("option");
-        option.value = TenNhanVien;
-        option.label = `${TenNhanVien} - ${MaPhongBan}`; // Gợi ý hiển thị
-        datalist.appendChild(option);
-        });
-
-        document.body.appendChild(datalist);
-    } catch (error) {
-        console.error("Không thể tải danh sách:", error);
-    }
-    }
-
-    loadNhanSuSuggestions();
-
-
-    // Consolidated column definitions
-    const columnDefs = {
-        raDe: ['hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soDe', 'soTietQC'],
-        coiThi: ['hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soCa', 'soTietQC'],
-        chamThi: ['hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soBaiCham1', 'soBaiCham2', 'tongSoBai', 'soTietQC']
     };
 
-    let dataTam = [];
+    const renderAll = () => {
+        dataTam.forEach((item, index) => {
+            item._key = item._key || `${item.activityType}-${Date.now()}-${index}`;
+        });
+        renderTable(
+            dataTam.filter((item) =>
+                item.activityType === 'RA_DE' || item.activityType === 'NGAN_HANG_CAU_HOI'),
+            'raDeTableContainer',
+            columnDefs.raDe
+        );
+        renderTable(
+            dataTam.filter((item) => item.activityType === 'COI_THI'),
+            'coiThiTableContainer',
+            columnDefs.coiThi
+        );
+        renderTable(
+            dataTam.filter((item) => item.activityType === 'CHAM_THI'),
+            'chamThiTableContainer',
+            columnDefs.chamThi
+        );
+    };
 
-    // File upload handler
-    document.getElementById('chooseFile').addEventListener('click', function() {
+    const collectEditedRows = () => {
+        for (const [containerId, columns] of [
+            ['raDeTableContainer', columnDefs.raDe],
+            ['coiThiTableContainer', columnDefs.coiThi],
+            ['chamThiTableContainer', columnDefs.chamThi]
+        ]) {
+            const table = document.getElementById(`${containerId}Table`);
+            if (!table) continue;
+            for (const row of table.querySelectorAll('tbody tr')) {
+                const item = dataTam.find((candidate) => candidate._key === row.dataset.key);
+                if (!item) continue;
+                const cells = row.querySelectorAll('td');
+                columns.forEach((column, index) => {
+                    const input = cells[index].querySelector('input');
+                    item[column] = input ? input.value.trim() : cells[index].textContent.trim();
+                });
+                const selected = employees.find((employee) => employee.TenNhanVien === item.hoVaTen);
+                item.employeeId = selected?.id_User || null;
+                item.khoa = selected?.MaPhongBan || item.khoa;
+            }
+        }
+        return dataTam;
+    };
+
+    const loadEmployees = async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/kthp-import/suggestions`);
+            if (!response.ok) throw new Error('Không tải được danh sách nhân viên');
+            employees = await response.json();
+            const datalist = document.createElement('datalist');
+            datalist.id = 'nhanSuSuggestions';
+            employees.forEach((employee) => {
+                const option = document.createElement('option');
+                option.value = employee.TenNhanVien;
+                option.label = `${employee.TenNhanVien} - ${employee.MaPhongBan || ''}`;
+                datalist.appendChild(option);
+            });
+            document.body.appendChild(datalist);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const loadEducationSystems = async () => {
+        const select = document.getElementById('heDaoTaoSelect');
+        try {
+            const response = await fetch('/api/gvm/v1/he-dao-tao');
+            if (!response.ok) throw new Error('Không tải được hệ đào tạo');
+            const payload = await response.json();
+            const systems = Array.isArray(payload) ? payload : (payload.data || []);
+            systems.forEach((system) => {
+                const name = system.he_dao_tao || system.HeDaoTao || system.value;
+                if (!system.id || !name) return;
+                const option = document.createElement('option');
+                option.value = system.id;
+                option.dataset.name = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            select.innerHTML = '<option value="">Không tải được hệ đào tạo</option>';
+            console.error(error);
+        }
+    };
+
+    document.getElementById('chooseFile').addEventListener('click', function () {
+        const context = validateContext();
+        if (!context) return;
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
-        fileInput.accept = '.xlsx';
-        fileInput.addEventListener('change', async function() {
-            const selectedFile = fileInput.files[0];
-            if (!selectedFile) {
-                return showAlert('warning', 'Bạn chưa chọn tệp nào.');
-            }
-
+        fileInput.accept = '.xlsx,.xls';
+        fileInput.addEventListener('change', async function () {
+            if (!fileInput.files[0]) return;
             const formData = new FormData();
-            formData.append('file', selectedFile);
-            showLoading();
-
+            formData.append('file', fileInput.files[0]);
+            Object.entries(context).forEach(([key, value]) => formData.append(key, value));
+            showLoading('Đang đọc file và kiểm tra từng dòng.');
             try {
-                const response = await fetch(`${BASE_URL}/import-kthp/upload`, {
+                const response = await fetch(`${BASE_URL}/kthp-import/preview`, {
                     method: 'POST',
                     body: formData
                 });
-                if (!response.ok) throw new Error('Import thất bại');
-                const data = await response.json();
-
-                if (!data || (!data.raDe.length && !data.coiThi.length && !data.chamThi.length)) {
-                    throw new Error('Dữ liệu trả về trống');
-                }
-
-                dataTam = [
-                    ...data.raDe.map(item => ({ ...item, Type: 'Ra Đề' })),
-                    ...data.coiThi.map(item => ({ ...item, Type: 'Coi Thi' })),
-                    ...data.chamThi.map(item => ({ ...item, Type: 'Chấm Thi' }))
-                ];
-
-                renderTable(dataTam.filter(item => item.Type === 'Ra Đề'), 'raDeTableContainer', columnDefs.raDe);
-                renderTable(dataTam.filter(item => item.Type === 'Coi Thi'), 'coiThiTableContainer', columnDefs.coiThi);
-                renderTable(dataTam.filter(item => item.Type === 'Chấm Thi'), 'chamThiTableContainer', columnDefs.chamThi);
-
-                showAlert('success', 'Tệp đã được tải lên và xử lý thành công!');
+                const preview = await response.json();
+                if (!response.ok || !preview.success) throw new Error(preview.message || 'Preview thất bại');
+                const message = applyPreview(preview);
+                await showAlert(preview.summary.invalid ? 'warning' : 'success', message);
             } catch (error) {
-                showAlert('error', error.message || 'Đã xảy ra lỗi khi xử lý tệp.');
-                console.error('Error:', error);
-            } finally {
-                Swal.close();
+                await showAlert('error', error.message || 'Không thể xử lý file.');
             }
         });
         fileInput.click();
     });
 
+    document.getElementById('import').addEventListener('click', async function () {
+        const context = validateContext();
+        if (!context) return;
+        const editedRows = collectEditedRows();
+        if (!editedRows.length) return showAlert('warning', 'Chưa có dữ liệu để lưu.');
 
-
-    // Utility function for showing alerts
-    function showAlert(icon, message) {
-        Swal.fire({
-            title: icon === 'success' ? 'Thành công' : 'Lỗi',
-            html: message,
-            icon: icon,
-            confirmButtonText: 'OK',
-            width: 'auto',
-            padding: '20px'
-        });
-    }
-
-    // Utility function for showing loading state
-    function showLoading() {
-        Swal.fire({
-            title: 'Đang xử lý...',
-            html: 'Vui lòng chờ trong khi tệp được tải lên.',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-    }
-
-    // Check data existence on server
-    async function checkDataExistence(kiValue, namValue, dotValue) {
-        // Lấy dữ liệu đã chỉnh sửa từ các bảng
-        const raDeData = extractEditedData('raDeTableContainer', columnDefs.raDe, 'Ra Đề');
-        const coiThiData = extractEditedData('coiThiTableContainer', columnDefs.coiThi, 'Coi Thi');
-        const chamThiData = extractEditedData('chamThiTableContainer', columnDefs.chamThi, 'Chấm Thi');
-
-        // Cập nhật lại dataTam
-        dataTam = [...raDeData, ...coiThiData, ...chamThiData];
-        console.log('Data to be sent:', dataTam);
+        showLoading('Đang kiểm tra lại dữ liệu đã chỉnh sửa.');
         try {
-            const response = await fetch(`${BASE_URL}/import-kthp/checkfile`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue, dot: dotValue })
-            });
-            if (!response.ok) throw new Error('Kiểm tra dữ liệu thất bại');
-            const data = await response.json();
-            if (data.exists) {
-                showModal(kiValue, namValue, dotValue);
-            } else {
-                saveData(kiValue, namValue, dotValue);
-            }
-        } catch (error) {
-            showAlert('error', 'Kiểm tra dữ liệu file quy chuẩn thất bại!');
-            console.error('Error:', error);
-        }
-    }
-
-    // Show modal for data conflict resolution
-    function showModal(kiValue, namValue, dotValue) {
-        const modal = document.getElementById('action-modal');
-        document.getElementById('modal-message').innerHTML = 
-            `Đã tồn tại dữ liệu của Đợt ${dotValue}, Kì ${kiValue}, Năm ${namValue}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?<br>Lưu ý: XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
-        modal.style.display = 'block';
-
-        document.getElementById('btn-delete').onclick = () => {
-            modal.style.display = 'none';
-            deleteFile(kiValue, namValue, dotValue);
-        };
-        document.getElementById('btn-append').onclick = () => {
-            modal.style.display = 'none';
-            appendData(kiValue, namValue, dotValue);
-        };
-        document.getElementById('btn-cancel').onclick = () => {
-            modal.style.display = 'none';
-        };
-    }
-
-    // Save data to server with custom messages
-    async function saveDataToServer(kiValue, namValue, dotValue, dataTam, messages) {
-        try {
-            const response = await fetch(`${BASE_URL}/import-kthp/save`, {
+            const response = await fetch(`${BASE_URL}/kthp-import/preview`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    Ki: kiValue,
-                    Nam: namValue,
-                    hocKy: kiValue,
-                    namHoc: namValue,
-                    dot: dotValue,
-                    data: dataTam // Truyền thêm dataTam
+                    source: 'EXCEL',
+                    input: { rows: editedRows },
+                    context
                 })
             });
+            const preview = await response.json();
+            if (!response.ok || !preview.success) throw new Error(preview.message || 'Preview thất bại');
+            const message = applyPreview(preview);
+            if (!preview.previewToken) {
+                return showAlert('error', `${message}<br><br>Hãy sửa lỗi rồi kiểm tra lại.`);
+            }
 
-            if (!response.ok) throw new Error(messages.error);
+            const confirmation = await Swal.fire({
+                title: 'Xác nhận import',
+                html: `${message}<br><br>Không có bản ghi cũ nào bị ghi đè.`,
+                icon: preview.summary.warning ? 'warning' : 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Lưu dữ liệu',
+                cancelButtonText: 'Quay lại'
+            });
+            if (!confirmation.isConfirmed) return;
 
-            const data = await response.json();
-
-            showAlert(data.success ? 'success' : 'error', data.success ? messages.success : messages.failure);
-
-            if (data.success) location.reload();
-        } catch (error) {
-            showAlert('error', error.message || messages.error);
-            console.error('Error:', error);
-        }
-    }
-
-    // Delete existing data and save new
-    async function deleteFile(kiValue, namValue, dotValue) {
-        try {
-            const response = await fetch(`${BASE_URL}/import-kthp/delete`, {
+            showLoading('Đang lưu toàn bộ batch trong một transaction.');
+            const commitResponse = await fetch(`${BASE_URL}/kthp-import/commit`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Ki: kiValue, Nam: namValue, hocKy: kiValue, namHoc: namValue, dot: dotValue })
+                body: JSON.stringify({ previewToken: preview.previewToken })
             });
-            if (!response.ok) throw new Error('Xóa dữ liệu thất bại');
-            const messages = {
-                success: 'Dữ liệu cũ đã được xóa và dữ liệu mới được thêm thành công.',
-                failure: 'Xóa dữ liệu cũ thành công, nhưng thêm dữ liệu mới thất bại.',
-                error: 'Có lỗi xảy ra trong quá trình thêm dữ liệu mới.'
-            };
-            await saveDataToServer(kiValue, namValue, dotValue, dataTam, messages);
+            const result = await commitResponse.json();
+            if (!commitResponse.ok || !result.success) {
+                throw new Error(result.message || 'Không thể lưu dữ liệu');
+            }
+            await showAlert('success', result.message);
+            location.reload();
         } catch (error) {
-            showAlert('error', 'Xóa dữ liệu thất bại');
-            console.error('Error:', error);
+            await showAlert('error', error.message || 'Không thể lưu dữ liệu.');
         }
-    }
-
-    // Append new data
-    async function appendData(kiValue, namValue, dotValue) {
-        const messages = {
-            success: 'Chèn thành công',
-            failure: 'Chèn thêm thất bại',
-            error: 'Gửi dữ liệu thất bại'
-        };
-        await saveDataToServer(kiValue, namValue, dotValue, dataTam, messages);
-    }
-
-    // Save data when no conflict
-    async function saveData(kiValue, namValue, dotValue) {
-        const messages = {
-            success: 'Thêm file thành công',
-            failure: 'Thêm file thất bại',
-            error: 'Gửi dữ liệu thất bại'
-        };
-        await saveDataToServer(kiValue, namValue, dotValue, dataTam,messages);
-    }
-
-    // Handle import button click
-    document.getElementById('import').addEventListener('click', function() {
-        const dotValue = document.getElementById('dotSelect').value;
-        const kiValue = document.getElementById('comboboxki').value;
-        const namValue = document.getElementById('NamHoc').value;
-        if (!kiValue || !namValue || !dotValue) {
-            return showAlert('warning', 'Vui lòng chọn Đợt, Kỳ và Năm học trước khi thêm!');
-        }
-        checkDataExistence(kiValue, namValue, dotValue);
     });
 
-
-
-    function extractEditedData(containerId, columns, typeLabel) {
-        const table = document.querySelector(`#${containerId}Table`);
-        if (!table) return [];
-
-        const rows = Array.from(table.querySelectorAll("tbody tr"));
-        return rows.map(row => {
-            const cells = Array.from(row.querySelectorAll("td"));
-            const obj = {};
-            columns.forEach((col, index) => {
-                let value = "";
-
-                // ✅ Nếu có input thì lấy value từ input
-                const input = cells[index]?.querySelector("input");
-                if (input) {
-                    value = input.value.trim();
-                } else {
-                    value = cells[index]?.textContent.trim() || "";
-                }
-                obj[col] = value;
-            });
-            obj.Type = typeLabel;
-            return obj;
-        });
-    }
-
-    document.addEventListener('click', function (e) {
-        const deleteBtn = e.target.closest('.btn-delete');
-        if (!deleteBtn) return;
-
-        const index = parseInt(deleteBtn.getAttribute('data-index'));
-        const type = deleteBtn.getAttribute('data-type');
-
-        // Hiển thị hộp thoại xác nhận
-        Swal.fire({
-            title: 'Xác nhận xóa?',
-            text: "Bạn có chắc chắn muốn xóa dòng dữ liệu này?",
+    document.addEventListener('click', async function (event) {
+        const button = event.target.closest('.btn-delete');
+        if (!button) return;
+        const confirmation = await Swal.fire({
+            title: 'Xóa dòng khỏi preview?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
             confirmButtonText: 'Xóa',
             cancelButtonText: 'Hủy'
-        }).then((result) => {
-            if (result.isConfirmed) {
-            // Xóa phần tử theo index và type
-
-            let filteredData = dataTam.filter(item => item.Type === type);
-            filteredData.splice(index, 1);
-
-            // Cập nhật lại dataTam
-            dataTam = dataTam.filter(item => item.Type !== type).concat(filteredData);
-
-            // Vẽ lại bảng
-            renderTable(dataTam.filter(item => item.Type === 'Ra Đề'), 'raDeTableContainer', columnDefs.raDe);
-            renderTable(dataTam.filter(item => item.Type === 'Coi Thi'), 'coiThiTableContainer', columnDefs.coiThi);
-            renderTable(dataTam.filter(item => item.Type === 'Chấm Thi'), 'chamThiTableContainer', columnDefs.chamThi);
-            }
         });
+        if (!confirmation.isConfirmed) return;
+        dataTam = dataTam.filter((item) => item._key !== button.dataset.key);
+        renderAll();
     });
 
-    
+    loadEmployees();
+    loadEducationSystems();
 });
-
-
