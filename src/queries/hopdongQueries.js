@@ -26,6 +26,11 @@ COALESCE(
 )
 `;
 
+// Tạm thời giữ đơn giá đồ án cố định; đổi cờ này sang true khi bật lại tính động.
+const USE_DYNAMIC_DO_AN_DON_GIA = false;
+const DO_AN_DON_GIA_EXPR = (tableAlias, khoaCol) =>
+  USE_DYNAMIC_DO_AN_DON_GIA ? DON_GIA_EXPR(tableAlias, khoaCol) : '100000';
+
 
 const COL_DON_GIA = `COALESCE(bang_gia.don_gia, 0)`;
 
@@ -397,4 +402,11 @@ tableALL AS (SELECT
     )
 `;
 
-module.exports = { CTE_DO_AN, CTE_DAI_HOC, CTE_SAU_DAI_HOC, CTE_TABLE_ALL, DON_GIA_EXPR };
+module.exports = {
+  CTE_DO_AN,
+  CTE_DAI_HOC,
+  CTE_SAU_DAI_HOC,
+  CTE_TABLE_ALL,
+  DON_GIA_EXPR,
+  DO_AN_DON_GIA_EXPR,
+};

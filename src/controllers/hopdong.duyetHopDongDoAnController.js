@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
 
-const { DON_GIA_EXPR } = require('../queries/hopdongQueries');
+const { DO_AN_DON_GIA_EXPR } = require('../queries/hopdongQueries');
 
 /**
  * Tạo subquery chung cho dữ liệu đồ án tốt nghiệp
@@ -198,10 +198,10 @@ const getDuyetHopDongData = async (req, res) => {
                 GROUP_CONCAT(DISTINCT da.MaSV      SEPARATOR ', ') AS SiSo,
                 GROUP_CONCAT(DISTINCT da.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
                 GROUP_CONCAT(DISTINCT da.nganh SEPARATOR ', ') AS Nganh,
-                ${DON_GIA_EXPR('da', 'MaPhongBan')}                       AS TienMoiGiang,
-                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')}         AS ThanhTien,
-                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1   AS Thue,
-                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9   AS ThucNhan,
+                ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')}                       AS TienMoiGiang,
+                SUM(da.SoTiet) * ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')}       AS ThanhTien,
+                SUM(da.SoTiet) * ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1 AS Thue,
+                SUM(da.SoTiet) * ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9 AS ThucNhan,
                 NULL                          AS SoHopDong,
                 'Chưa có hợp đồng'            AS TrangThaiHopDong,
                 pb.TenPhongBan,
@@ -638,10 +638,10 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     da.he_dao_tao,
                     
                     SUM(da.SoTiet) AS SoTiet,
-                    ${DON_GIA_EXPR('da', 'MaPhongBan')} AS TienMoiGiang,
-                    SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} AS ThanhTien,
-                    SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1 AS Thue,
-                    SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9 AS ThucNhan,
+                    ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')} AS TienMoiGiang,
+                    SUM(da.SoTiet) * ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')} AS ThanhTien,
+                    SUM(da.SoTiet) * ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1 AS Thue,
+                    SUM(da.SoTiet) * ${DO_AN_DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9 AS ThucNhan,
                     
                     1 AS DaoTaoDuyet,
                     1 AS TaiChinhDuyet,

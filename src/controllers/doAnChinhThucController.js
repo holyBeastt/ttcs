@@ -3,7 +3,7 @@ const pool = require("../config/Pool");
 const createPoolConnection = require("../config/databasePool");
 const datnService = require("../services/save_moigiang/datn.service");
 const chinhSuaDoAnController = require("./chinhSuaDoAnController");
-const { DON_GIA_EXPR } = require("../queries/hopdongQueries");
+const { DO_AN_DON_GIA_EXPR } = require("../queries/hopdongQueries");
 require("dotenv").config();
 const {
   Document,
@@ -1114,7 +1114,7 @@ const saveToExportDoAn = async (req, res) => {
       };
     });
 
-    // Query bảng tienluong 1 lần duy nhất, cache toàn bộ trong memory
+    // Query bảng tienluong để giữ nguyên luồng tính động khi bật lại cờ cấu hình.
     const [tienLuongCache] = await connection.query(
       'SELECT * FROM tienluong ORDER BY do_uu_tien DESC, SoTien DESC, HSL DESC'
     );
@@ -1228,13 +1228,13 @@ const saveToExportDoAn = async (req, res) => {
 
 const updateThueExportDoAn = async (dot, ki, namHoc, connection) => {
   try {
-    // 1. Cập nhật Đơn giá và Thành tiền trực tiếp bằng DON_GIA_EXPR chuẩn duy nhất của hệ thống
+    // 1. Đơn giá đồ án cố định 100.000 đồng/tiết
     const updateDonGiaQuery = `
       UPDATE exportdoantotnghiep ed
       JOIN gvmoi gv ON ed.CCCD = gv.CCCD
       SET 
-        ed.TienMoiGiang = ${DON_GIA_EXPR('ed', 'MaPhongBan')},
-        ed.ThanhTien = ed.SoTiet * ${DON_GIA_EXPR('ed', 'MaPhongBan')}
+        ed.TienMoiGiang = ${DO_AN_DON_GIA_EXPR('ed', 'MaPhongBan')},
+        ed.ThanhTien = ed.SoTiet * ${DO_AN_DON_GIA_EXPR('ed', 'MaPhongBan')}
       WHERE ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ?
     `;
     await connection.execute(updateDonGiaQuery, [dot, ki, namHoc]);
