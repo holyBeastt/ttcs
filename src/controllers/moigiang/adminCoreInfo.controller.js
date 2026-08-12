@@ -44,10 +44,19 @@ const updateCoreInfo = async (req, res) => {
       performedBy
     );
 
+    const fallbackFields = result.updated
+      .flatMap((item) => item.fallbacksApplied || [])
+      .filter((item, index, items) =>
+        items.findIndex((candidate) => candidate.field === item.field) === index
+      );
+
     return res.status(200).json({
       success: true,
-      message: `Cập nhật thành công ${result.updated.length} bản ghi.`,
+      message: fallbackFields.length > 0
+        ? `Cập nhật thành công ${result.updated.length} bản ghi; đã dùng fallback cho ${fallbackFields.map(({ field, value }) => `${field}=${value}`).join(', ')}.`
+        : `Cập nhật thành công ${result.updated.length} bản ghi.`,
       updated: result.updated,
+      fallbacksApplied: fallbackFields,
     });
   } catch (err) {
     // Lỗi có mã định nghĩa sẵn (Optimistic lock, Not found...)

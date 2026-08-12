@@ -86,12 +86,19 @@ const updateCoreInfo = async (records, performedBy) => {
             HeSoLopDong: record.HeSoLopDong,
             HeSoT7CN: record.HeSoT7CN,
             QuyChuan: record.QuyChuan,
+            fallbacksApplied: record.fallbacksApplied || [],
           },
         },
         trx
       );
 
-      updatedList.push({ id: record.id, version: newVersion, QuyChuan: record.QuyChuan, HeSoLopDong: record.HeSoLopDong });
+      updatedList.push({
+        id: record.id,
+        version: newVersion,
+        QuyChuan: record.QuyChuan,
+        HeSoLopDong: record.HeSoLopDong,
+        fallbacksApplied: record.fallbacksApplied || [],
+      });
     }
   });
 

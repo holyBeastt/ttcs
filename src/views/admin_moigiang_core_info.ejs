@@ -230,6 +230,84 @@
     let gridApi; // Khai báo biến toàn cục cho gridApi để tránh undefined ở bản v31+
     let globalData = [];
 
+    // Fallback chỉ được áp dụng sau khi ADMIN xác nhận rõ ràng.
+    // Các giá trị này phải đồng bộ với FALLBACK_VALUES ở backend.
+    const FALLBACK_VALUES = {
+      SoTinChi: { label: 'Số tín chỉ', value: 0 },
+      LL: { label: 'Số tiết lên lớp (LL)', value: 0 },
+      SoSinhVien: { label: 'Số sinh viên', value: 0 },
+      HeSoLopDong: { label: 'Hệ số lớp đông', value: 1 },
+      HeSoT7CN: { label: 'Hệ số ngoài giờ', value: 1 },
+      QuyChuan: { label: 'Số tiết quy chuẩn (QC)', value: 0 },
+    };
+
+    const REQUIRED_FIELDS = {
+      LopHocPhan: 'Lớp học phần',
+      TenLop: 'Tên lớp',
+      GiaoVien: 'Giảng viên theo TKB',
+      Khoa: 'Khoa',
+    };
+
+    function isBlankValue(value) {
+      return value === undefined || value === null ||
+        (typeof value === 'string' && value.trim() === '');
+    }
+
+    /**
+     * Trả về record đã chuẩn bị để gửi API, hoặc null nếu ADMIN chọn nhập lại.
+     * Fallback không được tự áp dụng vì thao tác đang là auto-save.
+     */
+    async function prepareRecordForUpdate(data, updatedField, newValue) {
+      const record = { ...data, [updatedField]: newValue };
+      const missingRequired = Object.entries(REQUIRED_FIELDS)
+        .filter(([field]) => isBlankValue(record[field]))
+        .map(([, label]) => label);
+      const missingWithFallback = Object.entries(FALLBACK_VALUES)
+        .filter(([field]) => isBlankValue(record[field]))
+        .map(([field, config]) => ({ field, ...config }));
+
+      if (missingRequired.length > 0) {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Chưa đủ dữ liệu để cập nhật',
+          html: `Đang thiếu: <b>${missingRequired.join(', ')}</b>.<br>Vui lòng nhập đủ các trường này. Nếu chưa nhập, hệ thống <b>không cập nhật</b>.`,
+          confirmButtonText: 'Nhập giá trị còn thiếu',
+        });
+        return null;
+      }
+
+      if (missingWithFallback.length === 0) {
+        return { record, fallbackFields: [] };
+      }
+
+      const fallbackHtml = missingWithFallback
+        .map(({ label, value }) => `<li><b>${label}</b>: dùng <b>${value}</b></li>`)
+        .join('');
+      const confirmation = await Swal.fire({
+        icon: 'warning',
+        title: 'Thiếu thông tin',
+        html: `
+          <p>Các trường còn thiếu sẽ sử dụng giá trị mặc định để cập nhật:</p>
+          <ul style="text-align:left">${fallbackHtml}</ul>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Cập nhật',
+        cancelButtonText: 'Không cập nhật',
+        reverseButtons: true,
+      });
+
+      if (!confirmation.isConfirmed) return null;
+
+      missingWithFallback.forEach(({ field, value }) => {
+        record[field] = value;
+      });
+
+      return {
+        record,
+        fallbackFields: missingWithFallback.map(({ field }) => field),
+      };
+    }
+
     // Biến lưu danh sách hệ đào tạo — giống hệt TKB
     let heDaoTaoList = [];
     let heDaoTaoMap = {};
@@ -359,12 +437,25 @@
 
           const data = params.data;
           
-          if (['SoTinChi', 'LL', 'QuyChuan'].includes(updatedField) && isNaN(Number(newValue))) {
+          if (['SoTinChi', 'LL', 'QuyChuan'].includes(updatedField) &&
+              !isBlankValue(newValue) && isNaN(Number(newValue))) {
              Toastify({ text: "Giá trị phải là số hợp lệ!", backgroundColor: "#f44336" }).showToast();
              params.data[updatedField] = oldValue;
              params.api.refreshCells({ rowNodes: [params.node], force: true });
              return;
           }
+
+          const prepared = await prepareRecordForUpdate(data, updatedField, newValue);
+          if (!prepared) {
+            params.data[updatedField] = oldValue;
+            params.api.refreshCells({ rowNodes: [params.node], force: true });
+            return;
+          }
+
+          const record = prepared.record;
+          prepared.fallbackFields.forEach((field) => {
+            params.data[field] = record[field];
+          });
 
           try {
             // Backend expects { records: [{ id, LopHocPhan, TenLop, SoTinChi, GiaoVien, Khoa, LL, QuyChuan, version }] }
@@ -372,17 +463,18 @@
               records: [{
                 id: data.ID,
                 updatedField: updatedField,
-                LopHocPhan: updatedField === 'LopHocPhan' ? newValue : data.LopHocPhan,
-                TenLop: updatedField === 'TenLop' ? newValue : data.TenLop,
-                SoTinChi: updatedField === 'SoTinChi' ? newValue : data.SoTinChi,
-                GiaoVien: updatedField === 'GiaoVien' ? newValue : data.GiaoVien,
-                Khoa: updatedField === 'Khoa' ? newValue : data.Khoa,
-                LL: updatedField === 'LL' ? newValue : data.LL,
-                SoSinhVien: updatedField === 'SoSinhVien' ? newValue : data.SoSinhVien,
-                HeSoLopDong: updatedField === 'HeSoLopDong' ? newValue : data.HeSoLopDong,
-                HeSoT7CN: updatedField === 'HeSoT7CN' ? newValue : data.HeSoT7CN,
-                QuyChuan: updatedField === 'QuyChuan' ? newValue : data.QuyChuan,
-                version: data.version || 0
+                LopHocPhan: record.LopHocPhan,
+                TenLop: record.TenLop,
+                SoTinChi: record.SoTinChi,
+                GiaoVien: record.GiaoVien,
+                Khoa: record.Khoa,
+                LL: record.LL,
+                SoSinhVien: record.SoSinhVien,
+                HeSoLopDong: record.HeSoLopDong,
+                HeSoT7CN: record.HeSoT7CN,
+                QuyChuan: record.QuyChuan,
+                version: record.version || 0,
+                fallbackFields: prepared.fallbackFields,
               }]
             };
 
@@ -397,7 +489,11 @@
             const result = await response.json();
 
             if (response.ok) {
-              Toastify({ text: "✅ Cập nhật thành công", backgroundColor: "#4CAF50" }).showToast();
+              const appliedFallbacks = result.updated?.[0]?.fallbacksApplied || [];
+              const fallbackMessage = appliedFallbacks.length > 0
+                ? ` Đã dùng giá trị đề xuất: ${appliedFallbacks.map(({ field, value }) => `${FALLBACK_VALUES[field]?.label || field} = ${value}`).join(', ')}.`
+                : '';
+              Toastify({ text: `✅ Cập nhật thành công.${fallbackMessage}`, backgroundColor: "#4CAF50" }).showToast();
               if (result.updated && result.updated.length > 0) {
                  const updatedRow = result.updated[0];
                  params.data['version'] = updatedRow.version;

@@ -11,6 +11,18 @@ const LIMITS = Object.freeze({
   SO_TIN_CHI:    { min: 1, max: 10  },
 });
 
+// Các giá trị này chỉ được dùng khi người dùng xác nhận fallback trên giao diện.
+// Không tự động áp dụng ở backend để tránh biến dữ liệu thiếu thành dữ liệu hợp lệ
+// mà người dùng không biết.
+const FALLBACK_VALUES = Object.freeze({
+  SoTinChi: 0,
+  LL: 0,
+  SoSinhVien: 0,
+  HeSoLopDong: 1,
+  HeSoT7CN: 1,
+  QuyChuan: 0,
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
@@ -52,6 +64,40 @@ const isPositiveFloat = (value) => {
   if (isNaN(n) || n <= 0) return false;
   // Kiểm tra tối đa 2 chữ số thập phân
   return /^\d+(\.\d{1,2})?$/.test(String(n));
+};
+
+const isMissingValue = (value) =>
+  value === undefined ||
+  value === null ||
+  (typeof value === 'string' && value.trim() === '');
+
+/**
+ * Áp dụng fallback đã được client xác nhận.
+ * Chỉ cho phép các field có trong FALLBACK_VALUES và chỉ áp dụng khi field
+ * đang thiếu (hoặc đang là 0 đối với các fallback bằng 0).
+ */
+const applyConfirmedFallbacks = (record) => {
+  const requestedFields = new Set(
+    Array.isArray(record.fallbackFields) ? record.fallbackFields : []
+  );
+  const normalized = { ...record };
+  const fallbacksApplied = [];
+
+  for (const [field, fallbackValue] of Object.entries(FALLBACK_VALUES)) {
+    if (!requestedFields.has(field)) continue;
+
+    const currentValue = normalized[field];
+    const canApply = isMissingValue(currentValue) ||
+      (fallbackValue === 0 && Number(currentValue) === 0);
+
+    if (canApply) {
+      normalized[field] = fallbackValue;
+      fallbacksApplied.push({ field, value: fallbackValue });
+    }
+  }
+
+  normalized.fallbacksApplied = fallbacksApplied;
+  return normalized;
 };
 
 // ─── Lỗi Validation Có Cấu Trúc ─────────────────────────────────────────────
@@ -103,12 +149,12 @@ const validateTenLop = (value) => {
   }
 };
 
-const validateSoTinChi = (value) => {
+const validateSoTinChi = (value, { allowFallback = false } = {}) => {
   const n = Number(value);
   if (
     isNaN(n) ||
     !Number.isInteger(n) ||
-    n < LIMITS.SO_TIN_CHI.min ||
+    (n < LIMITS.SO_TIN_CHI.min && !(allowFallback && n === 0)) ||
     n > LIMITS.SO_TIN_CHI.max
   ) {
     throw new ValidationError(
@@ -119,8 +165,8 @@ const validateSoTinChi = (value) => {
   }
 };
 
-const validateLL = (value) => {
-  if (!isPositiveFloat(value)) {
+const validateLL = (value, { allowFallback = false } = {}) => {
+  if (!isPositiveFloat(value) && !(allowFallback && Number(value) === 0)) {
     throw new ValidationError(
       ERROR_CODES.VALIDATION.INVALID_LL,
       'Số tiết lên lớp (LL) phải là số thực dương, tối đa 2 chữ số thập phân.',
@@ -129,8 +175,8 @@ const validateLL = (value) => {
   }
 };
 
-const validateQuyChuan = (value) => {
-  if (!isPositiveFloat(value)) {
+const validateQuyChuan = (value, { allowFallback = false } = {}) => {
+  if (!isPositiveFloat(value) && !(allowFallback && Number(value) === 0)) {
     throw new ValidationError(
       ERROR_CODES.VALIDATION.INVALID_QUY_CHUAN,
       'Số tiết quy chuẩn (QC) phải là số thực dương, tối đa 2 chữ số thập phân.',
@@ -212,34 +258,46 @@ const validateHeSoT7CN = (value) => {
  * @throws {ValidationError}
  */
 const validateSingleRecord = (record) => {
-  validateId(record.id);
-  validateLopHocPhan(record.LopHocPhan);
-  validateTenLop(record.TenLop);
-  validateSoTinChi(record.SoTinChi);
-  validateLL(record.LL);
-  validateQuyChuan(record.QuyChuan);
-  validateGiaoVien(record.GiaoVien);
-  validateKhoa(record.Khoa);
-  validateVersion(record.version);
-  validateSoSinhVien(record.SoSinhVien);
-  validateHeSoLopDong(record.HeSoLopDong);
-  validateHeSoT7CN(record.HeSoT7CN);
+  const normalizedRecord = applyConfirmedFallbacks(record);
+  const appliedFields = new Set(
+    normalizedRecord.fallbacksApplied.map(({ field }) => field)
+  );
+
+  validateId(normalizedRecord.id);
+  validateLopHocPhan(normalizedRecord.LopHocPhan);
+  validateTenLop(normalizedRecord.TenLop);
+  validateSoTinChi(normalizedRecord.SoTinChi, {
+    allowFallback: appliedFields.has('SoTinChi'),
+  });
+  validateLL(normalizedRecord.LL, {
+    allowFallback: appliedFields.has('LL'),
+  });
+  validateQuyChuan(normalizedRecord.QuyChuan, {
+    allowFallback: appliedFields.has('QuyChuan'),
+  });
+  validateGiaoVien(normalizedRecord.GiaoVien);
+  validateKhoa(normalizedRecord.Khoa);
+  validateVersion(normalizedRecord.version);
+  validateSoSinhVien(normalizedRecord.SoSinhVien);
+  validateHeSoLopDong(normalizedRecord.HeSoLopDong);
+  validateHeSoT7CN(normalizedRecord.HeSoT7CN);
 
   // Trả về record đã sanitize
   return {
-    id: parseInt(record.id, 10),
-    updatedField: record.updatedField, // Truyền updatedField sang
-    LopHocPhan: sanitizeString(record.LopHocPhan),
-    TenLop: sanitizeString(record.TenLop),
-    SoTinChi: parseInt(record.SoTinChi, 10),
-    GiaoVien: sanitizeString(record.GiaoVien),
-    Khoa: sanitizeString(record.Khoa),
-    LL: parseFloat(record.LL),
-    QuyChuan: parseFloat(record.QuyChuan),
-    SoSinhVien: parseInt(record.SoSinhVien, 10),
-    HeSoLopDong: parseFloat(record.HeSoLopDong),
-    HeSoT7CN: parseFloat(record.HeSoT7CN),
-    version: parseInt(record.version, 10),
+    id: parseInt(normalizedRecord.id, 10),
+    updatedField: normalizedRecord.updatedField,
+    LopHocPhan: sanitizeString(normalizedRecord.LopHocPhan),
+    TenLop: sanitizeString(normalizedRecord.TenLop),
+    SoTinChi: parseInt(normalizedRecord.SoTinChi, 10),
+    GiaoVien: sanitizeString(normalizedRecord.GiaoVien),
+    Khoa: sanitizeString(normalizedRecord.Khoa),
+    LL: parseFloat(normalizedRecord.LL),
+    QuyChuan: parseFloat(normalizedRecord.QuyChuan),
+    SoSinhVien: parseInt(normalizedRecord.SoSinhVien, 10),
+    HeSoLopDong: parseFloat(normalizedRecord.HeSoLopDong),
+    HeSoT7CN: parseFloat(normalizedRecord.HeSoT7CN),
+    version: parseInt(normalizedRecord.version, 10),
+    fallbacksApplied: normalizedRecord.fallbacksApplied,
   };
 };
 
@@ -281,4 +339,6 @@ module.exports = {
   ValidationError,
   sanitizeString,
   LIMITS,
+  FALLBACK_VALUES,
+  isMissingValue,
 };
