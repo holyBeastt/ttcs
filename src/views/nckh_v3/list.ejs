@@ -245,6 +245,330 @@
       margin-left: 8px;
       vertical-align: middle;
     }
+
+    /* ── Detail/edit modal ── */
+    .nckh-v3-swal-popup {
+      width: min(1100px, calc(100vw - 24px)) !important;
+      min-height: min(680px, calc(100vh - 24px));
+      max-height: calc(100vh - 16px);
+      padding: 0 0 18px !important;
+      border-radius: 14px !important;
+      overflow: hidden;
+    }
+
+    .nckh-v3-swal-popup .swal2-title {
+      margin: 0 !important;
+      padding: 18px 24px 14px;
+      color: #1d2939;
+      font-size: 1.18rem;
+      font-weight: 700;
+      text-align: left;
+      border-bottom: 1px solid #eaecf0;
+    }
+
+    .nckh-v3-swal-popup .swal2-html-container {
+      width: 100%;
+      margin: 0 !important;
+      padding: 18px 24px 0 !important;
+      overflow: visible;
+      text-align: left;
+    }
+
+    .nckh-v3-swal-popup .swal2-html-container,
+    .nckh-v3-swal-popup .swal2-html-container * {
+      box-sizing: border-box;
+    }
+
+    .nckh-detail-content {
+      max-height: calc(100vh - 155px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .nckh-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .nckh-detail-item {
+      min-width: 0;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border: 1px solid #eaecf0;
+      border-radius: 8px;
+    }
+
+    .nckh-detail-item.is-wide {
+      grid-column: 1 / -1;
+    }
+
+    .nckh-detail-item.is-full {
+      grid-column: 1 / -1;
+    }
+
+    .nckh-detail-label {
+      display: block;
+      margin-bottom: 3px;
+      color: #667085;
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+
+    .nckh-detail-value {
+      color: #1d2939;
+      font-size: .92rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .nckh-detail-people {
+      margin-top: 12px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 8px;
+    }
+
+    .nckh-detail-people-title {
+      margin-bottom: 6px;
+      color: #344054;
+      font-weight: 700;
+    }
+
+    .nckh-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
+      padding-bottom: 2px;
+    }
+
+    .nckh-edit-form {
+      max-height: calc(100vh - 145px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .nckh-edit-section {
+      margin-bottom: 16px;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1px solid #eaecf0;
+      border-radius: 10px;
+    }
+
+    .nckh-detail-participant-section {
+      margin-top: 14px;
+      margin-bottom: 0;
+    }
+
+    .nckh-edit-section-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 12px;
+      color: #344054;
+      font-size: .92rem;
+      font-weight: 700;
+    }
+
+    .nckh-edit-section-title i {
+      color: #4361ee;
+    }
+
+    .nckh-edit-form .form-label {
+      margin-bottom: 5px;
+      color: #475467;
+      font-size: .8rem;
+    }
+
+    .nckh-edit-form .form-control,
+    .nckh-edit-form .form-select {
+      min-height: 38px;
+      border-color: #d0d5dd;
+      font-size: .86rem;
+    }
+
+    .nckh-edit-form .form-control:focus,
+    .nckh-edit-form .form-select:focus {
+      border-color: #4361ee;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, .12);
+    }
+
+    /* Reset legacy/global form rules inside this modal. */
+    .nckh-v3-swal-popup .nckh-edit-form input:not([type="checkbox"]):not([type="radio"]),
+    .nckh-v3-swal-popup .nckh-edit-form select,
+    .nckh-v3-swal-popup .nckh-edit-form textarea {
+      width: 100% !important;
+      min-height: 38px !important;
+      padding: 8px 12px !important;
+      color: #344054 !important;
+      background: #fff !important;
+      border: 1px solid #d0d5dd !important;
+      border-radius: 8px !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-size: .86rem !important;
+      font-weight: 400 !important;
+      letter-spacing: normal !important;
+      line-height: 1.35 !important;
+      text-align: left !important;
+      text-transform: none !important;
+    }
+
+    .nckh-v3-swal-popup .nckh-edit-form select {
+      cursor: pointer;
+      appearance: auto !important;
+      background-image: none !important;
+    }
+
+    .nckh-v3-swal-popup .nckh-edit-form input:focus,
+    .nckh-v3-swal-popup .nckh-edit-form select:focus,
+    .nckh-v3-swal-popup .nckh-edit-form textarea:focus {
+      outline: none !important;
+      border-color: #4361ee !important;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, .12) !important;
+    }
+
+    .nckh-v3-swal-popup .nckh-edit-form button {
+      min-height: 38px;
+      padding: 8px 14px !important;
+      border-radius: 8px !important;
+      box-shadow: none !important;
+      font-family: inherit !important;
+      font-size: .85rem !important;
+      font-weight: 600 !important;
+      letter-spacing: normal !important;
+      line-height: 1.2 !important;
+      text-transform: none !important;
+    }
+
+    .nckh-edit-form .form-control[readonly] {
+      color: #667085;
+      background: #eef2f6;
+    }
+
+    .nckh-modal-actions .btn {
+      min-width: 82px;
+      min-height: 40px;
+      font-weight: 600;
+    }
+
+    .nckh-edit-participants {
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 3px;
+    }
+
+    .nckh-edit-readonly-note {
+      margin: -3px 0 9px;
+      color: #667085;
+      font-size: .78rem;
+    }
+
+    .nckh-edit-participant-readonly {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 44px;
+    }
+
+    .nckh-edit-person-name {
+      min-width: 0;
+      color: #344054;
+      font-size: .88rem;
+      overflow-wrap: anywhere;
+    }
+
+    .nckh-edit-person-name i {
+      margin-right: 6px;
+      color: #667085;
+    }
+
+    .nckh-edit-person-unit {
+      color: #98a2b3;
+      font-size: .8rem;
+    }
+
+    .nckh-edit-person-role {
+      flex: 0 0 auto;
+      padding: 4px 9px;
+      color: #475467;
+      background: #f2f4f7;
+      border: 1px solid #eaecf0;
+      border-radius: 999px;
+      font-size: .75rem;
+      white-space: nowrap;
+    }
+
+    .nckh-edit-participant {
+      padding: 9px !important;
+      background: #fff;
+      border: 1px solid #dfe3e8 !important;
+      border-radius: 8px !important;
+    }
+
+    .nckh-edit-participant .btn {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      color: #d92d20 !important;
+      background: #fff !important;
+      border-color: #fda29b !important;
+    }
+
+    .nckh-edit-participant .btn:hover {
+      color: #b42318 !important;
+      background: #fff5f4 !important;
+      border-color: #f97066 !important;
+    }
+
+    .nckh-edit-add-participant {
+      width: 100%;
+      margin-top: 8px;
+      color: #4361ee !important;
+      background: #fff !important;
+      border-color: #9aaefc !important;
+      border-style: dashed;
+    }
+
+    .nckh-edit-add-participant:hover {
+      color: #304acb !important;
+      background: #f5f7ff !important;
+      border-color: #4361ee !important;
+    }
+
+    @media (max-width: 640px) {
+      .nckh-v3-swal-popup .swal2-title {
+        padding: 15px 16px 12px;
+        font-size: 1.05rem;
+      }
+
+      .nckh-v3-swal-popup .swal2-html-container {
+        padding: 14px 16px 0 !important;
+      }
+
+      .nckh-detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nckh-detail-item.is-wide {
+        grid-column: auto;
+      }
+
+      .nckh-detail-item.is-full {
+        grid-column: auto;
+      }
+
+      .nckh-edit-section {
+        padding: 11px;
+      }
+    }
   </style>
 </head>
 

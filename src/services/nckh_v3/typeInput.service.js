@@ -59,6 +59,21 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         ngayNghiemThu: record.chung.ngayNghiemThu,
         xepLoai: record.chung.xepLoai,
         maSo: record.chung.maSo,
+        soQuyetDinh: record.chung.soQuyetDinh,
+        capNhiemVu: record.chung.capNhiemVu,
+        kinhPhi: record.chung.kinhPhi,
+        tenTapChi: record.chung.tenTapChi,
+        soBao: record.chung.soBao,
+        soTrichDan: record.chung.soTrichDan,
+        coQuanChuTri: record.chung.coQuanChuTri,
+        coQuanChuQuan: record.chung.coQuanChuQuan,
+        thuocNhiemVu: record.chung.thuocNhiemVu,
+        linhVucNghienCuu: record.chung.linhVucNghienCuu,
+        kinhPhiNamNhat: record.chung.kinhPhiNamNhat,
+        kinhPhiNamHai: record.chung.kinhPhiNamHai,
+        kinhPhiNamBa: record.chung.kinhPhiNamBa,
+        nguonKinhPhi: record.chung.nguonKinhPhi,
+        ngayQuyetDinh: record.chung.ngayQuyetDinh,
       });
 
       await nckhSoTietRepo.deleteByNckhId(connection, Number(id));

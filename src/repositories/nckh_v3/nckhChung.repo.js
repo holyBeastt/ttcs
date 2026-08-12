@@ -43,7 +43,22 @@ const updateById = async (connection, id, data) => {
         tong_so_tiet = ?,
         ngay_nghiem_thu = ?,
         xep_loai = ?,
-        ma_so = ?
+        ma_so = ?,
+        so_quyet_dinh = ?,
+        cap_nhiem_vu = ?,
+        kinh_phi = ?,
+        ten_tap_chi = ?,
+        so_bao = ?,
+        so_trich_dan = ?,
+        co_quan_chu_tri = ?,
+        co_quan_chu_quan = ?,
+        thuoc_nhiem_vu = ?,
+        linh_vuc_nghien_cuu = ?,
+        kinh_phi_nam_nhat = ?,
+        kinh_phi_nam_hai = ?,
+        kinh_phi_nam_ba = ?,
+        nguon_kinh_phi = ?,
+        ngay_quyet_dinh = ?
     WHERE id = ?
   `;
 
@@ -56,6 +71,21 @@ const updateById = async (connection, id, data) => {
     data.ngayNghiemThu || null,
     data.xepLoai || null,
     data.maSo || null,
+    data.soQuyetDinh || null,
+    data.capNhiemVu || null,
+    data.kinhPhi || null,
+    data.tenTapChi || null,
+    data.soBao || null,
+    data.soTrichDan ?? null,
+    data.coQuanChuTri || null,
+    data.coQuanChuQuan || null,
+    data.thuocNhiemVu || null,
+    data.linhVucNghienCuu || null,
+    data.kinhPhiNamNhat || null,
+    data.kinhPhiNamHai || null,
+    data.kinhPhiNamBa || null,
+    data.nguonKinhPhi || null,
+    data.ngayQuyetDinh || null,
     id,
   ];
 

@@ -1,4 +1,25 @@
 const buildTypeInputController = (service, successLabel) => {
+  const canEditNckh = (req) => {
+    const role = req.session?.role || req.session?.Quyen || "";
+    const maPhongBan = req.session?.MaPhongBan || "";
+    const daoTaoCode = process.env.DAO_TAO || "DT";
+    const ncHtptCode = process.env.VIEN_NCKH_HTPT || "NCKHHTQT";
+    const canApprove =
+      (role === (process.env.ROLE_PHONGBAN_TROLY || "tro_ly_phong") ||
+        role === (process.env.ROLE_PHONGBAN_LANHDAO || "lanh_dao_phong")) &&
+      (maPhongBan === daoTaoCode || maPhongBan === ncHtptCode);
+    const canApproveKhoa =
+      role === (process.env.ROLE_KHOA_LANHDAO || "lanh_dao_khoa") &&
+      maPhongBan !== daoTaoCode &&
+      maPhongBan !== ncHtptCode;
+    const canEdit =
+      canApprove ||
+      canApproveKhoa ||
+      role === (process.env.ROLE_KHOA_GV_CNBM || "GV_CNBM");
+
+    return canEdit;
+  };
+
   const getUserContext = (req) => ({
     userId: req.session?.userId || 1,
     userName: req.session?.TenNhanVien || req.session?.username || "ADMIN",
@@ -27,6 +48,9 @@ const buildTypeInputController = (service, successLabel) => {
 
   const update = async (req, res) => {
     try {
+      if (!canEditNckh(req)) {
+        return res.status(403).json({ success: false, message: "Bạn không có quyền sửa dữ liệu NCKH" });
+      }
       const result = await service.update(req.params.id, req.body, getUserContext(req));
       res.json({ success: true, message: `Cập nhật ${successLabel} thành công`, data: result });
     } catch (error) {

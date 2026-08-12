@@ -45,6 +45,20 @@
       return response.json();
     },
 
+    async metadata(slug) {
+      const response = await fetch(`/v3/nckh/${slug}/metadata?khoaId=ALL`);
+      return response.json();
+    },
+
+    async update(slug, id, payload) {
+      const response = await fetch(`/v3/nckh/${slug}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      return response.json();
+    },
+
     async bulkApprovals(updates) {
       const response = await fetch(`/v3/nckh/records/bulk-approvals`, {
         method: "PATCH",
@@ -54,6 +68,19 @@
       return response.json();
     },
   };
+
+  const EDIT_TYPE_CONFIG = {
+    DETAI_DUAN: { slug: "de-tai-du-an", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard" },
+    BAIBAO: { slug: "bai-bao-khoa-hoc", showDate: false, showMaSo: true, hasSecondary: true, mode: "standard", article: true },
+    SANGKIEN: { slug: "sang-kien", showDate: true, showMaSo: false, hasSecondary: true, mode: "standard" },
+    GIAITHUONG: { slug: "giai-thuong", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard", award: true },
+    DEXUAT: { slug: "de-xuat-nghien-cuu", showDate: true, showMaSo: false, hasSecondary: true, mode: "equal" },
+    SACHGIAOTRINH: { slug: "sach-giao-trinh", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard" },
+    HUONGDAN: { slug: "huong-dan-sv-nckh", showDate: true, showMaSo: true, hasSecondary: false, mode: "equal" },
+    HOIDONG: { slug: "thanh-vien-hoi-dong", showDate: false, showMaSo: true, hasSecondary: false, mode: "fixed", council: true },
+  };
+
+  const getEditConfig = (loaiNckh) => EDIT_TYPE_CONFIG[String(loaiNckh || "")] || null;
 
   function cacheElements() {
     el.namHocFilter = document.getElementById("namHocFilter");
@@ -396,6 +423,330 @@
     return lines.join("<br/>");
   }
 
+  function toInputDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+    return date.toISOString().slice(0, 10);
+  }
+
+  function editField(label, id, value, type = "text", extra = "") {
+    return `
+      <div class="col-md-6 mb-2">
+        <label class="form-label fw-semibold" for="${id}">${label}</label>
+        <input id="${id}" class="form-control" type="${type}" value="${escapeHtml(value ?? "")}" ${extra} />
+      </div>
+    `;
+  }
+
+  function uniqueParticipants(participants) {
+    const seen = new Set();
+    return (participants || []).filter((item) => {
+      const key = [
+        item.nhanvienId ? `in:${item.nhanvienId}` : `out:${item.tenNgoai || ""}|${item.donViNgoai || ""}`,
+        item.vaiTro || "",
+      ].join("|");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function buildEmployeeOptions(giangVienList, selectedId) {
+    const options = ['<option value="">-- Chọn giảng viên --</option>'];
+    (giangVienList || []).forEach((item) => {
+      const id = Number(item.id);
+      options.push(
+        `<option value="${id}" ${Number(selectedId) === id ? "selected" : ""}>${escapeHtml(item.TenNhanVien || "")}</option>`
+      );
+    });
+    return options.join("");
+  }
+
+  function buildParticipantRows(data, config) {
+    const participants = uniqueParticipants(data.participants);
+    if (!participants.length) {
+      return '<div class="text-muted small" id="editParticipantsEmpty">Chưa có thành viên tham gia.</div>';
+    }
+
+    const roleLabels = {
+      tac_gia: "Tác giả / Chủ nhiệm",
+      tac_gia_lien_he: "Tác giả liên hệ",
+      thanh_vien: "Thành viên",
+      chu_tich: "Chủ tịch",
+      phan_bien: "Phản biện",
+      uy_vien: "Ủy viên",
+    };
+
+    return participants.map((item) => {
+      const external = item.nhanvienId === null || item.nhanvienId === undefined;
+      const name = item.tenNhanVien || item.tenNgoai || "Không rõ tên";
+      const unit = external && item.donViNgoai ? ` <span class="nckh-edit-person-unit">— ${escapeHtml(item.donViNgoai)}</span>` : "";
+      const role = roleLabels[item.vaiTro] || item.vaiTro || "Thành viên";
+
+      return `
+        <div class="nckh-edit-participant nckh-edit-participant-readonly">
+          <div class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</div>
+          <span class="nckh-edit-person-role">${escapeHtml(role)}</span>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function buildEditFormHtml(data, config, metadata) {
+    const phanLoaiOptions = Array.isArray(metadata?.phanLoaiOptions) ? metadata.phanLoaiOptions : [];
+    const currentPhanLoai = String(data.phanLoai || "");
+    const hasCurrentOption = phanLoaiOptions.some((item) => String(item.PhanLoai || "") === currentPhanLoai);
+    const phanLoaiHtml = [
+      '<option value="">-- Chọn phân loại --</option>',
+      ...(!hasCurrentOption && currentPhanLoai
+        ? [`<option value="${escapeHtml(currentPhanLoai)}" data-hours="${Number(data.tongSoTiet || 0)}" selected>${escapeHtml(currentPhanLoai)}</option>`]
+        : []),
+      ...phanLoaiOptions.map((item) => {
+        const value = String(item.PhanLoai || "");
+        const hours = Number(item.SoGio || 0);
+        return `<option value="${escapeHtml(value)}" data-hours="${hours}" ${value === currentPhanLoai ? "selected" : ""}>${escapeHtml(value)} (${String(hours).replace(".", ",")} tiết)</option>`;
+      }),
+    ].join("");
+
+    const articleFields = config.article
+      ? `${editField("Tên tạp chí / hội thảo", "editTenTapChi", data.tenTapChi)}
+         ${editField("Số báo", "editSoBao", data.soBao)}
+         ${editField("Số trích dẫn", "editSoTrichDan", data.soTrichDan, "number", "min=\"0\" step=\"1\"")}
+         ${editField("Số quyết định", "editSoQuyetDinh", data.soQuyetDinh)}
+         ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}`
+      : "";
+    const awardFields = config.award
+      ? `${editField("Số quyết định", "editSoQuyetDinh", data.soQuyetDinh)}
+         ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}`
+      : "";
+
+    const yearOptions = Array.from(el.namHocFilter?.options || [])
+      .map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === data.namHoc ? "selected" : ""}>${escapeHtml(option.textContent)}</option>`)
+      .join("");
+    const participantYears = Math.max(1, ...(data.participants || []).map((item) => Number(item.namThucHien || 1)));
+
+    return `
+      <form id="nckhInlineEditForm" class="nckh-edit-form">
+        <div class="nckh-edit-section">
+          <div class="nckh-edit-section-title"><i class="bi bi-file-earmark-text"></i> Thông tin công trình</div>
+          <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold" for="editTenCongTrinh">Tên công trình</label>
+            <input id="editTenCongTrinh" class="form-control" required value="${escapeHtml(data.tenCongTrinh || "")}" />
+          </div>
+          <div class="col-md-6 mb-2">
+            <label class="form-label fw-semibold" for="editPhanLoai">Phân loại</label>
+            <select id="editPhanLoai" class="form-select" required>${phanLoaiHtml}</select>
+          </div>
+          <div class="col-md-6 mb-2">
+            <label class="form-label fw-semibold" for="editNamHoc">Năm học</label>
+            <select id="editNamHoc" class="form-select" required>${yearOptions}</select>
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-semibold" for="editXepLoai">Xếp loại</label>
+            <select id="editXepLoai" class="form-select" required>
+              ${["Đạt", "Giỏi", "Xuất sắc"].map((value) => `<option value="${value}" ${value === data.xepLoai ? "selected" : ""}>${value}</option>`).join("")}
+            </select>
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-semibold" for="editTongSoTiet">Tổng số tiết</label>
+            <input id="editTongSoTiet" class="form-control" readonly value="${formatHours(data.tongSoTiet)}" />
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-semibold" for="editSoNamThucHien">Số năm thực hiện</label>
+            <input id="editSoNamThucHien" class="form-control" type="number" min="1" step="1" value="${participantYears}" />
+          </div>
+          ${config.showDate ? editField("Ngày nghiệm thu", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date", "required") : config.article ? editField("Ngày công bố", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date") : ""}
+          ${config.showMaSo ? editField(config.council ? "Số quyết định" : "Mã số", "editMaSo", data.maSo, "text", "required") : ""}
+          ${articleFields}${awardFields}
+          </div>
+        </div>
+
+        <div class="nckh-edit-section">
+          <div class="nckh-edit-section-title"><i class="bi bi-people"></i> Danh sách tham gia</div>
+          <div class="nckh-edit-readonly-note"><i class="bi bi-lock"></i> Thành viên chỉ xem, không chỉnh sửa tại đây.</div>
+          <div id="editParticipants" class="nckh-edit-participants">${buildParticipantRows(data, config)}</div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" class="btn btn-outline-secondary" id="editCancelBtn">Hủy</button>
+          <button type="submit" class="btn btn-primary" id="editSaveBtn"><i class="bi bi-save"></i> Lưu thay đổi</button>
+        </div>
+      </form>
+    `;
+  }
+
+  function collectEditPayload(data, config) {
+    const selectedOption = document.getElementById("editPhanLoai")?.selectedOptions[0];
+    const participants = uniqueParticipants(data.participants);
+    const payload = {
+      tenCongTrinh: String(document.getElementById("editTenCongTrinh")?.value || "").trim(),
+      loaiNckh: data.loaiNckh,
+      phanLoai: String(document.getElementById("editPhanLoai")?.value || "").trim(),
+      namHoc: String(document.getElementById("editNamHoc")?.value || "").trim(),
+      tongSoTiet: Number(selectedOption?.dataset.hours || data.tongSoTiet || 0),
+      soNamThucHien: Number(document.getElementById("editSoNamThucHien")?.value || 1),
+      xepLoai: document.getElementById("editXepLoai")?.value || null,
+      ngayNghiemThu: document.getElementById("editNgayNghiemThu")?.value || null,
+      maSo: document.getElementById("editMaSo")?.value?.trim() || null,
+      tacGiaIds: [],
+      thanhVienIds: [],
+      tacGiaLienHeIds: [],
+      tacGiaNgoai: [],
+      thanhVienNgoai: [],
+      tacGiaLienHeNgoai: [],
+      vaiTro: null,
+    };
+
+    if (config.article || config.award) {
+      payload.tenTapChi = document.getElementById("editTenTapChi")?.value?.trim() || null;
+      payload.soBao = document.getElementById("editSoBao")?.value?.trim() || null;
+      payload.soTrichDan = document.getElementById("editSoTrichDan")?.value === "" ? null : Number(document.getElementById("editSoTrichDan")?.value);
+      payload.soQuyetDinh = document.getElementById("editSoQuyetDinh")?.value?.trim() || null;
+      payload.ngayQuyetDinh = document.getElementById("editNgayQuyetDinh")?.value || null;
+    }
+
+    participants.forEach((participant) => {
+      const role = participant.vaiTro || "thanh_vien";
+      const isExternal = participant.nhanvienId === null || participant.nhanvienId === undefined;
+      if (isExternal) {
+        const item = {
+          ten: String(participant.tenNgoai || participant.tenNhanVien || "").trim(),
+          donVi: String(participant.donViNgoai || "").trim(),
+        };
+        if (!item.ten || !item.donVi) return;
+        if (config.council) return;
+        if (role === "tac_gia_lien_he") payload.tacGiaLienHeNgoai.push(item);
+        else if (role === "tac_gia") payload.tacGiaNgoai.push(item);
+        else payload.thanhVienNgoai.push(item);
+        return;
+      }
+
+      const id = Number(participant.nhanvienId || 0);
+      if (!id) return;
+      if (config.council) {
+        payload.tacGiaIds.push(id);
+        payload.vaiTro = role;
+      } else if (role === "tac_gia_lien_he") payload.tacGiaLienHeIds.push(id);
+      else if (role === "tac_gia") payload.tacGiaIds.push(id);
+      else payload.thanhVienIds.push(id);
+    });
+
+    return payload;
+  }
+
+  function buildDetailHtml(data) {
+    const participantHtml = `
+      <div class="nckh-edit-section nckh-detail-participant-section">
+        <div class="nckh-edit-section-title"><i class="bi bi-people"></i> Danh sách tham gia</div>
+        <div class="nckh-edit-readonly-note"><i class="bi bi-lock"></i> Thành viên chỉ xem, không chỉnh sửa tại đây.</div>
+        <div class="nckh-edit-participants">${buildParticipantRows(data, {})}</div>
+      </div>
+    `;
+    const maSoLabel = data.loaiNckh === "HOIDONG" ? "Số quyết định" : "Mã số";
+    const khoaValue = data.tenPhongBan || data.maPhongBan || "";
+    const statusValue = Number(data.vienNcDuyet) === 1
+      ? "Đã duyệt cấp viện"
+      : Number(data.khoaDuyet) === 1
+        ? "Đã duyệt cấp khoa"
+        : "Chưa duyệt";
+    const editButton = state.permission.canEdit && Number(data.vienNcDuyet) !== 1
+      ? '<button type="button" class="btn btn-primary" id="detailEditBtn"><i class="bi bi-pencil"></i> Sửa</button>'
+      : "";
+
+    return `
+      <div class="nckh-detail-content">
+        <div class="nckh-detail-grid">
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Loại NCKH</span><div class="nckh-detail-value">${escapeHtml(data.loaiNckhLabel)}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Phân loại</span><div class="nckh-detail-value">${escapeHtml(data.phanLoai)}</div></div>
+          <div class="nckh-detail-item is-wide"><span class="nckh-detail-label">Tên công trình</span><div class="nckh-detail-value">${escapeHtml(data.tenCongTrinh)}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Năm học</span><div class="nckh-detail-value">${escapeHtml(data.namHoc)}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">${maSoLabel}</span><div class="nckh-detail-value">${escapeHtml(data.maSo || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Xếp loại</span><div class="nckh-detail-value">${escapeHtml(data.xepLoai || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Ngày nghiệm thu</span><div class="nckh-detail-value">${formatDate(data.ngayNghiemThu) || "—"}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Tổng số tiết</span><div class="nckh-detail-value">${formatHours(data.tongSoTiet)}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Trạng thái</span><div class="nckh-detail-value">${statusValue}</div></div>
+          ${khoaValue ? `<div class="nckh-detail-item is-full"><span class="nckh-detail-label">Khoa</span><div class="nckh-detail-value">${escapeHtml(khoaValue)}</div></div>` : ""}
+        </div>
+        ${participantHtml}
+      </div>
+      <div class="nckh-modal-actions">
+        ${editButton}
+        <button type="button" class="btn btn-outline-secondary" id="detailCloseBtn">Đóng</button>
+      </div>
+    `;
+  }
+
+  function bindDetailActions(data) {
+    Swal.getHtmlContainer()?.querySelector("#detailCloseBtn")?.addEventListener("click", () => Swal.close());
+    Swal.getHtmlContainer()?.querySelector("#detailEditBtn")?.addEventListener("click", () => enterEditMode(data));
+  }
+
+  function showDetailMode(data) {
+    Swal.update({
+      title: "Chi tiết công trình",
+      html: buildDetailHtml(data),
+      width: "1100px",
+      customClass: { popup: "nckh-v3-swal-popup" },
+      showConfirmButton: false,
+      showCancelButton: false,
+    });
+    bindDetailActions(data);
+  }
+
+  async function enterEditMode(data) {
+    const config = getEditConfig(data.loaiNckh);
+    if (!config) {
+      await Swal.fire("Thông báo", "Loại NCKH này chưa hỗ trợ chỉnh sửa", "info");
+      return;
+    }
+
+    Swal.update({ title: `Sửa ${data.loaiNckhLabel || "công trình NCKH"}`, html: '<div class="nckh-detail-content text-center py-5 text-muted"><i class="bi bi-arrow-repeat"></i><div class="mt-2">Đang tải biểu mẫu...</div></div>', width: "1100px", customClass: { popup: "nckh-v3-swal-popup" }, showConfirmButton: false, showCancelButton: false });
+    const metadataResult = await api.metadata(config.slug);
+    if (!metadataResult.success) {
+      await Swal.fire("Thất bại", metadataResult.message || "Không thể tải biểu mẫu sửa", "error");
+      return;
+    }
+
+    Swal.update({ html: buildEditFormHtml(data, config, metadataResult.data), width: "1100px", customClass: { popup: "nckh-v3-swal-popup" }, showConfirmButton: false, showCancelButton: false });
+    Swal.getHtmlContainer()?.querySelector("#editPhanLoai")?.addEventListener("change", (event) => {
+      const option = event.target.selectedOptions[0];
+      const total = Number(option?.dataset.hours || 0);
+      const totalEl = document.getElementById("editTongSoTiet");
+      if (totalEl && total > 0) totalEl.value = formatHours(total);
+    });
+    Swal.getHtmlContainer()?.querySelector("#editCancelBtn")?.addEventListener("click", () => showDetailMode(data));
+    Swal.getHtmlContainer()?.querySelector("#nckhInlineEditForm")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const payload = collectEditPayload(data, config);
+      if (!payload.tenCongTrinh || !payload.phanLoai || !payload.namHoc || !payload.tongSoTiet) {
+        await Swal.fire("Thiếu thông tin", "Vui lòng nhập đủ thông tin chính của công trình", "warning");
+        return;
+      }
+      if (config.showDate && !payload.ngayNghiemThu) {
+        await Swal.fire("Thiếu thông tin", "Vui lòng nhập ngày nghiệm thu", "warning");
+        return;
+      }
+      if (config.showMaSo && !payload.maSo) {
+        await Swal.fire("Thiếu thông tin", "Vui lòng nhập mã số / số quyết định", "warning");
+        return;
+      }
+
+      const saveButton = document.getElementById("editSaveBtn");
+      if (saveButton) saveButton.disabled = true;
+      const result = await api.update(config.slug, data.id, payload);
+      if (!result.success) {
+        if (saveButton) saveButton.disabled = false;
+        await Swal.fire("Thất bại", result.message || "Không thể cập nhật công trình", "error");
+        return;
+      }
+
+      await Swal.fire("Thành công", result.message || "Cập nhật công trình thành công", "success");
+      await loadData();
+    });
+  }
+
   async function showDetail(id) {
     if (id === null || id === undefined || String(id).trim() === "") {
       await Swal.fire("Thất bại", "ID bản ghi không hợp lệ", "error");
@@ -409,35 +760,15 @@
     }
 
     const data = result.data;
-    const participantHtml = data.loaiNckh === "HOIDONG"
-      ? `<p><strong>Vai trò hội đồng:</strong><br/>${formatHoiDongParticipants(data.participants)}</p>`
-      : `
-        <p><strong>Tác giả chính/Chủ nhiệm:</strong><br/>${formatParticipants(data.participants, "tac_gia")}</p>
-        <p><strong>Thành viên:</strong><br/>${formatParticipants(data.participants, "thanh_vien")}</p>
-      `;
-
-    const maSoLabel = data.loaiNckh === "HOIDONG" ? "Số quyết định" : "Mã số";
-
-    const html = `
-      <div style="text-align:left;line-height:1.5;">
-        <p><strong>Loại NCKH:</strong> ${escapeHtml(data.loaiNckhLabel)}</p>
-        <p><strong>Phân loại:</strong> ${escapeHtml(data.phanLoai)}</p>
-        <p><strong>Tên công trình:</strong> ${escapeHtml(data.tenCongTrinh)}</p>
-        <p><strong>Năm học:</strong> ${escapeHtml(data.namHoc)}</p>
-        <p><strong>${maSoLabel}:</strong> ${escapeHtml(data.maSo || "")}</p>
-        <p><strong>Xếp loại:</strong> ${escapeHtml(data.xepLoai || "")}</p>
-        <p><strong>Ngày nghiệm thu:</strong> ${formatDate(data.ngayNghiemThu)}</p>
-        <p><strong>Khoa:</strong> ${escapeHtml(data.tenPhongBan || data.maPhongBan || "")}</p>
-        <p><strong>Tổng số tiết:</strong> ${formatHours(data.tongSoTiet)}</p>
-        ${participantHtml}
-      </div>
-    `;
 
     await Swal.fire({
       title: "Chi tiết công trình",
-      html,
-      width: 760,
-      confirmButtonText: "Đóng",
+      html: buildDetailHtml(data),
+      width: "1100px",
+      customClass: { popup: "nckh-v3-swal-popup" },
+      showConfirmButton: false,
+      showCancelButton: false,
+      didOpen: () => bindDetailActions(data),
     });
   }
 
