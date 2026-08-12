@@ -93,7 +93,7 @@ const getDraftTable = async (connection, { dot, kiHoc, namHoc, khoa }) => {
 const insertDraft = async (connection, values) => {
     const query = `
         INSERT INTO ${DRAFT_TABLE}
-        (tt, course_code, credit_hours, student_quantity, student_bonus, bonus_time,
+        (course_code, credit_hours, student_quantity, student_bonus, bonus_time,
          ll_code, ll_total, qc, course_name, lecturer, major, he_dao_tao, course_id,
          start_date, end_date, dot, ki_hoc, nam_hoc, note, class_type, da_luu)
         VALUES ?
@@ -102,12 +102,57 @@ const insertDraft = async (connection, values) => {
     return connection.query(query, [values]);
 };
 
-const getDraftMaxTT = async (connection, { dot, kiHoc, namHoc }) => {
-    const [rows] = await connection.query(
-        `SELECT MAX(tt) AS maxTT FROM ${DRAFT_TABLE} WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?`,
-        [dot, kiHoc, namHoc]
-    );
-    return rows[0]?.maxTT || 0;
+const DRAFT_UNIQUE_FIELDS = [
+    { key: "dot", label: "Đợt" },
+    { key: "ki_hoc", label: "Kì" },
+    { key: "nam_hoc", label: "Năm học" },
+    { key: "course_name", label: "Lớp học phần" },
+    { key: "he_dao_tao", label: "Hệ đào tạo" },
+];
+
+const getDraftUniqueValues = (row) => DRAFT_UNIQUE_FIELDS.map(({ key }) => ({
+    key,
+    label: DRAFT_UNIQUE_FIELDS.find((field) => field.key === key).label,
+    value: row[key] === null || row[key] === undefined ? "" : String(row[key]).trim(),
+}));
+
+const findDraftUniqueConflicts = async (connection, records) => {
+    const conflicts = [];
+    const seen = new Map();
+
+    for (const [index, record] of records.entries()) {
+        const values = getDraftUniqueValues(record);
+        const key = values.map(({ value }) => value).join("\u001f");
+
+        if (seen.has(key)) {
+            conflicts.push({
+                type: "incoming",
+                incomingRow: index + 1,
+                duplicateOfRow: seen.get(key),
+                fields: values,
+            });
+        } else {
+            seen.set(key, index + 1);
+        }
+
+        const [rows] = await connection.execute(
+            `SELECT id, dot, ki_hoc, nam_hoc, course_name, he_dao_tao
+             FROM ${DRAFT_TABLE}
+             WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ? AND course_name = ? AND he_dao_tao = ?`,
+            values.map(({ value }) => value)
+        );
+
+        rows.forEach((row) => {
+            conflicts.push({
+                type: "existing",
+                incomingRow: index + 1,
+                existingId: row.id,
+                fields: getDraftUniqueValues(row),
+            });
+        });
+    }
+
+    return conflicts;
 };
 
 const updateDraftSaved = async (connection, { dot, kiHoc, namHoc, major, excludedIds }) => {
@@ -144,13 +189,18 @@ const deleteDraftByFilter = async (connection, { namHoc, kiHoc, dot, major }) =>
     return connection.execute(query, params);
 };
 
-const getOfficialTable = async (connection, { namHoc, khoa }) => {
+const getOfficialTable = async (connection, { namHoc, khoa, kiHoc }) => {
     let query = `
         SELECT ${buildOfficialSelect()}
         FROM ${LNQC_TABLE}
         WHERE nam_hoc = ?
     `;
     const params = [namHoc];
+
+    if (kiHoc && kiHoc !== "ALL") {
+        query += ` AND hoc_ky = ?`;
+        params.push(kiHoc);
+    }
 
     if (khoa && khoa !== "ALL") {
         query += ` AND khoa = ?`;
@@ -229,7 +279,7 @@ module.exports = {
     buildOfficialSelect,
     getDraftTable,
     insertDraft,
-    getDraftMaxTT,
+    findDraftUniqueConflicts,
     updateDraftSaved,
     deleteDraftByFilter,
     getOfficialTable,

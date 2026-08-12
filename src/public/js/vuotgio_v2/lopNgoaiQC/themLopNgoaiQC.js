@@ -29,6 +29,8 @@ let heDaoTaoMap = {};
 
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('[LopNgoaiQC] Init - 2-phase draft flow');
+    const hocKyFilter = document.getElementById('hocKyFilter');
+    if (hocKyFilter && !hocKyFilter.value) hocKyFilter.value = '1';
     loadNamHocOptions();
     loadKhoaOptions();
     await preloadHeDaoTao();
@@ -160,11 +162,57 @@ async function getDataTable() {
         } else {
             renderTable();
         }
+        return renderData;
     } catch (error) {
         console.error('Error fetching data:', error);
         if (gridApi) gridApi.hideOverlay();
         Swal.fire('Lỗi', 'Có lỗi xảy ra: ' + error.message, 'error');
     }
+}
+
+function escapeDuplicateHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+async function showDuplicateDetails(result) {
+    const duplicates = Array.isArray(result.duplicates) ? result.duplicates : [];
+    const html = duplicates.map((duplicate, index) => {
+        const fields = (duplicate.fields || [])
+            .map(field => `<b>${escapeDuplicateHtml(field.label || field.key)}</b>: ${escapeDuplicateHtml(field.value || '(trống)')}`)
+            .join(' | ');
+        const location = duplicate.type === 'existing'
+            ? 'Dòng đã tồn tại trong dữ liệu'
+            : `Dòng import ${escapeDuplicateHtml(duplicate.incomingRow)} trùng dòng ${escapeDuplicateHtml(duplicate.duplicateOfRow)}`;
+        return `<div style="text-align:left;margin-bottom:8px"><b>${index + 1}. ${location}</b><br>${fields}</div>`;
+    }).join('');
+
+    await Swal.fire({
+        title: 'Dữ liệu bị trùng',
+        html: `<p>${escapeDuplicateHtml(result.message || 'Có dữ liệu trùng khóa.')}</p>${html}`,
+        icon: 'warning',
+        width: 850,
+    });
+
+    const existing = duplicates.find(item => item.type === 'existing' && item.existingId);
+    if (!existing) return;
+
+    await getDataTable();
+    if (!gridApi) return;
+
+    const node = gridApi.getRowNode(String(existing.existingId));
+    if (!node) return;
+
+    gridApi.ensureNodeVisible(node);
+    const fields = existing.fields || [];
+    const courseName = fields.find(field => field.key === 'course_name');
+    const heDaoTao = fields.find(field => field.key === 'he_dao_tao');
+    const fieldToEdit = !courseName?.value ? 'course_name' : (!heDaoTao?.value ? 'he_dao_tao' : 'course_name');
+    gridApi.startEditingCell({ rowIndex: node.rowIndex, colKey: fieldToEdit });
 }
 
 function renderTable() {
@@ -218,7 +266,7 @@ function renderTable() {
                 field: key,
                 headerName: headersMap[key]?.name || key,
                 width: headersMap[key]?.width || 100,
-                editable: key !== "student_bonus" && key !== "id",
+                editable: key !== "student_bonus" && key !== "qc" && key !== "id",
                 hide: key === "id" || key === "tt" || key === "course_id"
                     || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc' || key === 'note',
                 headerClass: 'custom-header',
@@ -411,6 +459,11 @@ async function onCellValueChanged(event) {
         const result = await response.json();
 
         if (result.success) {
+            if (result.data && event.node) {
+                event.node.setData(result.data);
+                gridApi.refreshCells({ rowNodes: [event.node], force: true });
+            }
+
             Toastify({
                 text: "Đã cập nhật",
                 duration: 2000,
@@ -419,6 +472,8 @@ async function onCellValueChanged(event) {
                 backgroundColor: "#28a745",
             }).showToast();
         } else {
+            data[event.colDef.field] = event.oldValue;
+            gridApi.refreshCells({ rowNodes: [event.node], force: true });
             Swal.fire('Lỗi', result.message || 'Cập nhật thất bại', 'error');
         }
     } catch (error) {
@@ -536,7 +591,6 @@ async function addNewRow() {
         Swal.fire('Lỗi', 'Vui lòng chọn năm học trước khi thêm dòng', 'error');
         return;
     }
-
     const newRow = {
         nam_hoc: nam_hoc,
         ki_hoc: ki_hoc || '1',
@@ -575,6 +629,8 @@ async function addNewRow() {
                 backgroundColor: "#28a745",
             }).showToast();
             getDataTable();
+        } else if (result.duplicate) {
+            await showDuplicateDetails(result);
         } else {
             Swal.fire('Lỗi', result.message || 'Thêm dòng thất bại', 'error');
         }
@@ -738,6 +794,8 @@ async function confirmImport(deleteOld) {
             pendingImportData = null;
             document.getElementById('fileInput').value = '';
             getDataTable();
+        } else if (result.duplicate) {
+            await showDuplicateDetails(result);
         } else {
             Swal.fire('Lỗi', result.message, 'error');
         }
@@ -796,8 +854,19 @@ async function handleConfirmToMain() {
         Swal.close();
 
         if (result.success) {
-            Swal.fire('Thành công', result.message, 'success');
-            getDataTable(); // Reload → nháp sẽ trống (da_luu = 1)
+            const nextStep = await Swal.fire({
+                title: 'Đã ban hành',
+                text: `${result.message} Dữ liệu đã chuyển sang danh sách duyệt.`,
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: 'Mở danh sách duyệt',
+                cancelButtonText: 'Ở lại',
+            });
+            if (nextStep.isConfirmed) {
+                window.location.href = `/v2/vuotgio/danh-sach-lop-ngoai-qc?kiHoc=${encodeURIComponent(ki_hoc)}`;
+            } else {
+                getDataTable();
+            }
         } else {
             Swal.fire('Lỗi', result.message || 'Chốt thất bại', 'error');
         }

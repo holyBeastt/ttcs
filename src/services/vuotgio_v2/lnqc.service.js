@@ -1,6 +1,7 @@
 const createPoolConnection = require("../../config/databasePool");
 const LogService = require("../logService");
 const repo = require("../../repositories/vuotgio_v2/lnqc.repo");
+const tkbServices = require("../tkbServices");
 
 const mapper = require("../../mappers/vuotgio_v2/lnqc.mapper");
 const baseMapper = require("../../mappers/vuotgio_v2/base.mapper");
@@ -15,19 +16,48 @@ const getUserContext = (req) => {
     };
 };
 
+const calculateComputedFields = async (data) => {
+    const bonusRules = await tkbServices.getBonusRules();
+    const studentBonus = tkbServices.calculateStudentBonus(
+        Number(data.student_quantity) || 0,
+        bonusRules
+    );
+    const qc = Number(
+        ((Number(data.ll_total) || 0) *
+            (Number(data.bonus_time) || 0) *
+            Number(studentBonus || 0)).toFixed(2)
+    );
+
+    return {
+        ...data,
+        student_bonus: studentBonus,
+        qc,
+    };
+};
+
 const save = async (req, res) => {
     const { userId, userName } = getUserContext(req);
     let connection;
     try {
         connection = await createPoolConnection();
-        const data = mapper.toEntity(req.body);
+        let data = mapper.toEntity(req.body);
 
         if (!data.nam_hoc) {
             return res.status(400).json({ success: false, message: "Thiếu thông tin năm học" });
         }
+        data = await calculateComputedFields(data);
+
+        const duplicateRows = await repo.findDraftUniqueConflicts(connection, [data]);
+        if (duplicateRows.length > 0) {
+            return res.status(409).json({
+                success: false,
+                duplicate: true,
+                message: "Dòng mới bị trùng khóa dữ liệu. Hãy sửa trường được chỉ ra trong dòng đang có.",
+                duplicates: duplicateRows,
+            });
+        }
 
         const [result] = await repo.insertDraft(connection, [[
-            data.course_name,
             data.course_code,
             data.credit_hours,
             data.student_quantity,
@@ -36,16 +66,19 @@ const save = async (req, res) => {
             data.ll_code,
             data.ll_total,
             data.qc,
+            data.course_name,
             data.lecturer,
             data.major,
             data.he_dao_tao,
+            data.course_id,
+            data.start_date,
+            data.end_date,
             data.dot,
             data.ki_hoc,
             data.nam_hoc,
             data.note,
-            data.course_id,
-            "ngoai_quy_chuan",
-            0,
+            data.class_type,
+            data.da_luu,
         ]]);
 
         try {
@@ -91,7 +124,7 @@ const edit = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        const mapped = mapper.toEntity(req.body);
+        const mapped = await calculateComputedFields(mapper.toEntity(req.body));
         
         const allowedFields = ["course_name", "course_code", "credit_hours", "student_quantity", "student_bonus", "bonus_time", "ll_code", "ll_total", "qc", "lecturer", "major", "he_dao_tao", "note", "course_id"];
         const values = allowedFields.map((field) => mapped[field]);
@@ -112,7 +145,11 @@ const edit = async (req, res) => {
             console.error("Log error:", error);
         }
 
-        res.status(200).json({ success: true, message: "Cập nhật thành công!" });
+        res.status(200).json({
+            success: true,
+            message: "Cập nhật thành công!",
+            data: { id: Number(id), ...mapped, dot, ki_hoc, nam_hoc },
+        });
     } catch (error) {
         console.error("Lỗi edit nháp:", error);
         res.status(500).json({ success: false, message: error.message || "Có lỗi xảy ra." });
@@ -212,7 +249,10 @@ const confirmToMain = async (req, res) => {
 
         const [draftData] = await connection.query(getDataQuery, params);
         if (draftData.length === 0) {
-            return res.status(200).json({ success: true, message: "Không có dữ liệu nháp để chuyển" });
+            return res.status(400).json({
+                success: false,
+                message: "Không có dữ liệu nháp khớp với Đợt/Kì/Năm học/Khoa đang chọn",
+            });
         }
 
         const lecturerNames = [...new Set(draftData.map((row) => row.GiangVien || row.GiaoVienGiangDay).filter(Boolean))];
@@ -269,7 +309,10 @@ const confirmToMain = async (req, res) => {
         }
 
         if (insertValues.length === 0) {
-            return res.status(200).json({ success: true, message: "Không có dữ liệu hợp lệ (Khoa không trùng)" });
+            return res.status(400).json({
+                success: false,
+                message: "Không có dữ liệu hợp lệ để ban hành (Khoa không trùng hoặc đang trống)",
+            });
         }
 
         // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
@@ -304,12 +347,13 @@ const confirmToMain = async (req, res) => {
 
 const getChinhThuc = async (req, res) => {
     const { NamHoc } = req.params;
+    const KiHoc = req.query.KiHoc || req.query.kiHoc || "ALL";
     // enforceKhoaFilter middleware đã override req.params.Khoa nếu user là khoa
     const Khoa = req.params.Khoa;
     let connection;
     try {
         connection = await createPoolConnection();
-        const results = await repo.getOfficialTable(connection, { namHoc: NamHoc, khoa: Khoa });
+        const results = await repo.getOfficialTable(connection, { namHoc: NamHoc, khoa: Khoa, kiHoc: KiHoc });
         res.json(results);
     } catch (error) {
         console.error("Lỗi getChinhThuc:", error);

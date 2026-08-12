@@ -46,6 +46,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         loadHeDaoTaoOptions()
     ]);
 
+    const requestedKiHoc = new URLSearchParams(window.location.search).get('kiHoc');
+    const kiHocFilter = document.getElementById('hocKyFilter');
+    if (kiHocFilter && ['1', '2', 'ALL'].includes(requestedKiHoc)) {
+        kiHocFilter.value = requestedKiHoc;
+    }
+
     loadData();
 
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
@@ -119,11 +125,19 @@ function setupUpdateButtonVisibility() {
 
 function canEditDelete(data) {
     const role = localStorage.getItem('userRole');
+    const maPhongBan = localStorage.getItem('MaPhongBan');
     const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+    const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
+    const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+    const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
 
-    // Chỉ GV_CNBM và Lãnh đạo khoa có quyền sửa/xóa
-    if (role !== gvCnbm && role !== lanhDaoKhoa) return false;
+    const isKhoaEditor = role === gvCnbm || role === lanhDaoKhoa;
+    const isDaoTaoEditor = maPhongBan === daoTao
+        && (role === troLyPhong || role === lanhDaoPhong);
+
+    // Khoa và Phòng Đào tạo được sửa/xóa khi bản ghi chưa qua duyệt.
+    if (!isKhoaEditor && !isDaoTaoEditor) return false;
 
     // Chỉ sửa/xóa khi chưa duyệt
     return data.KhoaDuyet === 0 && data.DaoTaoDuyet === 0;
@@ -263,6 +277,7 @@ async function loadHeDaoTaoOptions() {
 // Gọi API chính thức (lopngoaiquychuan)
 async function loadData() {
     const namHoc = document.getElementById('namHocFilter').value;
+    const kiHoc = document.getElementById('hocKyFilter').value;
     const khoa = document.getElementById('khoaFilter').value;
 
     if (!namHoc) {
@@ -272,7 +287,9 @@ async function loadData() {
 
     try {
         // API chính thức mới
-        const response = await fetch(`/v2/vuotgio/lop-ngoai-quy-chuan/chinh-thuc/${namHoc}/${khoa}`);
+        const response = await fetch(
+            `/v2/vuotgio/lop-ngoai-quy-chuan/chinh-thuc/${encodeURIComponent(namHoc)}/${encodeURIComponent(khoa)}?KiHoc=${encodeURIComponent(kiHoc)}`
+        );
         const data = await response.json();
 
         globalData = data;

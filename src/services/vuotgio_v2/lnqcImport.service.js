@@ -11,6 +11,12 @@ const repo = require("../../repositories/vuotgio_v2/lnqc.repo");
 
 const CLASS_TYPE = "ngoai_quy_chuan";
 
+const calculateQc = (llTotal, bonusTime, studentBonus) => Number(
+  ((Number(llTotal) || 0) *
+    (Number(bonusTime) || 0) *
+    (Number(studentBonus) || 0)).toFixed(2)
+);
+
 function getFirstParenthesesContent(str) {
   const match = String(str || "").match(/\(([^)]+)\)/);
   return match ? match[1] : null;
@@ -405,7 +411,7 @@ const confirmImport = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    let lastTT = await repo.getDraftMaxTT(connection, { dot, kiHoc: ki_hoc, namHoc: nam_hoc });
+    const bonusRules = await tkbServices.getBonusRules();
 
     if (records.length > 0) {
       console.log(`[LopNgoaiQC confirmImport] records[0] keys:`, Object.keys(records[0]));
@@ -413,17 +419,22 @@ const confirmImport = async (req, res) => {
     }
 
     const values = records.map((row) => {
-      lastTT += 1;
+      const studentBonus = tkbServices.calculateStudentBonus(
+        Number(row.student_quantity) || 0,
+        bonusRules
+      );
+      const bonusTime = Number(row.bonus_time) || 0;
+      const llTotal = Number(row.ll_total) || 0;
+
       return [
-        lastTT,
         row.course_code || "",
         row.credit_hours || 0,
         row.student_quantity || 0,
-        row.student_bonus || 1,
-        row.bonus_time || 1,
+        studentBonus,
+        bonusTime,
         row.ll_code || 0,
-        row.ll_total || 0,
-        row.qc || 0,
+        llTotal,
+        calculateQc(llTotal, bonusTime, studentBonus),
         row.course_name || "",
         row.lecturer || "",
         row.major || "",
@@ -439,6 +450,25 @@ const confirmImport = async (req, res) => {
         0,
       ];
     });
+
+    const duplicateRows = await repo.findDraftUniqueConflicts(
+      connection,
+      values.map((row) => ({
+        course_name: row[8],
+        he_dao_tao: row[11],
+        dot: row[15],
+        ki_hoc: row[16],
+        nam_hoc: row[17],
+      }))
+    );
+    if (duplicateRows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        duplicate: true,
+        message: `Phát hiện ${duplicateRows.length} trường hợp trùng khóa trong dữ liệu import.`,
+        duplicates: duplicateRows,
+      });
+    }
 
     const [result] = await repo.insertDraft(connection, values);
 
