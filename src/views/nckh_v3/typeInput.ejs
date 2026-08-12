@@ -35,9 +35,12 @@
 
       <div class="form-row">
         <div class="form-col">
-          <label class="form-label">Xếp loại <span class="required">*</span></label>
-          <select id="xepLoai" class="form-select" required>
-            <option value="Đạt" selected>Đạt</option>
+          <label class="form-label">Xếp loại <% if (!selectedTypeMeta || selectedTypeMeta.requiredXepLoai !== false) { %><span class="required">*</span><% } %></label>
+          <select id="xepLoai" class="form-select" <%= (!selectedTypeMeta || selectedTypeMeta.requiredXepLoai !== false) ? 'required' : '' %>>
+            <% if (selectedTypeMeta && selectedTypeMeta.requiredXepLoai === false) { %>
+              <option value="" selected>-- Không bắt buộc --</option>
+            <% } %>
+            <option value="Đạt" <%= (!selectedTypeMeta || selectedTypeMeta.requiredXepLoai !== false) ? 'selected' : '' %>>Đạt</option>
             <option value="Giỏi">Giỏi</option>
             <option value="Xuất sắc">Xuất sắc</option>
           </select>
@@ -52,8 +55,8 @@
 
         <% if (selectedTypeMeta && selectedTypeMeta.showMaSo) { %>
           <div class="form-col">
-            <label class="form-label"><%= selectedTypeMeta.maSoLabel || 'Mã số' %> <span class="required">*</span></label>
-            <input id="maSo" type="text" class="form-control" required placeholder="Nhập mã số" />
+            <label class="form-label"><%= selectedTypeMeta.maSoLabel || 'Mã số' %> <% if (selectedTypeMeta.requiredMaSo !== false) { %><span class="required">*</span><% } %></label>
+            <input id="maSo" type="text" class="form-control" <%= selectedTypeMeta.requiredMaSo !== false ? 'required' : '' %> placeholder="Nhập mã số" />
           </div>
         <% } %>
 
@@ -68,8 +71,8 @@
       <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
         <div class="form-row">
           <div class="form-col">
-            <label class="form-label">Tên Tạp chí/Hội thảo</label>
-            <input id="tenTapChi" type="text" class="form-control" placeholder="Nhập tên Tạp chí/Hội thảo" />
+            <label class="form-label">Tên Tạp chí/Hội thảo <span class="required">*</span></label>
+            <input id="tenTapChi" type="text" class="form-control" required placeholder="Nhập tên Tạp chí/Hội thảo" />
           </div>
           <div class="form-col">
             <label class="form-label">Số báo</label>

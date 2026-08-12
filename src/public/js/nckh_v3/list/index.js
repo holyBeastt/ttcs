@@ -805,6 +805,11 @@
     }
     state.pendingApprovals.get(rowId).vienNcDuyet = vienNcDuyet;
 
+    // Viện bỏ duyệt thì khoa cũng tự động bỏ duyệt.
+    if (vienNcDuyet === 0) {
+      state.pendingApprovals.get(rowId).khoaDuyet = 0;
+    }
+
     updateSubmitButtonVisibility();
   }
 
@@ -850,6 +855,9 @@
         state.pendingApprovals.set(row.id, {});
       }
       state.pendingApprovals.get(row.id).vienNcDuyet = newValue;
+      if (newValue === 0) {
+        state.pendingApprovals.get(row.id).khoaDuyet = 0;
+      }
     }
 
     updateSubmitButtonVisibility();

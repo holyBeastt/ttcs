@@ -325,13 +325,21 @@ const updateBulkApprovals = async (updates) => {
     throw new Error("Danh sách cập nhật không hợp lệ");
   }
 
+  // Bỏ duyệt viện thì bắt buộc bỏ duyệt khoa theo.
+  const normalizedUpdates = updates.map((update) => {
+    if (update && Number(update.vienNcDuyet) === 0) {
+      return { ...update, khoaDuyet: 0 };
+    }
+    return { ...update };
+  });
+
   let connection;
   try {
     connection = await createPoolConnection();
     await connection.beginTransaction();
 
     // Validate each update and check constraints
-    for (const update of updates) {
+    for (const update of normalizedUpdates) {
       const { id, khoaDuyet, vienNcDuyet } = update;
 
       if (!id) {
@@ -344,24 +352,25 @@ const updateBulkApprovals = async (updates) => {
       }
 
       // Validate khoa approval constraints
-      if (khoaDuyet === 0 && Number(current.vien_nc_duyet) === 1) {
+      if (khoaDuyet === 0 && Number(current.vien_nc_duyet) === 1 && vienNcDuyet !== 0) {
         throw new Error(`Không thể bỏ duyệt khoa của công trình "${current.ten_cong_trinh}" khi viện đã duyệt`);
       }
 
       // Validate vien approval constraints
-      if (vienNcDuyet === 1 && Number(current.khoa_duyet) !== 1) {
+      const effectiveKhoaDuyet = khoaDuyet !== undefined ? Number(khoaDuyet) : Number(current.khoa_duyet);
+      if (vienNcDuyet === 1 && effectiveKhoaDuyet !== 1) {
         throw new Error(`Không thể duyệt viện của công trình "${current.ten_cong_trinh}" khi khoa chưa duyệt`);
       }
     }
 
     // All validations passed, proceed with updates
-    await nckhChungRepo.bulkUpdateApprovals(connection, updates);
+    await nckhChungRepo.bulkUpdateApprovals(connection, normalizedUpdates);
     await connection.commit();
 
     return {
       success: true,
-      message: `Cập nhật thành công ${updates.length} công trình`,
-      count: updates.length,
+      message: `Cập nhật thành công ${normalizedUpdates.length} công trình`,
+      count: normalizedUpdates.length,
     };
   } catch (error) {
     if (connection) await connection.rollback();

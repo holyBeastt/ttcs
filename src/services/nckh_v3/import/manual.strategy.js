@@ -3,6 +3,7 @@ const nhanVienRepo = require("../../../repositories/nckh_v3/nhanVien.repo");
 const formulaService = require("../formula.service");
 const NCKHImportStrategy = require("./strategy.interface");
 const validator = require("../../../validators/nckh_v3/typeInput.validator");
+const { NCKH_TYPE_OPTIONS } = require("../../../config/nckh_v3/types");
 
 const HOI_DONG_ROLES = new Set(["chu_tich", "phan_bien", "uy_vien"]);
 
@@ -24,6 +25,11 @@ class ManualInputStrategy extends NCKHImportStrategy {
     const { loaiNckh, mode } = options;
 
     validator.validateMainPayload(payload);
+
+    const typeMeta = (NCKH_TYPE_OPTIONS || []).find((item) => item.loaiNckh === loaiNckh) || {};
+    if (typeMeta.requiredTenTapChi && !String(payload.tenTapChi || "").trim()) {
+      throw new Error("Thiếu tên tạp chí/hội thảo");
+    }
 
     const tacGiaIds = Array.isArray(payload.tacGiaIds) ? payload.tacGiaIds : [];
     const thanhVienIds = Array.isArray(payload.thanhVienIds) ? payload.thanhVienIds : [];

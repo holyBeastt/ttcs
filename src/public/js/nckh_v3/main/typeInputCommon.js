@@ -149,9 +149,10 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
     if (!payload.phanLoai) missing.push("Phân loại");
     if (!payload.namHoc) missing.push("Năm học");
     if (!payload.tongSoTiet || Number(payload.tongSoTiet) <= 0) missing.push("Tổng số tiết");
-    if (!payload.xepLoai) missing.push("Xếp loại");
+    if (config.requiredXepLoai !== false && !payload.xepLoai) missing.push("Xếp loại");
     if (payload.loaiNckh !== "BAIBAO" && !payload.ngayNghiemThu) missing.push("Ngày nghiệm thu");
-    if (config.showMaSo && !payload.maSo) missing.push(config.maSoLabel || "Mã số");
+    if (config.showMaSo && config.requiredMaSo !== false && !payload.maSo) missing.push(config.maSoLabel || "Mã số");
+    if (config.requiredTenTapChi && !String(payload.tenTapChi || "").trim()) missing.push("Tên tạp chí/hội thảo");
     if (config.mode === "fixed" && !payload.vaiTro) missing.push("Vai trò");
 
     const hasTacGia = (payload.tacGiaIds || []).length > 0 || (payload.tacGiaNgoai || []).length > 0;
@@ -607,7 +608,7 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         if (addTacGiaLienHeBtn) addTacGiaLienHeBtn.style.display = "none";
         if (addThanhVienBtn) addThanhVienBtn.style.display = "none";
 
-        if (xepLoaiEl) xepLoaiEl.value = "Đạt";
+        if (xepLoaiEl) xepLoaiEl.value = config.requiredXepLoai === false ? "" : "Đạt";
         if (ngayNghiemThuEl) ngayNghiemThuEl.value = "";
         if (maSoEl) maSoEl.value = "";
         if (vaiTroHoiDongEl) vaiTroHoiDongEl.value = "chu_tich";
