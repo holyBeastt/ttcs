@@ -293,6 +293,26 @@ function describePreviewRow(dto) {
         + `${escapeHtml(fmt(dto.standardHours))} giờ quy chuẩn`;
 }
 
+function previewIssueMessages(preview) {
+    const rows = Array.isArray(preview.rows) ? preview.rows : [];
+    const messages = rows.flatMap((row) => {
+        const activityName = row.dto?.activityName || 'Bản ghi';
+        return [...(row.errors || []), ...(row.warnings || [])].map((issue) =>
+            `${escapeHtml(activityName)}: ${escapeHtml(issue.message)}`
+        );
+    });
+
+    if (messages.length > 0) return messages.slice(0, 10).join('<br>');
+
+    const summary = preview.summary || {};
+    const counts = [];
+    if (summary.invalid) counts.push(`${summary.invalid} lỗi`);
+    if (summary.duplicate) counts.push(`${summary.duplicate} bản ghi trùng`);
+    return counts.length > 0
+        ? `Không có bản ghi mới để lưu (${counts.join(', ')}).`
+        : 'Không có bản ghi hợp lệ để lưu.';
+}
+
 function getSectionTotal(sectionId) {
     return Math.max(0, Number(state.inputs[sectionId] || 0));
 }
@@ -432,14 +452,14 @@ async function handleFormSubmit(e) {
             throw new Error(preview.message || 'Không thể kiểm tra dữ liệu');
         }
         if (!preview.previewToken) {
-            const messages = (preview.errors || [])
-                .slice(0, 10)
-                .map((error) => `• ${escapeHtml(error.message)}`)
-                .join('<br>');
+            const summary = preview.summary || {};
+            const duplicateOnly = summary.duplicate > 0
+                && summary.valid === 0
+                && summary.invalid === 0;
             return Swal.fire({
-                title: 'Dữ liệu chưa hợp lệ',
-                html: messages || 'Không có bản ghi hợp lệ để lưu.',
-                icon: 'error'
+                title: duplicateOnly ? 'Bản ghi đã tồn tại' : 'Dữ liệu chưa hợp lệ',
+                html: previewIssueMessages(preview),
+                icon: duplicateOnly ? 'warning' : 'error'
             });
         }
 
