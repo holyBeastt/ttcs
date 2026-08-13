@@ -5,6 +5,11 @@ const tkbServices = require("../tkbServices");
 
 const mapper = require("../../mappers/vuotgio_v2/lnqc.mapper");
 const baseMapper = require("../../mappers/vuotgio_v2/base.mapper");
+const {
+    canCreateRecord,
+    canModifyRecord,
+    canChangeApproval,
+} = require("./lnqcPermission.service");
 
 const getUserContext = (req) => {
     if (!req.session?.userId) {
@@ -44,6 +49,9 @@ const save = async (req, res) => {
 
         if (!data.nam_hoc) {
             return res.status(400).json({ success: false, message: "Thiếu thông tin năm học" });
+        }
+        if (!canCreateRecord(req.session, data)) {
+            return res.status(403).json({ success: false, message: "Chỉ được thao tác dữ liệu của khoa mình." });
         }
         data = await calculateComputedFields(data);
 
@@ -99,7 +107,9 @@ const save = async (req, res) => {
 const getTable = async (req, res) => {
     const { Dot, KiHoc, NamHoc } = req.params;
     // enforceKhoaFilter middleware đã override req.params.Khoa nếu user là khoa
-    const Khoa = req.params.Khoa;
+    const Khoa = req.khoaFilter?.isKhoa
+        ? req.khoaFilter.MaPhongBan
+        : req.params.Khoa;
     let connection;
     try {
         connection = await createPoolConnection();
@@ -124,7 +134,17 @@ const edit = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
+        const existing = await repo.getDraftById(connection, id);
+        if (!existing) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy bản ghi." });
+        }
+        if (!canModifyRecord(req.session, existing)) {
+            return res.status(403).json({ success: false, message: "Bạn không có quyền sửa bản ghi này." });
+        }
         const mapped = await calculateComputedFields(mapper.toEntity(req.body));
+        if (!canCreateRecord(req.session, mapped)) {
+            return res.status(403).json({ success: false, message: "Chỉ được thao tác dữ liệu của khoa mình." });
+        }
         
         const allowedFields = ["course_name", "course_code", "credit_hours", "student_quantity", "student_bonus", "bonus_time", "ll_code", "ll_total", "qc", "lecturer", "major", "he_dao_tao", "note", "course_id"];
         const values = allowedFields.map((field) => mapped[field]);
@@ -167,6 +187,13 @@ const deleteRecord = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
+        const existing = await repo.getDraftById(connection, id);
+        if (!existing) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy bản ghi." });
+        }
+        if (!canModifyRecord(req.session, existing)) {
+            return res.status(403).json({ success: false, message: "Bạn không có quyền xóa bản ghi này." });
+        }
         const [result] = await connection.query(
             `DELETE FROM course_schedule_details WHERE id = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND class_type = ?`,
             [id, dot, ki_hoc, nam_hoc, "ngoai_quy_chuan"]
@@ -193,7 +220,10 @@ const deleteRecord = async (req, res) => {
 
 const deleteByFilter = async (req, res) => {
     const { userId, userName } = getUserContext(req);
-    const { nam_hoc, ki_hoc, dot, major } = req.body;
+    const { nam_hoc, ki_hoc, dot } = req.body;
+    const major = req.khoaFilter?.isKhoa
+        ? req.khoaFilter.MaPhongBan
+        : req.body.major;
 
     if (!nam_hoc) {
         return res.status(400).json({ success: false, message: "Cần chọn năm học" });
@@ -221,7 +251,10 @@ const deleteByFilter = async (req, res) => {
 
 const confirmToMain = async (req, res) => {
     const { userId, userName } = getUserContext(req);
-    const { major, dot, ki_hoc, nam_hoc } = req.body;
+    const { dot, ki_hoc, nam_hoc } = req.body;
+    const major = req.khoaFilter?.isKhoa
+        ? req.khoaFilter.MaPhongBan
+        : req.body.major;
 
     let connection;
     try {
@@ -349,7 +382,9 @@ const getChinhThuc = async (req, res) => {
     const { NamHoc } = req.params;
     const KiHoc = req.query.KiHoc || req.query.kiHoc || "ALL";
     // enforceKhoaFilter middleware đã override req.params.Khoa nếu user là khoa
-    const Khoa = req.params.Khoa;
+    const Khoa = req.khoaFilter?.isKhoa
+        ? req.khoaFilter.MaPhongBan
+        : req.params.Khoa;
     let connection;
     try {
         connection = await createPoolConnection();
@@ -374,6 +409,16 @@ const approve = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
+        const existing = await repo.getOfficialById(connection, ID);
+        if (!existing) return res.status(404).json({ success: false, message: "Không tìm thấy" });
+        const requested = {
+            khoa_duyet: existing.KhoaDuyet,
+            dao_tao_duyet: existing.DaoTaoDuyet,
+        };
+        requested[column] = 1;
+        if (!canChangeApproval(req.session, existing, requested)) {
+            return res.status(403).json({ success: false, message: "Bạn không có quyền duyệt bản ghi này." });
+        }
         const [result] = await repo.updateApproval(connection, ID, column, 1);
         if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Không tìm thấy" });
         try { await LogService.logChange(userId, userName, "Duyệt lớp ngoài QC", `Duyệt ${type} ID: ${ID}`); } catch (error) { console.error(error); }
@@ -397,6 +442,16 @@ const unapprove = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
+        const existing = await repo.getOfficialById(connection, ID);
+        if (!existing) return res.status(404).json({ success: false, message: "Không tìm thấy" });
+        const requested = {
+            khoa_duyet: existing.KhoaDuyet,
+            dao_tao_duyet: existing.DaoTaoDuyet,
+        };
+        requested[column] = 0;
+        if (!canChangeApproval(req.session, existing, requested)) {
+            return res.status(403).json({ success: false, message: "Bạn không có quyền bỏ duyệt bản ghi này." });
+        }
         const [result] = await repo.updateApproval(connection, ID, column, 0);
         if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Không tìm thấy" });
         try { await LogService.logChange(userId, userName, "Bỏ duyệt lớp ngoài QC", `Bỏ ${type} ID: ${ID}`); } catch (error) { console.error(error); }
@@ -432,6 +487,21 @@ const batchApprove = async (req, res) => {
             updateGroups[key].push(recordId);
         });
 
+        for (const record of records) {
+            const recordId = record.ID || record.id;
+            if (!recordId) continue;
+            const existing = await repo.getOfficialById(connection, recordId);
+            const requested = {
+                khoa_duyet: baseMapper.toInt(baseMapper.pick(record, "khoa_duyet", "KhoaDuyet", "khoaduyet"), 0),
+                dao_tao_duyet: baseMapper.toInt(baseMapper.pick(record, "dao_tao_duyet", "DaoTaoDuyet", "daotaoduyet"), 0),
+            };
+            if (!existing || !canChangeApproval(req.session, existing, requested)) {
+                const error = new Error("Bạn không có quyền cập nhật trạng thái duyệt của bản ghi này.");
+                error.code = "LNQC_APPROVAL_FORBIDDEN";
+                throw error;
+            }
+        }
+
         const updatedCount = await repo.batchUpdateApproval(connection, updateGroups);
         await connection.commit();
 
@@ -440,7 +510,8 @@ const batchApprove = async (req, res) => {
     } catch (error) {
         console.error("Lỗi batchApprove:", error);
         if (connection) await connection.rollback();
-        res.status(500).json({ success: false, message: "Có lỗi xảy ra" });
+        res.status(error.code === "LNQC_APPROVAL_FORBIDDEN" ? 403 : 500)
+            .json({ success: false, message: error.message || "Có lỗi xảy ra" });
     } finally {
         if (connection) connection.release();
     }
@@ -462,7 +533,15 @@ const editChinhThuc = async (req, res) => {
         });
 
         connection = await createPoolConnection();
+        const existing = await repo.getOfficialById(connection, ID);
+        if (!existing) return res.status(404).json({ success: false, message: "Không tìm thấy bản ghi" });
+        if (!canModifyRecord(req.session, existing)) {
+            return res.status(403).json({ success: false, message: "Bạn không có quyền sửa bản ghi này." });
+        }
         const data = mapper.toEntity(req.body);
+        if (!canCreateRecord(req.session, data)) {
+            return res.status(403).json({ success: false, message: "Chỉ được thao tác dữ liệu của khoa mình." });
+        }
         console.log("[LNQC][editChinhThuc] mapped he_dao_tao:", data.he_dao_tao);
         const values = [
             data.nam_hoc,
@@ -513,6 +592,11 @@ const deleteChinhThuc = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
+        const existing = await repo.getOfficialById(connection, ID);
+        if (!existing) return res.status(404).json({ success: false, message: "Không tìm thấy bản ghi" });
+        if (!canModifyRecord(req.session, existing)) {
+            return res.status(403).json({ success: false, message: "Bạn không có quyền xóa bản ghi này." });
+        }
         const [result] = await repo.deleteOfficial(connection, ID);
         if (result.affectedRows === 0) return res.status(404).json({ success: false, message: "Không tìm thấy bản ghi" });
         try { await LogService.logChange(userId, userName, "Xóa lớp ngoài QC (chính thức)", `ID: ${ID}`); } catch (error) { console.error(error); }

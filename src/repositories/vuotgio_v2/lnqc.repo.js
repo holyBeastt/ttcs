@@ -90,6 +90,15 @@ const getDraftTable = async (connection, { dot, kiHoc, namHoc, khoa }) => {
     return rows;
 };
 
+const getDraftById = async (connection, id) => {
+    const [rows] = await connection.execute(
+        `SELECT ${buildDraftSelect()} FROM ${DRAFT_TABLE}
+         WHERE id = ? AND class_type = ? LIMIT 1`,
+        [id, "ngoai_quy_chuan"]
+    );
+    return rows[0] || null;
+};
+
 const insertDraft = async (connection, values) => {
     const query = `
         INSERT INTO ${DRAFT_TABLE}
@@ -212,6 +221,14 @@ const getOfficialTable = async (connection, { namHoc, khoa, kiHoc }) => {
     return rows;
 };
 
+const getOfficialById = async (connection, id) => {
+    const [rows] = await connection.execute(
+        `SELECT ${buildOfficialSelect()} FROM ${LNQC_TABLE} WHERE id = ? LIMIT 1`,
+        [id]
+    );
+    return rows[0] || null;
+};
+
 const insertOfficialBatch = async (connection, insertValues) => {
     const query = `
         INSERT INTO ${LNQC_TABLE}
@@ -278,11 +295,13 @@ module.exports = {
     buildDraftSelect,
     buildOfficialSelect,
     getDraftTable,
+    getDraftById,
     insertDraft,
     findDraftUniqueConflicts,
     updateDraftSaved,
     deleteDraftByFilter,
     getOfficialTable,
+    getOfficialById,
     insertOfficialBatch,
     updateOfficial,
     deleteOfficial,

@@ -74,17 +74,19 @@ const canChangeApproval = (session, record, requested) => {
         if (nextKhaoThi !== currentKhaoThi) return false;
         if (nextKhoa === currentKhoa) return true;
         if (currentKhaoThi === 1) return false;
+        // GV_CNBM chỉ mở duyệt cấp khoa; lãnh đạo khoa được duyệt và bỏ duyệt.
         return role === gvCnbm
             ? currentKhoa === 0 && nextKhoa === 1
-            : currentKhoa === 1 && nextKhoa === 0;
+            : true;
     }
 
     if (maPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong)) {
         if (nextKhoa !== currentKhoa) return false;
         if (nextKhaoThi === currentKhaoThi) return true;
+        // Trợ lý chỉ mở duyệt; lãnh đạo phòng được duyệt và bỏ duyệt.
         return role === troLyPhong
             ? currentKhoa === 1 && currentKhaoThi === 0 && nextKhaoThi === 1
-            : currentKhaoThi === 1 && nextKhaoThi === 0;
+            : currentKhoa === 1;
     }
 
     return false;

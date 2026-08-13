@@ -74,7 +74,6 @@ function setupColumnVisibility() {
     const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
-    const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
 
     const checkAllKhoa = document.getElementById('checkAllKhoa');
     const checkAllDaoTao = document.getElementById('checkAllDaoTao');
@@ -83,13 +82,13 @@ function setupColumnVisibility() {
     if (checkAllKhoa) checkAllKhoa.disabled = true;
     if (checkAllDaoTao) checkAllDaoTao.disabled = true;
 
-    // Khoa: GV_CNBM duyệt (check), Lãnh đạo khoa bỏ duyệt (uncheck)
+    // Khoa: GV_CNBM duyệt; Lãnh đạo khoa duyệt/bỏ duyệt
     if (role === gvCnbm || role === lanhDaoKhoa) {
         if (checkAllKhoa) checkAllKhoa.disabled = false;
     }
 
-    // Phòng ĐT/VP: Trợ lý duyệt (check), Lãnh đạo phòng bỏ duyệt (uncheck)
-    if ((MaPhongBan === daoTao || MaPhongBan === vanPhong) && (role === troLyPhong || role === lanhDaoPhong)) {
+    // Phòng Đào tạo: Trợ lý duyệt; Lãnh đạo phòng duyệt/bỏ duyệt.
+    if (MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong)) {
         if (checkAllDaoTao) checkAllDaoTao.disabled = false;
     }
 }
@@ -104,15 +103,14 @@ function setupUpdateButtonVisibility() {
     const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
-    const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
 
-    // Khoa: GV_CNBM duyệt, Lãnh đạo khoa bỏ duyệt
+    // Khoa: GV_CNBM duyệt; Lãnh đạo khoa duyệt/bỏ duyệt
     if (role === gvCnbm || role === lanhDaoKhoa) {
         updateBtn.style.display = 'flex';
     }
-    // Phòng (ĐT/VP): Trợ lý duyệt, Lãnh đạo phòng bỏ duyệt
-    else if ((MaPhongBan === daoTao || MaPhongBan === vanPhong) && (role === troLyPhong || role === lanhDaoPhong)) {
+    // Phòng Đào tạo: Trợ lý duyệt; Lãnh đạo phòng duyệt/bỏ duyệt
+    else if (MaPhongBan === daoTao && (role === troLyPhong || role === lanhDaoPhong)) {
         updateBtn.style.display = 'flex';
     }
     // Ban Giám đốc: toàn quyền
@@ -132,7 +130,8 @@ function canEditDelete(data) {
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
 
-    const isKhoaEditor = role === gvCnbm || role === lanhDaoKhoa;
+    const isKhoaEditor = (role === gvCnbm || role === lanhDaoKhoa)
+        && data.Khoa === maPhongBan;
     const isDaoTaoEditor = maPhongBan === daoTao
         && (role === troLyPhong || role === lanhDaoPhong);
 
@@ -148,7 +147,7 @@ function canEditDelete(data) {
  * @param {'khoa'|'daoTao'} type - Loại duyệt
  * @param {'check'|'uncheck'} action - Hành động (check = duyệt, uncheck = bỏ duyệt)
  */
-function canApprove(type, action) {
+function canApprove(type, action, row = null) {
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const role = localStorage.getItem('userRole');
 
@@ -157,26 +156,27 @@ function canApprove(type, action) {
     const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
-    const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
 
     // Ban Giám đốc có toàn quyền
     if (MaPhongBan === banGiamDoc) return true;
 
     if (type === 'khoa') {
+        if (row && (role === gvCnbm || role === lanhDaoKhoa)
+            && row.Khoa !== MaPhongBan) return false;
         // GV_CNBM: chỉ được duyệt (check)
         if (role === gvCnbm && action === 'check') return true;
-        // Lãnh đạo khoa: chỉ được bỏ duyệt (uncheck)
-        if (role === lanhDaoKhoa && action === 'uncheck') return true;
+        // Lãnh đạo khoa được duyệt và bỏ duyệt.
+        if (role === lanhDaoKhoa && (action === 'check' || action === 'uncheck')) return true;
         return false;
     }
 
     if (type === 'daoTao') {
-        if (MaPhongBan !== daoTao && MaPhongBan !== vanPhong) return false;
-        // Trợ lý: chỉ được duyệt (check)
+        if (MaPhongBan !== daoTao) return false;
+        // Trợ lý chỉ được duyệt (check)
         if (role === troLyPhong && action === 'check') return true;
-        // Lãnh đạo phòng: chỉ được bỏ duyệt (uncheck)
-        if (role === lanhDaoPhong && action === 'uncheck') return true;
+        // Lãnh đạo phòng được duyệt và bỏ duyệt.
+        if (role === lanhDaoPhong && (action === 'check' || action === 'uncheck')) return true;
         return false;
     }
 
@@ -316,7 +316,6 @@ function renderTable(data) {
     const role = localStorage.getItem('userRole');
 
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DT';
-    const vanPhong = window.APP_DEPARTMENTS?.vanPhong || 'VP';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGD';
     const troLyPhong = window.APP_ROLES?.troLy_phong || 'troLy_phong';
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'lanhDao_phong';
@@ -439,11 +438,11 @@ function renderTable(data) {
             khoaCheckbox.checked = true;
             khoaCheckbox.disabled = true;
         } else if (row.KhoaDuyet === 1) {
-            // Đã duyệt Khoa → chỉ Lãnh đạo khoa mới bỏ duyệt được
-            khoaCheckbox.disabled = !canApprove('khoa', 'uncheck');
+            // Đã duyệt Khoa → lãnh đạo khoa mới được bỏ duyệt
+            khoaCheckbox.disabled = !canApprove('khoa', 'uncheck', row);
         } else {
-            // Chưa duyệt Khoa → chỉ GV_CNBM mới duyệt được
-            khoaCheckbox.disabled = !canApprove('khoa', 'check');
+            // Chưa duyệt Khoa → GV_CNBM hoặc lãnh đạo khoa được duyệt
+            khoaCheckbox.disabled = !canApprove('khoa', 'check', row);
         }
         khoaCheckTd.appendChild(khoaCheckbox);
         tableRow.appendChild(khoaCheckTd);
@@ -458,14 +457,14 @@ function renderTable(data) {
 
         // Phân quyền checkbox Đào tạo
         if (row.DaoTaoDuyet === 1) {
-            // Đã duyệt → chỉ Lãnh đạo phòng mới bỏ duyệt được
-            dtCheckbox.disabled = !canApprove('daoTao', 'uncheck');
+            // Đã duyệt → lãnh đạo phòng mới được bỏ duyệt
+            dtCheckbox.disabled = !canApprove('daoTao', 'uncheck', row);
         } else if (row.KhoaDuyet !== 1) {
             // Khoa chưa duyệt → không cho duyệt ĐT
             dtCheckbox.disabled = true;
         } else {
-            // Khoa đã duyệt, ĐT chưa duyệt → chỉ Trợ lý mới duyệt được
-            dtCheckbox.disabled = !canApprove('daoTao', 'check');
+            // Khoa đã duyệt, ĐT chưa duyệt → Trợ lý hoặc lãnh đạo phòng được duyệt
+            dtCheckbox.disabled = !canApprove('daoTao', 'check', row);
         }
         dtCheckTd.appendChild(dtCheckbox);
         tableRow.appendChild(dtCheckTd);
@@ -588,7 +587,7 @@ function updateDaoTaoCheckboxes() {
                 khoaCheckbox.checked = true;
                 khoaCheckbox.disabled = true;
                 dtCheckbox.checked = true;
-                dtCheckbox.disabled = !canApprove('daoTao', 'uncheck');
+                dtCheckbox.disabled = !canApprove('daoTao', 'uncheck', data);
                 return;
             }
             
@@ -596,7 +595,7 @@ function updateDaoTaoCheckboxes() {
                 dtCheckbox.disabled = true;
                 dtCheckbox.checked = false;
             } else {
-                dtCheckbox.disabled = !canApprove('daoTao', 'check');
+                dtCheckbox.disabled = !canApprove('daoTao', 'check', data);
             }
         }
     });
