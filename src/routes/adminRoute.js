@@ -60,6 +60,7 @@ const {
   updatePassword,
   postNamHoc,
   deleteNamHoc,
+  updateNamHocStatus,
   getNamHocList,
   addMessage,
   updateMessage,
@@ -147,6 +148,7 @@ router.post("/changePassword", updatePassword);
 router.get("/namHoc", getNamHocList);
 router.post("/namHoc", postNamHoc);
 router.delete("/namHoc/:NamHoc", deleteNamHoc);
+router.put("/namHoc/:NamHoc/status", updateNamHocStatus);
 
 //lấy dữ liệu hiển thị vào thẻ select
 router.get("/getNamHoc", getNamHoc);

@@ -285,7 +285,7 @@ const getNamHocList = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const query = `SELECT *FROM namhoc ORDER BY NamHoc ASC`;
+    const query = `SELECT * FROM namhoc ORDER BY trangthai DESC, NamHoc ASC`;
     const [results] = await connection.query(query);
     res.render("namHoc.ejs", { NamHoc: results });
   } catch (error) {
@@ -295,6 +295,97 @@ const getNamHocList = async (req, res) => {
     if (connection) connection.release(); // Trả lại connection cho pool
   }
 };
+
+const updateNamHocStatus = async (req, res) => {
+  const NamHoc = String(req.params.NamHoc || "").trim();
+  let connection;
+  let transactionStarted = false;
+
+  if (!NamHoc) {
+    return res.status(400).json({
+      success: false,
+      message: "Thiếu năm học cần kích hoạt.",
+    });
+  }
+
+  try {
+    connection = await createPoolConnection();
+    await connection.beginTransaction();
+    transactionStarted = true;
+
+    const [yearRows] = await connection.query(
+      "SELECT NamHoc, trangthai FROM namhoc WHERE NamHoc = ? FOR UPDATE",
+      [NamHoc]
+    );
+
+    if (yearRows.length === 0) {
+      await connection.rollback();
+      transactionStarted = false;
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy năm học.",
+      });
+    }
+
+    const currentStatus = Number(yearRows[0].trangthai) === 1;
+
+    if (currentStatus) {
+      // Tắt năm học hiện tại.
+      await connection.query(
+        "UPDATE namhoc SET trangthai = 0 WHERE NamHoc = ?",
+        [NamHoc]
+      );
+    } else {
+      // Khi bật, chỉ cho phép một năm học ở trạng thái đang hoạt động.
+      await connection.query("UPDATE namhoc SET trangthai = 0");
+      await connection.query(
+        "UPDATE namhoc SET trangthai = 1 WHERE NamHoc = ?",
+        [NamHoc]
+      );
+    }
+
+    try {
+      const userId = req.session?.userId || 1;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || "ADMIN";
+      const khoa = req.session?.MaPhongBan || "DAOTAO";
+      const logSql = `INSERT INTO lichsunhaplieu
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())`;
+      await connection.query(logSql, [
+        userId,
+        tenNhanVien,
+        khoa,
+        "Admin Log",
+        `Admin ${currentStatus ? "tắt" : "bật"} trạng thái năm học: ${NamHoc}`,
+      ]);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log đổi trạng thái năm học:", logError);
+    }
+
+    await connection.commit();
+    transactionStarted = false;
+    return res.json({
+      success: true,
+      message: currentStatus
+        ? `Đã tắt trạng thái năm học ${NamHoc}.`
+        : `Đã bật trạng thái năm học ${NamHoc}.`,
+      NamHoc,
+      trangthai: currentStatus ? 0 : 1,
+    });
+  } catch (error) {
+    if (transactionStarted && connection) {
+      await connection.rollback().catch(() => {});
+    }
+    console.error("Lỗi khi cập nhật trạng thái năm học:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Không thể cập nhật trạng thái năm học.",
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 const postNamHoc = async (req, res) => {
   const NamHoc = req.body.NamHoc;
   const connection = await createPoolConnection();
@@ -883,6 +974,7 @@ module.exports = {
   getNamHocList,
   postNamHoc,
   deleteNamHoc,
+  updateNamHocStatus,
   addMessage,
   updateMessage,
   deleteMessage,
