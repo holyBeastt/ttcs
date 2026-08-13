@@ -334,8 +334,9 @@
         const tacGia = formatMultilineCell(row.tacGiaChinhDisplay || row.tacGiaChinh || "");
         const thanhVien = formatMultilineCell(row.thanhVienDisplay || row.thanhVien || "");
 
-        const deleteBtn = state.permission.canApprove
-          ? `<button class="btn-action btn btn-outline-danger ${currentVienDuyet === 1 ? 'disabled' : ''}" data-action="delete" data-id="${row.id}" ${currentVienDuyet === 1 ? 'disabled' : ''} title="Xóa">
+        const canDeleteRow = state.permission.canDelete && currentKhoaDuyet !== 1 && currentVienDuyet !== 1;
+        const deleteBtn = state.permission.canDelete
+          ? `<button class="btn-action btn btn-outline-danger ${canDeleteRow ? '' : 'disabled'}" data-action="delete" data-id="${row.id}" ${canDeleteRow ? '' : 'disabled'} title="Xóa">
                <i class="bi bi-trash"></i>
              </button>`
           : "";
