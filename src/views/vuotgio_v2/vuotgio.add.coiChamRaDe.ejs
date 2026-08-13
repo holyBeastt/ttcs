@@ -306,6 +306,15 @@
             padding-left: 0;
         }
 
+        .direct-qc-header,
+        .direct-qc-row {
+            grid-template-columns: 1fr 180px;
+        }
+
+        .direct-qc-header span:last-child {
+            text-align: center;
+        }
+
         .item-row {
             border-bottom: 1px solid var(--border);
             transition: background 0.1s;
@@ -590,39 +599,17 @@
                     </a>
                 </div>
 
-                <div class="meta-grid">
-                    <div>
-                        <label class="form-label">Năm học <span class="required">*</span></label>
-                        <select id="namHocForm" class="form-select namHoc" required></select>
-                    </div>
-                    <div>
-                        <label class="form-label">Học kỳ</label>
-                        <select id="hocKyForm" class="form-select">
-                            <option value="1">Học kỳ 1</option>
-                            <option value="2">Học kỳ 2</option>
-                            <option value="3">Học kỳ hè</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="form-label">Đợt</label>
-                        <select id="dotForm" class="form-select">
-                            <option value="1">Đợt 1</option>
-                            <option value="2">Đợt 2</option>
-                            <option value="3">Đợt 3</option>
-                            <option value="4">Đợt 4</option>
-                            <option value="5">Đợt 5</option>
-                        </select>
-                    </div>
+                <div class="meta-grid d-none">
                     <div>
                         <label class="form-label">Khoa <span class="required">*</span></label>
-                        <select id="khoaForm" class="form-select khoa" required></select>
+                        <select id="khoaForm" class="form-select khoa"></select>
                     </div>
                 </div>
 
-                <div class="meta-grid-2">
+                <div class="meta-grid-2 d-none">
                     <div>
                         <label class="form-label">Tên học phần <span class="required">*</span></label>
-                        <input type="text" id="tenHPForm" class="form-control" placeholder="Nhập tên học phần" required />
+                        <input type="text" id="tenHPForm" class="form-control" placeholder="Nhập tên học phần" />
                     </div>
                     <div>
                         <label class="form-label">Mã HP</label>
@@ -642,12 +629,16 @@
                         <div id="suggestionContainer" class="suggestion-list"></div>
                     </div>
                     <div>
-                        <label class="form-label">Lớp</label>
-                        <input type="text" id="lopForm" class="form-control" placeholder="VD: CNTT01" />
+                        <label class="form-label">Năm học <span class="required">*</span></label>
+                        <select id="namHocForm" class="form-select namHoc" required></select>
                     </div>
                     <div>
-                        <label class="form-label">Số SV</label>
-                        <input type="number" id="siSoForm" class="form-control" value="0" min="0" />
+                        <label class="form-label">Kỳ</label>
+                        <select id="hocKyForm" class="form-select">
+                            <option value="1" selected>Kỳ 1</option>
+                            <option value="2">Kỳ 2</option>
+                            <option value="3">Kỳ hè</option>
+                        </select>
                     </div>
                 </div>
 
@@ -659,16 +650,22 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Hình thức thi</label>
-                        <input type="text" id="hinhThucThiForm" class="form-control" placeholder="Tự luận, trắc nghiệm..." />
+                        <label class="form-label">Đợt</label>
+                        <select id="dotForm" class="form-select">
+                            <option value="1" selected>Đợt 1</option>
+                            <option value="2">Đợt 2</option>
+                            <option value="3">Đợt 3</option>
+                            <option value="4">Đợt 4</option>
+                            <option value="5">Đợt 5</option>
+                        </select>
                     </div>
-                    <div>
+                    <div class="d-none">
                         <label class="form-label">Hệ số</label>
                         <input type="number" id="heSoForm" class="form-control" min="0" step="0.01" value="0" />
                     </div>
                 </div>
 
-                <div class="meta-grid-3">
+                <div class="meta-grid-3 d-none">
                     <div>
                         <label class="form-label">Ngày thi</label>
                         <input type="date" id="ngayThiForm" class="form-control" />
@@ -683,7 +680,7 @@
                     </div>
                 </div>
 
-                <div class="meta-grid-3">
+                <div class="meta-grid-3 d-none">
                     <div>
                         <label class="form-label">Phòng thi</label>
                         <input type="text" id="phongThiForm" class="form-control" />
@@ -697,25 +694,6 @@
                 <div>
                     <label class="form-label">Ghi chú</label>
                     <input type="text" id="ghiChuForm" class="form-control" placeholder="Ghi chú (nếu có)" />
-                </div>
-            </div>
-
-            <div class="summary-grid">
-                <div class="sum-card">
-                    <div class="sc-label">Ra đề thi</div>
-                    <div><span class="sc-val" id="sum1">0,00</span> <span class="sc-unit">giờ</span></div>
-                </div>
-                <div class="sum-card">
-                    <div class="sc-label">Coi thi, giám sát</div>
-                    <div><span class="sc-val" id="sum2">0,00</span> <span class="sc-unit">giờ</span></div>
-                </div>
-                <div class="sum-card">
-                    <div class="sc-label">Chấm thi</div>
-                    <div><span class="sc-val" id="sum3">0,00</span> <span class="sc-unit">giờ</span></div>
-                </div>
-                <div class="sum-card">
-                    <div class="sc-label">Ngân hàng câu hỏi</div>
-                    <div><span class="sc-val" id="sum4">0,00</span> <span class="sc-unit">giờ</span></div>
                 </div>
             </div>
 

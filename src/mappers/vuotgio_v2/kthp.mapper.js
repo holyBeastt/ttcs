@@ -176,11 +176,6 @@ const toPersistenceModel = (body, references = {}) => {
                 "phongThi"
             )),
         };
-        if (!detail.examDate) {
-            const error = new Error("Coi thi bắt buộc phải có ngày thi");
-            error.code = "EXAM_DATE_REQUIRED";
-            throw error;
-        }
         if (detail.duration !== null
             && (!Number.isInteger(detail.duration) || detail.duration < 0)) {
             const error = new Error("Thời gian thi phải là số nguyên không âm");

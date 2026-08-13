@@ -11,16 +11,8 @@ class CoiThiImportPolicy extends KthpTypePolicy {
     }
 
     validate(dto) {
-        const issues = super.validate(dto);
-        if (!dto.exam?.date) {
-            issues.push({
-                severity: "error",
-                code: "EXAM_DATE_REQUIRED",
-                field: "exam.date",
-                message: "Coi thi bắt buộc phải có ngày thi",
-            });
-        }
-        return issues;
+        // Ngày thi là metadata tùy chọn; manual aggregate input không nhập ngày.
+        return super.validate(dto);
     }
 
     toPersistenceModel(dto) {

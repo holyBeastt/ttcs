@@ -101,7 +101,6 @@ const assertParent = (parent) => {
         "academicYear",
         "round",
         "activityType",
-        ...(parent.activityType === KTHP_TYPES.COI_THI ? [] : ["courseName"]),
         "educationSystemId",
         "standardHours",
     ];
@@ -148,17 +147,15 @@ const insertParent = async (connection, parent) => {
     return result.insertId;
 };
 
-const assertDetail = (detailKind, detail) => {
+const assertDetail = (detailKind, detail, { allowEmptyDetail = false } = {}) => {
     if (detailKind === KTHP_DETAIL_KINDS.RA_DE) {
-        if (!Number.isInteger(detail?.quantity) || detail.quantity <= 0) {
+        if (!Number.isInteger(detail?.quantity)
+            || (allowEmptyDetail ? detail.quantity < 0 : detail.quantity <= 0)) {
             throw new Error("Invalid KTHP RA_DE detail");
         }
         return;
     }
     if (detailKind === KTHP_DETAIL_KINDS.COI_THI) {
-        if (!detail?.examDate) {
-            throw new Error("Invalid KTHP COI_THI detail");
-        }
         if (detail.duration !== null
             && detail.duration !== undefined
             && (!Number.isInteger(detail.duration) || detail.duration < 0)) {
@@ -167,9 +164,9 @@ const assertDetail = (detailKind, detail) => {
         return;
     }
     if (detailKind === KTHP_DETAIL_KINDS.CHAM_THI) {
-        if (!detail?.role
-            || !Number.isInteger(detail.markedCount)
-            || detail.markedCount <= 0) {
+        if ((!allowEmptyDetail && !detail?.role)
+            || !Number.isInteger(detail?.markedCount)
+            || (allowEmptyDetail ? detail.markedCount < 0 : detail.markedCount <= 0)) {
             throw new Error("Invalid KTHP CHAM_THI detail");
         }
         return;
@@ -177,9 +174,9 @@ const assertDetail = (detailKind, detail) => {
     throw new Error(`Unsupported KTHP detail kind: ${detailKind}`);
 };
 
-const insertDetail = async (connection, kthpId, detailKind, detail) => {
+const insertDetail = async (connection, kthpId, detailKind, detail, options = {}) => {
     if (!Number(kthpId)) throw new Error("Missing KTHP parent id");
-    assertDetail(detailKind, detail);
+    assertDetail(detailKind, detail, options);
     if (detailKind === KTHP_DETAIL_KINDS.RA_DE) {
         await connection.execute(
             `INSERT INTO ${TABLES.RA_DE} (kthp_id, so_luong) VALUES (?, ?)`,
@@ -223,7 +220,10 @@ const create = async (connection, model) => {
         throw new Error("KTHP parent type and detail kind do not match");
     }
     const id = await insertParent(connection, model.parent);
-    await insertDetail(connection, id, model.detailKind, model.detail);
+    await insertDetail(connection, id, model.detailKind, model.detail, {
+        // Manual aggregate records have no course metadata; their detail is 0/NULL.
+        allowEmptyDetail: model.parent.courseName === null,
+    });
     return id;
 };
 
@@ -290,8 +290,8 @@ const updateParent = async (connection, id, parent) => {
     return result;
 };
 
-const updateDetail = async (connection, id, detailKind, detail) => {
-    assertDetail(detailKind, detail);
+const updateDetail = async (connection, id, detailKind, detail, options = {}) => {
+    assertDetail(detailKind, detail, options);
     if (detailKind === KTHP_DETAIL_KINDS.RA_DE) {
         const [result] = await connection.execute(
             `UPDATE ${TABLES.RA_DE} SET so_luong = ? WHERE kthp_id = ?`,
@@ -330,7 +330,9 @@ const update = async (connection, id, model) => {
     }
     const parentResult = await updateParent(connection, id, model.parent);
     if (parentResult.affectedRows !== 1) return parentResult;
-    const detailResult = await updateDetail(connection, id, model.detailKind, model.detail);
+    const detailResult = await updateDetail(connection, id, model.detailKind, model.detail, {
+        allowEmptyDetail: model.parent.courseName === null,
+    });
     if (detailResult.affectedRows !== 1) {
         throw new Error(`KTHP detail missing for parent ${id}`);
     }

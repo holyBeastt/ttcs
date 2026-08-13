@@ -11,7 +11,13 @@ const getActor = (req) => ({
 });
 
 const getContext = (req) => {
-    const source = { ...(req.body?.context || {}), ...(req.body || {}) };
+    // Manual input keeps metadata under input.common; flatten it into the
+    // preview context so commit-time data-lock validation can read namHoc.
+    const source = {
+        ...(req.body?.input?.common || {}),
+        ...(req.body?.context || {}),
+        ...(req.body || {}),
+    };
     return {
         academicYear: source.academicYear || source.namHoc || source.Nam || source.nam,
         semester: source.semester || source.hocKy || source.Ki || source.ki,

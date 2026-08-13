@@ -12,7 +12,9 @@ class ChamThiImportPolicy extends KthpTypePolicy {
 
     validate(dto) {
         const issues = super.validate(dto);
-        if (!dto.course?.name) {
+        // Manual aggregate input stores only quy_chuan; detail fields may be empty/zero.
+        const isManualAggregate = dto.source === "MANUAL";
+        if (!isManualAggregate && !dto.course?.name) {
             issues.push({
                 severity: "error",
                 code: "COURSE_NAME_REQUIRED",
@@ -20,7 +22,7 @@ class ChamThiImportPolicy extends KthpTypePolicy {
                 message: "Thiếu tên học phần",
             });
         }
-        if (!dto.exam?.role) {
+        if (!isManualAggregate && !dto.exam?.role) {
             issues.push({
                 severity: "error",
                 code: "ROLE_REQUIRED",
@@ -28,7 +30,8 @@ class ChamThiImportPolicy extends KthpTypePolicy {
                 message: "Thiếu vai trò chấm thi",
             });
         }
-        if (!Number.isInteger(dto.exam?.markedCount) || dto.exam.markedCount <= 0) {
+        if (!isManualAggregate
+            && (!Number.isInteger(dto.exam?.markedCount) || dto.exam.markedCount <= 0)) {
             issues.push({
                 severity: "error",
                 code: "MARKED_COUNT_REQUIRED",

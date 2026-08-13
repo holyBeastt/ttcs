@@ -5,7 +5,9 @@ const KthpTypePolicy = require("./kthpType.policy");
 class RaDeImportPolicy extends KthpTypePolicy {
     validate(dto) {
         const issues = super.validate(dto);
-        if (!dto.course?.name) {
+        // Manual aggregate input stores only quy_chuan; detail fields may be empty/zero.
+        const isManualAggregate = dto.source === "MANUAL";
+        if (!isManualAggregate && !dto.course?.name) {
             issues.push({
                 severity: "error",
                 code: "COURSE_NAME_REQUIRED",
@@ -13,7 +15,8 @@ class RaDeImportPolicy extends KthpTypePolicy {
                 message: "Thiếu tên học phần",
             });
         }
-        if (!Number.isInteger(dto.exam?.quantity) || dto.exam.quantity <= 0) {
+        if (!isManualAggregate
+            && (!Number.isInteger(dto.exam?.quantity) || dto.exam.quantity <= 0)) {
             issues.push({
                 severity: "error",
                 code: "QUANTITY_REQUIRED",

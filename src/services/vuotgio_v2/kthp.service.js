@@ -208,7 +208,6 @@ const edit = async (req, res) => {
             "SEMESTER_INVALID",
             "ROUND_INVALID",
             "STANDARD_HOURS_INVALID",
-            "EXAM_DATE_REQUIRED",
             "EXAM_DURATION_INVALID",
             "SHIFT_COUNT_INVALID",
             "QUANTITY_INVALID",
