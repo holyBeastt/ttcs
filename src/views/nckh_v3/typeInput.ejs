@@ -4,7 +4,7 @@
 
       <div class="form-row">
         <div class="form-col-full">
-          <label class="form-label">Tên công trình <span class="required">*</span></label>
+          <label class="form-label" for="tenCongTrinh">Tên công trình <span class="required">*</span></label>
           <input id="tenCongTrinh" class="form-control" required />
         </div>
       </div>
@@ -12,7 +12,7 @@
       <div class="form-row">
         <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
           <div class="form-col">
-            <label class="form-label">Nhóm bài báo <span class="required">*</span></label>
+            <label class="form-label" for="baiBaoGroup">Nhóm bài báo <span class="required">*</span></label>
             <select id="baiBaoGroup" class="form-select" required>
               <option value="TAP_CHI">Tạp chí</option>
               <option value="HOI_NGHI">Hội nghị</option>
@@ -21,21 +21,21 @@
         <% } %>
 
         <div class="form-col">
-          <label class="form-label">Phân loại <span class="required">*</span></label>
+          <label class="form-label" for="phanLoai">Phân loại <span class="required">*</span></label>
           <select id="phanLoai" class="form-select" required>
             <option value=""><%= (selectedTypeMeta && selectedTypeMeta.phanLoaiPlaceholder) || '-- Chọn phân loại --' %></option>
           </select>
         </div>
 
         <div class="form-col">
-          <label class="form-label">Năm học <span class="required">*</span></label>
+          <label class="form-label" for="namHoc">Năm học <span class="required">*</span></label>
           <select id="namHoc" class="form-select" required></select>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-col">
-          <label class="form-label">Xếp loại <% if (!selectedTypeMeta || selectedTypeMeta.requiredXepLoai !== false) { %><span class="required">*</span><% } %></label>
+          <label class="form-label" for="xepLoai">Xếp loại <% if (!selectedTypeMeta || selectedTypeMeta.requiredXepLoai !== false) { %><span class="required">*</span><% } %></label>
           <select id="xepLoai" class="form-select" <%= (!selectedTypeMeta || selectedTypeMeta.requiredXepLoai !== false) ? 'required' : '' %>>
             <% if (selectedTypeMeta && selectedTypeMeta.requiredXepLoai === false) { %>
               <option value="" selected>-- Không bắt buộc --</option>
@@ -48,14 +48,14 @@
 
         <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh !== 'BAIBAO') { %>
           <div class="form-col">
-            <label class="form-label">Ngày nghiệm thu <span class="required">*</span></label>
+            <label class="form-label" for="ngayNghiemThu">Ngày nghiệm thu <span class="required">*</span></label>
             <input id="ngayNghiemThu" type="date" class="form-control" required />
           </div>
         <% } %>
 
         <% if (selectedTypeMeta && selectedTypeMeta.showMaSo) { %>
           <div class="form-col">
-            <label class="form-label">
+            <label class="form-label" for="maSo">
               <% if (selectedTypeMeta.loaiNckh === 'DETAI_DUAN' || selectedTypeMeta.loaiNckh === 'HUONGDAN') { %>
                 Mã đề tài
               <% } else if (selectedTypeMeta.loaiNckh === 'SACHGIAOTRINH') { %>
@@ -67,13 +67,13 @@
               <% } %>
               <% if (selectedTypeMeta.loaiNckh === 'SACHGIAOTRINH' || selectedTypeMeta.requiredMaSo !== false) { %><span class="required">*</span><% } %>
             </label>
-            <input id="maSo" type="text" class="form-control" <%= (selectedTypeMeta.loaiNckh === 'SACHGIAOTRINH' || selectedTypeMeta.requiredMaSo !== false) ? 'required' : '' %> placeholder="Nhập thông tin" />
+            <input id="maSo" type="text" class="form-control" maxlength="20" <%= (selectedTypeMeta.loaiNckh === 'SACHGIAOTRINH' || selectedTypeMeta.requiredMaSo !== false) ? 'required' : '' %> placeholder="Nhập thông tin" />
           </div>
         <% } %>
 
         <% if (selectedTypeMeta && selectedTypeMeta.showSoNamThucHien) { %>
           <div class="form-col">
-            <label class="form-label">Số năm thực hiện</label>
+            <label class="form-label" for="soNamThucHien">Số năm thực hiện</label>
             <input id="soNamThucHien" type="number" min="1" step="1" value="1" class="form-control" />
           </div>
         <% } %>
@@ -82,30 +82,30 @@
       <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
         <div class="form-row">
           <div class="form-col">
-            <label class="form-label">Tên Tạp chí/Hội thảo</label>
-            <input id="tenTapChi" type="text" class="form-control" placeholder="Nhập tên Tạp chí/Hội thảo" />
+            <label class="form-label" for="tenTapChi">Tên Tạp chí/Hội thảo <span class="required">*</span></label>
+            <input id="tenTapChi" type="text" class="form-control" required placeholder="Nhập tên Tạp chí/Hội thảo" />
           </div>
           <div class="form-col">
-            <label class="form-label">Số báo</label>
+            <label class="form-label" for="soBao">Số báo</label>
             <input id="soBao" type="text" class="form-control" placeholder="Nhập số báo" />
           </div>
           <div class="form-col">
-            <label class="form-label">Số trích dẫn</label>
+            <label class="form-label" for="soTrichDan">Số trích dẫn</label>
             <input id="soTrichDan" type="number" min="0" step="1" class="form-control" placeholder="Nhập số trích dẫn" />
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-col">
-            <label class="form-label">Số quyết định</label>
+            <label class="form-label" for="soQuyetDinh">Số quyết định</label>
             <input id="soQuyetDinh" type="text" class="form-control" placeholder="Nhập số quyết định" />
           </div>
           <div class="form-col">
-            <label class="form-label">Ngày quyết định</label>
+            <label class="form-label" for="ngayQuyetDinh">Ngày quyết định</label>
             <input id="ngayQuyetDinh" type="date" class="form-control" />
           </div>
           <div class="form-col">
-            <label class="form-label">Ngày công bố</label>
+            <label class="form-label" for="ngayNghiemThu">Ngày công bố</label>
             <input id="ngayNghiemThu" type="date" class="form-control" />
             <small class="form-note">Nếu không có ngày cụ thể, chọn ngày 01 của tháng/năm tương ứng.</small>
           </div>
@@ -118,12 +118,14 @@
 
       <div class="form-row">
         <div class="form-col autocomplete-wrapper">
-          <label class="form-label">
-            <%= (selectedTypeMeta && selectedTypeMeta.mainActorLabel) || 'Vai trò chính' %> <span class="required">*</span>
-            <label class="checkbox-label ms-2">
+          <div class="form-label">
+            <label for="tacGiaInput">
+              <%= (selectedTypeMeta && selectedTypeMeta.mainActorLabel) || 'Vai trò chính' %> <span class="required">*</span>
+            </label>
+            <label class="checkbox-label ms-2" for="tacGiaNgoaiToggle">
               <input type="checkbox" id="tacGiaNgoaiToggle" /> Ngoài học viện
             </label>
-          </label>
+          </div>
           <input type="text" id="tacGiaInput" class="form-control" placeholder="Nhập tên" />
           <small class="form-note">Nhập họ và tên để ra gợi ý và chọn họ tên gợi ý.</small>
           <button type="button" id="addTacGiaBtn" class="btn btn-secondary mt-2">Thêm</button>
@@ -132,7 +134,7 @@
 
         <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'HOIDONG') { %>
           <div class="form-col">
-            <label class="form-label">Vai trò <span class="required">*</span></label>
+            <label class="form-label" for="vaiTroHoiDong">Vai trò <span class="required">*</span></label>
             <select id="vaiTroHoiDong" class="form-select" required>
               <option value="chu_tich">Chủ tịch</option>
               <option value="phan_bien">Phản biện</option>
@@ -142,14 +144,14 @@
         <% } %>
 
         <div class="form-col" id="tacGiaDonViGroup">
-          <label class="form-label">Đơn vị công tác</label>
+          <label class="form-label" for="tacGiaDonVi">Đơn vị công tác</label>
           <input type="text" id="tacGiaDonVi" class="form-control" placeholder="Nhập đơn vị công tác" disabled />
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-col-full">
-          <label class="form-label"><%= (selectedTypeMeta && selectedTypeMeta.mainActorLabel) || 'Vai trò chính' %></label>
+          <div class="form-label"><%= (selectedTypeMeta && selectedTypeMeta.mainActorLabel) || 'Vai trò chính' %></div>
           <div id="tacGiaTags" class="member-tags">
             <span style="color: #999; font-style: italic;">Chưa có dữ liệu</span>
           </div>
@@ -161,12 +163,12 @@
 
         <div class="form-row">
           <div class="form-col autocomplete-wrapper">
-            <label class="form-label">
-              Tác giả liên hệ (Corresponding Author)
-              <label class="checkbox-label ms-2">
+            <div class="form-label">
+              <label for="tacGiaLienHeInput">Tác giả liên hệ (Corresponding Author)</label>
+              <label class="checkbox-label ms-2" for="tacGiaLienHeNgoaiToggle">
                 <input type="checkbox" id="tacGiaLienHeNgoaiToggle" /> Ngoài học viện
               </label>
-            </label>
+            </div>
             <input type="text" id="tacGiaLienHeInput" class="form-control" placeholder="Nhập tên tác giả liên hệ" />
             <small class="form-note">Nhập họ và tên để ra gợi ý và chọn họ tên gợi ý.</small>
             <button type="button" id="addTacGiaLienHeBtn" class="btn btn-secondary mt-2">Thêm</button>
@@ -174,14 +176,14 @@
           </div>
 
           <div class="form-col" id="tacGiaLienHeDonViGroup">
-            <label class="form-label">Đơn vị công tác</label>
+            <label class="form-label" for="tacGiaLienHeDonVi">Đơn vị công tác</label>
             <input type="text" id="tacGiaLienHeDonVi" class="form-control" placeholder="Nhập đơn vị công tác" disabled />
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-col-full">
-            <label class="form-label">Danh sách tác giả liên hệ</label>
+            <div class="form-label">Danh sách tác giả liên hệ</div>
             <div id="tacGiaLienHeTags" class="member-tags">
               <span style="color: #999; font-style: italic;">Chưa có tác giả liên hệ</span>
             </div>
@@ -194,12 +196,12 @@
 
         <div class="form-row">
           <div class="form-col autocomplete-wrapper">
-            <label class="form-label">
-              <%= (selectedTypeMeta && selectedTypeMeta.secondaryMemberLabel) || 'Thành viên' %>
-              <label class="checkbox-label ms-2">
+            <div class="form-label">
+              <label for="thanhVienInput"><%= (selectedTypeMeta && selectedTypeMeta.secondaryMemberLabel) || 'Thành viên' %></label>
+              <label class="checkbox-label ms-2" for="thanhVienNgoaiToggle">
                 <input type="checkbox" id="thanhVienNgoaiToggle" /> Ngoài học viện
               </label>
-            </label>
+            </div>
             <input type="text" id="thanhVienInput" class="form-control" placeholder="Nhập tên thành viên" />
             <small class="form-note">Nhập họ và tên để ra gợi ý và chọn họ tên gợi ý.</small>
             <button type="button" id="addThanhVienBtn" class="btn btn-secondary mt-2">Thêm</button>
@@ -207,14 +209,14 @@
           </div>
 
           <div class="form-col" id="thanhVienDonViGroup">
-            <label class="form-label">Đơn vị công tác</label>
+            <label class="form-label" for="thanhVienDonVi">Đơn vị công tác</label>
             <input type="text" id="thanhVienDonVi" class="form-control" placeholder="Nhập đơn vị công tác" disabled />
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-col-full">
-            <label class="form-label"><%= (selectedTypeMeta && selectedTypeMeta.secondaryMemberLabel) || 'Thành viên' %></label>
+            <div class="form-label"><%= (selectedTypeMeta && selectedTypeMeta.secondaryMemberLabel) || 'Thành viên' %></div>
             <div id="thanhVienTags" class="member-tags">
               <span style="color: #999; font-style: italic;">Chưa có thành viên</span>
             </div>

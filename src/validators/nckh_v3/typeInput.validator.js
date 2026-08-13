@@ -4,11 +4,17 @@ const assertRequired = (value, message) => {
   }
 };
 
+const MAX_MA_SO_LENGTH = 20;
+
 const validateMainPayload = (data) => {
   assertRequired(data.tenCongTrinh, "Thiếu tên công trình");
   assertRequired(data.phanLoai, "Thiếu phân loại");
   assertRequired(data.namHoc, "Thiếu năm học");
   assertRequired(data.tongSoTiet, "Thiếu tổng số tiết");
+
+  if (data.maSo !== undefined && data.maSo !== null && String(data.maSo).length > MAX_MA_SO_LENGTH) {
+    throw new Error(`Mã số không được vượt quá ${MAX_MA_SO_LENGTH} ký tự`);
+  }
 
   const tongSoTiet = Number(data.tongSoTiet);
   if (Number.isNaN(tongSoTiet) || tongSoTiet <= 0) {
