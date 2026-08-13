@@ -55,8 +55,19 @@
 
         <% if (selectedTypeMeta && selectedTypeMeta.showMaSo) { %>
           <div class="form-col">
-            <label class="form-label"><%= selectedTypeMeta.maSoLabel || 'Mã số' %> <% if (selectedTypeMeta.requiredMaSo !== false) { %><span class="required">*</span><% } %></label>
-            <input id="maSo" type="text" class="form-control" <%= selectedTypeMeta.requiredMaSo !== false ? 'required' : '' %> placeholder="Nhập mã số" />
+            <label class="form-label">
+              <% if (selectedTypeMeta.loaiNckh === 'DETAI_DUAN' || selectedTypeMeta.loaiNckh === 'HUONGDAN') { %>
+                Mã đề tài
+              <% } else if (selectedTypeMeta.loaiNckh === 'SACHGIAOTRINH') { %>
+                Số quyết định
+              <% } else if (selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
+                Chỉ số tạp chí/hội nghị
+              <% } else { %>
+                <%= selectedTypeMeta.maSoLabel || 'Mã số' %>
+              <% } %>
+              <% if (selectedTypeMeta.loaiNckh === 'SACHGIAOTRINH' || selectedTypeMeta.requiredMaSo !== false) { %><span class="required">*</span><% } %>
+            </label>
+            <input id="maSo" type="text" class="form-control" <%= (selectedTypeMeta.loaiNckh === 'SACHGIAOTRINH' || selectedTypeMeta.requiredMaSo !== false) ? 'required' : '' %> placeholder="Nhập thông tin" />
           </div>
         <% } %>
 
@@ -71,8 +82,8 @@
       <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
         <div class="form-row">
           <div class="form-col">
-            <label class="form-label">Tên Tạp chí/Hội thảo <span class="required">*</span></label>
-            <input id="tenTapChi" type="text" class="form-control" required placeholder="Nhập tên Tạp chí/Hội thảo" />
+            <label class="form-label">Tên Tạp chí/Hội thảo</label>
+            <input id="tenTapChi" type="text" class="form-control" placeholder="Nhập tên Tạp chí/Hội thảo" />
           </div>
           <div class="form-col">
             <label class="form-label">Số báo</label>
@@ -96,6 +107,7 @@
           <div class="form-col">
             <label class="form-label">Ngày công bố</label>
             <input id="ngayNghiemThu" type="date" class="form-control" />
+            <small class="form-note">Nếu không có ngày cụ thể, chọn ngày 01 của tháng/năm tương ứng.</small>
           </div>
         </div>
       <% } %>
@@ -113,6 +125,7 @@
             </label>
           </label>
           <input type="text" id="tacGiaInput" class="form-control" placeholder="Nhập tên" />
+          <small class="form-note">Nhập họ và tên để ra gợi ý và chọn họ tên gợi ý.</small>
           <button type="button" id="addTacGiaBtn" class="btn btn-secondary mt-2">Thêm</button>
           <div id="tacGia-suggestions" class="suggestions-list"></div>
         </div>
@@ -155,6 +168,7 @@
               </label>
             </label>
             <input type="text" id="tacGiaLienHeInput" class="form-control" placeholder="Nhập tên tác giả liên hệ" />
+            <small class="form-note">Nhập họ và tên để ra gợi ý và chọn họ tên gợi ý.</small>
             <button type="button" id="addTacGiaLienHeBtn" class="btn btn-secondary mt-2">Thêm</button>
             <div id="tacGiaLienHe-suggestions" class="suggestions-list"></div>
           </div>
@@ -187,6 +201,7 @@
               </label>
             </label>
             <input type="text" id="thanhVienInput" class="form-control" placeholder="Nhập tên thành viên" />
+            <small class="form-note">Nhập họ và tên để ra gợi ý và chọn họ tên gợi ý.</small>
             <button type="button" id="addThanhVienBtn" class="btn btn-secondary mt-2">Thêm</button>
             <div id="thanhVien-suggestions" class="suggestions-list"></div>
           </div>

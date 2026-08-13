@@ -5,5 +5,6 @@ window.addEventListener("DOMContentLoaded", () => {
     label: "Hướng dẫn SV NCKH",
     mode: "equal",
     hasSecondaryMembers: false,
+    maSoLabel: "Mã đề tài",
   });
 });

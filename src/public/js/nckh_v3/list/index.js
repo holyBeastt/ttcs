@@ -70,13 +70,13 @@
   };
 
   const EDIT_TYPE_CONFIG = {
-    DETAI_DUAN: { slug: "de-tai-du-an", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard" },
-    BAIBAO: { slug: "bai-bao-khoa-hoc", showDate: false, showMaSo: true, hasSecondary: true, mode: "standard", article: true },
+    DETAI_DUAN: { slug: "de-tai-du-an", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard", maSoLabel: "Mã đề tài" },
+    BAIBAO: { slug: "bai-bao-khoa-hoc", showDate: false, showMaSo: true, requiredMaSo: false, requiredTenTapChi: false, hasSecondary: true, mode: "standard", maSoLabel: "Chỉ số tạp chí/hội nghị", article: true },
     SANGKIEN: { slug: "sang-kien", showDate: true, showMaSo: false, hasSecondary: true, mode: "standard" },
     GIAITHUONG: { slug: "giai-thuong", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard", award: true },
     DEXUAT: { slug: "de-xuat-nghien-cuu", showDate: true, showMaSo: false, hasSecondary: true, mode: "equal" },
-    SACHGIAOTRINH: { slug: "sach-giao-trinh", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard" },
-    HUONGDAN: { slug: "huong-dan-sv-nckh", showDate: true, showMaSo: true, hasSecondary: false, mode: "equal" },
+    SACHGIAOTRINH: { slug: "sach-giao-trinh", showDate: true, showMaSo: true, requiredMaSo: true, hasSecondary: true, mode: "standard", maSoLabel: "Số quyết định" },
+    HUONGDAN: { slug: "huong-dan-sv-nckh", showDate: true, showMaSo: true, hasSecondary: false, mode: "equal", maSoLabel: "Mã đề tài" },
     HOIDONG: { slug: "thanh-vien-hoi-dong", showDate: false, showMaSo: true, hasSecondary: false, mode: "fixed", council: true },
   };
 
@@ -558,7 +558,7 @@
             <input id="editSoNamThucHien" class="form-control" type="number" min="1" step="1" value="${participantYears}" />
           </div>
           ${config.showDate ? editField("Ngày nghiệm thu", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date", "required") : config.article ? editField("Ngày công bố", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date") : ""}
-          ${config.showMaSo ? editField(config.council ? "Số quyết định" : "Mã số", "editMaSo", data.maSo, "text", "required") : ""}
+          ${config.showMaSo ? editField(config.maSoLabel || (config.council ? "Số quyết định" : "Mã số"), "editMaSo", data.maSo, "text", config.requiredMaSo !== false ? "required" : "") : ""}
           ${articleFields}${awardFields}
           </div>
         </div>
@@ -644,7 +644,14 @@
         <div class="nckh-edit-participants">${buildParticipantRows(data, {})}</div>
       </div>
     `;
-    const maSoLabel = data.loaiNckh === "HOIDONG" ? "Số quyết định" : "Mã số";
+    const maSoLabel = {
+      DETAI_DUAN: "Mã đề tài",
+      BAIBAO: "Chỉ số tạp chí/hội nghị",
+      SACHGIAOTRINH: "Số quyết định",
+      HUONGDAN: "Mã đề tài",
+      HOIDONG: "Số quyết định",
+    }[data.loaiNckh] || "Mã số";
+    const dateLabel = data.loaiNckh === "BAIBAO" ? "Ngày công bố" : "Ngày nghiệm thu";
     const khoaValue = data.tenPhongBan || data.maPhongBan || "";
     const statusValue = Number(data.vienNcDuyet) === 1
       ? "Đã duyệt cấp viện"
@@ -664,7 +671,7 @@
           <div class="nckh-detail-item"><span class="nckh-detail-label">Năm học</span><div class="nckh-detail-value">${escapeHtml(data.namHoc)}</div></div>
           <div class="nckh-detail-item"><span class="nckh-detail-label">${maSoLabel}</span><div class="nckh-detail-value">${escapeHtml(data.maSo || "—")}</div></div>
           <div class="nckh-detail-item"><span class="nckh-detail-label">Xếp loại</span><div class="nckh-detail-value">${escapeHtml(data.xepLoai || "—")}</div></div>
-          <div class="nckh-detail-item"><span class="nckh-detail-label">Ngày nghiệm thu</span><div class="nckh-detail-value">${formatDate(data.ngayNghiemThu) || "—"}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">${dateLabel}</span><div class="nckh-detail-value">${formatDate(data.ngayNghiemThu) || "—"}</div></div>
           <div class="nckh-detail-item"><span class="nckh-detail-label">Tổng số tiết</span><div class="nckh-detail-value">${formatHours(data.tongSoTiet)}</div></div>
           <div class="nckh-detail-item"><span class="nckh-detail-label">Trạng thái</span><div class="nckh-detail-value">${statusValue}</div></div>
           ${khoaValue ? `<div class="nckh-detail-item is-full"><span class="nckh-detail-label">Khoa</span><div class="nckh-detail-value">${escapeHtml(khoaValue)}</div></div>` : ""}
@@ -728,7 +735,7 @@
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập ngày nghiệm thu", "warning");
         return;
       }
-      if (config.showMaSo && !payload.maSo) {
+      if (config.showMaSo && config.requiredMaSo !== false && !payload.maSo) {
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập mã số / số quyết định", "warning");
         return;
       }

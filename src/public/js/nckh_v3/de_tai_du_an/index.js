@@ -5,5 +5,6 @@ window.addEventListener("DOMContentLoaded", () => {
     label: "Đề tài, dự án",
     mode: "standard",
     hasSecondaryMembers: true,
+    maSoLabel: "Mã đề tài",
   });
 });

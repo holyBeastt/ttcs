@@ -5,5 +5,7 @@ window.addEventListener("DOMContentLoaded", () => {
     label: "Sách, giáo trình",
     mode: "standard",
     hasSecondaryMembers: true,
+    maSoLabel: "Số quyết định",
+    requiredMaSo: true,
   });
 });

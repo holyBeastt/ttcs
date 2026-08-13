@@ -5,5 +5,6 @@ window.addEventListener("DOMContentLoaded", () => {
     label: "Bài báo khoa học",
     mode: "standard",
     hasSecondaryMembers: true,
+    requiredTenTapChi: false,
   });
 });
