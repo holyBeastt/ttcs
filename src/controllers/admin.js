@@ -285,7 +285,7 @@ const getNamHocList = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const query = `SELECT * FROM namhoc ORDER BY trangthai DESC, NamHoc ASC`;
+    const query = `SELECT * FROM namhoc ORDER BY NamHoc ASC`;
     const [results] = await connection.query(query);
     res.render("namHoc.ejs", { NamHoc: results });
   } catch (error) {
@@ -327,22 +327,12 @@ const updateNamHocStatus = async (req, res) => {
       });
     }
 
-    const currentStatus = Number(yearRows[0].trangthai) === 1;
-
-    if (currentStatus) {
-      // Tắt năm học hiện tại.
-      await connection.query(
-        "UPDATE namhoc SET trangthai = 0 WHERE NamHoc = ?",
-        [NamHoc]
-      );
-    } else {
-      // Khi bật, chỉ cho phép một năm học ở trạng thái đang hoạt động.
-      await connection.query("UPDATE namhoc SET trangthai = 0");
-      await connection.query(
-        "UPDATE namhoc SET trangthai = 1 WHERE NamHoc = ?",
-        [NamHoc]
-      );
-    }
+    // Chuyển năm mặc định; luôn duy trì đúng một năm học đang hoạt động.
+    await connection.query("UPDATE namhoc SET trangthai = 0");
+    await connection.query(
+      "UPDATE namhoc SET trangthai = 1 WHERE NamHoc = ?",
+      [NamHoc]
+    );
 
     try {
       const userId = req.session?.userId || 1;
@@ -356,7 +346,7 @@ const updateNamHocStatus = async (req, res) => {
         tenNhanVien,
         khoa,
         "Admin Log",
-        `Admin ${currentStatus ? "tắt" : "bật"} trạng thái năm học: ${NamHoc}`,
+        `Admin đặt năm học mặc định: ${NamHoc}`,
       ]);
     } catch (logError) {
       console.error("Lỗi khi ghi log đổi trạng thái năm học:", logError);
@@ -366,11 +356,9 @@ const updateNamHocStatus = async (req, res) => {
     transactionStarted = false;
     return res.json({
       success: true,
-      message: currentStatus
-        ? `Đã tắt trạng thái năm học ${NamHoc}.`
-        : `Đã bật trạng thái năm học ${NamHoc}.`,
+      message: `Đã đặt năm học ${NamHoc} làm năm mặc định.`,
       NamHoc,
-      trangthai: currentStatus ? 0 : 1,
+      trangthai: 1,
     });
   } catch (error) {
     if (transactionStarted && connection) {
@@ -387,11 +375,19 @@ const updateNamHocStatus = async (req, res) => {
 };
 
 const postNamHoc = async (req, res) => {
-  const NamHoc = req.body.NamHoc;
+  const NamHoc = String(req.body.NamHoc || "").trim();
   const connection = await createPoolConnection();
   try {
+    if (!NamHoc) {
+      return res.status(400).send("Vui lòng nhập năm học.");
+    }
+
+    const [activeRows] = await connection.query(
+      "SELECT COUNT(*) AS activeCount FROM namhoc WHERE trangthai = 1"
+    );
+    const initialStatus = Number(activeRows[0]?.activeCount || 0) > 0 ? 0 : 1;
     const query = `INSERT INTO namhoc (NamHoc, trangthai) VALUES (?, ?)`;
-    await connection.query(query, [NamHoc, 0]);
+    await connection.query(query, [NamHoc, initialStatus]);
 
     // Ghi log khi admin thêm năm học
     try {
@@ -417,6 +413,17 @@ const deleteNamHoc = async (req, res) => {
   const NamHoc = req.params.NamHoc;
   const connection = await createPoolConnection();
   try {
+    const [yearRows] = await connection.query(
+      "SELECT trangthai FROM namhoc WHERE NamHoc = ?",
+      [NamHoc]
+    );
+
+    if (yearRows[0] && Number(yearRows[0].trangthai) === 1) {
+      return res.status(400).json({
+        message: "Không thể xóa năm học mặc định. Hãy chuyển mặc định sang năm khác trước.",
+      });
+    }
+
     const query = `DELETE FROM namhoc WHERE NamHoc = ?`;
     const [results] = await connection.query(query, [NamHoc]);
 
