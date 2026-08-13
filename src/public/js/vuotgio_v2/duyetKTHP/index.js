@@ -111,10 +111,11 @@ function setupUpdateButtonVisibility() {
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
 
     // Khoa: GV_CNBM duyệt, Lãnh đạo khoa bỏ duyệt
     // Phòng (Khảo thí): Trợ lý duyệt; Lãnh đạo phòng duyệt/bỏ duyệt
-    if (role === gvCnbm || role === lanhDaoKhoa) {
+    if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)) {
         updateBtn.style.display = 'flex';
     } else if (MaPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong)) {
         updateBtn.style.display = 'flex';
@@ -133,6 +134,7 @@ function setupColumnVisibility() {
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
 
     const checkAllKhoa = document.getElementById('checkAllKhoa');
     const checkAllKhaoThi = document.getElementById('checkAllKhaoThi');
@@ -142,7 +144,7 @@ function setupColumnVisibility() {
     if (checkAllKhaoThi) checkAllKhaoThi.disabled = true;
 
     // Khoa: GV_CNBM duyệt; Lãnh đạo khoa duyệt/bỏ duyệt
-    if (role === gvCnbm || role === lanhDaoKhoa) {
+    if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)) {
         if (checkAllKhoa) checkAllKhoa.disabled = false;
     }
 
@@ -171,17 +173,19 @@ function canApprove(type, action, row = null) {
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const khaoThi = window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
 
     // Ban Giám đốc có toàn quyền
     if (MaPhongBan === banGiamDoc) return true;
 
     if (type === 'khoa') {
-        if (row && (role === gvCnbm || role === lanhDaoKhoa)
+        if (isKhoa && row && (role === gvCnbm || role === lanhDaoKhoa)
             && row.khoa !== MaPhongBan) return false;
-        // GV_CNBM: chỉ được duyệt (check)
-        if (role === gvCnbm && action === 'check') return true;
-        // Lãnh đạo khoa được duyệt và bỏ duyệt.
-        if (role === lanhDaoKhoa && (action === 'check' || action === 'uncheck')) return true;
+        if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)
+            && (!row || row.khoa === MaPhongBan)) {
+            if (role === gvCnbm && action === 'check') return true;
+            if (role === lanhDaoKhoa && (action === 'check' || action === 'uncheck')) return true;
+        }
         return false;
     }
 
@@ -208,6 +212,7 @@ function canInteract(type) {
 function canEditDelete(data) {
     const role = localStorage.getItem('userRole');
     const MaPhongBan = localStorage.getItem('MaPhongBan');
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
 
     const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
@@ -220,24 +225,15 @@ function canEditDelete(data) {
     if (MaPhongBan === banGiamDoc) return true;
 
     // Check role của Khoa
-    const isKhoaUser = (role === gvCnbm || role === lanhDaoKhoa)
+    const isKhoaUser = isKhoa && (role === gvCnbm || role === lanhDaoKhoa)
         && data.khoa === MaPhongBan;
     // Check role của Phòng Khảo thí
     const isKhaoThiUser = (MaPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong));
 
     if (!isKhoaUser && !isKhaoThiUser) return false;
 
-    // Khoa chỉ sửa/xóa được khi chưa duyệt Khoa và chưa duyệt Khảo thí
-    if (isKhoaUser) {
-        return data.khoaduyet === 0 && data.khaothiduyet === 0;
-    }
-
-    // Khảo thí sửa/xóa được khi Khảo thí chưa duyệt
-    if (isKhaoThiUser) {
-        return data.khaothiduyet === 0;
-    }
-
-    return false;
+    // Cả Khoa và Khảo thí chỉ sửa/xóa khi chưa duyệt cấp nào.
+    return data.khoaduyet === 0 && data.khaothiduyet === 0;
 }
 
 // ==================== DATA LOADING ====================

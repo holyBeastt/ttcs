@@ -26,6 +26,7 @@ let selectedEmployeeId = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
+    setupAddPagePermissions();
     loadNamHocOptions();
     loadKhoaOptions();
     loadGiangVienList();
@@ -54,6 +55,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function setupAddPagePermissions() {
+    const role = localStorage.getItem('userRole');
+    const maPhongBan = localStorage.getItem('MaPhongBan');
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
+    const isKhoaApprover = isKhoa
+        && (role === (window.APP_ROLES?.gv_cnbm || 'GV_CNBM')
+            || role === (window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa'));
+    const isKhaoThiUser = maPhongBan === (window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL')
+        && (role === (window.APP_ROLES?.troLy_phong || 'Trợ lý')
+            || role === (window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng'));
+    const isBanGiamDoc = maPhongBan === (window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ');
+    const allowed = isBanGiamDoc || isKhoaApprover || isKhaoThiUser;
+
+    ['btn-import-kthp', 'resetCalculatorBtn', 'themKTHPFormSubmit'].forEach((id) => {
+        const button = document.getElementById(id);
+        if (button) button.style.display = allowed ? '' : 'none';
+    });
+}
 
 // Load năm học từ API có sẵn
 async function loadNamHocOptions() {

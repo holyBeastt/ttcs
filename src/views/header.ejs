@@ -204,21 +204,21 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <!-- ========== V2 - Vượt Giờ ========== -->
-                <div class="dropdown-submenu" style="width: 100%">
+                <div class="dropdown-submenu" id="nav-site-lop-ngoai-qc" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownLopNgoaiQC"
                     data-bs-toggle="dropdown" aria-expanded="false">Lớp ngoài quy chuẩn</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownLopNgoaiQC">
                     <a class="nav-link" id="nav-them-lop-ngoai-qc" href="/v2/vuotgio/them-lop-ngoai-qc">Thêm mới</a>
-                    <a class="nav-link" href="/v2/vuotgio/danh-sach-lop-ngoai-qc">Duyệt</a>
+                    <a class="nav-link" id="nav-duyet-lop-ngoai-qc" href="/v2/vuotgio/danh-sach-lop-ngoai-qc">Duyệt</a>
                   </div>
                 </div>
 
-                <div class="dropdown-submenu" style="width: 100%">
+                <div class="dropdown-submenu" id="nav-site-kthp" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownKTHP"
                     data-bs-toggle="dropdown" aria-expanded="false">Coi, chấm, ra đề thi</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownKTHP">
                     <a class="nav-link" id="nav-them-kthp" href="/v2/vuotgio/them-kthp">Thêm mới</a>
-                    <a class="nav-link" href="/v2/vuotgio/duyet-kthp">Duyệt</a>
+                    <a class="nav-link" id="nav-duyet-kthp" href="/v2/vuotgio/duyet-kthp">Duyệt</a>
                   </div>
                 </div>
 
@@ -588,20 +588,42 @@
       }
     }
 
-    // Vượt giờ: "Thêm Thông Tin Lớp Ngoài Quy Chuẩn" chỉ hiển thị cho Đào tạo (trợ lý + lãnh đạo)
+    const isKhoaUser = isKhoa === "1";
+    const isKhoaApprover = isKhoaUser &&
+      (userRole === APP_ROLES.gv_cnbm || userRole === APP_ROLES.lanhDao_khoa);
+    const isDaoTaoUser = maPhongBan === APP_DEPARTMENTS.daoTao &&
+      (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong);
+    const isKhaoThiUser = maPhongBan === APP_DEPARTMENTS.khaoThi &&
+      (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong);
+    const isBanGiamDoc = maPhongBan === APP_DEPARTMENTS.banGiamDoc;
+
+    const canAccessNgoaiQC = isBanGiamDoc || isKhoaApprover || isDaoTaoUser;
+    const canAccessKTHP = isBanGiamDoc || isKhoaApprover || isKhaoThiUser;
+
+    const navSiteNgoaiQC = document.getElementById("nav-site-lop-ngoai-qc");
+    const navDuyetNgoaiQC = document.getElementById("nav-duyet-lop-ngoai-qc");
+    if (navSiteNgoaiQC) navSiteNgoaiQC.style.display = canAccessNgoaiQC ? "" : "none";
+    if (navDuyetNgoaiQC) navDuyetNgoaiQC.style.display = canAccessNgoaiQC ? "" : "none";
+
+    const navSiteKTHP = document.getElementById("nav-site-kthp");
+    const navDuyetKTHP = document.getElementById("nav-duyet-kthp");
+    if (navSiteKTHP) navSiteKTHP.style.display = canAccessKTHP ? "" : "none";
+    if (navDuyetKTHP) navDuyetKTHP.style.display = canAccessKTHP ? "" : "none";
+
+    // Vượt giờ: quyền Khoa và phòng tương ứng được vào cả site thêm mới.
     let navThemLopNgoaiQC = document.getElementById("nav-them-lop-ngoai-qc");
     if (navThemLopNgoaiQC) {
-      if (maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+      if (canAccessNgoaiQC) {
         navThemLopNgoaiQC.style.display = "";
       } else {
         navThemLopNgoaiQC.style.display = "none";
       }
     }
 
-    // Vượt giờ: "Thêm Thông Tin Coi, Chấm, Ra Đề Thi" chỉ hiển thị cho Khảo thí (trợ lý + lãnh đạo)
+    // Vượt giờ: quyền Khoa và Khảo thí được vào site thêm mới.
     let navThemKTHP = document.getElementById("nav-them-kthp");
     if (navThemKTHP) {
-      if (maPhongBan === APP_DEPARTMENTS.khaoThi && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
+      if (canAccessKTHP) {
         navThemKTHP.style.display = "";
       } else {
         navThemKTHP.style.display = "none";

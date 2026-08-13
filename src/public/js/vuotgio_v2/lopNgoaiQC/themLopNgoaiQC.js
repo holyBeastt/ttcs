@@ -29,6 +29,7 @@ let heDaoTaoMap = {};
 
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('[LopNgoaiQC] Init - 2-phase draft flow');
+    setupAddPagePermissions();
     const hocKyFilter = document.getElementById('hocKyFilter');
     if (hocKyFilter && !hocKyFilter.value) hocKyFilter.value = '1';
     loadNamHocOptions();
@@ -44,6 +45,25 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 });
+
+function setupAddPagePermissions() {
+    const role = localStorage.getItem('userRole');
+    const maPhongBan = localStorage.getItem('MaPhongBan');
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
+    const isKhoaApprover = isKhoa
+        && (role === (window.APP_ROLES?.gv_cnbm || 'GV_CNBM')
+            || role === (window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa'));
+    const isDaoTaoUser = maPhongBan === (window.APP_DEPARTMENTS?.daoTao || 'DAOTAO')
+        && (role === (window.APP_ROLES?.troLy_phong || 'Trợ lý')
+            || role === (window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng'));
+    const isBanGiamDoc = maPhongBan === (window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ');
+    const allowed = isBanGiamDoc || isKhoaApprover || isDaoTaoUser;
+
+    ['btn-import', 'btn-chot', 'btn-xoa', 'add-row-btn'].forEach((id) => {
+        const button = document.getElementById(id);
+        if (button) button.style.display = allowed ? '' : 'none';
+    });
+}
 
 // =====================================================
 // HELPER - Lấy filter values

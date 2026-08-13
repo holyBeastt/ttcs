@@ -74,6 +74,7 @@ function setupColumnVisibility() {
     const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
 
     const checkAllKhoa = document.getElementById('checkAllKhoa');
     const checkAllDaoTao = document.getElementById('checkAllDaoTao');
@@ -83,7 +84,7 @@ function setupColumnVisibility() {
     if (checkAllDaoTao) checkAllDaoTao.disabled = true;
 
     // Khoa: GV_CNBM duyệt; Lãnh đạo khoa duyệt/bỏ duyệt
-    if (role === gvCnbm || role === lanhDaoKhoa) {
+    if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)) {
         if (checkAllKhoa) checkAllKhoa.disabled = false;
     }
 
@@ -104,9 +105,10 @@ function setupUpdateButtonVisibility() {
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
     const banGiamDoc = window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ';
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
 
     // Khoa: GV_CNBM duyệt; Lãnh đạo khoa duyệt/bỏ duyệt
-    if (role === gvCnbm || role === lanhDaoKhoa) {
+    if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)) {
         updateBtn.style.display = 'flex';
     }
     // Phòng Đào tạo: Trợ lý duyệt; Lãnh đạo phòng duyệt/bỏ duyệt
@@ -124,13 +126,14 @@ function setupUpdateButtonVisibility() {
 function canEditDelete(data) {
     const role = localStorage.getItem('userRole');
     const maPhongBan = localStorage.getItem('MaPhongBan');
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
     const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
     const troLyPhong = window.APP_ROLES?.troLy_phong || 'Trợ lý';
     const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
     const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
 
-    const isKhoaEditor = (role === gvCnbm || role === lanhDaoKhoa)
+    const isKhoaEditor = isKhoa && (role === gvCnbm || role === lanhDaoKhoa)
         && data.Khoa === maPhongBan;
     const isDaoTaoEditor = maPhongBan === daoTao
         && (role === troLyPhong || role === lanhDaoPhong);
@@ -150,6 +153,7 @@ function canEditDelete(data) {
 function canApprove(type, action, row = null) {
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const role = localStorage.getItem('userRole');
+    const isKhoa = localStorage.getItem('isKhoa') === '1';
 
     const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
@@ -162,12 +166,13 @@ function canApprove(type, action, row = null) {
     if (MaPhongBan === banGiamDoc) return true;
 
     if (type === 'khoa') {
-        if (row && (role === gvCnbm || role === lanhDaoKhoa)
+        if (isKhoa && row && (role === gvCnbm || role === lanhDaoKhoa)
             && row.Khoa !== MaPhongBan) return false;
-        // GV_CNBM: chỉ được duyệt (check)
-        if (role === gvCnbm && action === 'check') return true;
-        // Lãnh đạo khoa được duyệt và bỏ duyệt.
-        if (role === lanhDaoKhoa && (action === 'check' || action === 'uncheck')) return true;
+        if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)
+            && (!row || row.Khoa === MaPhongBan)) {
+            if (role === gvCnbm && action === 'check') return true;
+            if (role === lanhDaoKhoa && (action === 'check' || action === 'uncheck')) return true;
+        }
         return false;
     }
 
