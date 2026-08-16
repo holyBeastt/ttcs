@@ -369,6 +369,25 @@
   background: #eef2ff;
 }
 
+.stats-table-card tbody tr.nckh-stats-group-header:hover {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+}
+
+.stats-table-card tbody tr.nckh-stats-group-header td {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border-top: 2px solid var(--stats-primary-light);
+  color: var(--stats-primary-dark);
+  font-weight: 700;
+}
+
+.nckh-stats-group-header .nckh-v3-group-count {
+  display: inline-block;
+  margin-left: 18px;
+  color: var(--stats-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* Sortable header */
 .stats-table-card th.sortable {
   cursor: pointer;

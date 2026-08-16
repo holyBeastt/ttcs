@@ -129,7 +129,8 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
 // 3. Thống kê theo Khoa (tổng hợp)
 // ──────────────────────────────────────────────
 
-const listFacultySummary = async (connection, { namHoc }) => {
+const listFacultySummary = async (connection, { namHoc, khoaId = "ALL" }) => {
+  const params = [namHoc];
   const query = `
     SELECT
       pb.id AS khoa_id,
@@ -144,11 +145,16 @@ const listFacultySummary = async (connection, { namHoc }) => {
     WHERE c.nam_hoc = ?
       AND c.khoa_duyet = 1
       AND c.vien_nc_duyet = 1
+      ${String(khoaId || "ALL") !== "ALL" ? "AND pb.id = ?" : ""}
     GROUP BY pb.id, pb.MaPhongBan, pb.TenPhongBan
     ORDER BY tong_so_tiet DESC
   `;
 
-  const [rows] = await connection.execute(query, [namHoc]);
+  if (String(khoaId || "ALL") !== "ALL") {
+    params.push(Number(khoaId));
+  }
+
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
@@ -168,7 +174,7 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
       c.loai_nckh,
       c.phan_loai,
       c.nam_hoc,
-      COALESCE(SUM(CASE WHEN st.nhanvien_id IS NOT NULL THEN st.so_tiet ELSE 0 END), 0) AS tong_so_tiet,
+      COALESCE(SUM(CASE WHEN st.nhanvien_id IS NOT NULL AND nv.phongban_id = ? THEN st.so_tiet ELSE 0 END), 0) AS tong_so_tiet,
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
@@ -209,7 +215,7 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
     ORDER BY c.id DESC
   `;
 
-  const [rows] = await connection.execute(query, [...params, safeKhoaId]);
+  const [rows] = await connection.execute(query, [safeKhoaId, ...params, safeKhoaId]);
   return rows;
 };
 

@@ -68,13 +68,14 @@ const getLecturerRecords = async (lecturerId, namHoc) => {
   }
 };
 
-const getFacultySummary = async (namHoc) => {
+const getFacultySummary = async (namHoc, khoaId) => {
   const safeNamHoc = ensureNamHoc(namHoc);
+  const safeKhoaId = normalizeKhoaId(khoaId);
 
   let connection;
   try {
     connection = await createPoolConnection();
-    const rows = await statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc });
+    const rows = await statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc, khoaId: safeKhoaId });
     return rows.map(mapper.mapFacultySummaryRow);
   } finally {
     if (connection) connection.release();

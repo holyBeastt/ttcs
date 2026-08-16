@@ -46,8 +46,8 @@ const lecturerRecords = async (req, res) => {
 
 const facultySummary = async (req, res) => {
   try {
-    const { namHoc } = req.query;
-    const data = await statsService.getFacultySummary(namHoc);
+    const { namHoc, khoaId = "ALL" } = req.query;
+    const data = await statsService.getFacultySummary(namHoc, khoaId);
     res.json({ success: true, data });
   } catch (error) {
     console.error("[NCKH V3] stats faculty summary error:", error);

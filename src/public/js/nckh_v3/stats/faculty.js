@@ -1,7 +1,7 @@
 (function () {
-  const state = { faculties: [], records: [], selectedKhoaId: null };
-  const el = { namHocFilter: null, khoaFilter: null, loadDataBtn: null, exportExcelBtn: null, facultyTableBody: null, recordDetailTableBody: null, recordDetailModalLabel: null };
-  let recordDetailModal = null, barChartInstance = null, pieChartInstance = null;
+  const state = { faculties: [] };
+  const el = { namHocFilter: null, khoaFilter: null, loadDataBtn: null, exportExcelBtn: null, facultyTableBody: null };
+  let barChartInstance = null, pieChartInstance = null;
 
   const COLORS = ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#0ea5e9','#d946ef','#22c55e','#e11d48'];
 
@@ -22,10 +22,6 @@
     el.loadDataBtn = document.getElementById("loadDataBtn");
     el.exportExcelBtn = document.getElementById("exportExcelBtn");
     el.facultyTableBody = document.getElementById("facultyTableBody");
-    el.recordDetailTableBody = document.getElementById("recordDetailTableBody");
-    el.recordDetailModalLabel = document.getElementById("recordDetailModalLabel");
-    const m = document.getElementById("recordDetailModal");
-    if (m) recordDetailModal = bootstrap.Modal.getOrCreateInstance(m);
   }
 
   function renderCharts() {
@@ -78,19 +74,21 @@
 
   function renderFacultySummary() {
     if (!el.facultyTableBody) return;
-    if (!state.faculties.length) { el.facultyTableBody.innerHTML = '<tr><td colspan="6" class="text-muted py-4">Không có dữ liệu</td></tr>'; return; }
+    if (!state.faculties.length) { el.facultyTableBody.innerHTML = '<tr><td colspan="9" class="text-muted py-4">Không có dữ liệu</td></tr>'; return; }
     const esc = window.NCKH_V3_STATS.helpers.escapeHtml, fmt = window.NCKH_V3_STATS.helpers.formatHours;
-    el.facultyTableBody.innerHTML = state.faculties.map((row, i) => {
-      const k = row.khoaId === null ? "UNASSIGNED" : String(row.khoaId);
-      return `<tr class="${state.selectedKhoaId === k ? "table-warning" : ""}"><td>${i + 1}</td><td>${esc(row.maPhongBan || "-")}</td><td class="text-start">${esc(row.tenPhongBan || "Chưa gán khoa")}</td><td>${row.soCongTrinh}</td><td>${fmt(row.tongSoTiet)}</td><td><button class="btn btn-sm btn-outline-info" data-action="detail" data-khoa-id="${k}"><i class="bi bi-eye"></i></button></td></tr>`;
-    }).join("");
-  }
+    let index = 0;
+    el.facultyTableBody.innerHTML = state.faculties.map((faculty) => {
+      const records = faculty.records || [];
+      const groupRows = records.length
+        ? records.map((row) => {
+          index += 1;
+          const ngayNghiemThu = row.ngayNghiemThu ? new Date(row.ngayNghiemThu).toLocaleDateString("vi-VN") : "-";
+          return `<tr><td>${index}</td><td>${esc(row.loaiNckhLabel)}</td><td>${esc(row.phanLoai || "-")}</td><td class="text-start">${esc(row.tenCongTrinh)}</td><td class="text-start">${esc(row.tacGiaChinh)}</td><td class="text-start">${esc(row.thanhVien || "-")}</td><td>${esc(row.maSo || "-")}</td><td>${esc(ngayNghiemThu)}</td><td>${fmt(row.tongSoTietCongTrinh)}</td></tr>`;
+        }).join("")
+        : '<tr><td colspan="9" class="text-muted">Không có công trình</td></tr>';
 
-  function renderRecords() {
-    if (!el.recordDetailTableBody) return;
-    if (!state.records.length) { el.recordDetailTableBody.innerHTML = '<tr><td colspan="7" class="text-muted py-4">Không có dữ liệu chi tiết</td></tr>'; return; }
-    const esc = window.NCKH_V3_STATS.helpers.escapeHtml, fmt = window.NCKH_V3_STATS.helpers.formatHours;
-    el.recordDetailTableBody.innerHTML = state.records.map((row, i) => `<tr><td>${i + 1}</td><td>${esc(row.loaiNckhLabel)}</td><td class="text-start">${esc(row.tenCongTrinh)}</td><td class="text-start">${esc(row.tacGiaChinh)}</td><td class="text-start">${esc(row.thanhVien)}</td><td>${esc(row.tenPhongBan || row.maPhongBan || "")}</td><td>${fmt(row.tongSoTietCongTrinh)}</td></tr>`).join("");
+      return `<tr class="nckh-stats-group-header"><td colspan="9"><strong>${esc(faculty.maPhongBan || "-")} - ${esc(faculty.tenPhongBan || "Chưa gán khoa")}</strong><span class="nckh-v3-group-count">${records.length} công trình</span><span class="nckh-v3-group-count">${fmt(faculty.tongSoTiet)} tiết</span></td></tr>${groupRows}`;
+    }).join("");
   }
 
   async function loadSummary() {
@@ -100,21 +98,15 @@
     const result = await api.getSummary(namHoc, khoaId);
     if (!result.success) throw new Error(result.message || "Không thể lấy thống kê theo khoa");
     state.faculties = Array.isArray(result.data) ? result.data : [];
-    state.records = []; state.selectedKhoaId = null;
+    const recordsByFaculty = await Promise.all(state.faculties.map(async (faculty) => {
+      if (faculty.khoaId === null || faculty.khoaId === undefined) return [];
+      const recordsResult = await api.getRecords(namHoc, faculty.khoaId);
+      if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy danh sách công trình theo khoa");
+      return Array.isArray(recordsResult.data) ? recordsResult.data : [];
+    }));
+    state.faculties.forEach((faculty, index) => { faculty.records = recordsByFaculty[index]; });
     renderFacultySummary();
     renderCharts();
-  }
-
-  async function loadRecordsByFaculty(khoaId) {
-    const namHoc = String(el.namHocFilter?.value || "").trim();
-    const result = await api.getRecords(namHoc, khoaId);
-    if (!result.success) throw new Error(result.message || "Không thể lấy danh sách công trình theo khoa");
-    state.selectedKhoaId = String(khoaId);
-    state.records = Array.isArray(result.data) ? result.data : [];
-    renderFacultySummary(); renderRecords();
-    const sel = state.faculties.find(item => { const k = item.khoaId === null ? "UNASSIGNED" : String(item.khoaId); return k === String(khoaId); });
-    if (el.recordDetailModalLabel) el.recordDetailModalLabel.textContent = `Chi tiết công trình - ${sel?.tenPhongBan || "Khoa"}`;
-    if (recordDetailModal) recordDetailModal.show();
   }
 
   async function initFilters() {
@@ -129,11 +121,6 @@
       const namHoc = el.namHocFilter?.value, khoaId = el.khoaFilter?.value || "ALL";
       if (!namHoc) return Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning");
       window.location.href = `/v3/nckh/export/stats/khoa?namHoc=${encodeURIComponent(namHoc)}&khoaId=${encodeURIComponent(khoaId)}`;
-    });
-    el.facultyTableBody?.addEventListener("click", async (event) => {
-      const btn = event.target.closest("button[data-action='detail']"); if (!btn) return;
-      const khoaId = btn.getAttribute("data-khoa-id"); if (!khoaId) return;
-      try { await loadRecordsByFaculty(khoaId); } catch (e) { await window.NCKH_V3_STATS.helpers.showError(e, "Không thể tải công trình theo khoa"); }
     });
   }
 
