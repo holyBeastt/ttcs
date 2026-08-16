@@ -1,26 +1,28 @@
 const TABLE_CHUNG = "nckh_chung";
 const TABLE_SO_TIET = "nckh_so_tiet";
+const { STATS_SCOPE, normalizeStatsScope } = require("../../config/nckh_v3/statsScope");
 
 /**
- * Điều kiện chung: năm học + trạng thái phê duyệt.
+ * Điều kiện chung: năm học + trạng thái phê duyệt (nếu là thống kê chính thức).
  * Không chứa logic lọc khoa.
  */
-const buildApprovedWhere = (namHoc) => {
-  const where = `
-    c.nam_hoc = ?
-    AND c.khoa_duyet = 1
-    AND c.vien_nc_duyet = 1
-  `;
+const buildStatsWhere = (namHoc, scope = STATS_SCOPE.OFFICIAL) => {
+  const conditions = ["c.nam_hoc = ?"];
   const params = [namHoc];
-  return { where, params };
+
+  if (normalizeStatsScope(scope) === STATS_SCOPE.OFFICIAL) {
+    conditions.push("c.khoa_duyet = 1", "c.vien_nc_duyet = 1");
+  }
+
+  return { where: conditions.join(" AND "), params };
 };
 
 // ──────────────────────────────────────────────
 // 1. Thống kê theo Giảng viên
 // ──────────────────────────────────────────────
 
-const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword = "" }) => {
-  const { where, params } = buildApprovedWhere(namHoc);
+const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword = "", scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
   const normalizedKeyword = String(keyword || "").trim();
   const safeKhoaId = String(khoaId || "ALL").trim();
 
@@ -69,8 +71,8 @@ const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword
 //    Không lọc theo khoa — hiển thị toàn bộ.
 // ──────────────────────────────────────────────
 
-const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
-  const { where, params } = buildApprovedWhere(namHoc);
+const listLecturerRecords = async (connection, { lecturerId, namHoc, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
 
   const query = `
     SELECT
@@ -129,8 +131,8 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc }) => {
 // 3. Thống kê theo Khoa (tổng hợp)
 // ──────────────────────────────────────────────
 
-const listFacultySummary = async (connection, { namHoc, khoaId = "ALL" }) => {
-  const params = [namHoc];
+const listFacultySummary = async (connection, { namHoc, khoaId = "ALL", scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
   const query = `
     SELECT
       pb.id AS khoa_id,
@@ -142,9 +144,7 @@ const listFacultySummary = async (connection, { namHoc, khoaId = "ALL" }) => {
     INNER JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
     INNER JOIN phongban pb ON pb.id = nv.phongban_id
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
-    WHERE c.nam_hoc = ?
-      AND c.khoa_duyet = 1
-      AND c.vien_nc_duyet = 1
+    WHERE ${where}
       ${String(khoaId || "ALL") !== "ALL" ? "AND pb.id = ?" : ""}
     GROUP BY pb.id, pb.MaPhongBan, pb.TenPhongBan
     ORDER BY tong_so_tiet DESC
@@ -162,8 +162,8 @@ const listFacultySummary = async (connection, { namHoc, khoaId = "ALL" }) => {
 // 4. Danh sách công trình theo Khoa
 // ──────────────────────────────────────────────
 
-const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
-  const { where, params } = buildApprovedWhere(namHoc);
+const listFacultyRecords = async (connection, { namHoc, khoaId, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
   const safeKhoaId = Number(khoaId);
 
   // Lọc công trình có ít nhất 1 giảng viên thuộc khoa này tham gia
@@ -223,38 +223,37 @@ const listFacultyRecords = async (connection, { namHoc, khoaId }) => {
 // 5. Thống kê Học viện — Tổng quan
 // ──────────────────────────────────────────────
 
-const getInstituteOverview = async (connection, { namHoc }) => {
+const getInstituteOverview = async (connection, { namHoc, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
   const query = `
     SELECT
       COUNT(DISTINCT c.id) AS tong_cong_trinh,
       COALESCE(SUM(st.so_tiet), 0) AS tong_so_tiet
     FROM ${TABLE_CHUNG} c
     LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id AND st.nhanvien_id IS NOT NULL
-    WHERE c.nam_hoc = ?
-      AND c.khoa_duyet = 1
-      AND c.vien_nc_duyet = 1
+    WHERE ${where}
   `;
 
-  const [rows] = await connection.execute(query, [namHoc]);
+  const [rows] = await connection.execute(query, params);
   return rows[0] || { tong_cong_trinh: 0, tong_so_tiet: 0 };
 };
 
-const countInstituteLecturers = async (connection, { namHoc }) => {
+const countInstituteLecturers = async (connection, { namHoc, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
   const query = `
     SELECT COUNT(DISTINCT st.nhanvien_id) AS tong_giang_vien_noi_bo
     FROM ${TABLE_SO_TIET} st
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
-    WHERE c.nam_hoc = ?
-      AND c.khoa_duyet = 1
-      AND c.vien_nc_duyet = 1
+    WHERE ${where}
       AND st.nhanvien_id IS NOT NULL
   `;
 
-  const [rows] = await connection.execute(query, [namHoc]);
+  const [rows] = await connection.execute(query, params);
   return rows[0] || { tong_giang_vien_noi_bo: 0 };
 };
 
-const listInstituteByType = async (connection, { namHoc }) => {
+const listInstituteByType = async (connection, { namHoc, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
   const query = `
     SELECT
       c.loai_nckh,
@@ -262,14 +261,12 @@ const listInstituteByType = async (connection, { namHoc }) => {
       COALESCE(SUM(st.so_tiet), 0) AS tong_so_tiet
     FROM ${TABLE_CHUNG} c
     LEFT JOIN ${TABLE_SO_TIET} st ON st.nckh_id = c.id AND st.nhanvien_id IS NOT NULL
-    WHERE c.nam_hoc = ?
-      AND c.khoa_duyet = 1
-      AND c.vien_nc_duyet = 1
+    WHERE ${where}
     GROUP BY c.loai_nckh
     ORDER BY tong_so_tiet DESC
   `;
 
-  const [rows] = await connection.execute(query, [namHoc]);
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
@@ -277,8 +274,8 @@ const listInstituteByType = async (connection, { namHoc }) => {
 // 6. Danh sách công trình Học viện
 // ──────────────────────────────────────────────
 
-const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNckh = "ALL" }) => {
-  const { where, params } = buildApprovedWhere(namHoc);
+const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNckh = "ALL", scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope);
   const safeKhoaId = String(khoaId || "ALL");
 
   // --- Xử lý lọc theo khoa ---

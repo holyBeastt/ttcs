@@ -3,6 +3,7 @@ const phongBanRepo = require("../../repositories/nckh_v3/phongBan.repo");
 const statsRepo = require("../../repositories/nckh_v3/stats.repo");
 const mapper = require("../../mappers/nckh_v3/stats.mapper");
 const { getTypeByValue } = require("../../config/nckh_v3/types");
+const { STATS_SCOPE, normalizeStatsScope } = require("../../config/nckh_v3/statsScope");
 
 const ensureNamHoc = (namHoc) => {
   const value = String(namHoc || "").trim();
@@ -28,7 +29,7 @@ const getFilters = async () => {
   }
 };
 
-const getLecturerSummary = async (namHoc, khoaId, keyword) => {
+const getLecturerSummary = async (namHoc, khoaId, keyword, scope = STATS_SCOPE.OFFICIAL) => {
   const safeNamHoc = ensureNamHoc(namHoc);
   const safeKhoaId = normalizeKhoaId(khoaId);
   const safeKeyword = String(keyword || "").trim();
@@ -40,6 +41,7 @@ const getLecturerSummary = async (namHoc, khoaId, keyword) => {
       namHoc: safeNamHoc,
       khoaId: safeKhoaId,
       keyword: safeKeyword,
+      scope: normalizeStatsScope(scope),
     });
     return rows.map(mapper.mapLecturerSummaryRow);
   } finally {
@@ -47,7 +49,7 @@ const getLecturerSummary = async (namHoc, khoaId, keyword) => {
   }
 };
 
-const getLecturerRecords = async (lecturerId, namHoc) => {
+const getLecturerRecords = async (lecturerId, namHoc, scope = STATS_SCOPE.OFFICIAL) => {
   const safeNamHoc = ensureNamHoc(namHoc);
   const safeLecturerId = Number(lecturerId);
 
@@ -61,6 +63,7 @@ const getLecturerRecords = async (lecturerId, namHoc) => {
     const rows = await statsRepo.listLecturerRecords(connection, {
       lecturerId: safeLecturerId,
       namHoc: safeNamHoc,
+      scope: normalizeStatsScope(scope),
     });
     return rows.map(mapper.mapLecturerRecordRow);
   } finally {
@@ -68,21 +71,21 @@ const getLecturerRecords = async (lecturerId, namHoc) => {
   }
 };
 
-const getFacultySummary = async (namHoc, khoaId) => {
+const getFacultySummary = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL) => {
   const safeNamHoc = ensureNamHoc(namHoc);
   const safeKhoaId = normalizeKhoaId(khoaId);
 
   let connection;
   try {
     connection = await createPoolConnection();
-    const rows = await statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc, khoaId: safeKhoaId });
+    const rows = await statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc, khoaId: safeKhoaId, scope: normalizeStatsScope(scope) });
     return rows.map(mapper.mapFacultySummaryRow);
   } finally {
     if (connection) connection.release();
   }
 };
 
-const getFacultyRecords = async (namHoc, khoaId) => {
+const getFacultyRecords = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL) => {
   const safeNamHoc = ensureNamHoc(namHoc);
   const safeKhoaId = String(khoaId || "").trim();
 
@@ -96,6 +99,7 @@ const getFacultyRecords = async (namHoc, khoaId) => {
     const rows = await statsRepo.listFacultyRecords(connection, {
       namHoc: safeNamHoc,
       khoaId: safeKhoaId,
+      scope: normalizeStatsScope(scope),
     });
     return rows.map(mapper.mapCommonRecordRow);
   } finally {
@@ -103,7 +107,7 @@ const getFacultyRecords = async (namHoc, khoaId) => {
   }
 };
 
-const getInstituteSummary = async (namHoc) => {
+const getInstituteSummary = async (namHoc, scope = STATS_SCOPE.OFFICIAL) => {
   const safeNamHoc = ensureNamHoc(namHoc);
 
   let connection;
@@ -111,10 +115,10 @@ const getInstituteSummary = async (namHoc) => {
     connection = await createPoolConnection();
 
     const [overviewRow, lecturerRow, typeRows, facultyRows] = await Promise.all([
-      statsRepo.getInstituteOverview(connection, { namHoc: safeNamHoc }),
-      statsRepo.countInstituteLecturers(connection, { namHoc: safeNamHoc }),
-      statsRepo.listInstituteByType(connection, { namHoc: safeNamHoc }),
-      statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc }),
+      statsRepo.getInstituteOverview(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
+      statsRepo.countInstituteLecturers(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
+      statsRepo.listInstituteByType(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
+      statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
     ]);
 
     return {
@@ -127,7 +131,7 @@ const getInstituteSummary = async (namHoc) => {
   }
 };
 
-const getInstituteRecords = async (namHoc, khoaId, typeSlug) => {
+const getInstituteRecords = async (namHoc, khoaId, typeSlug, scope = STATS_SCOPE.OFFICIAL) => {
   const safeNamHoc = ensureNamHoc(namHoc);
   const safeKhoaId = normalizeKhoaId(khoaId);
 
@@ -148,6 +152,7 @@ const getInstituteRecords = async (namHoc, khoaId, typeSlug) => {
       namHoc: safeNamHoc,
       khoaId: safeKhoaId,
       loaiNckh,
+      scope: normalizeStatsScope(scope),
     });
     return rows.map(mapper.mapCommonRecordRow);
   } finally {

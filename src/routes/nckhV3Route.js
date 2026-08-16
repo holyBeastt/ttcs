@@ -16,6 +16,7 @@ const adminController = require("../controllers/nckh_v3/adminQuyDinh.controller"
 const statsController = require("../controllers/nckh_v3/stats.controller");
 const officialStatsController = require("../controllers/nckh_v3/officialStats.controller");
 const exportController = require("../controllers/nckh_v3/export.controller");
+const { STATS_SCOPE } = require("../config/nckh_v3/statsScope");
 const importController = require("../controllers/nckh_v3/import.controller");
 
 // Multer memory storage for Excel upload
@@ -139,23 +140,40 @@ router.get("/xem-chung", (req, res) => {
 	portalController.renderUnifiedListPage(req, res);
 });
 
-router.get("/thong-ke", officialStatsController.renderPage);
-router.get("/thong-ke/giang-vien", statsController.renderLecturerPage);
-router.get("/thong-ke/khoa", statsController.renderFacultyPage);
-router.get("/thong-ke/hoc-vien", statsController.renderInstitutePage);
+const officialStats = statsController.createStatsController(STATS_SCOPE.OFFICIAL);
+const previewStats = statsController.createStatsController(STATS_SCOPE.PREVIEW);
 
-router.get("/stats/filters", statsController.getFilters);
-router.get("/stats/giang-vien", statsController.lecturerSummary);
-router.get("/stats/giang-vien/:lecturerId/cong-trinh", statsController.lecturerRecords);
-router.get("/stats/khoa", statsController.facultySummary);
-router.get("/stats/khoa/:khoaId/cong-trinh", statsController.facultyRecords);
-router.get("/stats/hoc-vien", statsController.instituteSummary);
-router.get("/stats/hoc-vien/cong-trinh", statsController.instituteRecords);
+router.get("/thong-ke", officialStatsController.renderPage);
+router.get("/thong-ke-du-kien", (_req, res) => {
+	res.render("nckh_v3/stats_official.ejs", { statsScope: STATS_SCOPE.PREVIEW });
+});
+router.get("/thong-ke/giang-vien", (_req, res) => res.render("nckh_v3/stats_lecturer.ejs"));
+router.get("/thong-ke/khoa", (_req, res) => res.render("nckh_v3/stats_faculty.ejs"));
+router.get("/thong-ke/hoc-vien", (_req, res) => res.render("nckh_v3/stats_institute.ejs"));
+
+router.get("/stats/filters", officialStats.getFilters);
+router.get("/stats/giang-vien", officialStats.lecturerSummary);
+router.get("/stats/giang-vien/:lecturerId/cong-trinh", officialStats.lecturerRecords);
+router.get("/stats/khoa", officialStats.facultySummary);
+router.get("/stats/khoa/:khoaId/cong-trinh", officialStats.facultyRecords);
+router.get("/stats/hoc-vien", officialStats.instituteSummary);
+router.get("/stats/hoc-vien/cong-trinh", officialStats.instituteRecords);
+
+router.get("/stats/preview/filters", previewStats.getFilters);
+router.get("/stats/preview/giang-vien", previewStats.lecturerSummary);
+router.get("/stats/preview/giang-vien/:lecturerId/cong-trinh", previewStats.lecturerRecords);
+router.get("/stats/preview/khoa", previewStats.facultySummary);
+router.get("/stats/preview/khoa/:khoaId/cong-trinh", previewStats.facultyRecords);
+router.get("/stats/preview/hoc-vien", previewStats.instituteSummary);
+router.get("/stats/preview/hoc-vien/cong-trinh", previewStats.instituteRecords);
 
 // Export APIs
-router.get("/export/stats/giang-vien", exportController.exportLecturerStats);
-router.get("/export/stats/khoa", exportController.exportFacultyStats);
-router.get("/export/stats/hoc-vien", exportController.exportInstituteStats);
+router.get("/export/stats/giang-vien", (req, res) => exportController.exportLecturerStats(req, res, STATS_SCOPE.OFFICIAL));
+router.get("/export/stats/khoa", (req, res) => exportController.exportFacultyStats(req, res, STATS_SCOPE.OFFICIAL));
+router.get("/export/stats/hoc-vien", (req, res) => exportController.exportInstituteStats(req, res, STATS_SCOPE.OFFICIAL));
+router.get("/export/stats/preview/giang-vien", (req, res) => exportController.exportLecturerStats(req, res, STATS_SCOPE.PREVIEW));
+router.get("/export/stats/preview/khoa", (req, res) => exportController.exportFacultyStats(req, res, STATS_SCOPE.PREVIEW));
+router.get("/export/stats/preview/hoc-vien", (req, res) => exportController.exportInstituteStats(req, res, STATS_SCOPE.PREVIEW));
 
 router.get("/hoi-dong-khoa-hoc", (req, res) => {
 	res.redirect("/v3/nckh/them-moi-nckh?type=thanh-vien-hoi-dong");

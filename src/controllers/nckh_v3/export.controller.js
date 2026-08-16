@@ -1,16 +1,17 @@
 const exportService = require("../../services/nckh_v3/export.service");
+const { STATS_SCOPE } = require("../../config/nckh_v3/statsScope");
 
 class ExportController {
   /**
    * Export lecturer statistics to Excel.
    * GET /v3/nckh/export/stats/giang-vien?namHoc=...&khoaId=...&keyword=...
    */
-  async exportLecturerStats(req, res) {
+  async exportLecturerStats(req, res, scope = STATS_SCOPE.OFFICIAL) {
     try {
       const { namHoc, khoaId = "ALL", keyword = "" } = req.query;
       if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu năm học" });
 
-      const workbook = await exportService.exportLecturerStats(namHoc, khoaId, keyword);
+      const workbook = await exportService.exportLecturerStats(namHoc, khoaId, keyword, scope);
       const filename = `ThongKe_NCKH_GiangVien_${namHoc}.xlsx`;
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -28,12 +29,12 @@ class ExportController {
    * Export faculty statistics to Excel.
    * GET /v3/nckh/export/stats/khoa?namHoc=...&khoaId=...
    */
-  async exportFacultyStats(req, res) {
+  async exportFacultyStats(req, res, scope = STATS_SCOPE.OFFICIAL) {
     try {
       const { namHoc, khoaId = "ALL" } = req.query;
       if (!namHoc) throw new Error("Thiếu năm học");
 
-      const workbook = await exportService.exportFacultyStats(namHoc, khoaId);
+      const workbook = await exportService.exportFacultyStats(namHoc, khoaId, scope);
       const filename = `ThongKe_NCKH_Khoa_${namHoc}.xlsx`;
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -51,12 +52,12 @@ class ExportController {
    * Export institute statistics to Excel.
    * GET /v3/nckh/export/stats/hoc-vien?namHoc=...
    */
-  async exportInstituteStats(req, res) {
+  async exportInstituteStats(req, res, scope = STATS_SCOPE.OFFICIAL) {
     try {
       const { namHoc } = req.query;
       if (!namHoc) throw new Error("Thiếu năm học");
 
-      const workbook = await exportService.exportInstituteStats(namHoc);
+      const workbook = await exportService.exportInstituteStats(namHoc, scope);
       const filename = `ThongKe_NCKH_HocVien_${namHoc}.xlsx`;
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

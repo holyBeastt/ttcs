@@ -1,20 +1,23 @@
 (function () {
   const state = { tab: "lecturer", lecturerGroups: [] };
+  const isPreview = window.NCKH_STATS_SCOPE === "PREVIEW";
+  const statsBase = isPreview ? "/v3/nckh/stats/preview" : "/v3/nckh/stats";
+  const exportBase = isPreview ? "/v3/nckh/export/stats/preview" : "/v3/nckh/export/stats";
   const el = {};
 
   const api = {
     async lecturers(namHoc, khoaId, keyword) {
       const query = new URLSearchParams({ namHoc, khoaId, keyword });
-      return (await fetch(`/v3/nckh/stats/giang-vien?${query}`)).json();
+      return (await fetch(`${statsBase}/giang-vien?${query}`)).json();
     },
     async lecturerRecords(id, namHoc) {
-      return (await fetch(`/v3/nckh/stats/giang-vien/${id}/cong-trinh?${new URLSearchParams({ namHoc })}`)).json();
+      return (await fetch(`${statsBase}/giang-vien/${id}/cong-trinh?${new URLSearchParams({ namHoc })}`)).json();
     },
     async faculties(namHoc, khoaId) {
-      return (await fetch(`/v3/nckh/stats/khoa?${new URLSearchParams({ namHoc, khoaId })}`)).json();
+      return (await fetch(`${statsBase}/khoa?${new URLSearchParams({ namHoc, khoaId })}`)).json();
     },
     async facultyRecords(id, namHoc) {
-      return (await fetch(`/v3/nckh/stats/khoa/${encodeURIComponent(id)}/cong-trinh?${new URLSearchParams({ namHoc })}`)).json();
+      return (await fetch(`${statsBase}/khoa/${encodeURIComponent(id)}/cong-trinh?${new URLSearchParams({ namHoc })}`)).json();
     },
   };
 
@@ -163,9 +166,9 @@
     if (!namHoc) return Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning");
     if (state.tab === "lecturer") {
       const query = new URLSearchParams({ namHoc, khoaId: el.khoa.value || "ALL", keyword: el.keyword.value.trim() });
-      window.location.href = `/v3/nckh/export/stats/giang-vien?${query}`;
+      window.location.href = `${exportBase}/giang-vien?${query}`;
     } else if (state.tab === "faculty") {
-      window.location.href = `/v3/nckh/export/stats/khoa?${new URLSearchParams({ namHoc, khoaId: el.khoa.value || "ALL" })}`;
+      window.location.href = `${exportBase}/khoa?${new URLSearchParams({ namHoc, khoaId: el.khoa.value || "ALL" })}`;
     }
   }
 

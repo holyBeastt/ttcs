@@ -8,13 +8,13 @@ class ExportService {
    * Export lecturer statistics to Excel.
    * Each lecturer will have their own sheet, grouped by research type.
    */
-  async exportLecturerStats(namHoc, khoaId, keyword) {
+  async exportLecturerStats(namHoc, khoaId, keyword, scope) {
     let connection;
     try {
       connection = await createPoolConnection();
       
       // 1. Get filtered list of lecturers
-      const lecturers = await statsService.getLecturerSummary(namHoc, khoaId, keyword);
+      const lecturers = await statsService.getLecturerSummary(namHoc, khoaId, keyword, scope);
       if (!lecturers.length) {
         throw new Error("Không có dữ liệu để xuất");
       }
@@ -49,7 +49,7 @@ class ExportService {
         worksheet.addRow([]); // Blank row
 
         // Get records for this lecturer
-        const records = await statsService.getLecturerRecords(lecturer.lecturerId, namHoc);
+        const records = await statsService.getLecturerRecords(lecturer.lecturerId, namHoc, scope);
         
         // Group records by type
         const groupedRecords = this._groupRecordsByType(records);
@@ -171,7 +171,7 @@ class ExportService {
    * Export faculty statistics to Excel.
    * If khoaId is 'ALL', create a sheet for each department.
    */
-  async exportFacultyStats(namHoc, khoaId) {
+  async exportFacultyStats(namHoc, khoaId, scope) {
     let connection;
     try {
       connection = await createPoolConnection();
@@ -183,7 +183,7 @@ class ExportService {
       }
 
       for (const faculty of faculties) {
-        const records = await statsService.getFacultyRecords(namHoc, faculty.id || faculty.khoaId);
+        const records = await statsService.getFacultyRecords(namHoc, faculty.id || faculty.khoaId, scope);
         if (faculties.length > 1 && (!records || records.length === 0)) continue;
 
         const sheetName = this._safeSheetName(faculty.TenPhongBan || faculty.tenPhongBan || "Khoa");
@@ -208,14 +208,14 @@ class ExportService {
    * Sheet 1: All records grouped by Type.
    * Following sheets: Each faculty's records.
    */
-  async exportInstituteStats(namHoc) {
+  async exportInstituteStats(namHoc, scope) {
     let connection;
     try {
       connection = await createPoolConnection();
       const workbook = this._createWorkbook();
 
       // 1. Sheet 1: Toàn Học viện
-      const instituteRecords = await statsService.getInstituteRecords(namHoc, "ALL", "ALL");
+      const instituteRecords = await statsService.getInstituteRecords(namHoc, "ALL", "ALL", scope);
       const overviewSheet = workbook.addWorksheet("Toàn Học viện");
       this._renderHeader(overviewSheet, "THỐNG KÊ TOÀN HỌC VIỆN", namHoc);
       this._renderResearchTable(overviewSheet, instituteRecords, 5, { groupByType: true });
@@ -223,7 +223,7 @@ class ExportService {
       // 2. Following sheets: Individual Faculties
       const faculties = await statsService.getFilters().then(f => f.khoaList);
       for (const faculty of faculties) {
-        const records = await statsService.getFacultyRecords(namHoc, faculty.id);
+        const records = await statsService.getFacultyRecords(namHoc, faculty.id, scope);
         if (!records || records.length === 0) continue;
 
         const sheetName = this._safeSheetName(faculty.TenPhongBan);
