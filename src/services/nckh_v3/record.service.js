@@ -97,6 +97,29 @@ const buildHoiDongSummary = (participantRows) => {
   };
 };
 
+const buildParticipantSummary = (participantRows) => {
+  const map = new Map();
+
+  for (const participant of participantRows) {
+    const isExternal = participant.nhanvien_id === null || participant.nhanvien_id === undefined;
+    const name = isExternal
+      ? String(participant.ten_ngoai || "").trim() || "Không rõ tên"
+      : String(participant.TenNhanVien || "").trim() || "Không rõ tên";
+    const unit = isExternal
+      ? String(participant.don_vi_ngoai || "").trim()
+      : String(participant.MaPhongBan || "").trim();
+    const key = isExternal
+      ? `external:${name.toLowerCase()}|${unit.toLowerCase()}`
+      : `employee:${Number(participant.nhanvien_id)}`;
+
+    const current = map.get(key) || { key, name, unit, hours: 0 };
+    current.hours = round2(Number(current.hours) + Number(participant.so_tiet || 0));
+    map.set(key, current);
+  }
+
+  return Array.from(map.values());
+};
+
 const toSummaryRecord = (row) => {
   const meta = typeMetaByLoai.get(String(row.loai_nckh || "")) || null;
   const rawId = row.id ?? row.ID;
@@ -161,10 +184,12 @@ const list = async (namHoc, khoaId) => {
 
     return records.map((record) => {
       const recordParticipants = participantsByRecordId.get(record.id) || [];
+      const participantSummary = buildParticipantSummary(recordParticipants);
       if (record.loaiNckh === "HOIDONG") {
         const hoiDongSummary = buildHoiDongSummary(recordParticipants);
         return {
           ...record,
+          participantSummary,
           tacGiaChinh: hoiDongSummary.nameText,
           thanhVien: "",
           tacGiaChinhDisplay: hoiDongSummary.displayText,
@@ -177,6 +202,7 @@ const list = async (namHoc, khoaId) => {
 
       return {
         ...record,
+        participantSummary,
         tacGiaChinh: tacGia.map((item) => item.nameOnly).join(", "),
         thanhVien: thanhVien.map((item) => item.nameOnly).join(", "),
         tacGiaChinhDisplay: tacGia.map((item) => item.display).join("\n"),

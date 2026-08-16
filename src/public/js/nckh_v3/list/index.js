@@ -103,6 +103,34 @@
       .replace(/[\u0300-\u036f]/g, "");
   }
 
+  function getParticipantSummary(row) {
+    if (Array.isArray(row.participantSummary)) {
+      return row.participantSummary;
+    }
+
+    // Fallback for an already-running server that has not returned the new field yet.
+    const displays = [row.tacGiaChinhDisplay, row.thanhVienDisplay]
+      .filter(Boolean)
+      .flatMap((value) => String(value).split(/\r?\n/));
+
+    const summary = new Map();
+    displays.forEach((display) => {
+      const match = display.trim().match(/^(.*?)\s+\(([-\d.,]+)\s+tiết\)$/u);
+      if (!match) return;
+
+      const personAndUnit = match[1].trim();
+      const separatorIndex = personAndUnit.lastIndexOf(" - ");
+      const name = separatorIndex >= 0 ? personAndUnit.slice(0, separatorIndex).trim() : personAndUnit;
+      const unit = separatorIndex >= 0 ? personAndUnit.slice(separatorIndex + 3).trim() : "";
+      const key = `fallback:${normalizeText(name)}|${normalizeText(unit)}`;
+      const current = summary.get(key) || { key, name, unit, hours: 0 };
+      current.hours += Number(match[2].replace(",", ".")) || 0;
+      summary.set(key, current);
+    });
+
+    return Array.from(summary.values());
+  }
+
   function applyClientFilter() {
     const workNameKeyword = normalizeText(
       el.workNameSearchInput && el.workNameSearchInput.value ? el.workNameSearchInput.value : ""
@@ -124,6 +152,7 @@
         row.thanhVien,
         row.tacGiaChinhDisplay,
         row.thanhVienDisplay,
+        ...getParticipantSummary(row).map((person) => `${person.name} ${person.unit}`),
       ].join(" "));
 
       const isWorkNameMatched = !workNameKeyword || workNameHaystack.includes(workNameKeyword);
@@ -299,25 +328,57 @@
       return;
     }
 
-    // Group rows by loaiNckhLabel
+    const authorKeyword = normalizeText(el.authorMemberSearchInput?.value || "");
     const groups = new Map();
-    for (const row of state.rows) {
-      const key = row.loaiNckhLabel || "Khác";
-      if (!groups.has(key)) {
-        groups.set(key, []);
+
+    if (authorKeyword) {
+      for (const row of state.rows) {
+        for (const person of getParticipantSummary(row)) {
+          const personHaystack = normalizeText(`${person.name} ${person.unit}`);
+          if (!personHaystack.includes(authorKeyword)) continue;
+
+          if (!groups.has(person.key)) {
+            groups.set(person.key, {
+              label: `${person.name}${person.unit ? ` - ${person.unit}` : ""}`,
+              rows: [],
+              totalHours: 0,
+              byPerson: true,
+            });
+          }
+
+          const group = groups.get(person.key);
+          group.rows.push({ ...row, personHours: Number(person.hours || 0) });
+          group.totalHours += Number(person.hours || 0);
+        }
       }
-      groups.get(key).push(row);
+    } else {
+      for (const row of state.rows) {
+        const key = row.loaiNckhLabel || "Khác";
+        if (!groups.has(key)) {
+          groups.set(key, {
+            label: key,
+            rows: [],
+            totalHours: 0,
+            byPerson: false,
+          });
+        }
+        const group = groups.get(key);
+        group.rows.push(row);
+        group.totalHours += Number(row.tongSoTiet || 0);
+      }
     }
 
     let html = "";
     let globalIndex = 0;
 
-    for (const [groupLabel, groupRows] of groups) {
+    for (const group of groups.values()) {
+      const groupRows = group.rows;
       html += `
         <tr class="nckh-v3-group-header">
           <td colspan="14">
-            <strong>${escapeHtml(groupLabel)}</strong>
-            <span class="nckh-v3-group-count">${groupRows.length}</span>
+            <strong>${escapeHtml(group.label)}</strong>
+            <span class="nckh-v3-group-count">${groupRows.length} công trình</span>
+            <span class="nckh-v3-group-count">${formatHours(group.totalHours)} tiết</span>
           </td>
         </tr>
       `;
@@ -352,7 +413,7 @@
             <td class="text-start col-people">${tacGia || ""}</td>
             <td class="text-start col-people">${thanhVien || ""}</td>
             <td>${escapeHtml(row.maPhongBan || row.tenPhongBan || "")}</td>
-            <td>${formatHours(row.tongSoTiet)}</td>
+            <td>${formatHours(group.byPerson ? row.personHours : row.tongSoTiet)}</td>
             <td>
               <input
                 type="checkbox"
