@@ -388,6 +388,14 @@
   font-weight: 600;
 }
 
+.nckh-stats-subgroup-header .nckh-v3-group-count {
+  display: inline-block;
+  margin-left: 18px;
+  color: var(--stats-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* Sortable header */
 .stats-table-card th.sortable {
   cursor: pointer;

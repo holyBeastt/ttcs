@@ -120,6 +120,31 @@ class ExportService {
             currentRow++;
           });
 
+          const totalLecturerHours = groupRows.reduce((total, rec) => total + Number(rec.soTietGiangVien || 0), 0);
+          const totalProjectHours = groupRows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
+          const totalRow = worksheet.addRow([
+            "",
+            `Tổng nhóm (${groupRows.length} công trình)`,
+            "",
+            totalLecturerHours,
+            totalProjectHours,
+            "",
+            "",
+          ]);
+          totalRow.font = { bold: true };
+          totalRow.eachCell((cell, colNumber) => {
+            cell.border = {
+              top: { style: "thin" },
+              left: { style: "thin" },
+              bottom: { style: "thin" },
+              right: { style: "thin" }
+            };
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
+            cell.alignment = { horizontal: [4, 5].includes(colNumber) ? "center" : "left", vertical: "middle" };
+            if ([4, 5].includes(colNumber)) cell.numFmt = "#,##0.00";
+          });
+          currentRow++;
+
           worksheet.addRow([]); // Blank row after group
           currentRow++;
         }
@@ -165,7 +190,7 @@ class ExportService {
         const worksheet = workbook.addWorksheet(sheetName);
 
         this._renderHeader(worksheet, `THỐNG KÊ NCKH - KHOA/PHÒNG: ${faculty.TenPhongBan || faculty.tenPhongBan}`, namHoc);
-        this._renderResearchTable(worksheet, records, 5);
+        this._renderResearchTable(worksheet, records, 5, { groupByType: true });
       }
 
       if (workbook.worksheets.length === 0) {
@@ -204,7 +229,7 @@ class ExportService {
         const sheetName = this._safeSheetName(faculty.TenPhongBan);
         const worksheet = workbook.addWorksheet(sheetName);
         this._renderHeader(worksheet, `CHI TIẾT: ${faculty.TenPhongBan}`, namHoc);
-        this._renderResearchTable(worksheet, records, 5);
+        this._renderResearchTable(worksheet, records, 5, { groupByType: true });
       }
 
       return workbook;
@@ -288,6 +313,25 @@ class ExportService {
         });
         currentRow++;
       });
+
+      const totalHours = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
+      const totalRow = worksheet.addRow([
+        "",
+        "",
+        "",
+        `Tổng nhóm (${rows.length} công trình)`,
+        totalHours,
+        "",
+        "",
+      ]);
+      totalRow.font = { bold: true };
+      totalRow.eachCell((cell, colNumber) => {
+        cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
+        cell.alignment = { horizontal: colNumber === 5 ? "center" : "left", vertical: "middle" };
+        if (colNumber === 5) cell.numFmt = "#,##0.00";
+      });
+      currentRow++;
       worksheet.addRow([]); currentRow++;
     };
 
