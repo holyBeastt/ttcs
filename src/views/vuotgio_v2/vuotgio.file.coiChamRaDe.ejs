@@ -157,6 +157,23 @@
   <!-- Data Lock Check -->
   <script>
   (function() {
+      const role = localStorage.getItem('userRole') || '';
+      const maPhongBan = localStorage.getItem('MaPhongBan') || '';
+      const isKhoa = localStorage.getItem('isKhoa') === '1';
+      const appRoles = window.APP_ROLES || {};
+      const appDepartments = window.APP_DEPARTMENTS || {};
+      const canAccess =
+          (isKhoa && (role === (appRoles.gv_cnbm || 'GV_CNBM')
+              || role === (appRoles.lanhDao_khoa || 'Lãnh đạo khoa')))
+          || (maPhongBan === (appDepartments.khaoThi || 'KT&ĐBCL')
+              && (role === (appRoles.troLy_phong || 'Trợ lý')
+                  || role === (appRoles.lanhDao_phong || 'Lãnh đạo phòng')));
+      if (!canAccess) {
+          const content = document.querySelector('.main-content');
+          if (content) content.innerHTML = '<div class="alert alert-warning mt-4">Bạn không có quyền xem trang nhập coi, chấm, ra đề.</div>';
+          return;
+      }
+
       const namHocSelect = document.getElementById('NamHoc');
       const banner = document.getElementById('dataLockBanner');
       const bannerMsg = document.getElementById('dataLockMessage');

@@ -66,8 +66,7 @@ function setupAddPagePermissions() {
     const isKhaoThiUser = maPhongBan === (window.APP_DEPARTMENTS?.khaoThi || 'KT&ĐBCL')
         && (role === (window.APP_ROLES?.troLy_phong || 'Trợ lý')
             || role === (window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng'));
-    const isBanGiamDoc = maPhongBan === (window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ');
-    const allowed = isBanGiamDoc || isKhoaApprover || isKhaoThiUser;
+    const allowed = isKhoaApprover || isKhaoThiUser;
 
     ['btn-import-kthp', 'resetCalculatorBtn', 'themKTHPFormSubmit'].forEach((id) => {
         const button = document.getElementById(id);

@@ -56,8 +56,7 @@ function setupAddPagePermissions() {
     const isDaoTaoUser = maPhongBan === (window.APP_DEPARTMENTS?.daoTao || 'DAOTAO')
         && (role === (window.APP_ROLES?.troLy_phong || 'Trợ lý')
             || role === (window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng'));
-    const isBanGiamDoc = maPhongBan === (window.APP_DEPARTMENTS?.banGiamDoc || 'BGĐ');
-    const allowed = isBanGiamDoc || isKhoaApprover || isDaoTaoUser;
+    const allowed = isKhoaApprover || isDaoTaoUser;
 
     ['btn-import', 'btn-chot', 'btn-xoa', 'add-row-btn'].forEach((id) => {
         const button = document.getElementById(id);

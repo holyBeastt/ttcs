@@ -52,7 +52,7 @@
   <div class="nckh-v3-container">
     <div class="page-header">
       <h1 class="page-title">Thêm thủ công NCKH</h1>
-      <a href="/v3/nckh/import" class="btn-import-link">
+      <a id="nckhImportLink" href="/v3/nckh/import" class="btn-import-link">
         <i class="bi bi-file-earmark-spreadsheet"></i> Thêm bằng file
       </a>
     </div>
@@ -96,6 +96,23 @@
   </script>
 
   <script src="/js/nckh_v3/main/permissions.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const role = localStorage.getItem('userRole') || '';
+      const maPhongBan = localStorage.getItem('MaPhongBan') || '';
+      const isKhoa = localStorage.getItem('isKhoa') === '1';
+      const roles = window.APP_ROLES || {};
+      const departments = window.APP_DEPARTMENTS || {};
+      const allowed =
+        (isKhoa && (role === (roles.gv_cnbm || 'GV_CNBM')
+          || role === (roles.lanhDao_khoa || 'Lãnh đạo khoa')))
+        || (maPhongBan === (departments.ncHtpt || 'NCKHHTQT')
+          && (role === (roles.troLy_phong || 'Trợ lý')
+            || role === (roles.lanhDao_phong || 'Lãnh đạo phòng')));
+      const link = document.getElementById('nckhImportLink');
+      if (link && !allowed) link.style.display = 'none';
+    });
+  </script>
   <script src="/js/nckh_v3/main/typeSwitcher.js"></script>
 
   <% if (selectedTypeMeta && selectedTypeMeta.implemented) { %>

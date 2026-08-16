@@ -595,8 +595,8 @@
       (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong);
     const isBanGiamDoc = maPhongBan === APP_DEPARTMENTS.banGiamDoc;
 
-    const canAccessNgoaiQC = isBanGiamDoc || isKhoaApprover || isDaoTaoUser;
-    const canAccessKTHP = isBanGiamDoc || isKhoaApprover || isKhaoThiUser;
+    const canAccessNgoaiQC = isKhoaApprover || isDaoTaoUser;
+    const canAccessKTHP = isKhoaApprover || isKhaoThiUser;
 
     const navSiteNgoaiQC = document.getElementById("nav-site-lop-ngoai-qc");
     const navDuyetNgoaiQC = document.getElementById("nav-duyet-lop-ngoai-qc");
@@ -627,6 +627,15 @@
         navThemKTHP.style.display = "none";
       }
     }
+
+    // UI-only permission for NCKH import.
+    const canAccessNckhImport =
+      (isKhoaUser && (userRole === APP_ROLES.gv_cnbm || userRole === APP_ROLES.lanhDao_khoa))
+      || (maPhongBan === APP_DEPARTMENTS.ncHtpt
+        && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong));
+    document.querySelectorAll('a[href="/v3/nckh/import"]').forEach((link) => {
+      link.style.display = canAccessNckhImport ? "" : "none";
+    });
   });
 </script>
 <script>
