@@ -14,6 +14,7 @@ const thanhVienHoiDongController = require("../controllers/nckh_v3/thanhVienHoiD
 const recordController = require("../controllers/nckh_v3/record.controller");
 const adminController = require("../controllers/nckh_v3/adminQuyDinh.controller");
 const statsController = require("../controllers/nckh_v3/stats.controller");
+const officialStatsController = require("../controllers/nckh_v3/officialStats.controller");
 const exportController = require("../controllers/nckh_v3/export.controller");
 const importController = require("../controllers/nckh_v3/import.controller");
 
@@ -138,6 +139,7 @@ router.get("/xem-chung", (req, res) => {
 	portalController.renderUnifiedListPage(req, res);
 });
 
+router.get("/thong-ke", officialStatsController.renderPage);
 router.get("/thong-ke/giang-vien", statsController.renderLecturerPage);
 router.get("/thong-ke/khoa", statsController.renderFacultyPage);
 router.get("/thong-ke/hoc-vien", statsController.renderInstitutePage);
