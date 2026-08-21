@@ -247,6 +247,27 @@ const bulkUpdateApprovals = async (connection, updates) => {
   return totalAffected;
 };
 
+const checkDuplicateMaSo = async (connection, maSo, loaiNckh, namHoc, excludeId = null) => {
+  if (!maSo) return false;
+  
+  let query = `
+    SELECT id 
+    FROM ${TABLE} 
+    WHERE ma_so = ? AND loai_nckh = ? AND nam_hoc = ?
+  `;
+  const params = [maSo, loaiNckh, namHoc];
+
+  if (excludeId) {
+    query += " AND id != ?";
+    params.push(excludeId);
+  }
+
+  query += " LIMIT 1";
+
+  const [rows] = await connection.execute(query, params);
+  return rows.length > 0;
+};
+
 module.exports = {
   insert,
   updateById,
@@ -258,4 +279,5 @@ module.exports = {
   setKhoaApproval,
   setVienApproval,
   bulkUpdateApprovals,
+  checkDuplicateMaSo,
 };

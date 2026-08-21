@@ -27,6 +27,19 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
   };
 
   const create = async (payload, userContext) => {
+    if (payload.maSo) {
+      let connection;
+      try {
+        connection = await createPoolConnection();
+        const isDuplicate = await nckhChungRepo.checkDuplicateMaSo(connection, payload.maSo, loaiNckh, payload.namHoc);
+        if (isDuplicate) {
+          throw new Error(`Mã số "${payload.maSo}" đã tồn tại trong năm học này.`);
+        }
+      } finally {
+        if (connection) connection.release();
+      }
+    }
+
     const strategy = NCKHImportStrategyFactory.getStrategy("MANUAL");
     const records = await strategy.process(payload, { loaiNckh, mode });
     const result = await NCKHSaveService.save(records, userContext, "single");
@@ -41,6 +54,20 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
     let connection;
     try {
       connection = await createPoolConnection();
+      
+      if (record.chung.maSo) {
+        const isDuplicate = await nckhChungRepo.checkDuplicateMaSo(
+          connection,
+          record.chung.maSo,
+          loaiNckh,
+          record.chung.namHoc,
+          id
+        );
+        if (isDuplicate) {
+          throw new Error(`Mã số "${record.chung.maSo}" đã tồn tại trong năm học này.`);
+        }
+      }
+
       await connection.beginTransaction();
 
       const current = await nckhChungRepo.findById(connection, Number(id));
