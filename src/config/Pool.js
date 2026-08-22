@@ -10,6 +10,8 @@ const pool = mysql.createPool({
   connectionLimit: 150, // Giới hạn số kết nối tối đa trong pool
   connectTimeout: 10000, // 10 giây
   queueLimit: 0, // Không giới hạn hàng đợi (hoặc có thể đặt giới hạn cụ thể)
+  enableKeepAlive: true, // Tự động gửi gói tin TCP Keep-Alive để giữ kết nối không bị ngắt ngầm
+  keepAliveInitialDelay: 10000, // Bắt đầu gửi keepalive sau 10 giây nhàn rỗi
 });
 
 module.exports = pool;
