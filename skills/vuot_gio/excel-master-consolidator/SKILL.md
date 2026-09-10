@@ -5,6 +5,8 @@ description: Analyze and document the consolidation logic in the 'TỔNG HỢP' 
 
 # Excel Master Sheet Consolidator
 
+> **Source-of-truth status:** Workbook links and formulas are evidence from a specific Excel artifact. Use the current Vượt Giờ V2 services/mappers as runtime authority; if the workbook uses a legacy cap or rate formula, report the drift explicitly.
+
 Skill này chuyên dùng để giải mã "bản đồ tham chiếu" trong sheet Tổng hợp. Nhiệm vụ chính là xác định xem mỗi ô trong sheet Tổng hợp đang lấy dữ liệu từ đâu và theo quy tắc nào.
 
 ## 1. Quy trình Phân tích (Consolidation Analysis)

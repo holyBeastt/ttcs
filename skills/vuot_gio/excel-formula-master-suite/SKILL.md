@@ -1,5 +1,7 @@
 # Skill: Excel Formula Analysis & Visualization Suite (Master)
 
+> **Source-of-truth status:** Reconciled against Vượt Giờ V2 runtime on **2026-09-10**. This suite can analyze historical Excel workbooks, but workbook formulas are not automatically current application policy. Runtime truth is `OvertimePolicyFactory` plus `PaymentCalculator.computeSdoBreakdown()`.
+
 Hệ thống chuyên gia phân tích, xử lý và trực quan hóa dữ liệu Excel cho bài toán tính toán vượt giờ.
 
 ## Overview
@@ -11,7 +13,7 @@ Hệ thống được chia thành 4 phân khu chức năng (Sub-Skills) hoạt �
 ### 1. `excel-dept-analyzer` (Chuyên gia Phân tích Khoa)
 *   **Chức năng:** Giải mã logic tính toán tại các sheet Khoa chi tiết.
 *   **Nhiệm vụ trọng tâm:** 
-    *   Xử lý quy trình tính đơn giá, áp trần 300 tiết/năm.
+    *   Xử lý quy trình tính đơn giá và kiểm tra xem workbook có áp trần 300 hay không; runtime hiện hành không áp dụng `MAX_PAYABLE_HOURS=300` trong calculator.
     *   Kiểm tra logic phân bổ nguồn (Ngân sách nhà nước vs. Nguồn thu học phí).
     *   Nhận diện các hằng số kế toán (ví dụ: định mức 176 tiết).
 
@@ -26,7 +28,7 @@ Hệ thống được chia thành 4 phân khu chức năng (Sub-Skills) hoạt �
 *   **Chức năng:** Tổng hợp kết quả thanh toán cuối cùng.
 *   **Nhiệm vụ trọng tâm:**
     *   Tính toán dòng tiền chuyển khoản thực tế sau thuế/khấu trừ.
-    *   Kiểm tra các hàm `SUM`, `ROUND`, `TRUNC` ở cấp độ toàn hệ thống.
+    *   Kiểm tra các hàm `SUM`, `ROUND`, `TRUNC` ở cấp độ workbook và đối chiếu với runtime (`ROUND(luong / 176, 0)`; tiền nhóm dùng `TRUNC` ở bước cuối).
     *   Đảm bảo số liệu khớp với sheet "Tiền chuyển khoản".
 
 ### 4. `excel-to-html-converter` (Chuyên gia Trực quan hóa)

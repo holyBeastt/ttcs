@@ -1,173 +1,84 @@
 # Access Control — RBAC and ABAC
 
-This document describes the authentication, authorization, and data-scoping mechanisms in the system.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
+
+This document describes the authentication, authorization, and data-scoping mechanisms relevant to the current NCKH V3 and Vượt Giờ V2 modules.
 
 ---
 
-## Authentication Layers
+## Authentication layers
 
-Three separate authentication mechanisms exist:
+| Layer | Mechanism | Main consumers |
+|---|---|---|
+| Session | `req.session.userId`, `isKhoa`, `MaPhongBan`, role fields | Web UI and the Vượt Giờ/NCKH routes |
+| JWT | `Authorization: Bearer <token>` | Mobile API (`/api/mobile/`) |
+| NCKH import guard | Inline `importAuthMiddleware` in `src/routes/nckhV3Route.js` | NCKH Excel import page/preview/save |
 
-| Layer | Mechanism | Used By |
-|-------|-----------|---------|
-| **Session Auth** | `req.session.userId` + `req.session.isKhoa` | Web UI (EJS pages) |
-| **JWT** | `Authorization: Bearer <token>` | Mobile API (`/api/mobile/`) |
-| **Import Middleware** | `importAuthMiddleware` | NCKH Excel import routes |
+Session authentication is normally established by the application-level login middleware before these routers are reached.
 
-Session auth is the primary mechanism for all `vuotgio_v2`, `nckh_v3`, and `exportHD` operations.
+## Session attributes
 
----
+| Field | Meaning |
+|---|---|
+| `userId` | Internal staff ID (`nhanvien.id_User`) |
+| `isKhoa` | `1` for faculty-scoped users; `0` for office/admin-style users |
+| `MaPhongBan` | Department/faculty code used for ABAC scoping |
+| `TenNhanVien` | Display name used by audit logging |
+| `role` | Used by the NCKH import guard and other role checks |
 
-## Session Schema
+## Faculty scoping: `enforceKhoaFilter`
 
-Key session fields set at login:
+**File:** `src/middlewares/khoaFilterMiddleware.js`
 
-| Field | Type | Meaning |
-|-------|------|---------|
-| `userId` | number | Linked to `nhanvien.id_User` |
-| `isKhoa` | `0` or `1` | Whether the user is faculty-role |
-| `MaPhongBan` | string | The user's department/faculty code |
-| `TenNhanVien` | string | Display name (used in audit logs) |
+For a faculty-scoped session (`isKhoa == 1`), the middleware overwrites request query/body/parameter values with `req.session.MaPhongBan`. This prevents a faculty user from selecting another faculty on routes where the middleware is attached.
 
----
+It is attached to the Vượt Giờ LNQC, KTHP, and HDTQ read/mutation routes. It is **not** attached to the synthesis approval status/approve/revoke routes:
 
-## Middleware: `enforceKhoaFilter`
-
-**File:** `src/middlewares/khoaFilterMiddleware.js → enforceKhoaFilter()`
-
-### Behavior
-
-If `req.session.isKhoa == 1`, the middleware **silently overwrites** all three request locations with the session's faculty code:
-
-```js
-req.query.Khoa  = req.session.MaPhongBan;
-req.body.Khoa   = req.session.MaPhongBan;
-req.params.Khoa = req.session.MaPhongBan;
+```text
+GET  /v2/vuotgio/tong-hop/duyet-trang-thai
+POST /v2/vuotgio/tong-hop/duyet-khoa
+POST /v2/vuotgio/tong-hop/huy-duyet-khoa
 ```
 
-This is **Attribute-Based Access Control (ABAC)**: the data attribute `Khoa` is enforced based on the user's session attribute `MaPhongBan`. Faculty users cannot see or modify other departments' data regardless of what they pass in the request.
+The missing route-level scoping remains a limitation; the service still validates approval prerequisites, but the caller's faculty ownership is not enforced by this middleware.
 
-### Applied To
+## Data lock: `checkDataLock`
 
-All mutating routes (POST, PUT, DELETE) for LNQC, KTHP, HDTQ, and thesis modules. Read routes that return filtered data also apply this middleware.
+**File:** `src/middlewares/dataLockMiddleware.js`
 
-### Where It Is NOT Applied
+For Vượt Giờ mutation routes, the middleware resolves `NamHoc` from parameters, query, then body and checks `vg_khoa_du_lieu`. A locked year causes the write to be rejected. The lock-creation route itself is intentionally not guarded by this middleware.
 
-- `POST /v2/vuotgio/tong-hop/duyet-khoa` — faculty synthesis approval is not scoped.
-- `POST /v2/vuotgio/tong-hop/huy-duyet-khoa` — revoke approval is not scoped.
-- `GET /v2/vuotgio/tong-hop/duyet-trang-thai` — approval status read is not scoped.
+NCKH V3 record/import routes do not use the Vượt Giờ `checkDataLock` middleware; their edit/delete behavior is governed by NCKH approval guards instead.
 
-> ⚠️ **Security gap:** A faculty-role user could approve or revoke approval for another faculty's synthesis if they know the target faculty code. `enforceKhoaFilter` is absent from these routes.
+## NCKH import authorization
 
-### Legacy Controllers (Ad-Hoc Scoping)
-Several legacy modules (e.g., Mời Giảng, Đồ Án, ExportHD) **do not** use this middleware. Instead, they duplicate the logic inline within the controller body (e.g., `if (isKhoa == 1) { query += " AND MaPhongBan LIKE '%" + req.session.MaPhongBan + "%'" }`). This introduces SQL injection risks and makes maintenance difficult. See [Controller-Centric Legacy Modules](./controller-centric-legacy-modules.md).
+**File:** `src/routes/nckhV3Route.js`
 
----
+The import guard is inline, not a separate `src/middlewares/importAuthMiddleware.js` file. It requires both:
 
-## Middleware: `checkDataLock`
+1. role equal to `ROLE_PHONGBAN_TROLY` or `ROLE_PHONGBAN_LANHDAO` (environment-overridable; defaults `tro_ly_phong` / `lanh_dao_phong`), and
+2. `req.session.MaPhongBan` equal to the configured Institute code (`VIEN_NCKH_HTPT`, default `NCKHHTQT`).
 
-**File:** `src/middlewares/dataLockMiddleware.js → checkDataLock()`
+Requests failing either check receive HTTP 403 for JSON/XHR or redirect to `/v3/nckh` for a page request.
 
-### Behavior
+There is no `hasDept = true` bypass in the current route. The guard authorizes the importer as an Institute NCKH assistant/leader, but it does not perform a separate target-department check for every participant row in the uploaded file; participant names are resolved against the employee directory during preview.
 
-Blocks `POST`, `PUT`, and `DELETE` requests if the academic year is locked in `vg_khoa_du_lieu`.
+## NCKH approval permissions
 
-**`NamHoc` resolution priority:** `req.params.NamHoc` → `req.query.NamHoc` → `req.body.NamHoc` (first non-null wins).
+- New records start with `khoa_duyet = 0`, `vien_nc_duyet = 0`.
+- Institute approval requires the faculty approval state first.
+- Update is blocked once `vien_nc_duyet = 1`.
+- Delete is blocked once **either** approval flag is `1`.
+- Official statistics/export require both approval flags; the management list may show pending records.
 
-### Applied To
+## Audit logging
 
-All mutating routes in `vuotgio_v2` for LNQC, KTHP, HDTQ, DATN, and individual record operations.
+NCKH import/save, create/update/delete, and admin rule changes call `LogService.logChange()` (logging failures are caught and do not roll back the business transaction). The current NCKH approval update methods do not add a separate `LogService.logChange()` call. Vượt Giờ and legacy modules have additional module-specific logging behavior.
 
-### Where It Is NOT Applied
+## Department identification
 
-- `POST /v2/vuotgio/tong-hop/khoa-du-lieu` (the lock creation itself — correctly unguarded).
-- `POST /v2/vuotgio/tong-hop/duyet-khoa` (synthesis approval — should be evaluated for lock-awareness).
+`phongban.isKhoa = 1` marks a teaching faculty; `isKhoa = 0` marks a non-faculty unit. Vượt Giờ groups non-faculty staff under `BGĐ&PHONG`. The faculty list used by year-lock approval counts is derived from `phongban.isKhoa = 1`.
 
----
+## Hard-coded exclusions
 
-## Role Model
-
-| Role | `isKhoa` | `MaPhongBan` | Capabilities |
-|------|----------|-------------|-------------|
-| Admin / Office | `0` | varies | Full access to all faculties' data |
-| Faculty Head / Staff | `1` | own faculty code | Scoped to own faculty by `enforceKhoaFilter` |
-
-> There is no explicit role table in the identified schema. Roles are encoded directly on the session fields.
-
----
-
-## Department Identification
-
-**Table:** `phongban`
-
-```sql
-WHERE isKhoa = 1  -- marks a Faculty (Khoa)
-WHERE isKhoa = 0  -- administrative/support department
-```
-
-This flag is the single source of truth for "is this a teaching faculty?"
-
-Used by:
-- `duyetTongHop.service.js → getApprovalStatus()` — lists all `isKhoa = 1` departments.
-- `duyetTongHop.repo.js → isAllKhoaApproved()` — counts `phongban WHERE isKhoa = 1`.
-- `xuatFile.service.js → _resolveSummaries()` — filters lecturers by faculty.
-
----
-
-## Data Lock Enforcement Chain
-
-```
-[User submits POST/PUT/DELETE]
-  → checkDataLock middleware
-  → extract NamHoc (params > query > body)
-  → query vg_khoa_du_lieu WHERE nam_hoc = ?
-  → if record exists: HTTP 423 / redirect (blocked)
-  → if not exists: proceed to controller
-```
-
-**Lock creation** (`dataLock.service.js → lockData()`):
-- 5-step gate (see `business-rules.md → BR-VG-08`).
-- Race condition handled via MySQL `ER_DUP_ENTRY` catch.
-
-**Lock revocation:** No route or service exists for unlocking a year. A lock is permanent once written.
-
----
-
-## NCKH Import Auth Middleware
-
-**File:** `src/middlewares/importAuthMiddleware.js` (name inferred)
-
-```js
-// hasDept = await checkUserHasDept(userId);  // COMMENTED OUT
-hasDept = true;  // HARDCODED
-```
-
-> ⚠️ **Critical gap:** The department check for NCKH imports is bypassed. Any authenticated user can import NCKH records for any department. The original `checkUserHasDept()` function is commented out, not deleted.
-
----
-
-## Audit Logging
-
-**File:** `src/services/logService.js`
-
-LNQC create/edit/delete operations log changes via:
-
-```js
-await LogService.logChange(userId, userName, action, detail);
-```
-
-Log errors are caught silently (`console.error` only) — a logging failure does not roll back the business operation.
-
-**Modules with logging:** LNQC, HDTQ (confirmed). KTHP, DATN, NCKH import — unconfirmed.
-
----
-
-## Admin User Exclusion
-
-**File:** All aggregation queries
-
-```sql
-WHERE nv.id_User <> 1
-```
-
-`id_User = 1` is a hardcoded admin/system user permanently excluded from all workload calculations. This is embedded in raw SQL across multiple repository files, not configurable.
+Vượt Giờ aggregation excludes `id_User = 1` in lecturer-list queries. This is a source-code constant rather than a configurable role rule.

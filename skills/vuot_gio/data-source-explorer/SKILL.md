@@ -4,11 +4,13 @@ description: Extract database schemas and sample rows from the overtime module t
 license: Proprietary
 metadata:
   domain: academic-workload
-  version: "1.0"
+  version: "1.1"
 compatibility: Requires database connection via project's databasePool.js config. Read-only operations only.
 ---
 
 # Data-Source-Explorer Skill
+
+> **Source-of-truth status:** The default table list was reconciled against the Vượt Giờ V2 repositories on **2026-09-10**. Runtime source code is authoritative. Any pre-existing sample for `vg_coi_cham_ra_de` is historical and is not a current KTHP source.
 
 Extracts schema and sample rows from the university's overtime module database tables.
 
@@ -34,10 +36,10 @@ node scripts/extract-table-samples.js
 ```
 
 Outputs to:
-- `data-samples/<table>.json` — full schema + sample rows
-- `schemas/<table>.schema.json` — simplified schema only
+- `skills/vuot_gio/data-source-explorer/data-samples/<table>.json` — full schema + sample rows
+- `skills/vuot_gio/data-source-explorer/schemas/<table>.schema.json` — simplified schema only
 
-Tables extracted from `config/tables.json` include all overtime sources and reference tables.
+Tables extracted from `config/tables.json` include projected/official overtime sources, the KTHP parent/child tables, and shared reference tables. The extractor is read-only; it does not migrate legacy samples into the current schema.
 
 ## Safety and compliance
 

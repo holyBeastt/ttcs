@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Extract DB table schemas and sample rows for Data-Source-Explorer skill
- * Outputs JSON files under skills/data-source-explorer/data-samples and schemas/
+ * Outputs JSON files under skills/vuot_gio/data-source-explorer/data-samples and schemas/
  */
 
 const path = require('path');

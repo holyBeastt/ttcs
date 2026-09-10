@@ -1,230 +1,174 @@
 # Known Limitations and Technical Debt
 
-This document lists confirmed gaps, inconsistencies, and risks identified during codebase analysis. Each item includes the file evidence and a recommended action.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
+
+This document lists limitations that still exist in the current implementation. Historical findings that have been fixed are intentionally not listed as current behavior.
 
 Items are classified:
+
 - 🔴 **High** — security, data integrity, or correctness risk
 - 🟡 **Medium** — reliability or maintainability risk
 - 🟢 **Low** — cosmetic or minor inconsistency
 
 ---
 
-## Security / Access Control
+## Security / access control
 
-### L-01 🔴 NCKH Import Department Check Bypassed
+### L-01 🔴 Synthesis approval routes are not faculty-scoped
 
-**File:** `src/middlewares/importAuthMiddleware.js`
+**File:** `src/routes/vuotGioV2Route.js`
 
-```js
-// hasDept = await checkUserHasDept(userId);  // COMMENTED OUT
-hasDept = true;  // HARDCODED
-```
+The routes below do not attach `enforceKhoaFilter`:
 
-Any authenticated user can import NCKH records for any department. The original department validation function is commented out, not deleted, suggesting this was intentional but temporary.
-
-**Recommended action:** Reinstate `checkUserHasDept(userId)` and validate that the user's `MaPhongBan` matches the import target department before accepting the file.
-
----
-
-### L-02 🔴 Synthesis Approval Routes Not Faculty-Scoped
-
-**File:** `src/routes/vuotGioV2Route.js` — lines 129–132
-
-```
+```text
+GET  /v2/vuotgio/tong-hop/duyet-trang-thai
 POST /v2/vuotgio/tong-hop/duyet-khoa
 POST /v2/vuotgio/tong-hop/huy-duyet-khoa
-GET  /v2/vuotgio/tong-hop/duyet-trang-thai
 ```
 
-None of these routes apply `enforceKhoaFilter`. A faculty-role user who sends a crafted request with another faculty's `khoa` code could approve or revoke that faculty's synthesis approval.
+A faculty-scoped caller can submit another faculty code to these routes. The service checks two-level data prerequisites, but route-level ownership of the target faculty is not enforced.
 
-**Recommended action:** Apply `enforceKhoaFilter` to the `POST` routes. For the `GET` route, restrict the response to the user's own faculty when `isKhoa == 1`.
+**Recommended action:** apply faculty scoping or an explicit capability/ownership check to these routes.
+
+### L-02 🟡 Legacy controllers duplicate faculty scoping
+
+Mời Giảng, Đồ Án, and some export controllers implement faculty filtering inline instead of sharing `enforceKhoaFilter`. Several legacy queries interpolate session attributes directly and should be migrated to parameterized SQL.
+
+### L-03 🟡 NCKH import has no per-row target-department authorization
+
+The current inline NCKH import guard correctly restricts the importer to the configured Institute NCKH role and department code. It does not independently verify a target faculty for each uploaded row; names are resolved against the employee directory. If row-level faculty ownership is required, it must be added explicitly.
 
 ---
 
-### L-03 🟡 Contract Controller Reimplements Faculty Scoping
+## Data integrity and configuration
 
-**File:** `src/controllers/exportHDController.js → exportMultipleContracts()`
+### L-04 🟡 Quota fallback is silent
 
-```js
-if (isKhoa == 1) {
-  khoa = req.session.MaPhongBan;
-}
+**File:** `src/mappers/vuotgio_v2/summary.mapper.js`
+
+If `sotietdinhmuc` has no usable row, the mapper silently falls back to:
+
+```text
+dinhMucChuan = 280
+dinhMucNCKH  = 200
 ```
 
-The shared `enforceKhoaFilter` middleware is not used. This ad-hoc duplication means that if the scoping logic ever needs to change, it must be updated in both the middleware and this controller.
+The calculation can therefore be wrong without a visible error or warning.
 
-**Recommended action:** Apply `enforceKhoaFilter` to the export routes and remove the inline check.
+**Recommended action:** log and surface fallback use, or fail closed when quota configuration is missing.
 
----
+### L-05 🟡 Origin of `giangday.QuyChuan` is not documented here
 
-## Data Integrity
+`giangday.QuyChuan` is a primary input to Vượt Giờ. Its upstream TKB import/normalization rules are outside this document's trace. A regression in that importer propagates directly to overtime totals.
 
-### L-04 🔴 Quota Fallback Is Silent
+**Recommended action:** document the TKB normalization contract and add a fixture-based integration test.
 
-**File:** `src/mappers/vuotgio_v2/summary.mapper.js → toAtomicSDO()`
+### L-06 🟡 Cross-module NCKH coupling
 
-```js
-const dmChuan = base.toDecimal(globalDinhMuc?.GiangDay) || 280;
-const dmNCKH  = base.toDecimal(globalDinhMuc?.NCKH)     || 280;
-```
+**Files:** `src/services/vuotgio_v2/tongHop.service.js`, `src/services/nckh_v3/stats.service.js`, `src/repositories/nckh_v3/stats.repo.js`
 
-If the `sotietdinhmuc` table is empty (or the query fails silently), both quotas default to `280`. No warning, log, or error is emitted. All overtime calculations would then use this hardcoded fallback value, producing incorrect results without any visible indication.
+The dependency is known and intentional: Vượt Giờ calls `getLecturerSummary()`/`getLecturerRecords()` without a scope, so the default `OFFICIAL` scope requires both `khoa_duyet = 1` and `vien_nc_duyet = 1`. A future change to NCKH scope or schema will change Vượt Giờ deductions. The coupling should remain covered by an integration contract test.
 
-**Recommended action:** Log a warning when the fallback is applied. Consider throwing if the table is empty, as this is a critical configuration value.
+### L-07 🟡 NCKH rule-table schema discovery
 
----
+`quyDinh.service.js` uses `NCKH_QUYDINH_TABLE` (default `nckh_quydinhsogio`) plus fallback table names and probes candidate column names (at most three candidates per field). This supports deployment drift but can silently select an unintended compatible table/column and adds `SHOW COLUMNS` overhead.
 
-### L-05 🟡 `giangday.QuyChuan` Origin Not Covered
-
-The normalized teaching hours field `QuyChuan` in the `giangday` table is the single most important input to the overtime formula. How this value is calculated and written (presumably by the TKB/timetable import module) is not documented or traced.
-
-If the TKB import applies incorrect normalization rules, all downstream overtime calculations are silently wrong.
-
-**Recommended action:** Document the TKB import module's normalization formula for `QuyChuan` and add an integration test that verifies known inputs produce known outputs.
+**Recommended action:** keep the environment override but validate the resolved schema at startup and cache it per process.
 
 ---
 
-### L-06 🟡 NCKH `soTietNCKH` Cross-Module Injection
+## Correctness and workflow
 
-**File:** `src/services/vuotgio_v2/tongHop.service.js → getCollectionSDODetail()`
+### L-08 🟡 `thieuTietGiangDay` is display-only
 
-```js
-nckhRecords: [{ soTietGiangVien: nckhMap.get(Number(row.id_User)) || 0 }]
-```
+The mapper computes `thieuTietGiangDay` for the SDO/declaration output. It is not an input to `tongVuot`; only `thieuNCKH` is subtracted from effective teaching before overtime is calculated. Keep this distinction when changing formulas.
 
-NCKH hours are injected into the VuotGio SDO as a pseudo-record. The source query that populates `nckhMap` is not fully traced. A change to the NCKH aggregation logic (e.g., changing the approval gate from `vien_nc_duyet=1` to a new field) would silently affect VuotGio overtime calculations.
+### L-09 🟡 Internal overtime validator is incompatible with the current export surface
 
-**Recommended action:** Document the exact cross-module query. Consider creating a dedicated shared service function `getApprovedNCKHHoursForLecturer(namHoc, idUser)` with explicit contracts.
+`skills/vuot_gio/overtime-workflow/scripts/validate_implementation.js` requires `summary.mapper.calculateOvertime`, but that helper is not exported. Running the validator therefore fails before comparing fixtures. Production uses `OvertimePolicyFactory` and the `PolicyV1`/`PolicyV2` `calculate()` methods.
 
----
+**Recommended action:** update the validator to call the policy modules (or export a deliberately supported calculator API) and add tests for both policy versions.
 
-### L-07 🟡 `quyDinh` Table Schema Discovery
+### L-10 🟢 Policy-year list is explicit, not open-ended
 
-**File:** `src/services/nckh_v3/quyDinh.service.js`
+`PolicyV2` is selected only for `2025 - 2026` through `2031 - 2032`. Other years use `PolicyV1`. Any documentation or configuration that says “all years from 2025 onward” is inaccurate.
 
-The system probes 4 candidate table names and 4–6 candidate column names to locate the NCKH hour regulation table. This means:
-- A new table matching a candidate name could be silently used instead of the intended one.
-- Column renames might redirect the lookup to an unintended column.
-- `SHOW COLUMNS` calls add overhead on every import.
+### L-11 🟢 Year lock has no public unlock route
 
-**Recommended action:** Fix the table and column names in a configuration constant. Remove the dynamic discovery unless multiple environments genuinely have different schemas.
+Once `vg_khoa_du_lieu` exists for a year, `checkDataLock` blocks the
+middleware-protected Vượt Giờ mutation routes and no public service route removes
+the lock. Synthesis approval has separate guards: revoke checks the lock, while
+approve currently does not. Corrections require an explicitly controlled
+administrative/database procedure.
 
----
+### L-12 🟢 Snapshot and live preview have different contracts
 
-## Correctness
+After a year is locked, individual/faculty preview automatically reads the snapshot. Before lock, those endpoints calculate live using projected or official sources. Faculty statistics and Excel exports require a locked year and snapshot. Consumers must not assume every preview request is snapshot-backed.
 
-### L-08 🟡 `thieuTietGiangDay` Not Used in Formula
+### L-13 🟢 Payment constant `MAX_PAYABLE_HOURS` is unused
 
-**File:** `src/mappers/vuotgio_v2/summary.mapper.js → calculateOvertime()`
+`PaymentCalculator` declares `MAX_PAYABLE_HOURS = 300`, but `computeSdoBreakdown()` does not apply that constant. The active payment cap is `thanhToan <= dinhMucSauMienGiam` from the overtime policy.
 
-```js
-thieuTietGiangDay: base.toDecimal(Math.max(0, dinhMucSauMienGiam - tongThucHien).toFixed(2))
-```
+### L-18 🟡 Excel import mode diverges from the manual NCKH registry
 
-This field is calculated but not used in any overtime formula step. It appears to be a display-only field (shown in the declaration sheet). If business rules change to penalise teaching shortfall, this field would need to be incorporated into `tongVuot`.
+`NCKH_TYPE_OPTIONS` and manual input services mark `DEXUAT` and `HUONGDAN` as
+`equal`, but `src/mappers/nckh_v3/import.mapper.js` currently emits
+`mode: "standard"` for both Excel types. An Excel import therefore uses weighted
+author/member allocation instead of the manual equal split.
 
-**Recommended action:** Add a comment clarifying this is display-only and document it in the SDO field description.
+**Recommended action:** make the Excel mapper resolve mode from the shared type
+registry or explicitly document the intended difference in the import contract.
 
----
+### L-19 🟡 External NCKH participant hours are excluded from aggregate totals
 
-### L-09 🟡 `dao_tao_duyet` / `khao_thi_duyet` Not Required for Hour Count
+External participants are stored in `nckh_so_tiet` with `nhanvien_id = NULL` and
+can appear in record detail/author displays. The stats repository joins to
+`nhanvien` for lecturer/faculty/institute totals, so those external rows are not
+included in numeric stats or the NCKH amount injected into Vượt Giờ.
 
-**File:** `src/repositories/vuotgio_v2/tongHop.repo.js`
+**Recommended action:** decide whether external hours should remain display-only or
+be assigned an explicit aggregation policy.
 
-Aggregation queries for LNQC and HDTQ only check `khoa_duyet = 1`, not the second-level approval. The pre-lock check requires both levels. This means:
-- Hours are counted and shown in summaries after only level-1 approval.
-- The year cannot be locked until level-2 is also complete.
-- A lecturer's overtime report can differ depending on whether you view it before or after level-2 approval (because locking changes who can add/remove records, not the count threshold).
+### L-20 🟡 Synthesis approval mutation routes have inconsistent lock guards
 
-**Status:** Likely intentional — allows faculties to see preliminary totals while training/exam offices complete their review. **Document this explicitly.**
+The synthesis approval routes are not protected by `checkDataLock`.
+`revokeKhoa()` rejects a locked year in the service, but `approveKhoa()` has no
+explicit lock check. Year locking still requires all faculties to be approved, so
+this route can mutate approval state after lock unless another authorization layer
+intervenes.
 
----
-
-## Code Quality
-
-### L-10 🟡 `exportHDController.js` Is Monolithic (~3033 lines)
-
-All contract generation logic (template selection, SQL queries, ZIP creation, utility functions) lives in a single controller file. This makes it difficult to:
-- Test individual components.
-- Reuse template logic across contract types.
-- Understand which function handles which route.
-
-**Recommended action:** Extract service layer (`contractService.js`), template utilities (`templateUtils.js`), and number formatting (`formatUtils.js`) into dedicated files.
+**Recommended action:** enforce a shared lock/transition guard for both approve and
+revoke operations.
 
 ---
 
-### L-11 🟢 Deprecated Route Still Registered
+## Code quality and legacy architecture
 
-**File:** `src/routes/vuotGioV2Route.js:106`
+### L-14 🟡 Monolithic legacy controllers
 
-```js
-router.post("/duyet-kthp/approve/:ID", ..., duyetKTHP.approve); // Deprecated, kept for compatibility
-```
+`exportHDController.js` and several Mời Giảng/Đồ Án controllers mix validation, SQL, file handling, and rendering. This limits testability and makes business-rule drift likely.
 
-The route is live but marked deprecated. If clients still call this endpoint, it will continue to function. If not, it is dead code that increases maintenance surface.
+### L-15 🟡 Lack of transactions in some legacy multi-step operations
 
-**Recommended action:** Audit client usage. If unused, remove the route and handler.
+Some legacy flows still perform a database insert followed by file operations and manually delete the row if the file write fails. They should use a transaction or an explicit outbox/compensation design.
 
----
+### L-16 🟡 Duplicated Đồ Án allocation rules
 
-### L-12 🟢 Two EJS Views With No Identified Renderer
+The 20/12/8-hour thesis-supervision rule is duplicated in legacy controllers. A shared domain service would reduce inconsistency risk.
 
-**Files:**
-- `src/views/vuotgio_v2/vuotGioKyTuBD.ejs`
-- `src/views/vuotgio_v2/vuotGioSoTietDM.ejs`
+### L-17 🟢 Legacy/dead views and handlers need inventory
 
-No controller or route was found that renders these views. They may be legacy views or rendered via a shared dynamic renderer not traced in this analysis.
-
-**Recommended action:** Search for `vuotGioKyTuBD` and `vuotGioSoTietDM` strings in all controller files to confirm usage or mark for deletion.
+Some old EJS views and handlers may no longer have a route. They should be confirmed before deletion rather than treated as active source of truth.
 
 ---
 
-### L-13 🟢 `year-lock` Has No Unlock Route
+## Hard-coded values reference
 
-**File:** `src/services/vuotgio_v2/dataLock.service.js`
-
-Once a year is locked (record inserted in `vg_khoa_du_lieu`), there is no API route or service function to unlock it. An unlock would require a direct database operation.
-
-**Recommended action:** If unlock capability is needed for corrections, add a protected admin-only unlock route. If permanently locked by design, document this explicitly.
-
----
-
-## Hardcoded Values Reference
-
-| Value | Location | Risk |
-|-------|----------|------|
-| `id_User <> 1` | All aggregation queries | If admin ID changes, all queries must be updated |
-| `"BGĐ&PHONG"` | `tongHop.repo.js → NON_KHOA_GROUP_CODE` | Renamed department breaks grouping |
-| `dinhMucChuan = 280` | `summary.mapper.js → toAtomicSDO()` | Silently wrong if quota table is empty |
-| `dinhMucNCKH = 280` | `summary.mapper.js → toAtomicSDO()` | Same risk as above |
-| `cap_do` values 1–4 | `exportHDController.js → getTemplateFileName()` | Adding a new education level requires code change |
-| `CATEGORY_ORDER = ["vn","lao","cuba","cpc","dongHP"]` | `summary.mapper.js → buildTableF()` | New training systems require code change |
-| `hasDept = true` | `importAuthMiddleware.js` | Bypasses access control for NCKH import |
-
----
-
-## Legacy Architecture Limitations
-
-### L-14 🔴 SQL Injection Risk in Legacy Controllers
-**File:** `src/controllers/gvmListController.js`, `src/controllers/moiGiangQCDKController.js`
-
-Legacy controllers perform faculty scoping by manually appending to the query string instead of using parameterized queries:
-`query = "SELECT * FROM gvmoi WHERE TinhTrangGiangDay = 1 AND MaPhongBan LIKE '%" + MaPhongBan + "%'"`
-If `MaPhongBan` is compromised or manipulated, it could lead to SQL injection. (Confirmed)
-
-**Recommended action:** Move scoping to `enforceKhoaFilter` middleware and use parameterized SQL queries (`?`).
-
-### L-15 🟡 Lack of Transactions for Multi-Step Operations
-**File:** `src/controllers/createGvmController.js`
-
-If inserting an invited lecturer succeeds, but the subsequent file save fails, the controller performs a manual rollback by executing `DELETE FROM gvmoi WHERE MaGvm = ?`. (Confirmed)
-
-**Recommended action:** Use standard database transactions (e.g., `connection.beginTransaction()`).
-
-### L-16 🟡 Hardcoded Duplicated Business Logic (Đồ Án)
-**File:** `src/controllers/doAnChinhThucController.js`, `src/controllers/hopdong.duyetHopDongDoAnController.js`
-
-The workload allocation rule for thesis supervisors (1 supervisor = 20 hours; 2 supervisors = 12 hours for primary, 8 hours for secondary) is hardcoded independently in multiple files (in `saveToExportDoAn` and in `buildDoAnBaseQuery`). (Confirmed)
-
-**Recommended action:** Move the 20/12/8 hour rule into a shared service to maintain a single source of truth.
+| Value | Location | Current meaning |
+|---|---|---|
+| `id_User <> 1` | Vượt Giờ repository queries | Exclude system/admin user from lecturer aggregation |
+| `BGĐ&PHONG` | `tongHop.repo.js` | Group code for non-faculty staff |
+| `dinhMucChuan = 280` / `dinhMucNCKH = 200` | `summary.mapper.js` | Silent fallback when quota row is missing |
+| `CATEGORY_ORDER` | `summary.mapper.js` | Fixed Table F/payment categories |
+| `ROUND(luong / 176, 0)` | `PaymentCalculator` | Active per-hour payment rate |
+| `NCKH_QUYDINH_TABLE` | `quyDinh.service.js` | Optional primary rule-table override |

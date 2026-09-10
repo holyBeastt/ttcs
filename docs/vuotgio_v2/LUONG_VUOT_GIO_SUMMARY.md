@@ -1,123 +1,69 @@
-# TÓM TẮT LUỒNG VƯỢT GIỜ
+# TÓM TẮT LUỒNG VƯỢT GIỜ V2
 
-> **Quick Reference Guide**
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. Khi tài liệu mâu thuẫn với source code, source code là nguồn quyết định.
 
-## 1. BA LUỒNG CHÍNH
+## 1. Ba trạng thái dữ liệu
 
-### 🔵 DỰ KIẾN (Preview)
-- **Nguồn:** `quychuan` + 3 bảng VG (không yêu cầu duyệt)
-- **Mục đích:** Xem trước dữ liệu
-- **Đặc điểm:** ⚠️ Có thể thay đổi
-- **API:** `GET /v2/vuotgio/ca-nhan-du-kien`
+### 🔵 Dự kiến (live projected)
 
-### 🟡 CHÍNH THỨC (Draft)
-- **Nguồn:** `giangday` + 3 bảng VG (yêu cầu duyệt)
-- **Mục đích:** Dữ liệu đã lưu, chờ duyệt tổng hợp
-- **Vấn đề:** ❌ Hiện chỉ check 1 cấp (nên là 2 cấp)
-- **API:** `GET /v2/vuotgio/ca-nhan-chinh-thuc`
+- API/view tiêu biểu: `GET /v2/vuotgio/ca-nhan-du-kien`, tổng hợp với `isDuKien=true`.
+- Giảng dạy từ `quychuan`, DATN từ `doantotnghiep` đã transform/map.
+- LNQC/KTHP/HDTQ đọc runtime rows không thêm điều kiện duyệt.
+- NCKH vẫn lấy qua stats scope mặc định **OFFICIAL**, nên phải đủ `khoa_duyet=1 AND vien_nc_duyet=1`.
+- Dữ liệu có thể thay đổi.
 
-### 🔒 SAU LƯU (Locked)
-- **Nguồn:** `vg_so_tiet_tong_hop` (Snapshot)
-- **Mục đích:** Dữ liệu đã chốt, không thay đổi
-- **Đặc điểm:** ✅ Nhất quán 100%, có versioning
-- **API:** `GET /v2/vuotgio/ca-nhan-sau-luu`
+### 🟡 Chính thức (live official)
 
----
+- API/view tiêu biểu: `GET /v2/vuotgio/ca-nhan-chinh-thuc`, `/tong-hop/giang-vien?isDuKien=false`.
+- Giảng dạy từ `giangday`, DATN từ `exportdoantotnghiep`.
+- LNQC: `khoa_duyet=1 AND dao_tao_duyet=1`.
+- KTHP: `khoa_duyet=1 AND khao_thi_duyet=1` trên `vg_kthp`.
+- HDTQ: `khoa_duyet=1 AND dao_tao_duyet=1`.
 
-## 2. CÔNG THỨC TÍNH VƯỢT GIỜ
+### 🔒 Sau khóa (snapshot)
 
-```
-Tổng thực hiện = Giảng dạy + Lớp ngoài QC + KTHP + Đồ án + HDTQ
+- Snapshot lưu trong `vg_so_tiet_tong_hop` với version/latest metadata và JSON SDO đầy đủ.
+- `GET /v2/vuotgio/ca-nhan-sau-luu`, thống kê khoa và export đọc snapshot khi năm đã khóa.
+- Preview cá nhân/khoa tự động dùng snapshot nếu năm đã khóa; trước khóa vẫn có thể tính live.
 
-Định mức sau miễn giảm = Định mức chuẩn - (Định mức × % miễn giảm)
+## 2. Công thức hiện hành
 
-Thiếu NCKH = max(0, Định mức NCKH sau miễn giảm - Số tiết NCKH)
-
-Vượt giờ thực tế = max(0, (Tổng thực hiện - Thiếu NCKH) - Định mức sau miễn giảm)
-
-Vượt giờ thanh toán = min(Vượt giờ thực tế, Định mức sau miễn giảm)
+```text
+tongThucHien = Giảng dạy + LNQC + KTHP + Đồ án + HDTQ
+thieuNCKH = max(0, dinhMucNCKH - soTietNCKH)
+tongVuot = max(0, tongThucHien - thieuNCKH - dinhMucSauMienGiam)
+thanhToan = min(tongVuot, dinhMucSauMienGiam)
 ```
 
----
+- Mặc định khi thiếu `sotietdinhmuc`: `dinhMucChuan=280`, `dinhMucNCKH=200`.
+- NCKH **không** được miễn giảm; chỉ định mức giảng dạy chịu policy miễn giảm.
+- V1 dùng phần trăm miễn giảm trực tiếp cho định mức giảng dạy.
+- V2 chỉ áp dụng cho `2025 - 2026` đến `2031 - 2032`; nếu có miễn giảm thì định mức giảng dạy là `224`, `mienGiam=56`.
 
-## 3. QUY TRÌNH DUYỆT
+## 3. Duyệt và khóa
 
-```
-Nhập liệu → Duyệt Khoa → Duyệt Đào tạo/Khảo thí 
-    ↓
-Duyệt Tổng hợp (VP/TC) → Khóa dữ liệu → Snapshot
-    ↓
-Thống kê / Preview / Xuất file (từ Snapshot)
-```
-
-**Điều kiện khóa:**
-1. ✅ Tất cả bản ghi đã duyệt 2 cấp
-2. ✅ Tất cả khoa đã duyệt tổng hợp
-3. ✅ Năm học chưa bị khóa
-
----
-
-## 4. VẤN ĐỀ NGHIÊM TRỌNG
-
-### ❌ BUG: Chỉ check 1 cấp duyệt
-
-**Vị trí:** `src/repositories/vuotgio_v2/tongHop.repo.js`
-
-**Hiện tại:**
-```javascript
-const approvedCond = requireApproval ? "AND khoa_duyet = 1" : "";
+```text
+Nhập liệu
+  → Khoa duyệt
+  → Đào tạo/Khảo thí duyệt cấp 2
+  → Văn phòng duyệt tổng hợp từng khoa
+  → Khóa năm học
+  → Tính official SDO + lưu snapshot
 ```
 
-**Nên sửa thành:**
-```javascript
-// Lớp ngoài QC và HDTQ
-const approvedCond = requireApproval 
-    ? "AND khoa_duyet = 1 AND dao_tao_duyet = 1" : "";
+Điều kiện khóa gồm năm hợp lệ/tồn tại, chưa khóa, toàn bộ LNQC/KTHP/HDTQ đủ hai cấp duyệt, mọi khoa đã `van_phong_duyet=1`, và có SDO để lưu. Sau khóa, `checkDataLock` chặn các route ghi Vượt Giờ có gắn middleware; route duyệt tổng hợp có guard riêng.
 
-// KTHP
-const approvedCond = requireApproval 
-    ? "AND khoa_duyet = 1 AND khao_thi_duyet = 1" : "";
+## 4. Payment/export
+
+`PaymentCalculator.computeSdoBreakdown()` chia `thanhToan` theo năm nhóm `vn`, `lao`, `cuba`, `cpc`, `dongHP`, phân bổ phần dư vào nhóm cuối và tính đơn giá bằng `ROUND(luong / 176, 0)`. Constant `MAX_PAYABLE_HOURS=300` hiện không được áp dụng trong calculator.
+
+## 5. Nguồn code chính
+
+```text
+src/services/vuotgio_v2/tongHop.service.js
+src/mappers/vuotgio_v2/summary.mapper.js
+src/mappers/vuotgio_v2/policies/OvertimePolicyFactory.js
+src/services/vuotgio_v2/dataLock.service.js
+src/services/vuotgio_v2/snapshotData.service.js
+src/services/vuotgio_v2/xuatFile.service.js
 ```
-
----
-
-## 5. KIỂM TRA NHANH
-
-### ✅ ĐÚNG
-- [x] Công thức tính toán nhất quán
-- [x] Snapshot architecture tốt
-- [x] Dữ liệu sau lưu đồng bộ 100%
-- [x] Breakdown theo hệ đào tạo chính xác
-
-### ❌ CẦN FIX
-- [ ] Query chỉ check 1 cấp duyệt (nên là 2 cấp)
-- [ ] Thiếu audit trail cho duyệt
-- [ ] Thiếu validation số tiết
-- [ ] Dự kiến không có warning "có thể thay đổi"
-
----
-
-## 6. CÂU TRẢ LỜI CHO CÁC CÂU HỎI
-
-| Câu hỏi | Trả lời |
-|---------|---------|
-| **Dự kiến: Luồng dữ liệu chính xác?** | ✅ Có, nhưng dữ liệu không ổn định |
-| **Chính thức: Duyệt 2 cấp đảm bảo?** | ❌ KHÔNG - Chỉ check 1 cấp |
-| **Dự kiến = Chính thức khi hoàn thành?** | ❌ KHÔNG tự động bằng nhau |
-| **Sau lưu: Dữ liệu từ bảng duy nhất?** | ✅ Có - `vg_so_tiet_tong_hop` |
-| **Cơ chế tính toán đồng nhất?** | ✅ Có - Single source of truth |
-
----
-
-## 7. ACTION ITEMS
-
-| Priority | Task | File |
-|----------|------|------|
-| 🔴 **P0** | Fix query duyệt 2 cấp | `tongHop.repo.js` |
-| 🟠 **P1** | Thêm audit trail | New migration |
-| 🟠 **P1** | Thêm validation | `*.service.js` |
-| 🟡 **P2** | Warning UI dự kiến | Frontend |
-
----
-
-**Chi tiết đầy đủ:** Xem file `LUONG_VUOT_GIO_ANALYSIS.md`

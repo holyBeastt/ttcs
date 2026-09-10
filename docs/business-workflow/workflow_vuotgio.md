@@ -1,105 +1,117 @@
 # Kiến trúc và Luồng Xử Lý Vượt Giờ V2
 
-Tài liệu này mô tả chi tiết kiến trúc, vòng đời dữ liệu và các hàm/file tương ứng trong hệ thống **Vượt Giờ V2** của giảng viên cơ hữu.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
 
-## 1. Tổng quan Triết lý Thiết kế
+Tài liệu này mô tả kiến trúc, vòng đời dữ liệu và các hàm/file tương ứng trong hệ thống **Vượt Giờ V2** của giảng viên cơ hữu.
 
-Hệ thống Vượt Giờ V2 được thiết kế dựa trên các nguyên tắc:
-1. **Tách biệt Dữ liệu và Logic (Separation of Concerns):** Logic tính toán toán học (cộng trừ, chặn trần, quy đổi) được gom về một mối duy nhất (Mapper). Lớp Repo chỉ làm nhiệm vụ kéo dữ liệu.
-2. **SDO (Service Data Object) Pattern:** Chuẩn hóa đầu ra dưới dạng một object thống nhất (SDO). Giao diện (UI) và tính năng In Ấn/Xuất File chỉ cần quan tâm đến cấu trúc của SDO, bất kể dữ liệu nguồn được lấy từ đâu.
-3. **Phân chia 3 Giai đoạn Rõ rệt:** Quản lý vòng đời dữ liệu qua 3 phase: Dự kiến (Preview) ➔ Chính thức (Official) ➔ Sau lưu (Snapshot/Immutable).
+## 1. Nguyên tắc thiết kế
 
----
+1. **Tách dữ liệu và logic:** Repository lấy dữ liệu; service điều phối; mapper/policy thực hiện chuẩn hóa và tính toán.
+2. **SDO:** `summary.mapper.toAtomicSDO()` và `toCollectionSDO()` tạo cùng một cấu trúc SDO cho API, giao diện, snapshot và báo cáo.
+3. **Hai nguồn live + snapshot:** Trước khi khóa, hệ thống có live projected (`isDuKien=true`) và live official (`isDuKien=false`). Sau khi khóa, snapshot là nguồn bắt buộc cho thống kê khoa và xuất file.
+4. **Policy theo năm học:** `OvertimePolicyFactory` chọn `PolicyV1` hoặc `PolicyV2`; không dùng trực tiếp hàm nội bộ `calculateOvertime()` làm entry point production.
 
-## 2. Cấu Trúc Thư Mục (Directory Structure)
+## 2. Cấu trúc thư mục lõi
 
 ```text
 src/
-├── routes/
-│   └── vuotGioV2Route.js                # Chứa toàn bộ API và Routing điều hướng UI của Vượt giờ V2
+├── routes/vuotGioV2Route.js
 ├── controllers/vuotgio_v2/
-│   ├── base.controller.js               # Render HTML Views (giao diện cá nhân, tổng hợp, duyệt)
-│   ├── tongHop.controller.js            # API cung cấp dữ liệu SDO cho Frontend
-│   ├── preview.controller.js            # API phục vụ tạo file PDF/in ấn cho Tài chính
-│   └── dataLock.controller.js           # Xử lý khóa dữ liệu (Snapshot)
+│   ├── base.controller.js
+│   ├── tongHop.controller.js
+│   ├── preview.controller.js
+│   └── dataLock.controller.js
 ├── services/vuotgio_v2/
-│   ├── tongHop.service.js               # Service Core: Kéo dữ liệu Repo và gọi Mapper (Tạo SDO)
-│   ├── snapshotData.service.js          # Đọc dữ liệu từ bảng lưu vết sau khi khóa
-│   ├── xuatFile.service.js              # Xuất Excel bảng biểu
-│   └── templatePreview.service.js       # Template build file PDF 
+│   ├── tongHop.service.js
+│   ├── snapshotData.service.js
+│   ├── dataLock.service.js
+│   ├── xuatFile.service.js
+│   └── thongKe.service.js
 ├── mappers/vuotgio_v2/
-│   └── summary.mapper.js                # Core Business Logic: Tính toán công thức vượt giờ, map SDO
+│   ├── summary.mapper.js
+│   └── policies/{OvertimePolicyFactory,PolicyV1,PolicyV2}.js
 └── repositories/vuotgio_v2/
-    ├── tongHop.repo.js                  # Truy vấn CSDL, điều khiển cờ `isDuKien` để đổi nguồn (quychuan/giangday)
-    ├── soTietTongHop.repo.js            # Đọc/Ghi dữ liệu snapshot (vg_so_tiet_tong_hop)
-    └── dataLock.repo.js                 # Truy vấn trạng thái khóa năm học
+    ├── tongHop.repo.js
+    ├── kthp.repo.js
+    ├── soTietTongHop.repo.js
+    └── dataLock.repo.js
 ```
 
----
+## 3. Luồng dữ liệu
 
-## 3. Phân Tích Chi Tiết 3 Giai Đoạn (Phases)
+### 3.1 Live projected (`isDuKien=true`)
 
-Hệ thống có 3 phase dữ liệu. Cả 3 phase đều có chung định dạng output (SDO) nhưng nguồn vào (Input) và cách lấy khác nhau. Cả "Dự kiến" và "Chính thức" đều dùng chung Mapper.
+- `GET /v2/vuotgio/ca-nhan-du-kien` hoặc API tổng hợp với `isDuKien=true`.
+- Giảng dạy đọc từ `quychuan`, được `processQuyChuanData()` map về giảng viên cơ hữu trong bộ nhớ.
+- DATN đọc từ `doantotnghiep` rồi transform; LNQC, KTHP và HDTQ đọc bảng runtime mà không thêm điều kiện duyệt.
+- NCKH vẫn được lấy qua `stats.service.js` với scope mặc định `OFFICIAL`, nên phải đủ `khoa_duyet=1` và `vien_nc_duyet=1`.
+- Kết quả là live preview, có thể thay đổi khi dữ liệu nguồn thay đổi.
 
-### Phase 1: Dự kiến (Projected / Preview)
-- **Mục đích:** Xem nháp số tiết vượt giờ đang diễn ra trong năm học.
-- **Cách nhận diện:** Tham số `isDuKien = true`.
-- **Hàm/Flow tương ứng:**
-  - **Route:** `router.get("/ca-nhan-du-kien", baseController.getVuotGioCaNhanDuKien)`
-  - **Controller:** `tongHop.controller.js` ➔ `getStandardSummaryData(req, res, { isDuKien: true })`
-  - **Service:** `tongHop.service.js` ➔ `getAtomicSDO(namHoc, id_User, conn, isDuKien = true)`
-  - **Repository (`tongHop.repo.js`):** 
-    - Lấy giảng dạy: `getVirtualGiangDay` ➔ Trỏ tới bảng **`quychuan`**.
-    - Các mảng khác (KTHP, HD TQTT): Bỏ qua check `khoa_duyet = 1`.
-    - Đồ án: Chạy `getPredictedDoAnRows` trực tiếp từ bảng `doantotnghiep`.
-  - **Mapper:** Dữ liệu thô đưa vào `summary.mapper.js` tính toán.
+### 3.2 Live official (`isDuKien=false`)
 
-### Phase 2: Chính thức (Official / Tài chính duyệt)
-- **Mục đích:** Bảng chốt số liệu với dữ liệu sạch (đã qua duyệt), chuẩn bị thanh toán.
-- **Cách nhận diện:** Tham số `isDuKien = false`.
-- **Hàm/Flow tương ứng:**
-  - **Route:** `router.get("/tai-chinh-duyet", baseController.getTaiChinhDuyet)`
-  - **Controller:** `tongHop.controller.js` ➔ `tongHopTheoGV` (với cờ `isDuKien = false`)
-  - **Service:** `tongHop.service.js` ➔ `getCollectionSDODetail(namHoc, khoa, isDuKien = false)`
-  - **Repository (`tongHop.repo.js`):** 
-    - Lấy giảng dạy: Trỏ tới bảng **`giangday`** (đã lưu).
-    - Các mảng khác: Ép buộc `requireApproval = true` ➔ Thêm câu lệnh SQL `AND khoa_duyet = 1`.
-    - Đồ án: Lấy từ **`exportdoantotnghiep`**.
-  - **Mapper:** Dữ liệu thô tiếp tục đưa vào `summary.mapper.js` tính toán realtime.
+- `GET /v2/vuotgio/ca-nhan-chinh-thuc`, `/tong-hop/giang-vien?isDuKien=false`.
+- Giảng dạy đọc `giangday`; DATN đọc `exportdoantotnghiep`.
+- LNQC phải có `khoa_duyet=1 AND dao_tao_duyet=1`.
+- KTHP phải có `khoa_duyet=1 AND khao_thi_duyet=1` trên bảng cha `vg_kthp`.
+- HDTQ phải có `khoa_duyet=1 AND dao_tao_duyet=1`.
+- Service map dữ liệu vào SDO và gọi `OvertimePolicyFactory` để tính kết quả.
 
-### Phase 3: Sau Lưu (Snapshot / Xuất File Cuối Cùng)
-- **Mục đích:** Xem và xuất dữ liệu lịch sử bất biến sau khi năm học đã bị khóa chốt.
-- **Đặc thù:** Không gọi qua `tongHop.service.js` hay Mapper nữa, mà lấy kết quả đã được tính sẵn.
-- **Hàm/Flow tương ứng:**
-  - **Route:** `router.get("/thong-ke-sau-luu", baseController.getThongKeSauLuu)`
-  - **Controller:** `tongHop.controller.js` ➔ `getSnapshotSummaryData`, `tongHopTheoGVSnapshot`
-  - **Service:** `snapshotData.service.js` ➔ `getSnapshotSDOList`, `getSnapshotSDOByUser`
-  - **Bảo mật:** `requireLocked(namHoc)` để quăng lỗi nếu năm đó chưa khóa.
-  - **Repository:** Đọc từ bảng `vg_so_tiet_tong_hop`. Cột `chi_tiet` chứa cục JSON của đối tượng SDO được tạo ra ở Phase 2. `JSON.parse` nó ra và đưa cho UI.
+### 3.3 Snapshot sau khóa
 
----
+`dataLock.service.lockData()` thực hiện trong transaction:
 
-## 4. Bảng Tra Cứu Các Hàm Lõi Quan Trọng (Core Map)
+1. kiểm tra định dạng và sự tồn tại của `NamHoc`;
+2. từ chối năm đã có trong `vg_khoa_du_lieu`;
+3. kiểm tra đủ duyệt hai cấp trên LNQC/KTHP/HDTQ;
+4. kiểm tra mọi khoa (`phongban.isKhoa=1`) đã có `van_phong_duyet=1`;
+5. tính `getCollectionSDODetail(namHoc, "ALL")` bằng nguồn official;
+6. lưu toàn bộ SDO JSON vào `vg_so_tiet_tong_hop` và ghi bản ghi khóa;
+7. commit hoặc rollback toàn bộ thao tác.
 
-| Module / File | Hàm (Function) | Nhiệm Vụ |
-| :--- | :--- | :--- |
-| `tongHop.repo.js` | `getVirtualGiangDay(isDuKien)` | Query quyết định lấy từ `quychuan` (Dự kiến) hay `giangday` (Chính thức). |
-| `tongHop.repo.js` | `getDuLieuThoTongHop()` | Tối ưu hóa Database: Query Batch tất cả data của tất cả GV trong 1 Khoa. |
-| `tongHop.service.js` | `getAtomicSDO()` | Gom dữ liệu 1 GV từ các Repo ➔ Gửi qua Mapper ➔ Trả về SDO chi tiết. |
-| `tongHop.service.js` | `getCollectionSDODetail()` | Gom dữ liệu toàn bộ Khoa ➔ Chạy vòng lặp gọi Mapper ➔ Trả về mảng SDO. |
-| `snapshotData.service.js` | `getSnapshotSDOList()` | Kéo danh sách SDO của Khoa từ bảng lưu vết JSON (`vg_so_tiet_tong_hop`). |
-| `summary.mapper.js` | `calculateOvertime()` | **Trái tim toán học:** Cộng tiết, trừ Mãn tải/NCKH, nhân hệ số. |
-| `summary.mapper.js` | `toAtomicSDO()` | Định dạng lại cấu trúc JSON object đầu ra chuẩn chỉ để Frontend dễ render. |
-| `dataLock.controller.js` | `lockData()` | Chuyển trạng thái từ Phase 2 sang Phase 3, biến SDO thành string JSON để insert database. |
+Snapshot chứa `version`, `is_latest` và `chi_tiet` là JSON SDO đầy đủ. Thống kê khoa và export đọc snapshot; dữ liệu nền không được truy vấn lại cho các luồng này.
 
----
+**Preview tự chọn nguồn:** endpoint preview cá nhân/khoa dùng snapshot nếu năm đã khóa; nếu chưa khóa thì tính live theo `isDuKien` (mặc định projected). Vì vậy không phải mọi preview đều bắt buộc snapshot.
 
-## 5. Luồng Tính Toán Logic Trong Mapper (Tóm tắt)
+## 4. Bảng hàm lõi
 
-Bất chấp Phase 1 hay Phase 2, một khi dữ liệu thô chạm đến `summary.mapper.js`, nó sẽ qua công thức chung:
-1. `tongThucHien` = Tiết giảng dạy + Lớp Ngoài QC + KTHP + Đồ án + HD Tham Quan.
-2. `mienGiam` = (Phần trăm miễn giảm / 100) * Định mức.
-3. `tongVuot` = `tongThucHien` - (Định mức chuẩn - `mienGiam`).
-4. Nếu GV nợ NCKH ➔ Tiến hành cấn trừ NCKH vào số tiết vượt.
-5. Kiểm tra chặn trần (Ví dụ: Không được vượt quá 300 tiết/năm).
-6. Kết quả ra `thanhToan` (Số tiết thực nhận tiền).
+| File | Hàm | Nhiệm vụ |
+|---|---|---|
+| `tongHop.repo.js` | `getDuLieuThoTongHop()` | Batch lấy danh sách giảng viên và tổng giờ theo nguồn. |
+| `tongHop.service.js` | `getAtomicSDO()` | Lấy dữ liệu một giảng viên và map thành SDO. |
+| `tongHop.service.js` | `getCollectionSDO()` | Tổng hợp nhẹ theo danh sách, kèm cảnh báo thiếu NCKH. |
+| `tongHop.service.js` | `getCollectionSDODetail()` | Batch lấy dữ liệu chi tiết, bao gồm `tableF`, dùng cho snapshot/export preview. |
+| `summary.mapper.js` | `toAtomicSDO()` / `toCollectionSDO()` | Chuẩn hóa SDO và gọi policy calculator. |
+| `OvertimePolicyFactory.js` | `getCalculator(namHoc)` | Chọn Policy V1/V2 theo danh sách năm được cấu hình. |
+| `snapshotData.service.js` | `getSnapshotSDOList()` / `getSnapshotSDOByUser()` | Đọc và parse SDO từ `vg_so_tiet_tong_hop`. |
+| `dataLock.service.js` | `lockData()` | Kiểm tra điều kiện, tính SDO, lưu snapshot và khóa năm. |
+| `xuatFile.service.js` | `exportExcel()` | Xuất Excel từ snapshot; năm chưa khóa sẽ bị từ chối. |
+
+## 5. Công thức hiện hành
+
+```text
+tongThucHien = giangDay + LNQC + KTHP + DATN + HDTQ
+thieuNCKH = max(0, dinhMucNCKH - soTietNCKH)
+tongVuot = max(0, tongThucHien - thieuNCKH - dinhMucSauMienGiam)
+thanhToan = min(tongVuot, dinhMucSauMienGiam)
+```
+
+- Mặc định khi thiếu dòng `sotietdinhmuc`: `dinhMucChuan=280`, `dinhMucNCKH=200`.
+- V1 áp dụng phần trăm miễn giảm trực tiếp cho định mức giảng dạy.
+- V2 chỉ được factory chọn cho các năm `2025 - 2026` đến `2031 - 2032`; nếu có miễn giảm (`phanTramMienGiam > 0`) thì định mức giảng dạy là `224` và `mienGiam=56`.
+- Định mức NCKH không được miễn giảm.
+
+## 6. Phê duyệt và khóa dữ liệu
+
+```text
+Nhập dữ liệu
+  → Khoa duyệt (khoa_duyet)
+  → Đào tạo/Khảo thí duyệt cấp 2
+  → Văn phòng duyệt tổng hợp theo khoa (van_phong_duyet)
+  → Khóa năm học
+  → Snapshot / thống kê / export
+```
+
+`checkDataLock` chỉ chặn các route ghi Vượt Giờ có gắn middleware sau khi khóa.
+Các route duyệt tổng hợp không gắn middleware: `revokeKhoa()` tự kiểm tra khóa ở
+service, còn `approveKhoa()` không có guard khóa riêng. Không có route mở khóa
+công khai.

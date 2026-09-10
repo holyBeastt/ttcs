@@ -1,43 +1,48 @@
 ---
 name: overtime-workflow
-description: Understand and safely modify the university teaching overtime (vuotgio) module. Captures canonical formulas, approval workflows, business rules, and drift detection. Use when implementing overtime calculations, managing approvals, or detecting workflow changes.
+description: Understand and safely modify the university teaching overtime (vuotgio) module. Captures the current formulas, approval workflows, snapshot behavior, and drift-detection caveats.
 license: Proprietary
 metadata:
   domain: academic-workload
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Overtime Workflow Skill
 
-This skill packages domain knowledge for the university's "vuotgio" (overtime/teaching overload) workload management module.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this skill conflicts with source code, source code is authoritative.
 
-## What it does
+Use this skill when working on Vượt Giờ V2 (`/v2/vuotgio`), its NCKH dependency, approval/lock flow, snapshot/export behavior, or policy formulas.
 
-Provides agents with:
-- **Canonical formulas**: How overtime is calculated with NCKH deductions and caps, handling multiple policy versions (V1 up to 2024-2025, V2 from 2025-2026 onwards).
-- **Business rules**: Approval gates, inclusion criteria, rounding policies, exemption/discount rules based on policy version.
-- **Drift detection**: Scripts to validate code against documented formulas
-- **Edge cases**: Handling of negative totals, missing quotas, partial approvals
+## Current production path
 
-## When to use it
-
-Use this skill when:
-- Implementing or modifying overtime calculation logic
-- Managing approval workflows or access controls
-- Detecting unintended changes to the calculation formula
-- Understanding dependencies on NCKH data
-
-## Key files and scripts
-
-See `references/` for detailed documentation:
-- `references/formulas.md` — canonical formulas with pseudocode
-- `references/protected-rules.md` — business rules that must not change without review
-- `references/workflow.md` — data sources and aggregation flow
-
-Run the validator to detect formula drift:
-
-```bash
-node scripts/validate_implementation.js --propose
+```text
+tongHop.service
+  → summary.mapper.toAtomicSDO()/toCollectionSDO()
+  → OvertimePolicyFactory
+  → PolicyV1 or PolicyV2
 ```
 
-See `references/change-tracking.md` for the complete drift detection workflow.
+The non-exported `summary.mapper.calculateOvertime()` helper is not the production entry point. The validator under `scripts/` still expects that export and is currently incompatible with the source; do not treat a successful validator run as evidence until it is updated.
+
+## References in this skill
+
+The canonical files are in this directory, not under `references/`:
+
+- `formulas.md` — policy formulas and defaults.
+- `protected-rules.md` — rules that must not drift without review.
+- `workflow.md` — sources, approval gates, and snapshot transitions.
+- `architecture.md` — route/service/repository/mapper map.
+- `edge-cases.md` — failure-prone cases and test ideas.
+- `change-tracking.md` — drift-detection design and current validator limitation.
+- `references/REFERENCE.md` — index of these files.
+
+## When to use
+
+Use this skill before changing:
+
+- overtime policy or quota handling;
+- LNQC/KTHP/HDTQ approval predicates;
+- NCKH injection into SDOs;
+- year lock or snapshot reads;
+- payment breakdown/export;
+- Vượt Giờ routes, repositories, or mappers.

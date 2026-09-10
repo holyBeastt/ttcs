@@ -1,190 +1,156 @@
 # NCKH Compensation — Research Hour Distribution
 
-This document covers the formula layer for research workload (NCKH) hour distribution among participants.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
+
+This document describes how NCKH V3 allocates declared research hours to participant rows. Allocation happens during create/update/import and the resulting rows are stored in `nckh_so_tiet`.
+
+**Primary implementation:** `src/services/nckh_v3/formula.service.js`
 
 ---
 
-## Overview
+## Research types and modes
 
-Research hours are not stored as flat values. They are calculated dynamically from a master record's total hours, distributed among participants according to their role and count, using one of three modes.
-
-**Primary file:** `src/services/nckh_v3/formula.service.js`
-
----
-
-## Research Types and Modes
-
-| Type Key | Vietnamese Name | Distribution Mode |
-|----------|----------------|-------------------|
+| Type key | Vietnamese name | Mode |
+|---|---|---|
+| `DETAI_DUAN` | Đề tài, dự án | `standard` |
 | `BAIBAO` | Bài báo khoa học | `standard` |
-| `DETAI_DUAN` | Đề tài / Dự án | `standard` |
-| `SACHGIAOTRINH` | Sách / Giáo trình | `standard` |
 | `SANGKIEN` | Sáng kiến | `standard` |
-| `GIAITHUONG` | Giải thưởng / Bằng sáng chế | `standard` |
-| `DEXUAT` | Đề xuất nghiên cứu | `equal` |
-| `HUONGDAN` | Hướng dẫn sinh viên NCKH | `equal` |
-| `HOIDONG` | Thành viên hội đồng | `fixed` |
-
-**Evidence:** `src/config/nckh_v3/types.js` + `formula.service.js`
+| `GIAITHUONG` | Giải thưởng và sáng chế | `standard` |
+| `SACHGIAOTRINH` | Sách, giáo trình | `standard` |
+| `DEXUAT` | Đề xuất nghiên cứu | `equal` in manual/type registry |
+| `HUONGDAN` | Hướng dẫn SV NCKH | `equal` in manual/type registry |
+| `HOIDONG` | Thành viên hội đồng khoa học | `fixed` |
 
 ---
 
-## Mode: `standard` — Weighted Author/Member Split
+## `standard`: weighted author/member allocation
 
-### Function
+`quyDoiSoTietStandard(T, n, m, duration)` receives:
 
-`formula.service.js → quyDoiSoTietStandard(T, n, m)`
+- `T`: declared total hours (`tongSoTiet`),
+- `n`: total participants, including internal, external, and corresponding authors,
+- `m`: main-author count, where both `tac_gia` **and** `tac_gia_lien_he` count as main authors,
+- `duration`: `soNamThucHien` unless it is a literal calendar year (`> 1900`), in which case duration is `1`.
 
-- `T` = total hours for the work (`tongSoTiet`)
-- `n` = total participants
-- `m` = main authors (`tac_gia` role count)
+For a single main-author group:
 
-### Formulas
+| Participants | Main-author allocation | Each member allocation |
+|---|---:|---:|
+| `n = 1` | `T` | — |
+| `n = 2` | `2T/3` | `T/3` |
+| `n = 3` | `T/2` | `T/4` |
+| `n ≥ 4` | `T/3 + 2T/(3n)` | `2T/(3n)` |
 
-**Single main author (`m == 1`):**
+For `m ≥ 2`:
 
-| Participants (n) | Main Author Gets | Each Member Gets |
-|-----------------|-----------------|-----------------|
-| 1 | `T` | — |
-| 2 | `2T / 3` | `T / 3` |
-| 3 | `T / 2` | `T / 4` |
-| ≥ 4 | `T/3 + 2T/(3n)` | `2T/(3n)` |
-
-**Multiple main authors (`m >= 2`):**
-
-```
+```text
 base = 2T / (3n)
-tacGia_hours    = T / (3m) + base
-thanhVien_hours = base
+main-author row = T / (3m) + base
+member row       = base
 ```
 
-### Design Rationale
-
-Main authors always receive a guaranteed share (`T/3` split equally among them) plus a proportional base allocation. Members receive only the base allocation. This encodes the university's policy that first/corresponding authorship carries more weight.
+The resulting per-person values are divided by `duration` and rounded to two decimals before year expansion. Duplicate participant IDs are removed; corresponding authors are kept in the main-author group and are not double-counted as ordinary authors or members.
 
 ---
 
-## Mode: `equal` — Even Split
+## Excel import mode divergence
 
-### Function
-
-`formula.service.js → buildParticipantsEqual(T, participants, duration)`
-
-```
-soTietMoiNguoi = round2(T / n / duration)
-```
-
-All participants receive identical hours. Used for proposals (`DEXUAT`) and student research guidance (`HUONGDAN`) where role distinction is not applicable.
+The manual services and `NCKH_TYPE_OPTIONS` registry assign `equal` mode to
+`DEXUAT` and `HUONGDAN`. The current Excel mapper instead returns
+`mode: "standard"` for both types, so Excel imports currently use weighted
+author/member allocation. Treat this as an implementation limitation until the
+mapper is changed; do not document Excel imports as equal-mode today.
 
 ---
 
-## Mode: `fixed` — Per-Record Fixed Hours
+## `equal`: equal allocation (manual/type registry)
 
-### Function
+Used by `DEXUAT` and `HUONGDAN`:
 
-`formula.service.js → buildParticipantsFixed(T)`
-
-```
-soTietMoiNguoi = round2(T)
+```text
+hours_per_participant = round2(T / n / duration)
 ```
 
-Each record represents exactly **one person's contribution**. The constraint `tongSoNguoi === 1` is strictly enforced — any other count throws an error and rolls back the transaction.
+All participant roles receive the same base value. As with standard mode, `duration` is treated as `1` when `soNamThucHien > 1900`.
 
-Used for council members (`HOIDONG`), where each person's hours are defined independently per record.
+After expansion and rounding, any delta needed to reconcile the rounded participant sum is added to the **last participant**. Thus equal mode is equal before correction, but the final persisted rows can differ by the correction delta.
 
 ---
 
-## Multi-Year Projects
+## `fixed`: fixed value per participant row
 
-**File:** `formula.service.js`
+Used by `HOIDONG` manual input:
 
-If `soNamThucHien > 1` (project spans multiple years):
+```text
+hours_per_participant = round2(T)
+```
 
-1. Per-person hours are divided by `duration` (years).
-2. Participant rows are **expanded** — one row per year per person.
-3. Rounding is applied to each year-row independently.
+Manual fixed input requires exactly **one** participant and a valid council role (`chu_tich`, `phan_bien`, or `uy_vien`). `soNamThucHien` is not used to expand fixed-mode records.
 
-This means a 2-year project with 1 author and `T = 100` hours produces two `nckh_so_tiet` rows, each with `50` hours (before rounding correction).
+Excel `HOIDONG` is a separate branch: one row may contain multiple role/name pairs. Each resolved role receives the row's fixed hours, and the record's `tongSoTiet` is adjusted to the rounded fixed value multiplied by the number of role rows. Do not generalize the manual one-person constraint to that Excel branch.
 
 ---
 
-## Rounding Rules
+## Multi-year expansion
 
-**File:** `formula.service.js`
+For `standard` and `equal` modes:
+
+1. Divide each participant's allocation by the duration.
+2. Expand participant rows into one row per participant per year (`namThucHien = 1..duration`).
+3. If `soNamThucHien > 1900`, keep that literal year on one row per participant instead of looping through years.
+
+`fixed` mode skips this expansion and ignores the duration value.
+
+---
+
+## Rounding and delta correction
+
+The source uses:
 
 ```js
-const EPSILON = 1e-9;
-const round2 = (v) => Math.round((v + EPSILON) * 100) / 100;
+const round2 = (value) =>
+  Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 ```
 
-`EPSILON` is added before rounding to prevent floating-point truncation (e.g., `0.005` rounding down to `0.00`).
+There is no project constant such as `EPSILON = 1e-9`; the implementation uses JavaScript's `Number.EPSILON` directly.
 
-### Delta Correction
+- Standard mode: if the rounded sum differs from `T`, add the delta to the last `thanh_vien`; if no member exists, use the last participant.
+- Equal mode: add the delta to the last participant.
+- The database integrity check compares `round2(SUM(nckh_so_tiet.so_tiet))` with `round2(nckh_chung.tong_so_tiet)`, not raw floating-point equality.
 
-After all participants' hours are rounded, the system checks:
-
-```
-delta = round2(tongSoTiet) - SUM(round2(participant hours))
-```
-
-If `delta != 0`, it is added to:
-1. The last `thanh_vien` (member) in the list.
-2. If no member exists, the last participant overall.
-
-This guarantees `SUM(nckh_so_tiet.so_tiet) == nckh_chung.tong_so_tiet` exactly.
-
-**Evidence:** `formula.service.js → buildParticipantsByMode()` delta correction block.
+A mismatch aborts the transaction, so a successfully saved record satisfies the rounded total invariant.
 
 ---
 
-## Post-Calculation Integrity Check
+## Excel import and hour rules
 
-**File:** `src/services/nckh_v3/typeInput.service.js → create()` and `update()`
+`src/services/nckh_v3/import/excel.strategy.js` resolves the active rule set by NCKH type and then attempts to match `phanLoai`, falling back to `capNhiemVu` when needed.
 
-After every save operation, the system re-queries the database:
+- A matching rule overrides `tongSoTiet` with the rule's `SoGio`.
+- If neither classification field is supplied, the mapped Excel `tongSoTiet` remains authoritative for that row.
+- If a classification field is supplied but does not match the database rule set, the row is rejected during preview.
+- Manual input always uses its payload value.
 
-```js
-const total = round2(await nckhSoTietRepo.sumHours(connection, nckhId));
-const expected = round2(Number(payload.tongSoTiet));
-if (total !== expected) {
-  throw new Error(`Tổng số tiết không khớp: ${total} vs ${expected}`);
-}
-```
-
-A mismatch triggers a full transaction rollback. This is a hard integrity constraint — no record can be saved with mismatched totals.
+The rule service defaults to `NCKH_QUYDINH_TABLE || "nckh_quydinhsogio"`, probes up to four candidate table names, and supports up to three candidate column names for a field. Rules are keyed by `loaiNckh` and classification, not by academic year.
 
 ---
 
-## Schema Discovery for `quyDinh` Table
+## Approval and statistics
 
-**File:** `src/services/nckh_v3/quyDinh.service.js`
-
-The system does not assume a fixed table name or column name for the hour regulations table. It probes the database with:
-
-- **4 candidate table names**: `admin_quydinhsogio`, `nckh_quydinhsogio`, and variants.
-- **4–6 candidate column names** per field.
-
-This is a defensive pattern for environments where schema names differ between development and production. It uses `SHOW COLUMNS FROM <table>` before querying.
-
-> ⚠️ This approach means hour rules can silently change if a table column is renamed to match a candidate. Schema drift should be monitored.
+- New records start with `khoa_duyet = 0` and `vien_nc_duyet = 0`.
+- Official NCKH statistics require both approval flags.
+- Preview statistics filter by academic year only.
+- `GET /v3/nckh/records` is a management list and can include pending records because `nckhChung.repo.listUnified()` does not filter approval.
+- Update is blocked after `vien_nc_duyet = 1`.
+- Delete is blocked when **either** `khoa_duyet = 1` or `vien_nc_duyet = 1`.
 
 ---
 
-## Approval Lifecycle
+## Persistence model
 
-```
-[Created]
-  → khoa_duyet = 0, vien_nc_duyet = 0
+`nckh_chung` stores the work-level total and metadata. `nckh_so_tiet` stores one row per participant/year allocation, including external participant names when no internal `id_User` exists. Vượt Giờ reads approved totals through `stats.service.js`; it does not recompute the NCKH formula itself.
 
-[Department Head approves]
-  → khoa_duyet = 1
-
-[Research Institute approves]
-  → vien_nc_duyet = 1
-
-[Appears in aggregation]  ← Only after both = 1
-
-[Deletion blocked]        ← After vien_nc_duyet = 1
-```
-
-**Evidence:** `src/repositories/nckh_v3/nckhChung.repo.js → listUnified()` WHERE clause.
+Statistics and Vượt Giờ numeric totals join `nckh_so_tiet.nhanvien_id` to
+`nhanvien`. External participant rows are persisted and can appear in record
+detail/author displays, but their hours are excluded from lecturer, faculty,
+institute, and Vượt Giờ totals because they have no internal `id_User`.

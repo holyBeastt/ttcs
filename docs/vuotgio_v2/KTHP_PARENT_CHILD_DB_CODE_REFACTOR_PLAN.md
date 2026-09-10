@@ -1,5 +1,7 @@
 # Kế hoạch refactor KTHP theo mô hình bảng cha - ba bảng con
 
+> **Document status:** Refactor plan and completion record. Reconciled against the current source on **2026-09-10**. References to `vg_coi_cham_ra_de` describe the pre-cutover legacy schema, not the runtime source.
+
 ## 1. Mục tiêu
 
 Refactor dữ liệu Kết thúc học phần (KTHP) từ bảng phẳng

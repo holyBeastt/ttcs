@@ -1,156 +1,98 @@
 # System Overview — TTCS Academic Workload Management System
 
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
+
 ## Purpose
 
-TTCS is a university-internal workload management system. Its core function is to:
+TTCS collects teaching, research, and auxiliary workload; applies approval and quota rules; produces per-lecturer SDOs; locks academic years; and generates Excel/Word/finance outputs.
 
-1. **Collect** teaching, research, and auxiliary workload records from multiple sources.
-2. **Aggregate** those records into per-lecturer standardized data objects (SDOs).
-3. **Apply business rules** (quotas, exemptions, approval gates) to compute overtime hours and payment amounts.
-4. **Generate** formal university documents: Excel workload declarations and Word contract appendices.
-5. **Enforce** a multi-level approval workflow before any year's data is finalized.
+## Technology and architecture
 
-The system is **not** a generic CRUD application. It is a business-rule-heavy backend with domain logic spread across a layered calculation stack.
+TTCS is a Node.js CommonJS/Express application using EJS, MySQL raw SQL, `mysql2`, `multer`, ExcelJS, PizZip/docxtemplater, and archiver. New workload modules use:
 
----
-
-## Technology Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Runtime | Node.js (CommonJS modules) |
-| HTTP Framework | Express 4 |
-| Templating | EJS (server-rendered HTML) |
-| Database | MySQL (raw SQL via `mysql2` pool) |
-| ORM | None — all queries are hand-written SQL |
-| Document Generation | `docxtemplater` + `pizzip` (Word), `ExcelJS` (Excel), `archiver` (ZIP) |
-| Session | `express-session` (server-side) |
-| File Upload | `multer` (memory storage) |
-
----
-
-## Architectural Pattern
-
-```
-HTTP Request
-  → Express Router  (src/routes/)
-  → Auth Middleware  (requireLogin, enforceKhoaFilter, checkDataLock)
-  → Controller       (src/controllers/)
-  → Service          (src/services/)
-  → Repository       (src/repositories/)
-  → MySQL Pool       (src/config/databasePool.js)
+```text
+Route → Controller → Service → Repository/Mapper → MySQL
 ```
 
-**Connection patterns used:**
-- `createPoolConnection()` — caller acquires and must release the connection manually in a `finally` block.
-- `withConnection(fn)` — RAII-style wrapper that auto-releases; used in `dataLock.service.js` and `duyetTongHop.service.js`.
+Mời Giảng, Đồ Án, and several contract flows remain controller-centric legacy code.
 
-**Mapper layer** (`src/mappers/`) sits between repositories and services. It holds all overtime calculation formulas and shapes raw DB rows into Standardized Data Objects (SDOs). This is the primary **business rule calculation layer**.
+## Main modules
 
-### Legacy Workflows (Controller-Centric)
-Not all modules follow this MVC pattern. Several legacy domains (e.g., Mời Giảng, Đồ Án) use a **controller-centric architecture**, where validation, business logic, file handling, and inline SQL execution are tightly coupled within a single monolithic controller. See [Controller-Centric Legacy Modules](./controller-centric-legacy-modules.md) for details.
+| Module | Prefix | Role |
+|---|---|---|
+| `vuotgio_v2` | `/v2/vuotgio` | Vượt Giờ data entry, two-level approval, aggregation, lock/snapshot, export |
+| `nckh_v3` | `/v3/nckh` | Eight NCKH types, allocation, two approval flags, stats, export |
+| Mời Giảng | various | Invited lecturer legacy workflow |
+| Đồ Án | various | Thesis/project legacy workflow |
+| ExportHD/UNC | various | Contract and payment document generation |
 
----
+## Vượt Giờ production flow
 
-## Main Domain Modules
+```text
+Projected: quychuan + doantotnghiep + VG rows without approval predicates
+Official:  giangday + exportdoantotnghiep
+           + LNQC(khoa_duyet=1, dao_tao_duyet=1)
+           + KTHP(khoa_duyet=1, khao_thi_duyet=1)
+           + HDTQ(khoa_duyet=1, dao_tao_duyet=1)
 
-| Module | Route Prefix | Description |
-|--------|-------------|-------------|
-| `vuotgio_v2` | `/v2/vuotgio` | Teaching overtime: data entry, approval, aggregation, export |
-| `nckh_v3` | `/v3/nckh` | Research workload: import, formula application, approval, export |
-| Mời Giảng | Various | Invited lecturer registration, normalization, and list management (Legacy) |
-| Đồ Án | Various | Thesis/project supervision workload and supervisor assignment (Legacy) |
-| `exportHD` | `/exportHD` | Contract/appendix generation for guest lecturers (Legacy) |
-| Access Control | (middleware) | Session-based RBAC + attribute-based faculty scoping |
-| `thongkevuotgio` | `/thongkevuotgio` | Teaching statistics charts and filters |
-
----
-
-## Data Flow Summary
-
-### Teaching Overtime (VuotGio)
-
-```
-TKB Import → giangday table (QuyChuan pre-normalized)
-Faculty Entry → course_schedule_details (LNQC draft)
-             → vg_lop_ngoai_quy_chuan (after confirmToMain)
-Faculty Entry → vg_coi_cham_ra_de (exam/proctoring work)
-Faculty Entry → exportdoantotnghiep (thesis supervision)
-Faculty Entry → vg_huong_dan_tham_quan_thuc_te (field-trip guidance)
-                         ↓
-               tongHop.service.js → getAtomicSDO()
-                         ↓
-               summary.mapper.js → calculateOvertime()
-                         ↓
-               SDO (Standardized Data Object) per lecturer
-                         ↓
-               Excel export (xuatFile.service.js)
-                  or Web view (tongHop.controller.js)
+→ tongHop.service
+→ summary.mapper.toAtomicSDO()/toCollectionSDO()
+→ OvertimePolicyFactory → PolicyV1/PolicyV2
+→ SDO
 ```
 
-### Research Workload (NCKH)
+The NCKH cross-module call uses `statsService.getLecturerSummary()`/`getLecturerRecords()` without a scope, so the default NCKH `OFFICIAL` scope requires both `khoa_duyet` and `vien_nc_duyet`.
 
-```
-Excel Import → import.service.js → nckh_chung (master record)
-                                 → nckh_so_tiet (per-participant hours)
-                         ↓ formula.service.js (3 modes)
-               stats.repo.js aggregation
-                         ↓
-               export.service.js → ExcelJS workbook
-```
+`summary.mapper.calculateOvertime()` is an internal non-exported helper and not the production entry point.
 
-### Contract Generation
+## NCKH production flow
 
-```
-hopdonggvmoi table (pre-populated)
-  → exportHDController.js → getTemplateFileName()
-  → src/templates/*.docx (5 templates)
-  → docxtemplater fill
-  → ZIP archive → HTTP response stream
+```text
+Manual or Excel input
+  → import/type strategy
+  → formula.service (standard/equal/fixed)
+  → nckh_chung + nckh_so_tiet
+  → rounded sum integrity check
+  → approval flags
+  → stats scope (OFFICIAL/PREVIEW) and export
 ```
 
----
+Official stats use both approval flags. Preview stats filter by year only. The management `GET /v3/nckh/records` list may include pending records.
 
-## Key Database Tables
+## Key runtime tables
 
-| Table | Module | Role |
-|-------|--------|------|
-| `giangday` | VuotGio | Teaching records (QuyChuan = normalized hours) |
-| `vg_lop_ngoai_quy_chuan` | VuotGio | Confirmed non-standard class records |
-| `course_schedule_details` | VuotGio | LNQC draft staging table |
-| `vg_coi_cham_ra_de` | VuotGio | Exam/proctoring/grading/paper-setting work |
-| `exportdoantotnghiep` | VuotGio | Thesis/project supervision hours |
-| `vg_huong_dan_tham_quan_thuc_te` | VuotGio | Field-trip guidance hours |
-| `vg_khoa_du_lieu` | VuotGio | Year-level data lock records |
-| `vg_duyet_tong_hop` | VuotGio | Faculty-level synthesis approval records |
-| `sotietdinhmuc` | VuotGio | Global quota thresholds (one row) |
-| `nckh_chung` | NCKH | Research work master records |
-| `nckh_so_tiet` | NCKH | Per-participant normalized research hours |
-| `nhanvien` | Shared | Lecturer/staff profiles and exemption data |
-| `phongban` | Shared | Departments; `isKhoa=1` marks a Faculty |
-| `hopdonggvmoi` | Contract | Guest lecturer contract data |
-| `he_dao_tao` | Contract | Training system levels (cap_do, loai_hinh) |
-| `namhoc` | Shared | Valid academic year registry |
+| Table | Role |
+|---|---|
+| `giangday` | Official normalized teaching |
+| `quychuan` | Projected teaching input |
+| `course_schedule_details` | LNQC draft staging |
+| `vg_lop_ngoai_quy_chuan` | Official LNQC |
+| `vg_kthp` | KTHP parent/approval row |
+| `vg_kthp_ra_de` | KTHP paper-setting detail |
+| `vg_kthp_coi_thi` | KTHP proctoring detail |
+| `vg_kthp_cham_thi` | KTHP grading detail |
+| `doantotnghiep` | Projected DATN source |
+| `exportdoantotnghiep` | Official DATN source |
+| `vg_huong_dan_tham_quan_thuc_te` | HDTQ source |
+| `vg_duyet_tong_hop` | Faculty synthesis approval |
+| `vg_khoa_du_lieu` | Year lock |
+| `vg_so_tiet_tong_hop` | Versioned SDO snapshot |
+| `sotietdinhmuc` | Global `GiangDay`/`NCKH` quotas |
+| `nckh_chung` | NCKH master records |
+| `nckh_so_tiet` | NCKH participant/year hours |
+| `nhanvien`, `phongban` | Shared lecturer/department data |
 
----
+## Lock, snapshot, and exports
 
-## Approval Workflow Overview
+`dataLock.service.lockData()` validates year existence, two-level approval on the
+three Vượt Giờ approval tables, and faculty synthesis approval. It computes
+official SDOs through a separate service-managed connection, then stores complete
+JSON in `vg_so_tiet_tong_hop` and the lock record atomically in the lock
+transaction.
 
-```
-[Faculty enters data]
-       ↓
-[Department Head approves] → khoa_duyet = 1
-       ↓
-[Second-level approval]
-  LNQC  → dao_tao_duyet = 1   (Training Office)
-  KTHP  → khao_thi_duyet = 1  (Exam Office)
-  HDTQ  → dao_tao_duyet = 1   (Training Office)
-       ↓
-[Faculty synthesis approved] → vg_duyet_tong_hop.van_phong_duyet = 1
-       ↓
-[All faculties approved] → isAllKhoaApproved() = true
-       ↓
-[Year locked] → INSERT vg_khoa_du_lieu
-```
-
-Post-lock: all `POST`, `PUT`, `DELETE` operations are blocked by `checkDataLock` middleware.
+- Personal/faculty preview: snapshot after lock, live before lock.
+- Faculty statistics and Excel export: snapshot required.
+- Middleware-protected Vượt Giờ writes after lock: blocked by `checkDataLock`;
+  synthesis approval routes are separate (revoke has a service lock check,
+  approve does not).
+- No public unlock route exists.

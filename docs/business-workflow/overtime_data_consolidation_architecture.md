@@ -1,56 +1,64 @@
 # Kiến Trúc Tổng Hợp Dữ Liệu Vượt Giờ (Data Consolidation Architecture)
 
-Tài liệu này làm rõ cơ chế lấy và tổng hợp dữ liệu từ nhiều nguồn khác nhau trong module Vượt Giờ V2, đặc biệt tập trung vào cách hệ thống định danh giảng viên (`id_User`) để gom nhóm dữ liệu một cách chính xác.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. Khi tài liệu mâu thuẫn với source code, source code là nguồn quyết định.
 
-## 1. Nguyên Tắc Cốt Lõi: \`id_User\` là khóa chính (Core Key)
-Mọi logic tính toán, gom nhóm, và hiển thị trên Dashboard hay báo cáo Tài chính đều dựa vào `id_User` của bảng `nhanvien` làm khóa chính. Bất kể dữ liệu đến từ môn học, đồ án, tham quan hay ngoại quy chuẩn, chúng đều phải được "quy về" một `id_User` duy nhất.
+Tài liệu này giải thích cách Vượt Giờ V2 gom dữ liệu theo `nhanvien.id_User`, phân biệt nguồn dự kiến/chính thức và chuyển kết quả sang snapshot.
 
-## 2. Hai Luồng Dữ Liệu Tách Biệt
+## 1. Khóa gom nhóm: `id_User`
 
-Hệ thống vượt giờ hoạt động dựa trên 2 luồng trạng thái dữ liệu:
+`id_User` là khóa nội bộ để group SDO. Mọi nguồn phải được map về nhân viên nội bộ trước khi tính tổng; dữ liệu hiển thị tên không được dùng làm khóa group cuối cùng.
 
-### A. Luồng Chính Thức (Official / Đã Lưu)
-Đây là dữ liệu được chốt hạ (Snapshot) để tính tiền, xuất PDF, và gửi báo cáo Tài chính.
+## 2. Hai chế độ live
 
-**Đặc điểm:** Dữ liệu được lưu trong các bảng tĩnh. Hầu hết các bảng này được thiết kế chuẩn từ đầu, ngoại trừ bảng Đồ án do kế thừa từ hệ thống cũ.
+### A. Chính thức (`isDuKien=false`)
 
-| Nguồn Dữ Liệu (Bảng) | Chứa \`id_User\`? | Cơ Chế Truy Vấn (Repository) |
-| :--- | :--- | :--- |
-| **\`giangday\`** (Môn học) | ✅ Có | Dùng trực tiếp: `WHERE id_User = ?` |
-| **\`kiem_tra_hoc_phan\`** | ✅ Có | Dùng trực tiếp: `WHERE id_User = ?` |
-| **\`loai_ngoai_quy_chuan\`** | ✅ Có | Dùng trực tiếp: `WHERE id_User = ?` |
-| **\`huongdanthamquan\`** | ✅ Có | Dùng trực tiếp: `WHERE id_User = ?` |
-| **\`exportdoantotnghiep\`** | ❌ Không (NULL) | Bắt buộc phải **`LEFT JOIN nhanvien`** thông qua `CCCD` để tự động đắp `id_User` vào kết quả trả về. |
+Nguồn chính thức được query từ các bảng runtime:
 
-*Lý do bảng exportdoantotnghiep thiếu `id_User`:* Do luồng import file Excel đồ án gốc không bóc tách và map `id_User` lúc lưu xuống DB, dẫn đến cột này bị rỗng. Việc sử dụng JOIN bằng CCCD (cột duy nhất không thay đổi) đảm bảo tính toàn vẹn dữ liệu.
+| Nguồn | Bảng | Cách map `id_User` |
+|---|---|---|
+| Giảng dạy | `giangday` | `gd.id_User` |
+| LNQC | `vg_lop_ngoai_quy_chuan` | `lnqc.id_User` |
+| KTHP | `vg_kthp` + child tables | `p.id_user` trên parent |
+| DATN | `exportdoantotnghiep` | `COALESCE(da.id_User, nv.id_User)`; join CCCD khi cần |
+| HDTQ | `vg_huong_dan_tham_quan_thuc_te` | `t.id_User` |
 
----
+Official aggregation adds the approval predicates required by each source: LNQC/HDTQ need `khoa_duyet=1 AND dao_tao_duyet=1`; KTHP needs `khoa_duyet=1 AND khao_thi_duyet=1`. DATN excludes `isMoiGiang != 0`.
 
-### B. Luồng Dự Kiến (Projected / Tạm Tính)
-Đây là luồng dữ liệu "sống", lấy trực tiếp từ các file Excel gốc tải lên, phục vụ việc xem trước số lượng tiết học khi chưa chính thức chốt.
+`exportdoantotnghiep` is not universally `id_User IS NULL`; current SQL uses a stored ID when available and falls back to an employee match by CCCD.
 
-**Đặc điểm:** Dữ liệu thô, 100% không có `id_User` ở dưới Database.
+### B. Dự kiến (`isDuKien=true`)
 
-| Nguồn Dữ Liệu (Bảng) | Chứa \`id_User\`? | Cơ Chế Mapping (Service / Code JS) |
-| :--- | :--- | :--- |
-| **\`quychuan\`** (Môn học thô) | ❌ Không | Lấy toàn bộ danh sách lên bộ nhớ (RAM). Dùng logic code Node.js để tìm khớp `Tên Giảng Viên` với mảng `nhanvien` và tự gán `id_User` bằng code. |
-| **Dữ liệu Excel Đồ Án thô** | ❌ Không | Tương tự như quy chuẩn, map bằng Javascript dựa vào `Tên Giảng Viên` hoặc `CCCD`. |
+Projected data is live and is used for preview:
 
-*Nhược điểm của luồng Dự kiến:* Rất dễ bị sai sót nếu có 2 giảng viên trùng tên ở 2 khoa khác nhau. Đó là lý do Luồng Chính Thức (dùng id_User và CCCD) được ưu tiên tuyệt đối cho báo cáo Tài chính.
+| Nguồn | Bảng/đầu vào | Mapping |
+|---|---|---|
+| Giảng dạy | `quychuan` | `processQuyChuanData()` loads employee data and maps rows in memory; only `MoiGiang=0` is processed |
+| DATN | `doantotnghiep` | `transformDoAnData()` then maps internal lecturers by CCCD first and name as fallback |
+| LNQC/KTHP/HDTQ | Current runtime tables | Query without approval predicate for preview |
 
-## 3. Tổng Kết Luồng Code (Code Flow) trong \`tongHop.repo.js\`
+Projected mapping is a convenience for estimation, not a replacement for official persisted IDs. The source still filters the resulting rows to the requested faculty/lecturer set.
 
-Khi một request yêu cầu "Lấy toàn bộ dữ liệu vượt giờ của giảng viên X (`idUser = 123`)", `tongHop.repo.js` hoạt động như sau:
+## 3. Batch consolidation flow
 
-1. **Lấy Thông tin cá nhân:** Query bảng `nhanvien` bằng `idUser = 123`.
-2. **Lấy Giảng dạy (Môn học):** Query bảng `giangday` với `WHERE id_User = 123`.
-3. **Lấy Tham quan / Khảo sát:** Query bảng `huongdanthamquan` với `WHERE id_User = 123`.
-4. **Lấy Ngoại quy chuẩn & Kiểm tra:** Query bảng `loai_ngoai_quy_chuan` và `kiem_tra_hoc_phan` với `WHERE id_User = 123`.
-5. **Lấy Đồ án:**
-   - Database truy vấn bảng `exportdoantotnghiep`.
-   - Kết hợp `LEFT JOIN nhanvien ON exportdoantotnghiep.CCCD = nhanvien.CCCD`.
-   - Lọc ra những dòng có `nhanvien.id_User = 123` *(Đã được fix)*.
+`tongHop.service.getCollectionSDODetail()`:
 
-## 4. Best Practices Khuyến Nghị Cho Tương Lai
-- **Không bao giờ dùng Tên để JOIN trong SQL:** Nếu bảng bị thiếu khóa ngoại, hãy luôn dùng `CCCD` (Căn cước công dân) làm khóa phụ để JOIN với bảng `nhanvien`.
-- **Tuyệt đối tuân thủ tham số \`isDuKien\`:** Ở Controller và Route phục vụ in ấn báo cáo tài chính (PDF/Excel), luôn phải cứng định `isDuKien = false` để ép hệ thống gọi vào Luồng Chính Thức (đã qua JOIN/chuẩn hóa) thay vì Luồng Dự Kiến (thiếu chính xác do map bằng Tên).
+1. loads the lecturer list (excluding `id_User = 1`);
+2. loads each source in a batch query;
+3. groups each result array by `id_User` in memory;
+4. loads approved NCKH totals through `statsService.getLecturerSummary()` (default `OFFICIAL`);
+5. builds one raw-data object per lecturer;
+6. calls `summary.mapper.toAtomicSDO()` and the policy factory;
+7. returns full SDOs for snapshot or preview.
+
+Non-faculty staff (`phongban.isKhoa=0`) are grouped under `BGĐ&PHONG`.
+
+## 4. Snapshot boundary
+
+When `dataLock.service.lockData()` succeeds, it computes the official collection and writes each complete SDO as JSON in `vg_so_tiet_tong_hop.chi_tiet`, with version/latest metadata. Faculty statistics and Excel exports require this snapshot. Personal/faculty preview uses snapshot after lock and live calculation before lock.
+
+## 5. Implementation guidance
+
+- Prefer `id_User`; use CCCD only as the documented DATN fallback when the source row lacks a usable ID.
+- Do not describe `quychuan` or transformed `doantotnghiep` as official persisted sources.
+- Do not use the legacy KTHP table name in runtime diagrams; current runtime is `vg_kthp` plus `vg_kthp_ra_de`, `vg_kthp_coi_thi`, and `vg_kthp_cham_thi`.
+- Keep the default NCKH scope explicit when changing Vượt Giờ cross-module queries, because it changes overtime eligibility.

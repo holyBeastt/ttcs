@@ -5,6 +5,8 @@ description: Analyze and document the final payment logic in the 'Tiền chuyể
 
 # Excel Payment Sheet Generator
 
+> **Source-of-truth status:** Reconciled against current Vượt Giờ V2 payment code on **2026-09-10**. A workbook's `Tiền chuyển khoản` sheet may be historical; current runtime uses snapshot SDOs and `PaymentCalculator.computeSdoBreakdown()`.
+
 Skill này tập trung vào giai đoạn cuối cùng của quy trình: Kết xuất số tiền cần thanh toán cho từng đơn vị/cá nhân dựa trên kết quả từ sheet Tổng hợp.
 
 ## 1. Quy trình Phân tích (Payment Analysis)
@@ -19,6 +21,10 @@ Skill này tập trung vào giai đoạn cuối cùng của quy trình: Kết xu
 
 3.  **Định dạng đầu ra (Output Formatting):**
     *   Mô tả cấu trúc danh sách ngân hàng (Số tài khoản, Tên đơn vị, Số tiền).
+
+4.  **Đối chiếu runtime:**
+    *   Rate hiện hành: `ROUND(luong / 176, 0)`.
+    *   `MAX_PAYABLE_HOURS = 300` chỉ là constant khai báo; không tự áp dụng nếu calculator hiện hành không gọi nó.
 
 ## 2. Mẫu kết quả đầu ra (Required Output Format)
 

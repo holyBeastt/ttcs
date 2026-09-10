@@ -1,5 +1,7 @@
 # Luồng import Kết thúc học phần
 
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. Runtime KTHP uses `vg_kthp` plus `vg_kthp_ra_de`, `vg_kthp_coi_thi`, and `vg_kthp_cham_thi`.
+
 ## Contract chung
 
 Cả file Excel và form nhập thủ công đều được đổi sang KTHP DTO trước khi kiểm tra.
@@ -29,8 +31,9 @@ Năm học được lưu ở dạng `YYYY - YYYY`. Ngày thi được chuẩn h�
   `he_dao_tao`; không có giá trị mặc định.
 - Số giờ quy chuẩn phải lớn hơn `0`.
 - Giá trị số chi tiết không được âm.
-- Ngày thi bắt buộc đối với Coi thi. Ra đề và Chấm thi được phép để trống ngày
-  vì các biểu mẫu nghiệp vụ hiện hành không cung cấp trường này.
+- Ngày thi của Coi thi là metadata tùy chọn. Nếu được cung cấp, ngày phải hợp lệ;
+  thiếu ngày không làm dòng bị từ chối. Ra đề và Chấm thi cũng được phép để
+  trống ngày vì các biểu mẫu nghiệp vụ hiện hành không cung cấp trường này.
 - Dòng trùng trong batch hoặc trong DB không được insert.
 - Bất kỳ dòng lỗi nào cũng làm preview không phát hành token commit.
 
@@ -122,3 +125,9 @@ không cập nhật đè bản ghi cũ.
 - Regression file thật (read-only):
   `test/vuotgio_v2/kthp-import/regression/`
 - Chạy toàn bộ: `npm test`
+
+Source/test drift hiện còn tồn tại: test `kthpPolicies.test.js` vẫn kỳ vọng lỗi
+`EXAM_DATE_REQUIRED` khi thiếu ngày Coi thi, trong khi policy hiện hành coi ngày
+thi là tùy chọn và chỉ từ chối ngày được cung cấp nhưng không hợp lệ. Không dùng
+test kỳ vọng cũ đó để suy ra contract runtime; cần cập nhật test khi sửa test
+baseline.

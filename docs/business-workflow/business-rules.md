@@ -1,271 +1,175 @@
 # Business Rules
 
-All rules listed here are **confirmed** by direct code evidence. Assumptions are explicitly labeled.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
 
----
+All rules below are confirmed against the current implementation. The production Vượt Giờ path is:
 
-## VuotGio (Teaching Overtime) Rules
-
-### BR-VG-01: Overtime Formula
-
-**File:** `src/mappers/vuotgio_v2/summary.mapper.js → calculateOvertime()`
-
-```
-tongThucHien      = soTietGiangDay + soTietNgoaiQC + soTietKTHP + soTietDoAn + soTietHDTQ
-
-mienGiam          = dinhMucChuan × (phanTramMienGiam / 100)
-dinhMucSauGiam    = dinhMucChuan − mienGiam
-
-mienGiamNCKH      = dinhMucNCKH × (phanTramMienGiam / 100)
-dinhMucNCKHSauGiam = dinhMucNCKH − mienGiamNCKH
-thieuNCKH         = max(0, dinhMucNCKHSauGiam − soTietNCKH)
-
-tongVuot          = max(0, (tongThucHien − thieuNCKH) − dinhMucSauGiam)
-thanhToan         = min(tongVuot, dinhMucSauGiam)
+```text
+tongHop.service
+  → summary.mapper.toAtomicSDO()/toCollectionSDO()
+  → OvertimePolicyFactory
+  → PolicyV1 or PolicyV2
 ```
 
-**Key constraints:**
-- `tongVuot` is floored at 0 — a lecturer cannot have negative overtime.
-- `thanhToan` is **capped** at `dinhMucSauMienGiam` — a lecturer's payable overtime cannot exceed their adjusted quota.
-- `thieuNCKH` directly reduces effective teaching hours before overtime is computed.
+The non-exported `summary.mapper.calculateOvertime()` helper is not the production entry point.
 
 ---
 
-### BR-VG-02: NCKH Deficit Penalises Teaching Overtime
+## Vượt Giờ (teaching overtime)
 
-**File:** `src/mappers/vuotgio_v2/summary.mapper.js → calculateOvertime()`
+### BR-VG-01 — Overtime formula
 
-If a lecturer's research hours (`soTietNCKH`) are below their exemption-adjusted NCKH quota, the shortfall (`thieuNCKH`) is **subtracted from their teaching total** before overtime is calculated. A lecturer cannot earn overtime pay by teaching more if they have not met their research obligation.
+For one lecturer and one academic year:
 
-The NCKH quota is subject to the **same exemption percentage** as the teaching quota.
+```text
+tongThucHien = soTietGiangDay + soTietNgoaiQC + soTietKTHP
+              + soTietDoAn + soTietHDTQ
 
----
+thieuNCKH = max(0, dinhMucNCKH - soTietNCKH)
 
-### BR-VG-03: Global Quota Source
+tongVuot = max(0, tongThucHien - thieuNCKH - dinhMucSauMienGiam)
+thanhToan = min(tongVuot, dinhMucSauMienGiam)
+```
 
-**File:** `src/repositories/vuotgio_v2/tongHop.repo.js → getDinhMuc()` (via `shared.repo.js`)
+`thieuNCKH` reduces effective teaching hours. Overtime and payment are never negative. The payment cap is the adjusted **teaching** quota; there is no separate NCKH exemption in the current policies.
+
+### BR-VG-02 — Policy versions
+
+`OvertimePolicyFactory` normalizes the year string and selects:
+
+- **Policy V1:** all years not in the configured V2 list. The teaching exemption is `dinhMucChuan × phanTramMienGiam / 100`.
+- **Policy V2:** exactly `2025 - 2026` through `2031 - 2032`. If `phanTramMienGiam > 0`, teaching quota is set to `280 × 80% = 224` and `mienGiam = 56`; the percentage is not applied as a continuous multiplier. If the percentage is zero, the normal quota arithmetic is used.
+
+Do not document V2 as applying to every year from 2025 onward; years outside the explicit list fall back to V1.
+
+### BR-VG-03 — Quota source and defaults
+
+`tongHop.repo.getDinhMuc()` reads one global row:
 
 ```sql
 SELECT GiangDay, NCKH FROM sotietdinhmuc LIMIT 1
 ```
 
-There is a single global row for all lecturers. The quota is **not** per-faculty or per-rank.
+The current mapper fallback is:
 
-**Fallback (hardcoded):** If `sotietdinhmuc` is empty, `dinhMucChuan = 280` and `dinhMucNCKH = 280` are used silently. No error is raised.
-
-**Evidence:** `src/mappers/vuotgio_v2/summary.mapper.js → toAtomicSDO()`
-
----
-
-### BR-VG-04: Per-Source Approval Gates
-
-**File:** `src/repositories/vuotgio_v2/tongHop.repo.js`
-
-| Source | Required for Hour Count | Required for Year Lock |
-|--------|------------------------|----------------------|
-| `giangday` | None | N/A |
-| `vg_lop_ngoai_quy_chuan` | `khoa_duyet = 1` | `khoa_duyet = 1 AND dao_tao_duyet = 1` |
-| `vg_coi_cham_ra_de` | `khoa_duyet = 1` | `khoa_duyet = 1 AND khao_thi_duyet = 1` |
-| `exportdoantotnghiep` | None | N/A |
-| `vg_huong_dan_tham_quan_thuc_te` | `khoa_duyet = 1` | `khoa_duyet = 1 AND dao_tao_duyet = 1` |
-
-Second-level approval is enforced only at lock time, not at hour-count time.
-
----
-
-### BR-VG-05: Thesis Records — Guest Lecturer Exclusion
-
-**File:** `src/repositories/vuotgio_v2/tongHop.repo.js`
-
-```sql
-WHERE isMoiGiang = 0
+```text
+dinhMucChuan = 280
+dinhMucNCKH  = 200
 ```
 
-Thesis supervision records where the supervisor is a guest lecturer are excluded from overtime aggregation. Only internal staff thesis records count.
+The values are global, not per faculty or rank. A missing row is currently silent; see `known-limitations.md`.
 
----
+### BR-VG-04 — Workload sources and approval gates
 
-### BR-VG-06: Admin User Excluded
+| Source | Projected live | Official live and lock prerequisite |
+|---|---|---|
+| `quychuan` / `giangday` | projected uses `quychuan`; official uses `giangday`; no approval predicate | no approval predicate |
+| `vg_lop_ngoai_quy_chuan` | no approval predicate | `khoa_duyet = 1 AND dao_tao_duyet = 1` |
+| `vg_kthp` parent + children | no approval predicate | `khoa_duyet = 1 AND khao_thi_duyet = 1` |
+| `doantotnghiep` / `exportdoantotnghiep` | projected/official source respectively; `isMoiGiang = 0` | no approval predicate |
+| `vg_huong_dan_tham_quan_thuc_te` | no approval predicate | `khoa_duyet = 1 AND dao_tao_duyet = 1` |
 
-**File:** All aggregation queries in `tongHop.repo.js`
+Official Vượt Giờ aggregation therefore requires both approval levels for LNQC, KTHP, and HDTQ. The same two-level predicates are checked before year lock and before faculty synthesis approval.
 
-```sql
-WHERE nv.id_User <> 1
+### BR-VG-05 — Guest lecturer and admin exclusions
+
+- DATN rows with `isMoiGiang != 0` are excluded.
+- Lecturer lists exclude hard-coded `id_User = 1`.
+- Standard teaching queries include only internal lecturers (`MoiGiang = 0`).
+
+### BR-VG-06 — LNQC staging
+
+LNQC is entered in `course_schedule_details`, moved by `confirmToMain()` to `vg_lop_ngoai_quy_chuan`, and then reviewed/approved in the official table. Draft rows are not the official aggregation source.
+
+### BR-VG-07 — KTHP parent/child model
+
+Runtime KTHP data uses:
+
+```text
+vg_kthp
+├── vg_kthp_ra_de
+├── vg_kthp_coi_thi
+└── vg_kthp_cham_thi
 ```
 
-`id_User = 1` is a hardcoded system/admin user excluded from all workload aggregation.
+Approval flags live on `vg_kthp`; activity-specific details live in the child table selected by `loai_kthp`.
+
+### BR-VG-08 — Year-lock gate
+
+`dataLock.service.lockData()` validates prerequisites while holding the lock
+transaction. The official SDO read is computed through `getCollectionSDODetail()`
+on a separate service-managed connection; the lock row and snapshot writes are
+the part committed atomically:
+
+1. `NamHoc` matches `YYYY - YYYY`.
+2. The year exists in `namhoc`.
+3. The year is not already present in `vg_khoa_du_lieu`.
+4. All LNQC, KTHP, and HDTQ rows satisfy their two-level approval predicates.
+5. Every teaching faculty (`phongban.isKhoa = 1`) has `vg_duyet_tong_hop.van_phong_duyet = 1`.
+6. The official SDO collection is non-empty; it is then saved to `vg_so_tiet_tong_hop` and the lock/snapshot transaction commits.
+
+`checkDataLock` blocks only the Vượt Giờ mutation routes that attach the
+middleware. Synthesis approval routes do not attach it; `revokeKhoa()` checks the
+lock in its service, while `approveKhoa()` has no explicit lock guard. There is no
+public unlock API.
+
+### BR-VG-09 — Faculty synthesis approval
+
+`duyetTongHop.service` checks the same three-table/two-level prerequisites scoped to the target faculty before upserting `van_phong_duyet = 1`. Revoke is refused after the year lock. The current routes do not apply `enforceKhoaFilter`, so route-level faculty scoping remains a security limitation (see `known-limitations.md`).
+
+### BR-VG-10 — Table F and payment breakdown
+
+`buildTableF()` always returns the five categories `vn`, `lao`, `cuba`, `cpc`, and `dongHP`. DATN and HDTQ are assigned to HK2 because their source rows have no semester.
+
+`PaymentCalculator.computeSdoBreakdown()`:
+
+- distributes payable overtime (`thanhToan`) proportionally by the five annual category totals;
+- assigns the remainder to `dongHP` so the five rounded overtime buckets sum to `thanhToan`;
+- uses `ROUND(luong / 176, 0)` as the per-hour rate;
+- does not apply `MAX_PAYABLE_HOURS = 300` in the current calculator (the constant exists but is not used by this path).
 
 ---
 
-### BR-VG-07: LNQC Two-Stage Workflow
+## NCKH (research)
 
-**File:** `src/services/vuotgio_v2/lnqc.service.js`
+### BR-NK-01 — Type-to-mode registry
 
-Non-standard class records follow a staging workflow:
-1. Faculty enters data → saved to `course_schedule_details` (draft table).
-2. Faculty explicitly confirms → `lnqc.service.js → confirmToMain()` moves records to `vg_lop_ngoai_quy_chuan` (official table).
-3. Only official-table records with `khoa_duyet = 1` appear in overtime totals.
+`DETAI_DUAN`, `BAIBAO`, `SANGKIEN`, `GIAITHUONG`, and `SACHGIAOTRINH` use
+`standard`; `DEXUAT` and `HUONGDAN` use `equal`; `HOIDONG` uses `fixed` in the
+manual/type registry.
 
----
+The current Excel mapper hardcodes `mode: "standard"` for `DEXUAT` and
+`HUONGDAN`, so those two Excel imports currently use weighted allocation. This is
+an implementation divergence, not an equal-mode guarantee for every input path.
 
-### BR-VG-08: Year-Lock 5-Step Gate
+### BR-NK-02 — Participant allocation
 
-**File:** `src/services/vuotgio_v2/dataLock.service.js → lockData()`
+Standard mode gives main authors a weighted share. `tac_gia_lien_he` is part of the main-author group. Equal mode divides by participant count and duration. Fixed mode requires one participant for manual input and assigns the full declared total to that row. Excel `DEXUAT`/`HUONGDAN` currently use standard mode because of the mapper behavior noted above.
 
-In strict sequence:
-1. Validate `NamHoc` format: must match `/^\d{4}\s-\s\d{4}$/`.
-2. `namhoc` table: year must exist.
-3. `vg_khoa_du_lieu`: year must not already be locked.
-4. `getUnapprovedCounts()`: all 3 tables must have zero unapproved 2-level records system-wide.
-5. `duyetTongHop.repo.isAllKhoaApproved()`: `COUNT(van_phong_duyet=1) >= COUNT(phongban.isKhoa=1)`.
+### BR-NK-03 — Duration and rounding
 
-Race condition on step 5 insert is handled via MySQL `ER_DUP_ENTRY` (error 1062) catch.
+Standard/equal modes expand multi-year projects and support literal years (`soNamThucHien > 1900`). Fixed mode ignores duration. Rounding uses `Number.EPSILON`; delta correction is applied to the last member/participant as described in `nckh-compensation.md`.
 
----
+### BR-NK-04 — Integrity invariant
 
-### BR-VG-09: Faculty Synthesis Approval — Per-Faculty Prerequisite
-
-**File:** `src/services/vuotgio_v2/duyetTongHop.service.js → checkPrerequisites()`  
-**File:** `src/repositories/vuotgio_v2/duyetTongHop.repo.js → getUnapprovedCountsByKhoa()`
-
-Before `van_phong_duyet` can be set to `1` for a faculty, the same 3-table / 2-level check is run **scoped to that faculty's** `khoa` code. Global year-lock uses the same check without a faculty filter.
-
-Approval is written via `UPSERT`:
-```sql
-INSERT INTO vg_duyet_tong_hop (...) VALUES (...)
-ON DUPLICATE KEY UPDATE van_phong_duyet = 1, ...
-```
-
----
-
-### BR-VG-10: Payment Cap
-
-**File:** `src/mappers/vuotgio_v2/summary.mapper.js → calculateOvertime()`
+After create, update, and import save, the service compares:
 
 ```js
-thanhToan = Math.min(tongVuot, dinhMucSauMienGiam)
+round2(SUM(nckh_so_tiet.so_tiet)) === round2(nckh_chung.tong_so_tiet)
 ```
 
-A lecturer's payable overtime cannot exceed their exemption-adjusted quota. This prevents a scenario where a very high teaching load generates unbounded payment.
+A mismatch rolls back the transaction.
 
----
+### BR-NK-05 — Import hour-rule precedence
 
-### BR-VG-11: Table F — Thesis/Field-Trip Convention
+For Excel rows, a matching `phanLoai` or `capNhiemVu` rule overrides `tongSoTiet` with its database `SoGio`. If no classification is provided, Excel's value is retained. A supplied but unmatched classification is an import error. Manual records always use `payload.tongSoTiet`.
 
-**File:** `src/mappers/vuotgio_v2/summary.mapper.js → buildTableF()`
+The rule service uses a configurable primary table (`NCKH_QUYDINH_TABLE` or `nckh_quydinhsogio`) plus fallback candidates; rules are keyed by type/classification, not by academic year.
 
-Thesis supervision (`doAn`) and field-trip guidance (`hdtq`) records have no semester field. They are **always attributed to HK2** (Semester 2) in the training-system breakdown table. This is a convention, not derived from data.
+### BR-NK-06 — Approval/statistics semantics
 
----
-
-## NCKH (Research) Rules
-
-### BR-NK-01: Double-Approval Required for Aggregation
-
-**File:** `src/repositories/nckh_v3/nckhChung.repo.js → listUnified()`
-
-Only research records where `khoa_duyet = 1 AND vien_nc_duyet = 1` appear in lecturer hour totals. This is stricter than VuotGio (which only requires `khoa_duyet = 1`).
-
----
-
-### BR-NK-02: Hour Distribution — Standard Mode (Weighted Split)
-
-**File:** `src/services/nckh_v3/formula.service.js → quyDoiSoTietStandard()`
-
-Used by: `BAIBAO`, `DETAI_DUAN`, `SACHGIAOTRINH`, `SANGKIEN`, `GIAITHUONG`.
-
-```
-T = total hours; n = participants; m = main authors (tac_gia)
-
-if m == 1:
-  n == 1: tacGia = T
-  n == 2: tacGia = 2T/3,  thanhVien = T/3
-  n == 3: tacGia = T/2,   thanhVien = T/4
-  n >= 4: base = 2T/(3n); tacGia = T/3 + base; thanhVien = base
-
-if m >= 2:
-  base = 2T/(3n)
-  tacGia = T/(3m) + base; thanhVien = base
-```
-
----
-
-### BR-NK-03: Hour Distribution — Equal Mode
-
-**File:** `src/services/nckh_v3/formula.service.js`
-
-Used by: `DEXUAT`, `HUONGDAN`.
-
-```
-soTietMoiNguoi = round2(T / n / duration)
-```
-
-All participants receive equal hours. Multi-year projects divide by duration.
-
----
-
-### BR-NK-04: Hour Distribution — Fixed Mode
-
-**File:** `src/services/nckh_v3/formula.service.js`
-
-Used by: `HOIDONG` (council members).
-
-```
-soTietMoiNguoi = round2(T)
-```
-
-Strict constraint: exactly **1 participant per record**. Any other count throws and rolls back the transaction.
-
----
-
-### BR-NK-05: Rounding and Delta Correction
-
-**File:** `src/services/nckh_v3/formula.service.js`
-
-All values are rounded to 2 decimal places using:
-```js
-round2(v) = Math.round((v + EPSILON) * 100) / 100
-```
-
-After rounding, if `SUM(soTiet) ≠ tongSoTiet`, the remainder (delta) is added to the **last `thanh_vien`** (or last participant if no member exists) to prevent floating-point drift.
-
----
-
-### BR-NK-06: Multi-Year Project Expansion
-
-**File:** `src/services/nckh_v3/formula.service.js`
-
-If `soNamThucHien > 1`, per-person hours are divided by duration and rows are expanded into one record per year per participant.
-
----
-
-### BR-NK-07: Post-Calculation Integrity Check
-
-**File:** `src/services/nckh_v3/typeInput.service.js → create() / update()`
-
-After formula application:
-```js
-const total = round2(await nckhSoTietRepo.sumHours(connection, nckhId));
-const expected = round2(Number(payload.tongSoTiet));
-if (total !== expected) throw new Error(...);  // triggers rollback
-```
-
-This ensures the database sum always exactly matches the declared total.
-
----
-
-### BR-NK-08: quyDinh Table Overrides Excel Hours
-
-**File:** `src/services/nckh_v3/import.service.js`
-
-During Excel import, the `tongSoTiet` value in the uploaded file is **ignored**. The system always fetches the authoritative hour value from the `quyDinh` table (using a schema-discovery pattern with 4 candidate table names and 4-6 candidate column names).
-
----
-
-### BR-NK-09: Deletion Blocked After Institute Approval
-
-**File:** `src/services/nckh_v3/record.service.js` (inferred from approval gate pattern)
-
-Records where `vien_nc_duyet = 1` cannot be deleted. Deletion requires the record to be in a pre-Institute-approval state.
-
-**Status:** Confirmed by approval gate pattern; specific guard function not fully traced.
+- `stats` scope `OFFICIAL`: both `khoa_duyet = 1` and `vien_nc_duyet = 1`.
+- `stats` scope `PREVIEW`: year filter only.
+- `nckhChung.repo.listUnified()` is a management list and can include pending records.
+- Update is blocked after Institute approval; delete is blocked after either approval flag is set.
+- External `nckh_so_tiet` rows with `nhanvien_id IS NULL` are retained for detail/author displays but are excluded from lecturer/faculty/institute numeric totals and the NCKH amount injected into Vượt Giờ.

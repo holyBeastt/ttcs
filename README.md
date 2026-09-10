@@ -2,6 +2,8 @@
 
 > **TTCS** là ứng dụng web nội bộ dùng để quản lý toàn bộ khối lượng giảng dạy, nghiên cứu khoa học, hợp đồng mời giảng và hướng dẫn đồ án tốt nghiệp tại Học viện Kỹ thuật Mật mã. Hệ thống phục vụ giảng viên, giáo vụ cấp khoa, Phòng Đào tạo, Phòng Tài chính và Viện NCKH&HTPT — tự động hóa việc tổng hợp số giờ, tính toán vượt giờ, trừ giờ NCKH, phê duyệt nhiều cấp, khóa dữ liệu theo kỳ tài chính, và kết xuất hợp đồng Word / báo cáo Excel / ủy nhiệm chi phục vụ chi trả lương.
 
+> **Source-of-truth status:** Core NCKH/Vượt Giờ documentation was reconciled against the current source on **2026-09-10**. When this README conflicts with source code, source code is authoritative.
+
 ---
 
 ## Mục lục
@@ -27,19 +29,22 @@
 - Nhập và quản lý **Lớp Ngoài Quy Chuẩn** (LNQC) — hỗ trợ nhập tay, import Excel, và quy trình duyệt từng bản ghi.
 - Nhập và quản lý **Kết Thúc Học Phần** (KTHP) — coi thi, chấm thi, ra đề thi — từ file Excel hoặc form.
 - Nhập **Hướng Dẫn Tham Quan Thực Tế** với phê duyệt theo batch.
-- **Tổng hợp theo Giảng viên & theo Khoa**: tự động tính toán giờ giảng dạy chuẩn, giờ vượt, trừ giờ NCKH thiếu, áp dụng ngưỡng 300 giờ.
+- **Tổng hợp theo Giảng viên & theo Khoa**: tự động tính toán giờ giảng dạy chuẩn, giờ vượt, trừ giờ NCKH thiếu, áp dụng policy theo năm học và phân bổ thanh toán theo hệ đào tạo.
 - **Xuất file Excel** theo 3 cấp: Bảng kê khai từng khoa, Bảng tổng hợp toàn trường, và Bảng chuyển khoản.
-- **Khóa dữ liệu** theo năm học — middleware `checkDataLock` chặn mọi thao tác ghi sau khi kỳ tài chính đã chốt (fail-closed).
-- **Phê duyệt tổng hợp** theo chuỗi: Khoa → Phòng Đào tạo, với kiểm tra tiên quyết trước khi duyệt.
+- **Khóa dữ liệu** theo năm học — middleware `checkDataLock` chặn các route ghi
+  Vượt Giờ có gắn middleware sau khi kỳ tài chính đã chốt (fail-closed); route
+  duyệt tổng hợp theo khoa xử lý riêng: `revokeKhoa()` kiểm tra khóa ở service,
+  còn `approveKhoa()` hiện chưa có guard khóa riêng.
+- **Phê duyệt tổng hợp theo khoa** qua `vg_duyet_tong_hop.van_phong_duyet`, với kiểm tra đủ duyệt hai cấp trước khi khóa năm học.
 - **Preview** giờ giảng chi tiết theo giảng viên, theo khoa, và tổng hợp liên khoa trước khi xuất.
 
 ### Quản lý Nghiên cứu khoa học (`nckh_v3`)
 
 - Quản lý **8 loại hình NCKH**: Đề tài/Dự án, Bài báo Khoa học, Sáng kiến, Giải thưởng, Đề xuất Nghiên cứu, Sách/Giáo trình, Hướng dẫn SV NCKH, Thành viên Hội đồng.
 - Mỗi loại hình có **CRUD API riêng** với metadata, danh sách và chi tiết.
-- **Hệ thống phân bổ điểm NCKH** giữa các tác giả (qua `formula.service.js`).
+- **Hệ thống phân bổ số tiết/giờ NCKH** giữa các tác giả và thành viên (qua `formula.service.js`).
 - **Phê duyệt 2 cấp**: cấp Khoa (`khoa-duyet`) và cấp Viện NCKH (`vien-duyet`), hỗ trợ duyệt hàng loạt (`bulk-approvals`).
-- **Cấu hình quy định** số giờ NCKH theo năm học (Admin UI tại `/v3/nckh/admin/quy-dinh`).
+- **Cấu hình quy định** số giờ NCKH theo loại/phân loại công trình (Admin UI tại `/v3/nckh/admin/quy-dinh`); bảng quy định dùng chung giữa các năm.
 - **Import NCKH từ Excel** — giới hạn quyền cho Trợ lý/Lãnh đạo Viện NCKH.
 - **Thống kê & xuất báo cáo** theo 3 cấp: Giảng viên, Khoa, Toàn Học viện — dạng JSON API hoặc Excel.
 
@@ -252,7 +257,7 @@ ttcs/
 | Lệnh | Mô tả |
 |---|---|
 | `npm start` | Chạy server với **nodemon** (auto-reload khi code thay đổi) |
-| `npm test` | Chạy test với Node.js test runner (`node --test`) |
+| `npm test` | Chạy Jest và các test tích hợp bằng Node.js test runner |
 
 ---
 
@@ -270,7 +275,7 @@ Module phân lớp quản lý tính toán giờ vượt chuẩn:
 | Xuất File | `/v2/vuotgio/xuat-file/*` | Xuất Excel theo khoa, tổng hợp toàn trường |
 | Hướng Dẫn ĐATN | `/v2/vuotgio/huong-dan-datn/*` | Giờ hướng dẫn đồ án (read-only tổng hợp) |
 | Hướng Dẫn Tham Quan | `/v2/vuotgio/huong-dan-tham-quan/*` | Nhập giờ đi thực tế |
-| Khóa Dữ Liệu | `/v2/vuotgio/tong-hop/khoa-du-lieu` | Khóa/mở năm học |
+| Khóa Dữ Liệu | `/v2/vuotgio/tong-hop/khoa-du-lieu` | Khóa năm học và tạo snapshot (không có route mở khóa công khai) |
 
 ### NCKH v3 — `/v3/nckh/*`
 
@@ -283,7 +288,7 @@ Module phân lớp quản lý nghiên cứu khoa học:
 | Thống kê | `/v3/nckh/stats/*` | Tổng hợp theo GV / Khoa / Học viện |
 | Export | `/v3/nckh/export/*` | Xuất Excel thống kê |
 | Import | `/v3/nckh/import/*` | Import từ Excel (restricted quyền Viện NC) |
-| Admin Quy Định | `/v3/nckh/admin/quy-dinh` | Cấu hình số giờ NCKH theo năm |
+| Admin Quy Định | `/v3/nckh/admin/quy-dinh` | Cấu hình số giờ NCKH theo loại/phân loại công trình; dùng chung giữa các năm |
 
 ### Legacy Modules
 
@@ -323,11 +328,13 @@ Hệ thống sử dụng kết hợp **RBAC** và **ABAC**:
 
 **ABAC — Cách ly dữ liệu theo Khoa (`khoaFilterMiddleware`):**
 - User có `isKhoa = 1` bị **ép filter** tự động: mọi param/query/body chứa `Khoa` đều bị ghi đè bằng `MaPhongBan` của user.
-- Middleware `verifyRecordBelongsToKhoa` kiểm tra quyền thao tác trên từng bản ghi cụ thể trước khi edit/delete.
+- Các route nghiệp vụ có thể có thêm kiểm tra ownership theo module; không xem `verifyRecordBelongsToKhoa` là một middleware toàn cục thay thế `enforceKhoaFilter`.
 - User cấp Phòng (không phải khoa) có thể xem dữ liệu cross-khoa.
 
 **Data Lock (`dataLockMiddleware`):**
-- Chặn mọi thao tác **POST/PUT/DELETE** khi năm học đã bị khóa.
+- Chặn các route ghi Vượt Giờ có gắn `checkDataLock` khi năm học đã bị khóa;
+  các route duyệt tổng hợp theo khoa không gắn middleware này (revoke có kiểm
+  tra khóa ở service, còn approve không có guard khóa riêng).
 - Cho phép **GET** đi qua bình thường.
 - **Fail-closed**: lỗi DB hoặc thiếu `namHoc` → trả về 400/500.
 
@@ -351,7 +358,10 @@ Hệ thống hỗ trợ **Export/Import dữ liệu** giữa các instance (ví 
 - **Quy tắc hardcoded:** Một số quy tắc nghiệp vụ (phân bổ giờ đồ án, hệ số quy đổi hệ đào tạo) bị rải rác ở nhiều controller thay vì tập trung tại một nơi.
 - **Session secret cố định:** `express-session` sử dụng secret hardcoded (`"your-secret-key"`) trong code, nên thay bằng biến môi trường.
 - **Phân quyền không đồng nhất:** Module mới (`vuotgio_v2`) sử dụng middleware ABAC + data lock nhất quán. Module cũ kiểm tra quyền inline trong controller, thiếu tính đồng nhất.
-- **Không có CI/CD, Docker, hoặc test tự động:** Repository không có Dockerfile, docker-compose, hay pipeline CI/CD. Test runner được khai báo nhưng không có test files trong repository.
+- **Không có CI/CD hoặc Docker:** Repository không có Dockerfile, docker-compose,
+  hay pipeline CI/CD. Repository vẫn có Jest suites và các test tích hợp chạy
+  bằng Node.js test runner; trạng thái/baseline lỗi hiện hành cần xem output test,
+  không suy diễn từ việc thiếu CI.
 - **Thiếu rate limiting & CORS production:** CORS được bật `origin: true` (cho phép tất cả), không có rate limiting.
 
 ---

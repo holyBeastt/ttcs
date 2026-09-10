@@ -1,127 +1,79 @@
 # Domain Glossary
 
-This glossary defines Vietnamese business terms used throughout the codebase. Understanding these terms is required to interpret variable names, table columns, and function logic.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
 
----
+## Core workload terms
 
-## Core Workload Terms
+| Vietnamese term | Code alias | Meaning |
+|---|---|---|
+| Số tiết | `soTiet`, `SoTiet` | Workload period/hour unit used by the system |
+| Số tiết quy chuẩn | `QuyChuan`, `quy_chuan` | Normalized workload used by Vượt Giờ |
+| Định mức | `dinhMucChuan`, `dinhMucNCKH` | Teaching and NCKH quota values |
+| Vượt giờ | `tongVuot` | Overtime after teaching quota and NCKH shortfall |
+| Miễn giảm | `mienGiam`, `phanTramMienGiam` | Teaching-quota reduction under the selected policy |
+| Định mức sau miễn giảm | `dinhMucSauMienGiam` | Effective teaching quota used in overtime formula |
+| Thiếu NCKH | `thieuNCKH` | `max(0, dinhMucNCKH - soTietNCKH)`; reduces eligible overtime |
+| Thanh toán | `thanhToan` | Payable overtime hours; capped by the effective teaching quota |
+| SDO | `Standardized Data Object` | Per-lecturer object produced by the summary mapper |
 
-| Vietnamese Term | Code Alias | English Meaning |
-|----------------|-----------|----------------|
-| Số tiết | `soTiet`, `SoTiet` | Number of teaching periods/hours (1 tiết ≈ 45 min) |
-| Số tiết quy chuẩn | `QuyChuan`, `quy_chuan` | Normalized teaching hours — raw periods converted to a standard unit |
-| Định mức | `dinhMuc`, `DinhMuc` | Quota — the standard number of hours a lecturer is expected to complete |
-| Vượt giờ | `vuotGio`, `tongVuot` | Overtime — hours worked beyond the defined quota |
-| Miễn giảm | `mienGiam`, `MienGiam` | Exemption — a percentage reduction applied to a lecturer's quota |
-| Phần trăm miễn giảm | `phanTramMienGiam` | Exemption percentage (stored on `nhanvien` record) |
-| Lý do miễn giảm | `lyDoMienGiam` | Textual reason for the exemption |
-| Thanh toán | `thanhToan` | Payable overtime amount (capped at `dinhMucSauMienGiam`) |
-| Thiếu tiết giảng dạy | `thieuTietGiangDay` | Shortfall in teaching hours relative to quota (display only) |
-| Thiếu NCKH | `thieuNCKH` | Shortfall in research hours — directly penalises overtime payment |
+## Vượt Giờ workload sources
 
----
+| Term | Current table(s) | Description |
+|---|---|---|
+| Giảng dạy | `quychuan` (projected), `giangday` (official) | Standard teaching workload; internal lecturers only |
+| Lớp ngoài quy chuẩn (LNQC) | `course_schedule_details` (draft), `vg_lop_ngoai_quy_chuan` (official) | Non-standard classes; official aggregation requires two-level approval |
+| Kết thúc học phần (KTHP) | `vg_kthp` + `vg_kthp_ra_de` + `vg_kthp_coi_thi` + `vg_kthp_cham_thi` | Exam, paper-setting, proctoring, and grading activities |
+| Đồ án tốt nghiệp (DATN) | `doantotnghiep` (projected), `exportdoantotnghiep` (official) | Thesis/project supervision; guest rows are excluded |
+| Hướng dẫn tham quan thực tế (HDTQ) | `vg_huong_dan_tham_quan_thuc_te` | Field-trip/practical guidance; official aggregation requires two-level approval |
+| NCKH | `nckh_chung`, `nckh_so_tiet` | Research work and persisted participant allocations |
 
-## Workload Sources
+`vg_coi_cham_ra_de` is a legacy/historical KTHP name. It is not the current runtime table for KTHP aggregation.
 
-| Vietnamese Term | Code / Table | Description |
-|----------------|-------------|-------------|
-| Giảng dạy | `giangday` | Standard teaching records (imported via TKB) |
-| Lớp ngoài quy chuẩn (LNQC) | `vg_lop_ngoai_quy_chuan` | Non-standard classes not in the official timetable |
-| Kết thúc học phần (KTHP) | `vg_coi_cham_ra_de` | Exam/proctoring, grading, and exam-paper setting work |
-| Đồ án tốt nghiệp (DATN) | `exportdoantotnghiep` | Thesis and graduation project supervision |
-| Hướng dẫn tham quan thực tế (HDTQ) | `vg_huong_dan_tham_quan_thuc_te` | Field-trip and practical training guidance |
-| NCKH | `nckh_chung`, `nckh_so_tiet` | Scientific research work |
+## Approval terms
 
----
+| Term | Field/table | Meaning |
+|---|---|---|
+| Khoa duyệt | `khoa_duyet` | Faculty-level approval |
+| Đào tạo duyệt | `dao_tao_duyet` | Second-level approval for LNQC and HDTQ |
+| Khảo thí duyệt | `khao_thi_duyet` | Second-level approval for KTHP |
+| Viện NC duyệt | `vien_nc_duyet` | Institute NCKH approval |
+| Văn phòng duyệt | `vg_duyet_tong_hop.van_phong_duyet` | Faculty synthesis approval before year lock |
+| Khóa dữ liệu | `vg_khoa_du_lieu` | Year-level lock that blocks Vượt Giờ writes |
+| Snapshot | `vg_so_tiet_tong_hop` | Versioned JSON SDO data stored at lock time |
 
-## Approval Terms
+## NCKH formula terms
 
-| Vietnamese Term | Code Alias | Meaning |
-|----------------|-----------|---------|
-| Khoa duyệt | `khoa_duyet` | Level-1 approval by department head |
-| Đào tạo duyệt | `dao_tao_duyet` | Level-2 approval by Training Office (for LNQC, HDTQ) |
-| Khảo thí duyệt | `khao_thi_duyet` | Level-2 approval by Exam Office (for KTHP) |
-| Viện NC duyệt | `vien_nc_duyet` | Research Institute approval (for NCKH) |
-| Văn phòng duyệt | `van_phong_duyet` | Office-level synthesis approval for a whole faculty |
-| Duyệt tổng hợp | `vg_duyet_tong_hop` | Table storing per-faculty synthesis approval state |
-| Khóa dữ liệu | `vg_khoa_du_lieu` | Year-level data lock — blocks all writes after this point |
+| Term | Meaning |
+|---|---|
+| `standard` | Weighted allocation: main authors, including `tac_gia_lien_he`, receive a larger share |
+| `equal` | Equal allocation by participant count and duration, with final delta correction |
+| `fixed` | Full declared total assigned to one manual HOIDONG participant |
+| `tongSoTiet` | Work-level declared total stored on `nckh_chung` |
+| `so_tiet` | Participant/year allocation stored on `nckh_so_tiet` |
+| `soNamThucHien` | Duration; values over 1900 are treated as literal years |
+| `OFFICIAL` | NCKH stats scope requiring both approval flags |
+| `PREVIEW` | NCKH stats scope filtering only by academic year |
 
----
+## Organizational terms
 
-## Document / Contract Terms
+| Term | Code | Meaning |
+|---|---|---|
+| Khoa | `phongban.isKhoa = 1`, `MaPhongBan` | Teaching faculty |
+| Phòng ban không phải khoa | `phongban.isKhoa = 0` | Office/support unit; grouped by `BGĐ&PHONG` in Vượt Giờ |
+| Giảng viên | `id_User`/`giangVien` | Internal lecturer/staff row |
+| Mã số cán bộ | `MaSoCanBo` / employee fields | Identifier used during NCKH import name resolution |
+| Năm học | `NamHoc`, `nam_hoc` | Academic year, normally `YYYY - YYYY` |
 
-| Vietnamese Term | Code / File | Meaning |
-|----------------|------------|---------|
-| Hợp đồng | `HopDong*.docx` | Formal work contract |
-| Phụ lục hợp đồng | — | Contract appendix (content of generated documents) |
-| Hệ đào tạo | `he_dao_tao` | Training system / education level |
-| Cấp độ | `cap_do` | Education level: 1=Undergraduate, 2=Master, 3=Postgrad, 4=PhD |
-| Loại hình | `loai_hinh` | Contract type: `mời giảng` (guest lecture) or `đồ án` (thesis) |
-| Mời giảng | — | Guest lecturer engagement |
-| Đồ án | — | Thesis/project supervision engagement |
-| Đợt | `Dot` | Batch/wave number within a semester |
-| Kỳ học | `KiHoc` | Semester number |
-| Năm học | `NamHoc`, `nam_hoc` | Academic year in format `YYYY - YYYY` |
+## SDO fields
 
----
+`toAtomicSDO()` returns, among other fields:
 
-## Organizational Terms
-
-| Vietnamese Term | Code Alias | Meaning |
-|----------------|-----------|---------|
-| Khoa | `Khoa`, `maKhoa`, `MaPhongBan` | Faculty (academic department) — `phongban.isKhoa = 1` |
-| Phòng ban | `phongban` | All departments (includes non-faculty units) |
-| Chủ nhiệm khoa | `chuNhiemKhoa` | Head of Faculty |
-| BGĐ & PHÒNG | `NON_KHOA_GROUP_CODE` | Non-faculty staff group (management + administrative offices) |
-| Giảng viên | `giangVien`, `GiangVien` | Lecturer |
-| GV mời | `gvmoi` | Guest lecturer (external) |
-| Mã số cán bộ | `MaSoCanBo` | Staff identification code |
-
----
-
-## Technical Abbreviations
-
-| Abbreviation | Expansion | Meaning |
-|-------------|-----------|---------|
-| SDO | Standardized Data Object | Per-lecturer aggregated workload object produced by `getAtomicSDO()` |
-| LNQC | Lớp Ngoài Quy Chuẩn | Non-standard classes |
-| KTHP | Kết Thúc Học Phần | End-of-module exam work |
-| DATN | Đồ Án Tốt Nghiệp | Graduation thesis/project |
-| HDTQ | Hướng Dẫn Tham Quan | Field-trip guidance |
-| NCKH | Nghiên Cứu Khoa Học | Scientific research |
-| TKB | Thời Khóa Biểu | Course timetable (external import source) |
-| DM | Định Mức | Quota |
-| HSL | Hệ Số Lương | Salary coefficient |
-| STK | Số Tài Khoản | Bank account number |
-
----
-
-## Data Object Shapes
-
-### Atomic SDO (per-lecturer aggregated object)
-
-Produced by `tongHop.service.js → getAtomicSDO()` via `summary.mapper.js → toAtomicSDO()`.
-
+```text
+id_User, giangVien, maKhoa, khoa, isKhoa, chucVu
+soTietGiangDay, soTietNgoaiQC, soTietKTHP, soTietDoAn, soTietHDTQ
+soTietNCKH, tongThucHien, dinhMucChuan, mienGiam
+thieuNCKH, thieuTietGiangDay, dinhMucSauMienGiam
+tongVuot, thanhToan, tableE, tableF, breakdown, raw, nam_hoc
 ```
-{
-  id_User, giangVien, maKhoa, khoa, isKhoa, chucVu,
-  soTaiKhoan, nganHang, lyDoMienGiam, phanTramMienGiam, hsl, luong,
-  soTietGiangDay,   // from giangday (no approval gate)
-  soTietNgoaiQC,    // from vg_lop_ngoai_quy_chuan (khoa_duyet=1 only)
-  soTietKTHP,       // from vg_coi_cham_ra_de (khoa_duyet=1 only)
-  soTietDoAn,       // from exportdoantotnghiep (isMoiGiang=0 only)
-  soTietHDTQ,       // from vg_huong_dan_tham_quan_thuc_te (khoa_duyet=1 only)
-  soTietNCKH,       // injected from NCKH module total
-  tongThucHien,     // sum of all 5 teaching sources
-  mienGiam,         // quota × (phanTramMienGiam / 100)
-  dinhMucSauMienGiam,
-  thieuTietGiangDay,
-  thieuNCKH,
-  tongVuot,         // overtime hours (may be zero)
-  thanhToan,        // payable hours (capped at dinhMucSauMienGiam)
-  dinhMucChuan,
-  nam_hoc,
-  tableF,           // breakdown by training system (5 rows)
-  breakdown         // detailed per-source breakdown
-}
-```
+
+`tableF` always contains the normalized training-system categories `vn`, `lao`, `cuba`, `cpc`, and `dongHP`. DATN and HDTQ are assigned to HK2 in this breakdown because they have no semester field.

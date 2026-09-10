@@ -1,5 +1,7 @@
 # Kế hoạch refactor import Kết thúc học phần
 
+> **Document status:** Design plan retained for traceability; the canonical implemented workflow is `KTHP_IMPORT_WORKFLOW.md` and the runtime code under `src/services/vuotgio_v2/`. Reconciled on **2026-09-10**.
+
 ## 1. Mục tiêu
 
 Chuẩn hóa hai cách nhập dữ liệu Kết thúc học phần (KTHP):

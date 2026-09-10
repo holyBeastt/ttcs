@@ -1,33 +1,19 @@
 # Protected Business Rules (OVERTIME)
 
-These rules are project-specific and must be treated as authoritative before changing any code that affects overtime calculation or reporting.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**.
 
-1. Default quotas
-   - If `sotietdinhmuc` row is missing, default `dinhMucChuan = 280` and `dinhMucNCKH = 280`.
+1. **Defaults:** missing quota row falls back to `dinhMucChuan=280`, `dinhMucNCKH=200`.
+2. **NCKH deficit:** `thieuNCKH=max(0, dinhMucNCKH-soTietNCKH)`; no NCKH exemption is applied.
+3. **Policy V1:** direct percentage reduction of the teaching quota.
+4. **Policy V2:** only for the explicit years `2025 - 2026` through `2031 - 2032`; positive exemption sets teaching quota to `224` and `mienGiam=56`.
+5. **Non-negativity:** `tongVuot` cannot be below zero.
+6. **Payment cap:** `thanhToan <= dinhMucSauMienGiam`.
+7. **Official approval gates:**
+   - LNQC/HDTQ: `khoa_duyet=1 AND dao_tao_duyet=1`;
+   - KTHP: `khoa_duyet=1 AND khao_thi_duyet=1`.
+8. **Projected mode:** uses live projected sources and intentionally omits source approval predicates.
+9. **Snapshot:** lock computes official SDOs and stores JSON in `vg_so_tiet_tong_hop`; locked statistics/export read snapshot.
+10. **Identity exclusions:** aggregation excludes `id_User=1`; DATN excludes guest rows.
+11. **Rounding:** final numeric policy fields are rounded to two decimals with `Number.EPSILON`; in-memory payment breakdown money values use `excelNumber()`/`toFixed(2)`, while generated workbook money formulas use `TRUNC(..., 2)`.
 
-2. Discount application (`phanTramMienGiam`)
-   - **Policy V1 (<= 2024-2025):** `phanTramMienGiam` is applied directly to the teaching quota (`dinhMucChuan = 280`).
-   - **Policy V2 (>= 2025-2026):** If `phanTramMienGiam > 0`, the teaching quota (`dinhMucChuan`) is immediately capped at 80% (224 hours). The `phanTramMienGiam` percentage is NOT applied as a continuous multiplier. NCKH quota (`dinhMucNCKH`) remains unaffected by exemptions in both rules, any deficit is purely `max(0, dinhMucNCKH - soTietNCKH)`.
-
-3. NCKH shortfall reduces payable overtime
-   - Compute `thieuNCKH = max(0, dinhMucNCKH - soTietNCKH)`. This value reduces the effective teaching before computing overtime. NCKH quota (`dinhMucNCKH`) does not get reductions from `phanTramMienGiam`.
-
-4. Non-negativity
-   - Raw overtime below zero is treated as zero (no negative payouts).
-
-5. Capping rule
-   - Paid overtime (`paid_overtime`) is capped at `dinhMucSauMienGiam` (i.e., `standard_quota - reduced_hours`).
-
-6. Approvals and inclusion
-   - Aggregation queries currently require `khoa_duyet = 1` to include records from `vg_coi_cham_ra_de` and `vg_lop_ngoai_quy_chuan` where present.
-   - `id_User = 1` is excluded from lecturer aggregations.
-
-7. Rounding
-   - Reported numeric fields are normalized to two decimal places. Confirm whether intermediate rounding is acceptable before changing code.
-
-8. Snapshot semantics (future)
-   - Once snapshots (`vg_so_tiet_tong_hop`) are used, historical reads MUST use snapshot `chi_tiet` JSON and NOT re-query base tables.
-
-Uncertainties (require PO confirmation):
-- Does `khao_thi_duyet` also gate inclusion for certain KTHP types? (code uses `khoa_duyet` currently)
-- Should rounding be applied only at final outputs or at intermediate steps as currently implemented?
+The legacy table name `vg_coi_cham_ra_de` and the old one-level approval behavior are historical, not current runtime rules.

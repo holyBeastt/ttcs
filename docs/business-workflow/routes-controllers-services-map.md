@@ -1,190 +1,254 @@
 # Routes → Controllers → Services → Repository Map
 
-Full trace for each domain module. Format: `Route → Controller.method → Service.method → Repo.method → Tables`.
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. When this document conflicts with source code, source code is authoritative.
 
----
+Format: `Route → Controller → Service → Repository/Mapper → tables`.
 
 ## vuotgio_v2
 
-### Core Aggregation
+### Views and core aggregation
 
-```
+```text
+GET /v2/vuotgio/tong-hop-giang-vien
+  → base.controller.getTongHopGV()                         (view)
+
 GET /v2/vuotgio/tong-hop/giang-vien
-  → tongHop.controller.js :: tongHopTheoGV()
-  → tongHop.service.js :: getCollectionSDO()
-      → tongHop.repo.js :: getAllNhanVien()        → nhanvien, phongban
-      → tongHop.repo.js :: getAllGiangDay()        → giangday
-      → tongHop.repo.js :: getAllLNQC()            → vg_lop_ngoai_quy_chuan (khoa_duyet=1)
-      → tongHop.repo.js :: getAllKTHP()            → vg_coi_cham_ra_de (khoa_duyet=1)
-      → tongHop.repo.js :: getAllDoAn()            → exportdoantotnghiep (isMoiGiang=0)
-      → tongHop.repo.js :: getAllHDTQ()            → vg_huong_dan_tham_quan_thuc_te (khoa_duyet=1)
-      → [NCKH cross-module fetch]                  → nckh_so_tiet
-      → shared.repo.js :: getDinhMuc()             → sotietdinhmuc
-      → summary.mapper.js :: toAtomicSDO() [×N]
-          → summary.mapper.js :: calculateOvertime()
-          → summary.mapper.js :: buildTableF()
+  → tongHop.controller.tongHopTheoGV()
+  → tongHop.service.getCollectionSDO()                     (summary)
+      or getCollectionSDODetail()                          (detail=1)
+  → tongHop.repo.getDuLieuThoTongHop()
+  → stats.service.getLecturerSummary()                     (NCKH, default OFFICIAL)
+  → summary.mapper.toCollectionSDO()/toAtomicSDO()
+  → OvertimePolicyFactory → PolicyV1/PolicyV2
+```
 
+`getCollectionSDODetail()` batch-loads:
+
+```text
+getGiangDayByIds()
+getLopNgoaiQCByIds()
+getKthpByIds()
+getDoAnByIds()
+getHuongDanThamQuanByIds()
+getNhanVienByIds()
+getDinhMuc()
+statsService.getLecturerSummary()
+```
+
+### Single-lecturer APIs
+
+```text
 GET /v2/vuotgio/tong-hop/chi-tiet/:MaGV
-  → tongHop.controller.js :: chiTietGV()
-  → tongHop.service.js :: getAtomicSDO(namHoc, idUser)
-      → tongHop.repo.js :: getNhanVienById()        → nhanvien, phongban
-      → tongHop.repo.js :: getGiangDayByIdUser()    → giangday
-      → tongHop.repo.js :: getLopNgoaiQCByIdUser()  → vg_lop_ngoai_quy_chuan
-      → tongHop.repo.js :: getKTHPByIdUser()        → vg_coi_cham_ra_de
-      → tongHop.repo.js :: getDoAnByIdUser()        → exportdoantotnghiep
-      → tongHop.repo.js :: getHDTQByIdUser()        → vg_huong_dan_tham_quan_thuc_te
-      → shared.repo.js :: getDinhMuc()              → sotietdinhmuc
-      → summary.mapper.js :: toAtomicSDO()
+  → tongHop.controller.chiTietGV()
+  → tongHop.service.getAtomicSDO(namHoc, idUser, null, isDuKien)
+  → tongHop.repo per-source methods + stats.service.getLecturerRecords()
+  → summary.mapper.toAtomicSDO()
+
+GET /v2/vuotgio/tong-hop/data-chuan/:MaGV
+  → tongHop.controller.getStandardSummaryData()
+  → tongHop.service.getAtomicSDO()
+
+GET /v2/vuotgio/tong-hop/data-snapshot/:MaGV
+  → tongHop.controller.getSnapshotSummaryData()
+  → snapshotData.service.getSnapshotSDOByUser()
 ```
 
-### Non-Standard Classes (LNQC)
+### Live source selection
 
-```
-POST /v2/vuotgio/lop-ngoai-quy-chuan       [KF, DL]
-  → lopNgoaiQC.controller.js :: save()
-  → lnqc.service.js :: save()
-      → lnqc.repo.js :: insertDraft()       → course_schedule_details
+```text
+isDuKien=true:
+  quychuan + doantotnghiep + VG rows without approval predicates
 
-POST /v2/vuotgio/lop-ngoai-quy-chuan/confirm   [KF, DL]
-  → lopNgoaiQC.controller.js :: confirmToMain()
-  → lnqc.service.js :: confirmToMain()
-      → lnqc.repo.js :: getDraftRecords()   → course_schedule_details
-      → lnqc.repo.js :: insertOfficial()    → vg_lop_ngoai_quy_chuan
-      → lnqc.repo.js :: deleteDraft()       → course_schedule_details
-
-POST /v2/vuotgio/lop-ngoai-quy-chuan/approve/:ID   [KF, DL]
-  → lopNgoaiQC.controller.js :: approve()
-  → lnqc.service.js :: approve()
-      → lnqc.repo.js :: setKhoaDuyet(id, 1) → vg_lop_ngoai_quy_chuan
-
-POST /v2/vuotgio/lop-ngoai-quy-chuan/batch-approve   [KF, DL]
-  → lopNgoaiQC.controller.js :: batchApprove()
-  → lnqc.service.js :: batchApprove()
-      → lnqc.repo.js :: batchSetKhoaDuyet() → vg_lop_ngoai_quy_chuan
-
-POST /v2/vuotgio/lop-ngoai-qc/confirm-import   [KF, DL]
-  → lopNgoaiQCImport.controller.js :: confirmImport()
-  → lnqcImport.service.js :: confirmImport()
-      → lnqc.repo.js :: insertOfficial()    → vg_lop_ngoai_quy_chuan
+isDuKien=false:
+  giangday + exportdoantotnghiep
+  + LNQC(khoa_duyet=1, dao_tao_duyet=1)
+  + KTHP(vg_kthp parent: khoa_duyet=1, khao_thi_duyet=1)
+  + HDTQ(khoa_duyet=1, dao_tao_duyet=1)
 ```
 
-### Exam Workload (KTHP)
+Runtime KTHP repositories use `vg_kthp`, `vg_kthp_ra_de`, `vg_kthp_coi_thi`, and `vg_kthp_cham_thi`.
 
-```
-POST /v2/vuotgio/kthp-import/preview   [KF]
-  → coiChamRaDe.file.controller.js :: preview()
-  → kthpImport.service.js :: preview()
-      → KTHP import pipeline             → preview token
+### LNQC
 
-POST /v2/vuotgio/kthp-import/commit   [KF, DL]
-  → coiChamRaDe.file.controller.js :: commitPreview()
-  → kthpImport.service.js :: commit()
-      → kthpImportSave.service.js       → vg_kthp + child table
+```text
+POST /v2/vuotgio/lop-ngoai-quy-chuan
+  → lopNgoaiQC.controller.save()
+  → lnqc.service.save()
+  → lnqc.repo.insertDraft()                    → course_schedule_details
 
-POST /v2/vuotgio/duyet-kthp/batch-approve   [KF, DL]
-  → duyetKTHP.controller.js :: batchApprove()
-  → kthp.service.js :: batchApprove()
-      → kthp.repo.js :: updateBatchApproval() → vg_kthp
-```
+POST /v2/vuotgio/lop-ngoai-quy-chuan/confirm
+  → lopNgoaiQC.controller.confirmToMain()
+  → lnqc.service.confirmToMain()
+  → lnqc.repo.insertOfficial()/deleteDraft()    → vg_lop_ngoai_quy_chuan
 
-### Data Lock
-
-```
-GET /v2/vuotgio/trang-thai-khoa
-  → dataLock.controller.js :: getLockStatus()
-  → dataLock.service.js :: getLockStatus(namHoc)
-      → dataLock.repo.js :: getLockRecordWithUserName() → vg_khoa_du_lieu, nhanvien
-
-POST /v2/vuotgio/tong-hop/khoa-du-lieu
-  → dataLock.controller.js :: lockData()
-  → dataLock.service.js :: lockData(namHoc, userId, ghiChu)
-      → dataLock.repo.js :: checkNamHocExists()     → namhoc
-      → dataLock.repo.js :: getLockRecord()         → vg_khoa_du_lieu
-      → dataLock.repo.js :: getUnapprovedCounts()   → vg_lop_ngoai_quy_chuan,
-                                                        vg_coi_cham_ra_de,
-                                                        vg_huong_dan_tham_quan_thuc_te
-      → duyetTongHop.repo.js :: isAllKhoaApproved() → vg_duyet_tong_hop, phongban
-      → dataLock.repo.js :: insertLockRecord()      → vg_khoa_du_lieu
+POST /v2/vuotgio/lop-ngoai-quy-chuan/approve/:ID
+POST /v2/vuotgio/lop-ngoai-quy-chuan/batch-approve
+  → lnqc.service.approve()/batchApprove()
+  → vg_lop_ngoai_quy_chuan.khoa_duyet
 ```
 
-### Faculty Synthesis Approval
+### KTHP import and approval
 
+```text
+POST /v2/vuotgio/kthp-import/preview
+  → coiChamRaDe.file.controller.preview()
+  → kthpImport.service.preview()
+  → normalized preview token
+
+POST /v2/vuotgio/kthp-import/commit
+  → coiChamRaDe.file.controller.commitPreview()
+  → kthpImport.service.commit()
+  → kthpImportSave.service
+  → vg_kthp + one child table
+
+POST /v2/vuotgio/duyet-kthp/batch-approve
+  → duyetKTHP.controller.batchApprove()
+  → kthp.service.batchApprove()
+  → kthp.repo.updateBatchApproval()             → vg_kthp
 ```
+
+The child table is selected by `loai_kthp`: `ra_de`, `coi_thi`, or `cham_thi`.
+
+### Faculty synthesis approval
+
+```text
 GET /v2/vuotgio/tong-hop/duyet-trang-thai
-  → duyetTongHop.controller.js :: getApprovalStatus()
-  → duyetTongHop.service.js :: getApprovalStatus(namHoc)
-      → phongban (isKhoa=1) + duyetTongHop.repo.js :: getApprovalStatus() → vg_duyet_tong_hop
+  → duyetTongHop.controller.getApprovalStatus()
+  → duyetTongHop.service.getApprovalStatus()
+  → duyetTongHop.repo + phongban                → vg_duyet_tong_hop
 
 POST /v2/vuotgio/tong-hop/duyet-khoa
-  → duyetTongHop.controller.js :: approveKhoa()
-  → duyetTongHop.service.js :: approveKhoa(namHoc, khoa)
-      → duyetTongHop.repo.js :: getUnapprovedCountsByKhoa()
-          → vg_lop_ngoai_quy_chuan, vg_coi_cham_ra_de, vg_huong_dan_tham_quan_thuc_te
-      → duyetTongHop.repo.js :: upsertApproval()    → vg_duyet_tong_hop
+  → duyetTongHop.controller.approveKhoa()
+  → duyetTongHop.service.approveKhoa()
+  → getUnapprovedCountsByKhoa()                 → LNQC/KTHP/HDTQ
+  → upsertApproval()                             → vg_duyet_tong_hop
 
 POST /v2/vuotgio/tong-hop/huy-duyet-khoa
-  → duyetTongHop.controller.js :: revokeKhoa()
-  → duyetTongHop.service.js :: revokeKhoa()
-      → duyetTongHop.repo.js :: revokeApproval()    → vg_duyet_tong_hop
+  → duyetTongHop.controller.revokeKhoa()
+  → duyetTongHop.service.revokeKhoa()
+  → revokeApproval()                             → vg_duyet_tong_hop
 ```
 
-### Excel Export
+### Lock and snapshot
 
+```text
+POST /v2/vuotgio/tong-hop/khoa-du-lieu
+  → dataLock.controller.lockData()
+  → dataLock.service.lockData()
+      → dataLock.repo.checkNamHocExists()       → namhoc
+      → dataLock.repo.getUnapprovedCounts()     → LNQC/KTHP/HDTQ (two-level)
+      → duyetTongHop.repo.isAllKhoaApproved()   → vg_duyet_tong_hop + phongban
+      → tongHop.service.getCollectionSDODetail("ALL")
+      → soTietTongHop.repo.saveSnapshot()       → vg_so_tiet_tong_hop
+      → dataLock.repo.insertLockRecord()        → vg_khoa_du_lieu
+
+GET /v2/vuotgio/trang-thai-khoa
+  → dataLock.service.getLockStatus()
+
+GET /v2/vuotgio/tong-hop/giang-vien-snapshot
+  → snapshotData.service.getSnapshotSDOList()
 ```
+
+### Preview and export
+
+```text
+GET /v2/vuotgio/tong-hop/preview/:MaGV
+GET /v2/vuotgio/tong-hop/preview-khoa/:khoa
+  → preview.controller
+  → if locked: snapshotData.service
+  → else: tongHop.service live calculation
+
 GET /v2/vuotgio/xuat-file/excel
-  → xuatFile.controller.js :: exportExcel()
-  → xuatFile.service.js :: exportExcel(namHoc, khoa, giangVien)
-      → _resolveSummaries()
-          → tongHop.service.js :: getAtomicSDO() [×N]
-      → excel/index.js :: buildWorkbook(summaries)
-          → keKhaiReport.generator.js [per lecturer sheet]
-  → HTTP response (.xlsx)
+  → xuatFile.controller.exportExcel()
+  → xuatFile.service.exportExcel()
+  → snapshotData.service.getSnapshotSDOByUser()/getSnapshotSDOList()
+  → excel.buildWorkbook()
 
 GET /v2/vuotgio/xuat-file/tong-hop
-  → xuatFile.controller.js :: exportConsolidated()
-  → consolidatedExport.service.js
-      → department_excel/ generators
-  → HTTP response (.xlsx)
-```
+  → xuatFile.controller.exportConsolidated()
+  → consolidated/export services
+  → snapshot-backed data
 
----
+GET /v2/vuotgio/tong-hop/khoa
+  → tongHop.controller.tongHopTheoKhoa()
+  → thongKe.service.getThongKeKhoa()
+  → snapshotData.service.getSnapshotSDOList()   (lock required)
+```
 
 ## nckh_v3
 
-```
-POST /v3/nckh/import/:type
-  → importController.js :: importExcel()
-  → import.service.js :: importFromBuffer()
-      → import.mapper.js :: mapRows()
-      → quyDinh.service.js :: getHourRule()   → [schema-discovered table]
-      → resolve MaSoCanBo → nhanvien.id_User
-      → formula.service.js :: buildParticipantsByMode()
-      → connection.beginTransaction()
-      → nckhChung.repo.js :: insert()          → nckh_chung
-      → nckhSoTiet.repo.js :: bulkInsert()     → nckh_so_tiet
-      → nckhSoTiet.repo.js :: sumHours()       → nckh_so_tiet [integrity check]
-      → connection.commit()
+### Type-specific CRUD
 
-GET /v3/nckh/list/:type
-  → recordController.js :: list()
-  → record.service.js :: list()
-      → nckhChung.repo.js :: listUnified()
-          → nckh_chung, nckh_so_tiet, nhanvien, phongban
+Each type-specific controller exposes the same pattern:
 
-POST /v3/nckh/approve/:id
-  → recordController.js :: approve()
-  → record.service.js :: approve()
-      → nckhChung.repo.js :: setKhoaDuyet(id, 1) → nckh_chung
-
-GET /v3/nckh/export/lecturer/:namHoc
-  → exportController.js :: exportLecturer()
-  → export.service.js :: exportForLecturer()
-      → stats.repo.js :: listLecturerSummary()
-          → nckh_so_tiet, nhanvien, phongban, nckh_chung (khoa_duyet=1 AND vien_nc_duyet=1)
-      → ExcelJS workbook builder
+```text
+GET  /v3/nckh/{type}/metadata
+GET  /v3/nckh/{type}/list/:namHoc/:khoaId
+GET  /v3/nckh/{type}/:id
+POST /v3/nckh/{type}
+PUT  /v3/nckh/{type}/:id
+DELETE /v3/nckh/{type}/:id
+  → type controller
+  → typeInput.service / record.service
+  → formula.service + nckh repositories
+  → nckh_chung + nckh_so_tiet
 ```
 
----
+The eight type slugs are `de-tai-du-an`, `bai-bao-khoa-hoc`, `sang-kien`, `giai-thuong`, `de-xuat-nghien-cuu`, `sach-giao-trinh`, `huong-dan-sv-nckh`, and `thanh-vien-hoi-dong` (with the historical alias `hoi-dong-khoa-hoc`).
+
+### Unified records and approvals
+
+```text
+GET   /v3/nckh/records/filters
+GET   /v3/nckh/records
+GET   /v3/nckh/records/:id
+DELETE /v3/nckh/records/:id
+PATCH /v3/nckh/records/:id/khoa-duyet
+PATCH /v3/nckh/records/:id/vien-duyet
+PATCH /v3/nckh/records/bulk-approvals
+  → record.controller
+  → record.service
+  → nckhChung.repo / nckhSoTiet.repo
+  → nckh_chung + nckh_so_tiet
+```
+
+`GET /records` is a management list and can include pending rows. Official stats use the separate stats repository approval gate.
+
+### NCKH import
+
+```text
+GET  /v3/nckh/import
+POST /v3/nckh/import/preview
+POST /v3/nckh/import/save
+  → inline importAuthMiddleware in nckhV3Route.js
+  → import.controller
+  → Excel strategy / import.mapper / quyDinh.service
+  → NCKHSaveService.save()
+  → nckh_chung + nckh_so_tiet
+```
+
+The importer is restricted to the configured Institute NCKH assistant/leader roles and department code. Rule matching conditionally overrides Excel `tongSoTiet`; no classification means the Excel value is retained.
+
+### NCKH stats and export
+
+```text
+GET /v3/nckh/stats/giang-vien
+GET /v3/nckh/stats/khoa
+GET /v3/nckh/stats/hoc-vien
+GET /v3/nckh/stats/preview/...
+  → stats.controller (scope OFFICIAL or PREVIEW)
+  → stats.service
+  → stats.repo.buildStatsWhere()
+  → nckh_so_tiet + nckh_chung
+
+GET /v3/nckh/export/stats/giang-vien
+GET /v3/nckh/export/stats/khoa
+GET /v3/nckh/export/stats/hoc-vien
+GET /v3/nckh/export/stats/preview/...
+  → export.controller → export.service → stats service/repository
+```
+
+Official scope adds both `khoa_duyet=1` and `vien_nc_duyet=1`; preview scope adds only the academic-year predicate.
 
 ## Mời Giảng (Legacy)
 *(No Service or Repository Layers)*
@@ -257,8 +321,9 @@ GET /exportHD/export-multiple
 
 ## Middleware Application Summary
 
-| Middleware | Applied To | Not Applied To |
-|-----------|-----------|---------------|
-| `enforceKhoaFilter` | All LNQC, KTHP, HDTQ mutate + read routes | `duyet-khoa`, `huy-duyet-khoa`, `duyet-trang-thai` |
-| `checkDataLock` | All LNQC, KTHP, HDTQ, DATN mutate routes | Lock creation route, approval routes |
-| `requireLogin` | All authenticated routes (applied at router level) | Public/static assets |
+| Middleware | Applied to | Not applied to / caveat |
+|---|---|---|
+| `enforceKhoaFilter` | Most LNQC, KTHP, HDTQ reads/mutations | Vượt Giờ synthesis approval status/approve/revoke routes |
+| `checkDataLock` | Vượt Giờ LNQC/KTHP/HDTQ/DATN mutations | Lock creation; some approval routes; NCKH routes use their own approval guards |
+| NCKH `importAuthMiddleware` | `/v3/nckh/import`, `/import/preview`, `/import/save` | Inline route guard; no per-row target-faculty authorization |
+| `requireLogin` / application auth | Authenticated application routes | Public/static assets |

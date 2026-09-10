@@ -1,118 +1,132 @@
-## 1. Kiến trúc Hệ thống (System Architecture)
+# Excel Formula Specification — Vượt Giờ V2
 
-Hệ thống bao gồm 3 loại sheet chính được liên kết chặt chẽ:
+> **Source-of-truth status:** Reconciled against the current source on **2026-09-10**. The application source is authoritative. Excel workbooks and generated reports are evidence for a particular artifact/version; they may preserve historical formulas and must be labeled as such.
 
-1.  **Worksheets Chi tiết (Dept Sheets):** Mỗi khoa/phòng có 1 sheet riêng (VD: `CNTT-092025`, `CB-092025`, `DTVM-092025`,...). Cấu trúc nội bộ các sheet này là **giống hệt nhau**.
-2.  **Sheet Tổng hợp (Master):** Duy nhất sheet `TỔNG HỢP 2025`. Sheet này chứa bảng tính tập hợp, mỗi khối dòng sẽ đại diện cho một Khoa và liên kết đến sheet chi tiết tương ứng.
-3.  **Sheet Thanh toán (Payment):** Duy nhất sheet `Tiền chuyển khoản`. Tổng hợp số tiền từ Master để kết xuất danh sách ngân hàng.
+## 1. Scope and authority
 
----
+There are two related but different contracts:
 
-## 2. Từ điển Dữ liệu (Data Dictionary)
+1. **Current application runtime** — `src/mappers/vuotgio_v2/`,
+   `src/mappers/vuotgio_v2/policies/`, and
+   `src/services/vuotgio_v2/department_excel/data/calculator.js`.
+2. **Workbook forensics** — department/master/payment sheets such as
+   `CNTT-092025`, `TỔNG HỢP 2025`, and `Tiền chuyển khoản`.
 
-Dưới đây là ánh xạ giữa các cột Excel và biến logic:
+When a workbook formula differs from the runtime, document the workbook formula as
+**historical/observed** and call out the drift. Do not silently promote it to a
+current business rule.
 
-| Excel Col | Tên biến (Logic Name) | Ý nghĩa |
-| :--- | :--- | :--- |
-| **C** | `base_income` | Thu nhập cơ bản (lương thực nhận). |
-| **G** | `required_hours` | Định mức giờ giảng phải hoàn thành. |
-| **H** | `s1_hours_vn` | Tiết thực dạy VN - Học kỳ I. |
-| **M** | `s2_hours_vn` | Tiết thực dạy VN - Học kỳ II. |
-| **R** | `total_hours_vn` | Tổng tiết thực dạy nguồn VN. |
-| **W** | `grand_total_hours` | Tổng cộng tiết thực dạy tất cả các nguồn. |
-| **AC** | `actual_excess_hours` | Số tiết vượt thực tế (chưa áp trần). |
-| **AD** | `capped_excess_hours` | Số tiết vượt được thanh toán (đã áp trần 300). |
-| **AE** | `unit_rate` | Mức thanh toán chuẩn (Đơn giá mỗi tiết). |
-| **AK** | `total_payment` | Tổng số tiền vượt giờ thực nhận. |
+## 2. Current runtime calculation
 
----
+### 2.1 SDO policy
 
-## 2. Quy trình Tính toán Chi tiết (Calculation Logic)
+The production path is:
 
-Các bước này phải được thực hiện theo đúng trình tự để đảm bảo độ chính xác.
-
-### Bước 1: Tính Đơn giá (Unit Rate)
-Công thức dựa trên thu nhập và hằng số giờ chuẩn (176).
-```python
-# Excel: AE14 = TRUNC(C14/176, 1)
-unit_rate = floor(base_income / 176, 1) # Lấy 1 chữ số thập phân
+```text
+tongHop.service
+  → summary.mapper.toAtomicSDO()/toCollectionSDO()
+  → OvertimePolicyFactory
+  → PolicyV1 or PolicyV2
 ```
 
-### Bước 2: Tổng hợp tiết dạy theo nguồn
-Thực hiện cho từng nguồn (VN, Lào, Cuba, CPC, Đóng HP).
-```python
-# Excel: R = H + M
-total_hours_vn = s1_hours_vn + s2_hours_vn
-# Tương tự cho các nguồn khác...
-grand_total_hours = sum(total_hours_all_sources)
+For one lecturer:
+
+```text
+tongThucHien = giangDay + LNQC + KTHP + DATN + HDTQ
+thieuNCKH = max(0, dinhMucNCKH - soTietNCKH)
+tongVuot = max(0, tongThucHien - thieuNCKH - dinhMucSauMienGiam)
+thanhToan = min(tongVuot, dinhMucSauMienGiam)
 ```
 
-### Bước 3: Xác định số tiết vượt và Áp trần (Capping)
-Quy tắc: Không thanh toán quá 300 tiết vượt giờ.
-```python
-# Excel: AC = W - G
-actual_excess_hours = grand_total_hours - required_hours
+- Defaults when `sotietdinhmuc` has no usable row: `dinhMucChuan=280`,
+  `dinhMucNCKH=200`.
+- NCKH quota is not reduced by the teaching exemption.
+- Policy V2 is selected only for `2025 - 2026` through `2031 - 2032`.
+  With a positive exemption, V2 uses a teaching quota of `224` and records
+  `mienGiam=56`; other years use V1.
 
-# Excel: AD = IF(AC>=0, IF(AC<=300, AC, 300), 0)
-if actual_excess_hours < 0:
-    capped_excess_hours = 0
-else:
-    capped_excess_hours = min(actual_excess_hours, 300)
+### 2.2 Current payment breakdown
+
+`PaymentCalculator.computeSdoBreakdown()` distributes `thanhToan` across the
+five annual Table F groups:
+
+```text
+vn, lao, cuba, cpc, dongHP
 ```
 
-### Bước 4: Phân bổ tiết vượt theo tỷ lệ (Distribution)
-Nếu giảng viên dạy nhiều nguồn, số tiết `capped_excess_hours` phải được chia tỷ lệ.
-```python
-# Excel: X = IF(W>0, ROUND(R/W * AD, 0), 0)
-distributed_hours_vn = round((total_hours_vn / grand_total_hours) * capped_excess_hours, 0)
+The rate is:
 
-# Lưu ý: Nguồn cuối cùng (AB) dùng phép trừ để đảm bảo tổng các phần lẻ bằng đúng số tổng (tránh lệch do làm tròn)
-# AB = AD - (X + Y + Z + AA)
-distributed_hours_last = capped_excess_hours - sum(other_distributed_hours)
+```text
+rate = ROUND(luong / 176, 0)
 ```
 
-### Bước 5: Tính Tiền thực nhận
-Áp dụng đơn giá cho từng nguồn đã phân bổ.
-```python
-# Excel: AF = TRUNC(X * AE, 2)
-payment_vn = floor(distributed_hours_vn * unit_rate, 2)
+`computeSdoBreakdown()` rounds the group money values to two decimals through its
+`excelNumber()` helper (`Number(value.toFixed(2))`). The separate
+`calculatePaymentAmount()` helper uses truncation, but it is not the SDO
+breakdown path. `MAX_PAYABLE_HOURS = 300` is declared in source but is **not
+applied by the current calculator**. The payable-hour cap comes from the selected
+overtime policy (`dinhMucSauMienGiam`), not from that unused constant.
 
-# Excel: AK = TRUNC(AD * AE, 2)
-grand_total_payment = floor(capped_excess_hours * unit_rate, 2)
+## 3. Current generated workbook formulas
+
+The workbook generator under
+`src/services/vuotgio_v2/department_excel/generators/formula.generator.js`
+mirrors the current runtime contract where it is used:
+
+- rate cell: `ROUND(luong / 176, 0)`;
+- generated per-group payment formula: `TRUNC(vuot_group * mucTT, 2)` (the
+  application calculator rounds its in-memory SDO money values to two decimals);
+- proportional payable-hour allocation: `ROUND(year_group / year_total * thanhToan, 0)`;
+- the final `dongHP` bucket receives the remainder so the five buckets sum to
+  `thanhToan`.
+
+Generated Excel is still an output artifact. Validate the SDO/snapshot source
+before treating a workbook cell as a new policy.
+
+## 4. Historical workbook layout (non-authoritative)
+
+Older workbooks commonly expose columns with names like these:
+
+| Column | Observed meaning |
+|---|---|
+| C | `base_income` |
+| G | `required_hours` |
+| H/M/R | Semester/source VN hours and VN total |
+| W | `grand_total_hours` |
+| AC | `actual_excess_hours` |
+| AD | Workbook's payable/capped hours |
+| AE | Workbook's unit rate |
+| AK | Workbook's total payment |
+
+A historical workbook may contain formulas such as:
+
+```text
+AE = TRUNC(base_income / 176, 1)
+AD = IF(actual_excess_hours >= 0, MIN(actual_excess_hours, 300), 0)
 ```
 
----
+Those formulas describe that workbook's behavior only. They are **not** the
+current runtime contract unless the current source explicitly matches them.
 
-## 3. Quy tắc làm tròn & Chính xác (Precision Rules)
+## 5. Workbook-analysis rules
 
-Đây là phần quan trọng nhất để AI gen code không bị lệch tiền với Excel:
+When analyzing a sheet:
 
-1.  **Hàm TRUNC (Excel):** Tương đương với việc cắt cụt phần thập phân (không phải làm tròn `ROUND`).
-    *   `TRUNC(x, 1)`: Cắt lấy 1 số sau phẩy.
-    *   `TRUNC(x, 2)`: Cắt lấy 2 số sau phẩy.
-2.  **Hàm ROUND (Excel):** Làm tròn thông thường đến số nguyên gần nhất (trong bước phân bổ tiết).
-3.  **Hằng số:** Giá trị `176` là cố định trong hệ thống này.
+1. Record the workbook name, sheet name, and extraction date.
+2. Quote the observed formula and distinguish it from the current runtime formula.
+3. State whether the result is runtime-compatible or historical drift.
+4. For cross-sheet mapping, preserve the observed links (for example,
+   `='CNTT-092025'!A15`) without treating the link layout as application code.
+5. For payment reconciliation, compare the workbook total with snapshot SDO
+   `thanhToan` and the runtime rate `ROUND(luong / 176, 0)`.
 
----
+## 6. Historical multi-sheet mapping
 
-## 4. Đặc tả liên kết Đa sheet (Multi-sheet Mapping)
+The legacy workbook family often contains:
 
-Để gen code hoặc xử lý tự động, AI cần hiểu cách các sheet liên kết:
+- detail sheets per faculty/department;
+- one master sheet (`TỔNG HỢP 2025`);
+- one payment sheet (`Tiền chuyển khoản`).
 
-### 4.1. Quy tắc đặt tên Sheet Khoa
-Các sheet chi tiết thường có hậu tố ngày tháng (VD: `-092025`). Khi lập trình, cần xử lý danh sách tên sheet động.
-
-### 4.2. Luồng liên kết Master -> Detail
-Trong sheet `TỔNG HỢP 2025`:
-*   Dữ liệu từ cột A đến Q và cột AE đến AK được **Link trực tiếp** từ sheet chi tiết tương ứng.
-*   Ví dụ: Tại khối của khoa CNTT, ô `A38` sẽ có công thức `='CNTT-092025'!A15`.
-*   AI cần tạo một vòng lặp (Loop) qua danh sách các Khoa để ánh xạ (Map) dữ liệu vào bảng tổng hợp.
-
-### 4.3. Luồng liên kết Master -> Payment
-Trong sheet `Tiền chuyển khoản`:
-*   Số tiền được tính bằng hàm `SUM` theo từng khối đơn vị từ sheet `TỔNG HỢP 2025`.
-
----
-
-## 5. Các quy tắc kỹ thuật cần lưu ý
-*Tài liệu đặc tả này được thiết kế để Model AI có thể hiểu và chuyển đổi thành code logic tương đương 100%.*
+Master/detail links and `SUM` formulas are useful for forensic reconciliation,
+but they do not replace the current snapshot/export services.

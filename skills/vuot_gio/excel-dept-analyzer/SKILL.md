@@ -1,9 +1,11 @@
 ---
 name: excel-dept-analyzer
-description: Analyze, extract, and document business logic from department-specific Excel sheets (e.g., 'CNTT-092025', 'CB-092025', 'DTVM-092025', 'ATTT-092025', 'PHÂN HIỆU', etc.). Use this skill whenever the user asks to explain calculations for a specific faculty or department, especially regarding unit rates, the 300-hour cap, and workload distribution across different funding sources.
+description: Analyze, extract, and document business logic from department-specific Excel sheets (e.g., 'CNTT-092025', 'CB-092025', 'DTVM-092025', 'ATTT-092025', 'PHÂN HIỆU', etc.). Use this skill for historical workbook forensics and for comparing workbook formulas with the current Vượt Giờ V2 runtime; do not assume a 300-hour cap or TRUNC unit-rate formula is active without source-code evidence.
 ---
 
 # Excel Department Sheet Analyzer
+
+> **Source-of-truth status:** This skill analyzes workbook artifacts. The current application runtime is authoritative and is implemented in `src/mappers/vuotgio_v2/`, `src/services/vuotgio_v2/department_excel/data/calculator.js`, and the snapshot services. Existing workbook fixtures may encode historical formulas; label those findings as historical rather than presenting them as current policy.
 
 Skill này chuyên dùng để mổ xẻ các sheet chi tiết của từng Khoa/Phòng. Tất cả các sheet này đều tuân theo một bộ quy tắc tính toán thống nhất nhưng có dữ liệu đầu vào khác nhau.
 
@@ -17,9 +19,9 @@ Khi nhận được yêu cầu cho một sheet Khoa cụ thể:
     *   `hours_by_source`: Tiết thực dạy chia theo các nguồn (VN, Lào, CPC, Đóng HP...).
 
 2.  **Trích xuất Logic đặc trưng:**
-    *   **Tính Đơn giá:** Kiểm tra công thức tại cột `AE`. Quy tắc chuẩn: `TRUNC(base_income / 176, 1)`.
-    *   **Áp trần 300:** Kiểm tra công thức tại cột `AD`. Quy tắc: Nếu vượt > 300 thì chỉ tính 300.
-    *   **Phân bổ nguồn:** Kiểm tra cách chia số tiết vượt đã áp trần cho từng nguồn quỹ tương ứng.
+    *   **Tính đơn giá:** Ghi lại đúng công thức trong workbook. Runtime hiện hành dùng `ROUND(luong / 176, 0)` trong `PaymentCalculator`; nếu workbook dùng `TRUNC`, đó là khác biệt cần gắn nhãn.
+    *   **Áp trần:** Ghi lại đúng công thức trong workbook. Runtime hiện hành khai báo `MAX_PAYABLE_HOURS = 300` nhưng calculator không áp dụng hằng số này; không gọi 300 là policy hiện hành nếu chưa có source evidence.
+    *   **Phân bổ nguồn:** So sánh cách workbook phân bổ với `computeSdoBreakdown()` (năm nhóm `vn`, `lao`, `cuba`, `cpc`, `dongHP`).
 
 3.  **Tạo Đặc tả Kỹ thuật (Technical Spec):**
     *   Liệt kê các hằng số (Magic numbers) tìm thấy (VD: 176).
@@ -34,6 +36,11 @@ Khi nhận được yêu cầu cho một sheet Khoa cụ thể:
 
 ### [Tên Sheet] - Phân tích Logic Tính toán
 
+Ghi rõ một trong hai kết luận:
+
+- **Khớp runtime hiện hành**, hoặc
+- **Công thức lịch sử của workbook** — nêu khác biệt với source hiện hành.
+
 **1. Từ điển dữ liệu ô:**
 - `AE14`: Đơn giá thanh toán.
 - `AD14`: Tiết vượt áp trần.
@@ -45,10 +52,12 @@ Khi nhận được yêu cầu cho một sheet Khoa cụ thể:
 ```python
 import math
 
-def calculate_payment(base_income, actual_excess):
-    unit_rate = math.floor(base_income / 176 * 10) / 10
-    capped_excess = min(max(0, actual_excess), 300)
-    # ... logic tiếp theo
+def calculate_payment(base_income, payable_hours):
+    # Current runtime rate; a historical workbook may use another formula.
+    unit_rate = round(base_income / 176)
+    payable = max(0, payable_hours)
+    # MAX_PAYABLE_HOURS = 300 exists in source but is not applied here.
+    return payable * unit_rate
 ```
 
 ## 4. Tài liệu tham khảo
