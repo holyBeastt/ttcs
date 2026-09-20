@@ -27,6 +27,11 @@ firebase-service-account.json
 # Scratch files
 scratch/
 
+# Local E2E helpers and mobile planning docs
+scripts/backup-moi-giang-semester.js
+scripts/clear-vuotgio-snapshot-lock.js
+docs/mobile/
+
 # Tests
 /test/
 
