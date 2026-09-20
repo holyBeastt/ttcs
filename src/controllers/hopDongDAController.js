@@ -8,6 +8,7 @@ const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
 const exportPhuLucDAController = require("../controllers/exportPhuLucDAController");
 const gvmServices = require("../services/gvmServices");
+const { sortByContractNumber } = require("../utils/contract-number-sort");
 
 // Import các thư viện cần thiết để tạo file Word
 const {
@@ -345,6 +346,8 @@ const exportMultipleContracts = async (req, res) => {
       );
     }
 
+    const sortedTeachers = sortByContractNumber(teachers);
+
     // Tạo thư mục tạm để lưu các file hợp đồng
     const tempDir = path.join(
       __dirname,
@@ -375,7 +378,7 @@ const exportMultipleContracts = async (req, res) => {
     const loaiHinh = heDaoTaoInfo?.loai_hinh || "";
 
     // Tạo hợp đồng cho từng giảng viên
-    for (const teacher of teachers) {
+    for (const teacher of sortedTeachers) {
       const tienText = teacher.ThanhTien || 0;
       const tienThueText = teacher.TruThue || 0;
       const tienThucNhanText = teacher.ThucNhan || 0;

@@ -6,6 +6,7 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 const gvmServices = require("../services/gvmServices");
+const { sortByContractNumber } = require("../utils/contract-number-sort");
 require("dotenv").config(); // Load biến môi trường
 
 const phuLucDHController = require("../controllers/phuLucHDController");
@@ -344,6 +345,31 @@ const getTemplateFileName = (loaiHopDongId, heDaoTaoData) => {
   return null;
 };
 
+/**
+ * Resolve the contract number format required by the selected Word template.
+ */
+const resolveContractNumberForTemplate = (zip, rawSoHopDong, suffix = "/HĐ-ĐT") => {
+  if (!rawSoHopDong || !rawSoHopDong.trim()) return "";
+  const fullSoHopDong = rawSoHopDong.trim();
+  const cleanNumber = fullSoHopDong.includes("/")
+    ? fullSoHopDong.split("/")[0]
+    : fullSoHopDong;
+
+  try {
+    const xmlText = zip.file("word/document.xml")?.asText() || "";
+    const textOnly = xmlText.replace(/<[^>]+>/g, "");
+    const cleanSuffix = suffix.replace(/^\//, "");
+
+    if (textOnly.includes(suffix) || (cleanSuffix && textOnly.includes(cleanSuffix))) {
+      return cleanNumber;
+    }
+  } catch (e) {
+    console.warn("Error reading template XML:", e);
+  }
+
+  return fullSoHopDong.includes("/") ? fullSoHopDong : `${fullSoHopDong} ${suffix}`;
+};
+
 // Controller xuất nhiều hợp đồng
 const exportMultipleContracts = async (req, res) => {
   let connection;
@@ -533,6 +559,8 @@ const exportMultipleContracts = async (req, res) => {
       );
     }
 
+    const sortedTeachers = sortByContractNumber(teachers);
+
     // Tạo thư mục tạm để lưu các file hợp đồng
     const tempDir = path.join(
       __dirname,
@@ -551,7 +579,7 @@ const exportMultipleContracts = async (req, res) => {
     }
 
     // Tạo hợp đồng cho từng giảng viên
-    for (const teacher of teachers) {
+    for (const teacher of sortedTeachers) {
       console.log("Processing teacher:", teacher);
       const soTiet = teacher.SoTiet || 0;
 
@@ -706,31 +734,6 @@ const exportMultipleContracts = async (req, res) => {
         }
       }
 
-      /**
-       * Tự động soi Template Word và định dạng Số hợp đồng thông minh:
-       * - Nếu template đã gõ sẵn đuôi (/HĐ-ĐT), trả về số thuần (DA003)
-       * - Nếu template chưa có đuôi, trả về đầy đủ (DA003/HĐ-ĐT)
-       */
-      const resolveContractNumberForTemplate = (zip, rawSoHopDong, suffix = "/HĐ-ĐT") => {
-        if (!rawSoHopDong || !rawSoHopDong.trim()) return "";
-        const fullSoHopDong = rawSoHopDong.trim();
-        const cleanNumber = fullSoHopDong.includes("/") ? fullSoHopDong.split("/")[0] : fullSoHopDong;
-
-        try {
-          const xmlText = zip.file("word/document.xml")?.asText() || "";
-          const textOnly = xmlText.replace(/<[^>]+>/g, "");
-          const cleanSuffix = suffix.replace(/^\//, "");
-
-          if (textOnly.includes(suffix) || (cleanSuffix && textOnly.includes(cleanSuffix))) {
-            return cleanNumber;
-          }
-        } catch (e) {
-          console.warn("Error reading template XML:", e);
-        }
-
-        return fullSoHopDong.includes("/") ? fullSoHopDong : `${fullSoHopDong} ${suffix}`;
-      };
-
       const templatePath = path.resolve(
         __dirname,
         "../templates",
@@ -780,7 +783,7 @@ const exportMultipleContracts = async (req, res) => {
 
 
     // Tạo file Excel báo cáo thuế - lấy dữ liệu trực tiếp từ database
-    const taxReportData = teachers.map((teacher, index) => {
+    const taxReportData = sortedTeachers.map((teacher, index) => {
       const hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
       // Ép kiểu Number để đảm bảo Excel SUM hoạt động đúng
