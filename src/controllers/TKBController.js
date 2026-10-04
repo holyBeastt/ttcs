@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 
 const tkbServices = require("../services/tkbServices");
+const QcTkbFactory = require("../services/qcTkb/QcTkbFactory");
 
 const getImportTKBSite = async (req, res) => {
   res.render("tkb.themTKB.ejs");
@@ -162,7 +163,11 @@ const updateRowTKB = async (req, res) => {
 
       student_bonus = tkbServices.calculateStudentBonus(value, bonusRules);
 
-      const qc = student_bonus * data.bonus_time * data.ll_total;
+      const qc = QcTkbFactory.calculate({
+        ll: data.ll_total,
+        heSoLopDong: student_bonus,
+        heSoT7CN: data.bonus_time,
+      }).canonical;
 
       const updateQuery = `
         UPDATE course_schedule_details 
@@ -178,7 +183,11 @@ const updateRowTKB = async (req, res) => {
         return res.status(400).json({ message: "Hệ số ngoài giờ không hợp lệ" });
       }
 
-      const qc = data.student_bonus * value * data.ll_total;
+      const qc = QcTkbFactory.calculate({
+        ll: data.ll_total,
+        heSoLopDong: data.student_bonus,
+        heSoT7CN: value,
+      }).canonical;
 
       const updateQuery = `
         UPDATE course_schedule_details 
@@ -196,7 +205,11 @@ const updateRowTKB = async (req, res) => {
           .json({ message: "Số tiết lên lớp không hợp lệ" });
       }
 
-      const qc = data.student_bonus * data.bonus_time * value;
+      const qc = QcTkbFactory.calculate({
+        ll: value,
+        heSoLopDong: data.student_bonus,
+        heSoT7CN: data.bonus_time,
+      }).canonical;
 
       const updateQuery = `
         UPDATE course_schedule_details 
@@ -206,9 +219,9 @@ const updateRowTKB = async (req, res) => {
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "qc") {
-      value = parseFloat(value.replace(",", "."));
-
-      if (isNaN(value) || value < 0) {
+      try {
+        value = QcTkbFactory.normalize(value);
+      } catch (error) {
         return res
           .status(400)
           .json({ message: "Số tiết quy chuẩn không hợp lệ" });
@@ -224,7 +237,11 @@ const updateRowTKB = async (req, res) => {
 
       data.bonus_time = await getBonusTimeForHeDaoTao(oldValue, value, data.bonus_time);
 
-      const qc = data.student_bonus * data.bonus_time * data.ll_total;
+      const qc = QcTkbFactory.calculate({
+        ll: data.ll_total,
+        heSoLopDong: data.student_bonus,
+        heSoT7CN: data.bonus_time,
+      }).canonical;
 
       const updateQuery = `
         UPDATE course_schedule_details 

@@ -557,9 +557,8 @@
           const courses = data[teacher];
 
           // Tính tổng số tiết của tất cả các khóa học (bao gồm cả khóa học cuối cùng)
-          const totalSoTiet = courses.reduce(
-            (total, course) => total + (parseFloat(course.SoTiet) || 0),
-            0
+          const totalSoTiet = qcDisplay.sum(
+            courses.map((course) => course.SoTiet)
           );
 
           // Lấy đối tượng cuối cùng của mảng để tính tổng tiết trong năm, không render nó ra bảng
@@ -629,10 +628,8 @@
             // Nếu là khóa học đầu tiên của giảng viên, thêm thông tin tổng số tiết, phòng ban và nút xem chi tiết
             if (courseIndex === 0) {
               tr.innerHTML += `
-        <td rowspan="${courses.length - 1}">${totalSoTiet.toFixed(2)}</td>
-        <td rowspan="${courses.length - 1}">${tongSoTietBaoGomDoAn.toFixed(
-                2
-              )}</td>
+        <td rowspan="${courses.length - 1}">${totalSoTiet}</td>
+        <td rowspan="${courses.length - 1}">${tongSoTietBaoGomDoAn}</td>
         <td rowspan="${courses.length - 1}">${course.Khoa}</td>
         <td rowspan="${courses.length - 1}">
           <button class="action-button view" onclick="viewClass(this, '${
@@ -665,7 +662,7 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        let totalQC = 0;
+        const qcValues = [];
         // console.log(totalQC)
 
         // Chọn tất cả các hàng chứa dữ liệu
@@ -681,23 +678,19 @@
             // Lấy ô QuyChuan theo thứ tự cột (giả định cột QuyChuan là cột thứ 10)
             const qcCell = row.querySelector("td:nth-child(12)");
             if (qcCell) {
-              const qcValue = parseFloat(qcCell.textContent.trim());
-              if (!isNaN(qcValue)) {
-                // console.log(totalQC)
-                totalQC += qcValue;
-              }
+              qcValues.push(qcCell.textContent.trim());
             }
           }
         });
 
         // Hiển thị tổng số tiết QuyChuẩn vào element có id `totalQC`
-        document.getElementById("totalQC").textContent = totalQC.toFixed(2);
+        document.getElementById("totalQC").textContent = qcDisplay.sum(qcValues);
       });
     </script>
     <script>
       // tổng quy chuẩn
       function calculateTotals() {
-        let totalQC = 0;
+        const qcValues = [];
         // console.log(totalQC)
 
         // Chọn tất cả các hàng chứa dữ liệu
@@ -713,16 +706,13 @@
             // Lấy ô QuyChuan theo thứ tự cột (giả định cột QuyChuan là cột thứ 10)
             const qcCell = row.querySelector("td:nth-child(12)");
             if (qcCell) {
-              const qcValue = parseFloat(qcCell.textContent.trim());
-              if (!isNaN(qcValue)) {
-                totalQC += qcValue;
-              }
+              qcValues.push(qcCell.textContent.trim());
             }
           }
         });
 
         // Hiển thị tổng số tiết QuyChuẩn vào element có id `totalQC`
-        document.getElementById("totalQC").textContent = totalQC.toFixed(2);
+        document.getElementById("totalQC").textContent = qcDisplay.sum(qcValues);
       }
 
       // Tìm kiếm giảng viên mời theo tên

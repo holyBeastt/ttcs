@@ -211,7 +211,7 @@
                 </div>                <% if (teacherData.TongTiet) { %>
                 <div class="teacher-detail">
                     <strong>Tổng số tiết:</strong>
-                    <%= teacherData.TongTiet % 1 === 0 ? teacherData.TongTiet.toFixed(2) : teacherData.TongTiet.toFixed(2).replace('.', ',') %> tiết
+                    <%= teacherData.TongTiet %> tiết
                 </div>
                 <% } %>
                 <% if (teacherData.ThucNhan) { %>
@@ -546,17 +546,7 @@
 
         // Function to format "Số tiết" according to requirements
         function formatSoTiet(value) {
-            const numValue = typeof value === "string" ? parseFloat(value) : value;
-            if (typeof numValue !== "number" || isNaN(numValue)) return "0.00";
-            
-            // Check if number is whole (even)
-            if (numValue % 1 === 0) {
-                // Whole number - use dot format
-                return numValue.toFixed(2);
-            } else {
-                // Decimal number - use comma format
-                return numValue.toFixed(2).replace('.', ',');
-            }
+            return value === null || value === undefined ? "" : String(value);
         }
     </script>
 </body>

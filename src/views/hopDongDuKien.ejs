@@ -406,13 +406,9 @@
        */
       function renderTableAndSum(items, tbodyId, totalLabelId, heDaoTao) {
           const tbody = document.getElementById(tbodyId);
-          let totalTiet = 0;
 
           // Tạo chuỗi HTML (Nhanh hơn insertRow rất nhiều)
           const htmlString = items.map(item => {
-              // Cộng dồn tổng tiết (dựa trên cột TongTiet - cell 0)
-              totalTiet += parseFloat(item.TongTiet) || 0;
-
               // Xử lý formatting helper
               const fmtDate = (date) => date ? new Date(date).toLocaleDateString("vi-VN", {day:"2-digit", month:"2-digit", year:"numeric"}) : "";
               const fmtMoney = (val) => {
@@ -443,8 +439,8 @@
 
               return `
                   <tr class="${alertClass}">
-                      <td>${Number.parseFloat(item.TongTiet).toFixed(2)}</td>
-                      <td>${Number.parseFloat(item.TongSoTiet).toFixed(2)}</td>
+                      <td>${item.TongTiet ?? ""}</td>
+                      <td>${item.TongSoTiet ?? ""}</td>
                       <td>${fmtDate(item.NgayBatDau)}</td>
                       <td>${fmtDate(item.NgayKetThuc)}</td>
                       <td>${danhXung}</td>
@@ -482,7 +478,9 @@
 
           // Hiển thị tổng
           const totalEl = document.getElementById(totalLabelId);
-          if(totalEl) totalEl.textContent = totalTiet.toFixed(2);
+          if (totalEl) {
+            totalEl.textContent = qcDisplay.sum(items.map((item) => item.TongTiet));
+          }
       }
 
       });
@@ -547,20 +545,19 @@
         
         if (!tbody || !totalLabel) return;
 
-        let total = 0;
         const rows = tbody.querySelectorAll("tr");
+        const qcValues = [];
 
         rows.forEach(row => {
           // Chỉ cộng những dòng KHÔNG bị ẩn
           if (row.style.display !== "none") {
             // Cột 0 là cột Số Tiết (dựa theo hàm render của bạn)
-            const cellValue = row.cells[0].textContent;
-            total += parseFloat(cellValue) || 0;
+            qcValues.push(row.cells[0]?.textContent);
           }
         });
 
         // Cập nhật text hiển thị
-        totalLabel.textContent = total.toFixed(2);
+        totalLabel.textContent = qcDisplay.sum(qcValues);
       }
     </script>
 
@@ -688,29 +685,17 @@
       function calculateTotals() {
         const table = document.getElementById("dataTable"); // Lấy bảng
         const tbody = table.querySelector("tbody"); // Lấy phần thân bảng (tbody)
+        const qcValues = [];
 
-        let total = 0; // Biến lưu trữ tổng số tiết
-
-        // Duyệt qua tất cả các hàng trong bảng
         for (let row of tbody.rows) {
-          // Kiểm tra xem hàng có bị ẩn hay không
-          if (row.style.display === "none") {
-            continue; // Bỏ qua hàng này nếu bị ẩn
-          }
-
-          const cell = row.cells[0]; // Cột số tiết là cột thứ 14 (chỉ số bắt đầu từ 0)
-          const soTiet = parseFloat(cell.textContent, 10); // Chuyển giá trị trong ô thành số nguyên
-          if (!isNaN(soTiet)) {
-            // Kiểm tra nếu giá trị hợp lệ
-            total += soTiet; // Cộng dồn vào tổng
+          if (row.style.display !== "none") {
+            qcValues.push(row.cells[0]?.textContent);
           }
         }
 
         // Hiển thị tổng số tiết
         const totalElement = document.getElementById("totalQC"); // Giả sử có một phần tử để hiển thị tổng số tiết
-        totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${total.toFixed(
-          2
-        )}`; // Hiển thị tổng
+          totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${qcDisplay.sum(qcValues)}`;
       }
     </script>
     <script>

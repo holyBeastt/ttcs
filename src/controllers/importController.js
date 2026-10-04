@@ -4,6 +4,7 @@ require("dotenv").config();
 const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
+const QcTkbFactory = require("../services/qcTkb/QcTkbFactory");
 const { json, query } = require("express");
 const { isNull } = require("util");
 const mammoth = require("mammoth");
@@ -1070,7 +1071,7 @@ const importTableTam = async (jsonData) => {
       item["Hệ số lên lớp ngoài giờ"] ||
       0,
       item["Hệ số lớp đông"] || 0,
-      item["QC"] || 0,
+      QcTkbFactory.normalize(item["QC"] || 0),
       item["Hệ đào tạo"] || null,
       item["Ghi chú"] || null,
     ]);

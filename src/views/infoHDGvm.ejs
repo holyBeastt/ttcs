@@ -221,7 +221,7 @@
                 row.insertCell(11).textContent = item.STK;
                 row.insertCell(12).textContent = item.NganHang;
                 row.insertCell(13).textContent = item.MaSoThue;
-                row.insertCell(14).textContent = parseFloat(item.SoTiet).toFixed(2);
+                row.insertCell(14).textContent = item.SoTiet ?? "";
               });
 
               // Hiển thị bảng
@@ -355,7 +355,7 @@
           const table = document.getElementById('dataTable'); // Lấy bảng
           const tbody = table.querySelector('tbody'); // Lấy phần thân bảng (tbody)
 
-          let total = 0; // Biến lưu trữ tổng số tiết
+          const qcValues = [];
 
           // Duyệt qua tất cả các hàng trong bảng
           for (let row of tbody.rows) {
@@ -365,16 +365,13 @@
               continue; // Bỏ qua hàng này nếu bị ẩn
             }
 
-            const cell = row.cells[13]; // Cột số tiết là cột thứ 14 (chỉ số bắt đầu từ 0)
-            const soTiet = parseFloat(cell.textContent, 10); // Chuyển giá trị trong ô thành số nguyên
-            if (!isNaN(soTiet)) { // Kiểm tra nếu giá trị hợp lệ
-              total += soTiet; // Cộng dồn vào tổng
-            }
+            const cell = row.cells[14]; // Cột số tiết QC là cột thứ 15 (chỉ số bắt đầu từ 0)
+            qcValues.push(cell.textContent);
           }
 
           // Hiển thị tổng số tiết
           const totalElement = document.getElementById('totalQC'); // Giả sử có một phần tử để hiển thị tổng số tiết
-          totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${total.toFixed(2)}`; // Hiển thị tổng
+          totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${qcDisplay.sum(qcValues)}`;
         }
 
       </script>

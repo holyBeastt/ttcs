@@ -1817,7 +1817,7 @@
       // Hàm tính tổng số tiết từ globalData
       function calculateTotals() {
         let totalLL = 0; // Reset tổng số tiết LL
-        let totalQC = 0; // Reset tổng số tiết QC
+        const qcValues = []; // Các giá trị QC canonical từ backend
 
         const rows = document.querySelectorAll("#tableBody tr"); // Lấy tất cả các hàng trong bảng
 
@@ -1833,15 +1833,13 @@
 
           // Chuyển đổi giá trị của các ô thành số và cộng dồn
           const LL = parseFloat(LLCell.textContent) || 0; // Nếu không phải số, mặc định là 0
-          const QuyChuan = parseFloat(QuyChuanCell.textContent) || 0;
-
           totalLL += LL; // Cộng dồn số tiết LL
-          totalQC += QuyChuan; // Cộng dồn số tiết QC
+          qcValues.push(QuyChuanCell.textContent); // Cộng dồn QC không qua float/round
         });
 
         // Cập nhật tổng số tiết vào HTML
         document.getElementById("totalLL").textContent = totalLL.toFixed(2);
-        document.getElementById("totalQC").textContent = totalQC.toFixed(2);
+        document.getElementById("totalQC").textContent = qcDisplay.sum(qcValues);
       }
       /*
     function checkAll(type) {

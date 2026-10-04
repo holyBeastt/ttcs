@@ -499,11 +499,10 @@
           }
 
           let stt = 1;
-          let totalSoTiet = 0;
+          const qcValues = [];
 
           data.forEach((item) => {
-            const soTiet = parseFloat(item.sotiet || 0);
-            totalSoTiet += soTiet;
+            qcValues.push(item.sotiet);
 
             const tr = `
               <tr>
@@ -515,7 +514,7 @@
                 <td>${item.lop || "Không xác định"}</td>
                 <td>${item.tenhocphan || "Không xác định"}</td>
                 <td>${item.sotinchi || "0"}</td>
-                <td>${soTiet.toFixed(2)}</td>
+                <td>${item.sotiet ?? ""}</td>
                 <td>${item.hedaotao || "Không xác định"}</td>
               </tr>
             `;
@@ -523,7 +522,7 @@
           });
 
           // Cập nhật tổng số tiết
-          $("#totalSoTiet").text(totalSoTiet.toFixed(2));
+          $("#totalSoTiet").text(qcDisplay.sum(qcValues));
         }
 
         function updateDoAnTable(data) {

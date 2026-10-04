@@ -664,23 +664,23 @@
 
       function calculateTotals() {
         let totalLL = 0;
-        let totalQC = 0;
+        const qcValues = [];
 
         if (gridApi) {
           // Tính tổng dựa trên lưới hiển thị (đã bao gồm filter search nếu có)
           gridApi.forEachNodeAfterFilter((node) => {
             totalLL += parseFloat(node.data.ll_total) || 0;
-            totalQC += parseFloat(node.data.qc) || 0;
+            qcValues.push(node.data.qc);
           });
         } else if (renderData) {
           totalLL = renderData.reduce((sum, item) => sum + (parseFloat(item.ll_total) || 0), 0);
-          totalQC = renderData.reduce((sum, item) => sum + (parseFloat(item.qc) || 0), 0);
+          qcValues.push(...renderData.map((item) => item.qc));
         }
 
         const labelTotal = document.getElementById("total-label");
         if (labelTotal) {
           document.getElementById('totalLL').textContent = totalLL.toFixed(2);
-          document.getElementById('totalQC').textContent = totalQC.toFixed(2);
+          document.getElementById('totalQC').textContent = qcDisplay.sum(qcValues);
           labelTotal.style.display = "block";
         }
       }

@@ -3,6 +3,7 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
 const tkbServices = require("../services/tkbServices");
+const QcTkbFactory = require("../services/qcTkb/QcTkbFactory");
 const fs = require("fs");
 const {
   Document,
@@ -279,8 +280,17 @@ const quyDoiHeSo = async (item, bonusRules) => {
 
   // Tính QuyChuan sau khi có đầy đủ các giá trị
   let QuyChuan = null;
-  if (item.LL && HeSoT7CN) {
-    QuyChuan = Number(item.LL) * Number(HeSoLopDong) * Number(HeSoT7CN);
+  if (
+    item.LL &&
+    HeSoLopDong !== undefined &&
+    HeSoLopDong !== null &&
+    HeSoT7CN
+  ) {
+    QuyChuan = QcTkbFactory.calculate({
+      ll: item.LL,
+      heSoLopDong: HeSoLopDong,
+      heSoT7CN: HeSoT7CN,
+    }).canonical;
   }
 
   // Trả về kết quả quy đổi bao gồm HeSoLopDong, HeSoT7CN và QuyChuan
@@ -317,7 +327,7 @@ const updateTableTam = async (req, res) => {
       const result = await quyDoiHeSo(row, bonusRules); // Gọi hàm quyDoiHeSo để tính toán (async)
       row.HeSoLopDong = result.HeSoLopDong; // Cập nhật lại hệ số lớp đông
       row.HeSoT7CN = result.HeSoT7CN; // Cập nhật HeSoT7CN
-      row.QuyChuan = result.QuyChuan ? parseFloat(result.QuyChuan).toFixed(2) : null;
+      row.QuyChuan = result.QuyChuan;
     }
 
     // Khởi tạo mảng chứa các giá trị để thực thi truy vấn INSERT ... ON DUPLICATE KEY UPDATE
@@ -418,7 +428,7 @@ const updateRow = async (req, res) => {
     const result = await quyDoiHeSo(data, bonusRules);
     data.HeSoLopDong = result.HeSoLopDong;
     data.HeSoT7CN = result.HeSoT7CN;
-    data.QuyChuan = result.QuyChuan ? parseFloat(result.QuyChuan).toFixed(2) : null;
+    data.QuyChuan = result.QuyChuan;
 
     // Chuẩn bị giá trị cho truy vấn UPDATE
     const updateValues = [
@@ -533,6 +543,11 @@ const addNewRow = async (req, res) => {
       return res.status(400).json({ message: "Dữ liệu không hợp lệ." });
     }
 
+    const normalizedQc =
+      data.QuyChuan === undefined || data.QuyChuan === null || data.QuyChuan === ""
+        ? null
+        : QcTkbFactory.normalize(data.QuyChuan);
+
     // Chuẩn bị câu truy vấn INSERT
     const insertValues = [
       data.Khoa,
@@ -544,7 +559,7 @@ const addNewRow = async (req, res) => {
       data.HeSoT7CN || null,
       data.LL || null,
       data.LopHocPhan || null,
-      data.QuyChuan || null,
+      normalizedQc,
       data.SoSinhVien || null,
       data.SoTietCTDT || null,
       data.SoTinChi || null,
@@ -2697,11 +2712,15 @@ const editStudentQuanity = async (req, res) => {
           );
         }
 
-        // Gọi hàm quy đổi hệ số
-        const { HeSoLopDong } = quyDoiHeSo(item); // Giả sử hàm quyDoiHeSo đã được định nghĩa trước đó
-
-        // Tính QuyChuan
-        const QuyChuan = Number(LL) * Number(HeSoLopDong) * Number(HeSoT7CN); // Nếu HeSoNgoaiGio là null, mặc định lấy giá trị 1
+        const HeSoLopDong = item.HeSoLopDong;
+        const QuyChuan = QcTkbFactory.calculate({
+          ll: LL,
+          heSoLopDong: HeSoLopDong,
+          heSoT7CN:
+            HeSoT7CN === undefined || HeSoT7CN === null || HeSoT7CN === ""
+              ? 1
+              : HeSoT7CN,
+        }).canonical;
 
         console.log(QuyChuan);
 
@@ -2771,6 +2790,7 @@ const editStudentQuanity = async (req, res) => {
 
 // Xuất các hàm để sử dụng
 module.exports = {
+  quyDoiHeSo,
   getTableTam,
   deleteTableTam,
   updateTableTam,

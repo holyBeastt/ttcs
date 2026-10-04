@@ -2,6 +2,7 @@ const XLSX = require("xlsx");
 const pool = require("../config/Pool");
 
 const tkbServices = require("../services/tkbServices");
+const QcTkbFactory = require("../services/qcTkb/QcTkbFactory");
 
 function getFirstParenthesesContent(str) {
   const match = str.match(/\(([^)]+)\)/);
@@ -356,7 +357,11 @@ const importExcelTKB = async (req, res) => {
       }
 
       row.ll_total = ll_tmp;
-      row.qc = row.ll_total * row.bonus_time * row.student_bonus;
+      row.qc = QcTkbFactory.calculate({
+        ll: row.ll_total,
+        heSoLopDong: row.student_bonus,
+        heSoT7CN: row.bonus_time,
+      }).canonical;
     }
 
     // Chuẩn bị values để insert
