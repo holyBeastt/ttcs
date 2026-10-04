@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mời giảng contract export E2E"
+  short_description: "E2E TKB-to-contract export with authorized bypass"
+  default_prompt: "Use $moi-giang-contract-export-e2e to verify the TKB-to-mời-giảng contract export flow end to end."
