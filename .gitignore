@@ -24,6 +24,9 @@ firebase-service-account.json
 # DDEV
 .ddev/
 
+# Mobile app workspace (keep Flutter app sources/artifacts local)
+/mobile_app/
+
 # Scratch files
 scratch/
 
