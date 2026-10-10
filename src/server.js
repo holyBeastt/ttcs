@@ -251,7 +251,9 @@ app.use("/api/v1/admin/moi-giang", adminMoiGiangCoreInfoRoute);
 
 // Mobile API Routes
 const refreshTokenRoute = require("./routes/refreshTokenRoute");
+const mobileProfileRoute = require("./routes/mobileProfileRoute");
 app.use("/api/mobile/v1", refreshTokenRoute);
+app.use("/api/mobile/v1", mobileProfileRoute);
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on http://${hostname}:${port}`);

@@ -29,7 +29,13 @@ const getFilters = async () => {
   }
 };
 
-const getLecturerSummary = async (namHoc, khoaId, keyword, scope = STATS_SCOPE.OFFICIAL) => {
+const getLecturerSummary = async (
+  namHoc,
+  khoaId,
+  keyword,
+  scope = STATS_SCOPE.OFFICIAL,
+  lecturerId = null
+) => {
   const safeNamHoc = ensureNamHoc(namHoc);
   const safeKhoaId = normalizeKhoaId(khoaId);
   const safeKeyword = String(keyword || "").trim();
@@ -41,6 +47,7 @@ const getLecturerSummary = async (namHoc, khoaId, keyword, scope = STATS_SCOPE.O
       namHoc: safeNamHoc,
       khoaId: safeKhoaId,
       keyword: safeKeyword,
+      lecturerId,
       scope: normalizeStatsScope(scope),
     });
     return rows.map(mapper.mapLecturerSummaryRow);

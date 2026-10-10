@@ -12,6 +12,7 @@ const snapshotDataService = require("../../services/vuotgio_v2/snapshotData.serv
  */
 const tongHopTheoGV = async (req, res) => {
     const { namHoc, khoa, detail, isDuKien } = req.query;
+    const scopedKhoa = req.mobileScope?.khoaCode ?? khoa;
     if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
 
     try {
@@ -26,8 +27,8 @@ const tongHopTheoGV = async (req, res) => {
         console.info("[tongHopTheoGV] request", { namHoc, khoa, detail: isDetail, isDuKien: isDuKienBool });
         
         const result = isDetail
-            ? { data: await tongHopService.getCollectionSDODetail(namHoc, khoa, isDuKienBool), warnings: null }
-            : await tongHopService.getCollectionSDO(namHoc, khoa, isDuKienBool);
+            ? { data: await tongHopService.getCollectionSDODetail(namHoc, scopedKhoa, isDuKienBool), warnings: null }
+            : await tongHopService.getCollectionSDO(namHoc, scopedKhoa, isDuKienBool);
 
         const data = Array.isArray(result) ? result : result.data;
         const warnings = (result && !Array.isArray(result)) ? result.warnings : null;
@@ -44,11 +45,22 @@ const tongHopTheoGV = async (req, res) => {
  * API Tổng hợp vượt giờ theo Khoa (Thống kê)
  */
 const tongHopTheoKhoa = async (req, res) => {
-    const { namHoc, khoa } = req.query;
+    const { namHoc, khoa, isDuKien } = req.query;
+    const scopedKhoa = req.mobileScope?.khoaCode ?? khoa;
     if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
 
     try {
-        const result = await thongKeService.getThongKeKhoa(namHoc, khoa);
+        // The historical web route remains snapshot-backed when isDuKien is
+        // omitted. Mobile passes the explicit flag for projected/official live
+        // data so both scopes are aggregated by the backend, never by Flutter.
+        const hasLiveScope = isDuKien !== undefined;
+        const result = hasLiveScope
+            ? await thongKeService.getThongKeKhoaLive(
+                namHoc,
+                scopedKhoa,
+                isDuKien === 'true' || isDuKien === '1' || isDuKien === true,
+            )
+            : await thongKeService.getThongKeKhoa(namHoc, scopedKhoa);
         res.json({ success: true, ...result });
     } catch (error) {
         console.error("Lỗi khi tổng hợp vượt giờ theo Khoa:", error);
@@ -62,11 +74,16 @@ const tongHopTheoKhoa = async (req, res) => {
  */
 const tongHopTheoGVSnapshot = async (req, res) => {
     const { namHoc, khoa } = req.query;
+    const scopedKhoa = req.mobileScope?.khoaCode ?? khoa;
     if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
 
     try {
         console.info("[tongHopTheoGVSnapshot] request", { namHoc, khoa });
-        const data = await snapshotDataService.getSnapshotSDOList(namHoc, khoa);
+        let data = await snapshotDataService.getSnapshotSDOList(namHoc, scopedKhoa);
+        if (req.mobileScope?.lecturerId != null) {
+            const ownId = Number(req.mobileScope.lecturerId);
+            data = data.filter((sdo) => Number(sdo.id_User) === ownId);
+        }
         console.info("[tongHopTheoGVSnapshot] response", { count: Array.isArray(data) ? data.length : 0 });
         res.json({ success: true, data });
     } catch (error) {
