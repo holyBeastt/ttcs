@@ -6,14 +6,9 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
     res.render("nckh_v3/stats_official.ejs", { statsScope: scope });
   };
 
-  const getFilters = async (req, res) => {
+  const getFilters = async (_req, res) => {
     try {
       const data = await statsService.getFilters();
-      if (req.mobileScope?.khoaId != null && Array.isArray(data.khoaList)) {
-        data.khoaList = data.khoaList.filter(
-          (item) => String(item.id) === String(req.mobileScope.khoaId)
-        );
-      }
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats filters error:", error);
@@ -24,13 +19,7 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
   const lecturerSummary = async (req, res) => {
     try {
       const { namHoc, khoaId = "ALL", keyword = "" } = req.query;
-      const data = await statsService.getLecturerSummary(
-        namHoc,
-        req.mobileScope?.khoaId ?? khoaId,
-        keyword,
-        scope,
-        req.mobileScope?.lecturerId
-      );
+      const data = await statsService.getLecturerSummary(namHoc, khoaId, keyword, scope);
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats lecturer summary error:", error);
@@ -52,11 +41,7 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
   const facultySummary = async (req, res) => {
     try {
       const { namHoc, khoaId = "ALL" } = req.query;
-      const data = await statsService.getFacultySummary(
-        namHoc,
-        req.mobileScope?.khoaId ?? khoaId,
-        scope
-      );
+      const data = await statsService.getFacultySummary(namHoc, khoaId, scope);
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats faculty summary error:", error);
@@ -67,11 +52,7 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
   const facultyRecords = async (req, res) => {
     try {
       const { namHoc } = req.query;
-      const data = await statsService.getFacultyRecords(
-        namHoc,
-        req.mobileScope?.khoaId ?? req.params.khoaId,
-        scope
-      );
+      const data = await statsService.getFacultyRecords(namHoc, req.params.khoaId, scope);
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats faculty records error:", error);

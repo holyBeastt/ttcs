@@ -21,7 +21,7 @@ const buildStatsWhere = (namHoc, scope = STATS_SCOPE.OFFICIAL) => {
 // 1. Thống kê theo Giảng viên
 // ──────────────────────────────────────────────
 
-const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword = "", lecturerId = null, scope }) => {
+const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword = "", scope }) => {
   const { where, params } = buildStatsWhere(namHoc, scope);
   const normalizedKeyword = String(keyword || "").trim();
   const safeKhoaId = String(khoaId || "ALL").trim();
@@ -45,14 +45,6 @@ const listLecturerSummary = async (connection, { namHoc, khoaId = "ALL", keyword
   if (safeKhoaId !== "ALL") {
     query += " AND nv.phongban_id = ?";
     params.push(Number(safeKhoaId));
-  }
-
-  if (lecturerId !== null && lecturerId !== undefined) {
-    const safeLecturerId = Number(lecturerId);
-    if (Number.isInteger(safeLecturerId) && safeLecturerId > 0) {
-      query += " AND nv.id_User = ?";
-      params.push(safeLecturerId);
-    }
   }
 
   if (normalizedKeyword) {

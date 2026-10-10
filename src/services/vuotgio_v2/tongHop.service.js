@@ -6,7 +6,6 @@
 const createPoolConnection = require("../../config/databasePool");
 const repo = require("../../repositories/vuotgio_v2/tongHop.repo");
 const statsService = require("../nckh_v3/stats.service");
-const { STATS_SCOPE } = require("../../config/nckh_v3/statsScope");
 
 const mapper = require("../../mappers/vuotgio_v2/summary.mapper");
 
@@ -38,11 +37,6 @@ const chuanHoaNamHoc = (namHoc) => {
     return namHoc;
 };
 
-// The requested Vượt Giờ scope also controls which NCKH rows feed the SDO.
-// Projected must not silently use the approved-only NCKH statistics default.
-const nckhScopeFor = (isDuKien) =>
-    isDuKien ? STATS_SCOPE.PREVIEW : STATS_SCOPE.OFFICIAL;
-
 /**
  * Lấy SDO nguyên bản (Atomic SDO) cho 1 giảng viên
  */
@@ -58,13 +52,7 @@ const getAtomicSDO = async (namHocInput, id_User, connection = null, isDuKien = 
         repo.getKthpByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
         repo.getDoAnByIdUser(activeConnection, { namHoc, idUser: id_User, isDuKien }),
         repo.getHuongDanThamQuanByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
-        id_User
-            ? statsService.getLecturerRecords(
-                id_User,
-                namHoc,
-                nckhScopeFor(isDuKien),
-            )
-            : [],
+        id_User ? statsService.getLecturerRecords(id_User, namHoc) : [],
         repo.getDinhMuc(activeConnection),
         repo.getChuNhiemKhoaByKhoa(activeConnection, nv.maKhoa)
     ]);
@@ -79,12 +67,7 @@ const getCollectionSDO = async (namHocInput, khoa, isDuKien = false) => withConn
     const namHoc = chuanHoaNamHoc(namHocInput);
     const [rawData, nckhData, dinhMuc] = await Promise.all([
         repo.getDuLieuThoTongHop(connection, { namHoc, khoa, isDuKien, requireApproval: !isDuKien }),
-        statsService.getLecturerSummary(
-            namHoc,
-            "ALL",
-            "",
-            nckhScopeFor(isDuKien),
-        ),
+        statsService.getLecturerSummary(namHoc, "ALL"),
         repo.getDinhMuc(connection)
     ]);
 
@@ -140,12 +123,7 @@ const getCollectionSDODetail = async (namHocInput, khoa, isDuKien = false) => wi
         repo.getKthpByIds(connection, { namHoc, ids, requireApproval }),
         repo.getDoAnByIds(connection, { namHoc, ids, isDuKien }),
         repo.getHuongDanThamQuanByIds(connection, { namHoc, ids, requireApproval }),
-        statsService.getLecturerSummary(
-            namHoc,
-            "ALL",
-            "",
-            nckhScopeFor(isDuKien),
-        ),
+        statsService.getLecturerSummary(namHoc, "ALL"),
         repo.getDinhMuc(connection),
         repo.getNhanVienByIds(connection, ids),
     ]);

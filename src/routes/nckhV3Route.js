@@ -18,11 +18,6 @@ const officialStatsController = require("../controllers/nckh_v3/officialStats.co
 const exportController = require("../controllers/nckh_v3/export.controller");
 const { STATS_SCOPE } = require("../config/nckh_v3/statsScope");
 const importController = require("../controllers/nckh_v3/import.controller");
-const {
-  requireOwnLecturerParam,
-  restrictMobileLecturerSummary,
-  restrictMobileFaculty,
-} = require("../middlewares/mobileScopeMiddleware");
 
 // Multer memory storage for Excel upload
 const uploadMemory = multer({ storage: multer.memoryStorage() });
@@ -156,19 +151,19 @@ router.get("/thong-ke/giang-vien", (_req, res) => res.render("nckh_v3/stats_lect
 router.get("/thong-ke/khoa", (_req, res) => res.render("nckh_v3/stats_faculty.ejs"));
 router.get("/thong-ke/hoc-vien", (_req, res) => res.render("nckh_v3/stats_institute.ejs"));
 
-router.get("/stats/filters", restrictMobileFaculty(), officialStats.getFilters);
-router.get("/stats/giang-vien", restrictMobileLecturerSummary, officialStats.lecturerSummary);
-router.get("/stats/giang-vien/:lecturerId/cong-trinh", requireOwnLecturerParam("lecturerId"), officialStats.lecturerRecords);
-router.get("/stats/khoa", restrictMobileFaculty(), officialStats.facultySummary);
-router.get("/stats/khoa/:khoaId/cong-trinh", restrictMobileFaculty("khoaId"), officialStats.facultyRecords);
+router.get("/stats/filters", officialStats.getFilters);
+router.get("/stats/giang-vien", officialStats.lecturerSummary);
+router.get("/stats/giang-vien/:lecturerId/cong-trinh", officialStats.lecturerRecords);
+router.get("/stats/khoa", officialStats.facultySummary);
+router.get("/stats/khoa/:khoaId/cong-trinh", officialStats.facultyRecords);
 router.get("/stats/hoc-vien", officialStats.instituteSummary);
 router.get("/stats/hoc-vien/cong-trinh", officialStats.instituteRecords);
 
-router.get("/stats/preview/filters", restrictMobileFaculty(), previewStats.getFilters);
-router.get("/stats/preview/giang-vien", restrictMobileLecturerSummary, previewStats.lecturerSummary);
-router.get("/stats/preview/giang-vien/:lecturerId/cong-trinh", requireOwnLecturerParam("lecturerId"), previewStats.lecturerRecords);
-router.get("/stats/preview/khoa", restrictMobileFaculty(), previewStats.facultySummary);
-router.get("/stats/preview/khoa/:khoaId/cong-trinh", restrictMobileFaculty("khoaId"), previewStats.facultyRecords);
+router.get("/stats/preview/filters", previewStats.getFilters);
+router.get("/stats/preview/giang-vien", previewStats.lecturerSummary);
+router.get("/stats/preview/giang-vien/:lecturerId/cong-trinh", previewStats.lecturerRecords);
+router.get("/stats/preview/khoa", previewStats.facultySummary);
+router.get("/stats/preview/khoa/:khoaId/cong-trinh", previewStats.facultyRecords);
 router.get("/stats/preview/hoc-vien", previewStats.instituteSummary);
 router.get("/stats/preview/hoc-vien/cong-trinh", previewStats.instituteRecords);
 

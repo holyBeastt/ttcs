@@ -74,7 +74,6 @@ const getPreviewData = async (req, res) => {
  */
 const getPreviewKhoaData = async (req, res) => {
     const { khoa } = req.params;
-    const scopedKhoa = req.mobileScope?.khoaCode ?? khoa;
     const { namHoc, isDuKien } = req.query;
 
     if (!namHoc || !khoa) {
@@ -82,7 +81,7 @@ const getPreviewKhoaData = async (req, res) => {
     }
 
     try {
-        const khoaDecoded = decodeURIComponent(scopedKhoa);
+        const khoaDecoded = decodeURIComponent(khoa);
         
         const isLocked = await snapshotDataService.isYearLocked(namHoc);
         let summaries;
