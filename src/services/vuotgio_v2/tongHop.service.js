@@ -6,6 +6,7 @@
 const createPoolConnection = require("../../config/databasePool");
 const repo = require("../../repositories/vuotgio_v2/tongHop.repo");
 const statsService = require("../nckh_v3/stats.service");
+const { STATS_SCOPE } = require("../../config/nckh_v3/statsScope");
 
 const mapper = require("../../mappers/vuotgio_v2/summary.mapper");
 
@@ -37,10 +38,21 @@ const chuanHoaNamHoc = (namHoc) => {
     return namHoc;
 };
 
+const getNckhScope = (options = {}) =>
+    options.nckhScope === STATS_SCOPE.PREVIEW
+        ? STATS_SCOPE.PREVIEW
+        : STATS_SCOPE.OFFICIAL;
+
 /**
  * Lấy SDO nguyên bản (Atomic SDO) cho 1 giảng viên
  */
-const getAtomicSDO = async (namHocInput, id_User, connection = null, isDuKien = false) => withConnection(connection, async (activeConnection) => {
+const getAtomicSDO = async (
+    namHocInput,
+    id_User,
+    connection = null,
+    isDuKien = false,
+    options = {},
+) => withConnection(connection, async (activeConnection) => {
     const namHoc = chuanHoaNamHoc(namHocInput);
     const nv = await repo.getNhanVienById(activeConnection, id_User);
     if (!nv) return null;
@@ -52,7 +64,7 @@ const getAtomicSDO = async (namHocInput, id_User, connection = null, isDuKien = 
         repo.getKthpByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
         repo.getDoAnByIdUser(activeConnection, { namHoc, idUser: id_User, isDuKien }),
         repo.getHuongDanThamQuanByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
-        id_User ? statsService.getLecturerRecords(id_User, namHoc) : [],
+        id_User ? statsService.getLecturerRecords(id_User, namHoc, getNckhScope(options)) : [],
         repo.getDinhMuc(activeConnection),
         repo.getChuNhiemKhoaByKhoa(activeConnection, nv.maKhoa)
     ]);
@@ -63,11 +75,16 @@ const getAtomicSDO = async (namHocInput, id_User, connection = null, isDuKien = 
 /**
  * Lấy danh sách SDO cho tất cả GV trong khoa
  */
-const getCollectionSDO = async (namHocInput, khoa, isDuKien = false) => withConnection(null, async (connection) => {
+const getCollectionSDO = async (
+    namHocInput,
+    khoa,
+    isDuKien = false,
+    options = {},
+) => withConnection(null, async (connection) => {
     const namHoc = chuanHoaNamHoc(namHocInput);
     const [rawData, nckhData, dinhMuc] = await Promise.all([
         repo.getDuLieuThoTongHop(connection, { namHoc, khoa, isDuKien, requireApproval: !isDuKien }),
-        statsService.getLecturerSummary(namHoc, "ALL"),
+        statsService.getLecturerSummary(namHoc, "ALL", "", getNckhScope(options)),
         repo.getDinhMuc(connection)
     ]);
 
@@ -106,7 +123,12 @@ const getCollectionSDO = async (namHocInput, khoa, isDuKien = false) => withConn
  * Lấy danh sách SDO chi tiết (bao gồm tableF) cho tất cả GV trong khoa.
  * Sử dụng batch fetch để giảm số lượng queries (từ N*8 xuống ~8).
  */
-const getCollectionSDODetail = async (namHocInput, khoa, isDuKien = false) => withConnection(null, async (connection) => {
+const getCollectionSDODetail = async (
+    namHocInput,
+    khoa,
+    isDuKien = false,
+    options = {},
+) => withConnection(null, async (connection) => {
     const namHoc = chuanHoaNamHoc(namHocInput);
     const requireApproval = !isDuKien;
     const rawData = await repo.getDuLieuThoTongHop(connection, { namHoc, khoa, isDuKien, requireApproval });
@@ -123,7 +145,7 @@ const getCollectionSDODetail = async (namHocInput, khoa, isDuKien = false) => wi
         repo.getKthpByIds(connection, { namHoc, ids, requireApproval }),
         repo.getDoAnByIds(connection, { namHoc, ids, isDuKien }),
         repo.getHuongDanThamQuanByIds(connection, { namHoc, ids, requireApproval }),
-        statsService.getLecturerSummary(namHoc, "ALL"),
+        statsService.getLecturerSummary(namHoc, "ALL", "", getNckhScope(options)),
         repo.getDinhMuc(connection),
         repo.getNhanVienByIds(connection, ids),
     ]);
