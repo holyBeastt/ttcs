@@ -392,9 +392,10 @@
       <h5><i class="bi bi-file-earmark-spreadsheet"></i> Tải file Excel</h5>
       <div class="upload-form-row">
         <div class="form-group">
-          <label for="importType">Loại NCKH</label>
+          <label for="importType">Chế độ import</label>
           <select id="importType" class="form-select">
             <option value="">-- Chọn loại --</option>
+            <option value="full">ALL</option>
             <% importTypes.forEach(function(t) { %>
               <option value="<%= t.value %>"><%= t.label %></option>
             <% }); %>
@@ -414,6 +415,7 @@
           <i class="bi bi-eye"></i> Xem trước
         </button>
       </div>
+      <div class="form-text mt-3">Ở chế độ ALL, tên mỗi sheet phải có đúng một mã loại: BAIBAO, HUONGDAN, DETAI_DUAN, HOIDONG, SACHGIAOTRINH, SANGKIEN, GIAITHUONG hoặc DEXUAT. Có thể thêm hậu tố, ví dụ BAIBAO_2025.</div>
     </div>
 
     <!-- Summary (hidden initially) -->
@@ -444,6 +446,7 @@
               <tr>
                 <th style="width:40px">STT</th>
                 <th style="width:80px">Trạng thái</th>
+                <th style="width:120px">Loại NCKH</th>
                 <th style="min-width:220px" class="text-start">Tên công trình</th>
                 <th style="width:120px">Mã số</th>
                 <th style="width:100px">Phân loại</th>
@@ -465,7 +468,7 @@
     <!-- Empty state -->
     <div id="emptyState" class="import-empty">
       <i class="bi bi-inbox"></i>
-      <p>Chọn loại NCKH và tải file Excel để bắt đầu import.</p>
+      <p>Chọn loại NCKH hoặc ALL, rồi tải file Excel để bắt đầu.</p>
     </div>
   </div>
 

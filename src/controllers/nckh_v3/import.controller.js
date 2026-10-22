@@ -5,6 +5,7 @@
 
 const importService = require("../../services/nckh_v3/import.service");
 const { IMPORT_TYPES } = require("../../mappers/nckh_v3/import.mapper");
+const FULL_IMPORT_TYPE = "full";
 
 class ImportController {
   /**
@@ -27,6 +28,9 @@ class ImportController {
       const namHoc = req.body.namHoc;
       if (!type) {
         return res.status(400).json({ success: false, message: "Chưa chọn loại NCKH." });
+      }
+      if (type !== FULL_IMPORT_TYPE && !IMPORT_TYPES.some((item) => item.value === type)) {
+        return res.status(400).json({ success: false, message: "Loại NCKH không được hỗ trợ import." });
       }
 
       if (!req.file) {

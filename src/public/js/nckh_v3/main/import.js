@@ -161,6 +161,7 @@
         <tr class="${rowClass}" data-index="${index}">
           <td class="text-center">${index + 1}</td>
           <td class="text-center">${statusHtml}</td>
+          <td class="text-center" title="${escapeHtml(record.sheetName ? `${record.sheetName} — dòng ${record.rowIndex}` : "")}">${escapeHtml(record.chung?.loaiNckh || "—")}</td>
           <td ${getCellMeta('tenCongTrinh', 'text-start')}>${escapeHtml(record.chung?.tenCongTrinh)}</td>
           <td ${getCellMeta('maSo', 'text-center')}>${escapeHtml(record.chung?.maSo || "—")}</td>
           <td class="text-center">${escapeHtml(record.chung?.phanLoai || "—")}</td>

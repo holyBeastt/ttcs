@@ -2,6 +2,7 @@ const XLSX = require("xlsx");
 const createPoolConnection = require("../../../config/databasePool");
 const importRepo = require("../../../repositories/nckh_v3/nckhImport.repo");
 const importMapper = require("../../../mappers/nckh_v3/import.mapper");
+const { NCKH_TYPE_OPTIONS } = require("../../../config/nckh_v3/types");
 const formulaService = require("../formula.service");
 const NCKHImportStrategy = require("./strategy.interface");
 
@@ -162,7 +163,22 @@ function findHeaderRow(sheet) {
   return 0;
 }
 
-function parseExcelBuffer(fileBuffer) {
+const FULL_IMPORT_TYPE = "full";
+function getImportTypeFromSheetName(sheetName) {
+  const sheetCodeTokens = String(sheetName || "").toUpperCase().match(/[A-Z0-9]+/g) || [];
+  const matches = NCKH_TYPE_OPTIONS.filter((item) => {
+    const codeTokens = item.loaiNckh.toUpperCase().match(/[A-Z0-9]+/g) || [];
+    return codeTokens.length > 0 && sheetCodeTokens.some((_, start) =>
+      codeTokens.every((token, offset) => sheetCodeTokens[start + offset] === token)
+    );
+  });
+  if (matches.length > 1) {
+    throw new Error(`Tên sheet "${sheetName}" chứa nhiều mã loại NCKH: ${matches.map(({ loaiNckh }) => loaiNckh).join(", ")}.`);
+  }
+  return matches[0]?.value || null;
+}
+
+function parseExcelBuffer(fileBuffer, selectedType) {
   const workbook = XLSX.read(fileBuffer, {
     type: "buffer",
     cellDates: false,
@@ -170,12 +186,15 @@ function parseExcelBuffer(fileBuffer) {
     cellText: true,
   });
 
-  let allRows = [];
+  const allRows = [];
+  const seenTypes = new Set();
+  const isFullImport = selectedType === FULL_IMPORT_TYPE;
 
   workbook.SheetNames.forEach((sheetName) => {
     const sheet = workbook.Sheets[sheetName];
     if (!sheet["!ref"]) return;
 
+    const sheetType = isFullImport ? getImportTypeFromSheetName(sheetName) : selectedType;
     const headerRowIndex = findHeaderRow(sheet);
     const headerRow = XLSX.utils.sheet_to_json(sheet, { header: 1, range: headerRowIndex })[0] || [];
     const normalizedHeaders = headerRow.map((h) =>
@@ -196,7 +215,7 @@ function parseExcelBuffer(fileBuffer) {
     });
 
     rawRows.forEach((row, rowIndex) => {
-      const realRowNumber = headerRowIndex + 1 + rowIndex + 1;
+      const realRowNumber = headerRowIndex + rowIndex + 2;
       for (let col = 0; col < normalizedHeaders.length; col += 1) {
         const colLetter = XLSX.utils.encode_col(col);
         const cellAddress = `${colLetter}${realRowNumber}`;
@@ -207,8 +226,26 @@ function parseExcelBuffer(fileBuffer) {
       }
     });
 
-    allRows = allRows.concat(rawRows);
+    const nonEmptyRows = rawRows
+      .map((row, index) => ({ row, rowIndex: headerRowIndex + index + 2 }))
+      .filter(({ row }) => Object.values(row).some((value) => String(value || "").trim() !== ""));
+    if (isFullImport && nonEmptyRows.length > 0 && !sheetType) {
+      throw new Error(`Sheet "${sheetName}" có dữ liệu nhưng tên sheet không chứa mã loại NCKH hợp lệ.`);
+    }
+    if (!sheetType || nonEmptyRows.length === 0) return;
+    if (isFullImport && seenTypes.has(sheetType)) {
+      const typeCode = NCKH_TYPE_OPTIONS.find((item) => item.value === sheetType)?.loaiNckh;
+      throw new Error(`Workbook có nhiều sheet cho cùng loại ${typeCode}. Gộp dữ liệu loại này vào một sheet.`);
+    }
+    seenTypes.add(sheetType);
+    nonEmptyRows.forEach(({ row, rowIndex }) => {
+      allRows.push({ row, sheetName, rowIndex, type: sheetType });
+    });
   });
+
+  if (isFullImport && allRows.length === 0) {
+    throw new Error("Không tìm thấy sheet dữ liệu NCKH. Đặt mã loại trong tên sheet, ví dụ BAIBAO, HUONGDAN, hoặc DETAI_DUAN.");
+  }
 
   return allRows;
 }
@@ -220,12 +257,12 @@ class ExcelImportStrategy extends NCKHImportStrategy {
   async process(fileBuffer, options = {}) {
     const { type, namHoc: namHocFromUI } = options;
 
-    const rawRows = parseExcelBuffer(fileBuffer);
+    const rawRows = parseExcelBuffer(fileBuffer, type);
     if (rawRows.length === 0) {
       throw new Error("File Excel không có dữ liệu.");
     }
 
-    const filteredRows = rawRows.filter((row) => {
+    const filteredRows = rawRows.filter(({ row }) => {
       const values = Object.values(row).map((v) => String(v || "").trim());
       return values.some((v) => v !== "");
     });
@@ -234,19 +271,21 @@ class ExcelImportStrategy extends NCKHImportStrategy {
       throw new Error("File Excel không có dữ liệu hợp lệ.");
     }
 
-    const mappedRecords = filteredRows.map((row, index) => {
+    const mappedRecords = filteredRows.map(({ row, sheetName, rowIndex, type: rowType }, index) => {
       try {
-        const mapped = importMapper.mapRow(type, row);
+        const mapped = importMapper.mapRow(type === FULL_IMPORT_TYPE ? rowType : type, row);
         if (namHocFromUI) {
           mapped.chung.namHoc = namHocFromUI;
         }
-        mapped._rowIndex = index + 1;
+        mapped._rowIndex = rowIndex || index + 1;
+        mapped._sheetName = sheetName;
         mapped._errors = [];
         mapped._warnings = [];
         return mapped;
       } catch (err) {
         return {
-          _rowIndex: index + 1,
+          _rowIndex: rowIndex || index + 1,
+          _sheetName: sheetName,
           _errors: [err.message],
           _warnings: [],
           chung: { tenCongTrinh: "LỖI", loaiNckh: "", maSo: "" },
@@ -294,34 +333,39 @@ class ExcelImportStrategy extends NCKHImportStrategy {
 
     let connection;
     let allEmployees = [];
-    let duplicateMaSoSet = new Set();
-    let quyDinhMap = new Map();
+    const duplicateMaSoByType = new Map();
+    const quyDinhMapByType = new Map();
 
     try {
       connection = await createPoolConnection();
 
-      const loaiNckh = validMappedRecords.find(r => r.chung.loaiNckh)?.chung.loaiNckh;
-      if (loaiNckh) {
-        const { getQuyDinhSoGioByLoai } = require("../quyDinh.service");
+      const typeCodes = [...new Set(validMappedRecords.map((r) => r.chung.loaiNckh).filter(Boolean))];
+      const { getQuyDinhSoGioByLoai } = require("../quyDinh.service");
+      for (const loaiNckh of typeCodes) {
         const quyDinhs = await getQuyDinhSoGioByLoai(loaiNckh);
+        const quyDinhMap = new Map();
         quyDinhs.forEach(qd => {
           if (qd.PhanLoai) {
             const cleanedKey = qd.PhanLoai.replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
             quyDinhMap.set(cleanedKey, qd);
           }
         });
+        quyDinhMapByType.set(loaiNckh, quyDinhMap);
       }
 
       allEmployees = await importRepo.getAllNhanVien(connection);
 
-      const allMaSo = validMappedRecords
-        .map((r) => r.chung.maSo)
-        .filter((m) => m !== null && m !== undefined && String(m).trim() !== "");
-
-      if (allMaSo.length > 0) {
-        const namHoc = validMappedRecords.find(r => r.chung.namHoc)?.chung.namHoc || namHocFromUI;
-        const existing = await importRepo.findExistingMaSo(connection, allMaSo, loaiNckh, namHoc);
-        duplicateMaSoSet = new Set(existing);
+      const duplicateGroups = new Map();
+      validMappedRecords.forEach((record) => {
+        const { maSo, loaiNckh, namHoc } = record.chung;
+        if (!maSo || !loaiNckh || !namHoc) return;
+        const groupKey = `${loaiNckh}|${namHoc}`;
+        if (!duplicateGroups.has(groupKey)) duplicateGroups.set(groupKey, { loaiNckh, namHoc, maSo: [] });
+        duplicateGroups.get(groupKey).maSo.push(maSo);
+      });
+      for (const [groupKey, group] of duplicateGroups) {
+        const existing = await importRepo.findExistingMaSo(connection, group.maSo, group.loaiNckh, group.namHoc);
+        duplicateMaSoByType.set(groupKey, new Set(existing));
       }
     } finally {
       if (connection) connection.release();
@@ -332,6 +376,7 @@ class ExcelImportStrategy extends NCKHImportStrategy {
       let matchedRule;
       let hasPhanLoaiOrCapNhiemVu = false;
 
+      const quyDinhMap = quyDinhMapByType.get(rec.chung.loaiNckh) || new Map();
       if (rec.chung.phanLoai) {
         hasPhanLoaiOrCapNhiemVu = true;
         const cleanPhanLoai = rec.chung.phanLoai.replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
@@ -382,7 +427,8 @@ class ExcelImportStrategy extends NCKHImportStrategy {
         fieldErrors.tongSoTiet = "Thiếu hoặc sai tổng số tiết";
       }
 
-      if (rec.chung.maSo && duplicateMaSoSet.has(rec.chung.maSo)) {
+      const duplicateGroup = `${rec.chung.loaiNckh}|${rec.chung.namHoc}`;
+      if (rec.chung.maSo && duplicateMaSoByType.get(duplicateGroup)?.has(rec.chung.maSo)) {
         status = "error";
         errors.push(`Mã số "${rec.chung.maSo}" đã tồn tại trong hệ thống`);
         fieldErrors.maSo = `Mã số "${rec.chung.maSo}" đã tồn tại trong hệ thống`;
@@ -583,6 +629,7 @@ class ExcelImportStrategy extends NCKHImportStrategy {
 
       return {
         rowIndex: rec._rowIndex,
+        sheetName: rec._sheetName,
         status,
         errors,
         warnings,
@@ -600,3 +647,6 @@ class ExcelImportStrategy extends NCKHImportStrategy {
 }
 
 module.exports = ExcelImportStrategy;
+module.exports.parseExcelBuffer = parseExcelBuffer;
+module.exports.getImportTypeFromSheetName = getImportTypeFromSheetName;
+module.exports.FULL_IMPORT_TYPE = FULL_IMPORT_TYPE;
