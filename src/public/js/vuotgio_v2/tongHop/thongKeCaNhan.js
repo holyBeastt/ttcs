@@ -5,6 +5,7 @@
 
 let globalData = []; // Biến toàn cục để lưu dữ liệu từ server
 let previewPdfObjectUrl = null;
+const isForecastStats = document.body.dataset.statisticsMode === 'du-kien';
 
 const REQUIRED_FIELDS = [
     "id_User",
@@ -93,7 +94,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (btnSwitchToKhoa) {
         btnSwitchToKhoa.addEventListener('click', () => {
             const namHoc = document.getElementById('namHocXem').value;
-            window.location.href = `/v2/vuotgio/thong-ke-khoa?namHoc=${encodeURIComponent(namHoc)}`;
+            const route = isForecastStats
+                ? '/v2/vuotgio/thong-ke-du-kien'
+                : '/v2/vuotgio/thong-ke-khoa';
+            window.location.href = `${route}?namHoc=${encodeURIComponent(namHoc)}`;
         });
     }
 
@@ -221,7 +225,9 @@ async function loadData() {
     try {
         Swal.showLoading();
 
-        const url = `/v2/vuotgio/tong-hop/giang-vien-snapshot?namHoc=${namHoc}&khoa=${khoa}`;
+        const url = isForecastStats
+            ? `/v2/vuotgio/tong-hop/giang-vien?namHoc=${encodeURIComponent(namHoc)}&khoa=${encodeURIComponent(khoa)}&detail=1&isDuKien=true`
+            : `/v2/vuotgio/tong-hop/giang-vien-snapshot?namHoc=${encodeURIComponent(namHoc)}&khoa=${encodeURIComponent(khoa)}`;
 
         console.info('[tongHopGV] loadData request', { namHoc, khoa, url });
         const response = await fetch(url);
@@ -549,8 +555,8 @@ function filterTable() {
 
 function openPersonalView(maGV, hoTen) {
     const namHoc = document.getElementById('namHocXem').value;
-    // Trang "Thống kê sau lưu" phải drill-down vào dữ liệu snapshot đã khóa
-    const url = `/v2/vuotgio/ca-nhan-sau-luu?idUser=${encodeURIComponent(maGV)}&namHoc=${encodeURIComponent(namHoc)}`;
+    const route = isForecastStats ? 'ca-nhan-du-kien' : 'ca-nhan-sau-luu';
+    const url = `/v2/vuotgio/${route}?idUser=${encodeURIComponent(maGV)}&namHoc=${encodeURIComponent(namHoc)}`;
     console.info('[vuotgio_v2.thongKeSauLuu] click', { giangVien: hoTen, maGV, namHoc, url });
     window.open(url, '_blank');
 }
@@ -567,13 +573,13 @@ async function previewExcel(maGV, hoTen) {
         namHoc,
         khoa,
         previewMode,
-        url: `/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}`
+        url: `/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${encodeURIComponent(namHoc)}&format=${previewMode}${isForecastStats ? '&isDuKien=true' : ''}`
     });
 
     Swal.showLoading();
 
     try {
-        const response = await fetch(`/v2/vuotgio/tong-hop/preview/${maGV}?namHoc=${namHoc}&format=${previewMode}`);
+        const response = await fetch(`/v2/vuotgio/tong-hop/preview/${encodeURIComponent(maGV)}?namHoc=${encodeURIComponent(namHoc)}&format=${previewMode}${isForecastStats ? '&isDuKien=true' : ''}`);
         const result = await response.json();
 
         console.info('[vuotgio_v2.preview] result from server:', result);

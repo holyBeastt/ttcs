@@ -1,40 +1,46 @@
 /**
  * VUOT GIO V2 - Thống Kê Service
- * Projection mỏng từ snapshot data (năm đã khóa) hoặc Collection SDO (chưa khóa).
- *
- * Luồng mới (post-snapshot):
- *   - Năm đã khóa → đọc từ vg_so_tiet_tong_hop (instant)
- *   - Năm chưa khóa → throw lỗi yêu cầu khóa trước
+ * Thống kê từ snapshot chính thức hoặc dữ liệu SDO dự kiến.
  */
 
 const snapshotDataService = require("./snapshotData.service");
+const tongHopService = require("./tongHop.service");
 const { NON_KHOA_GROUP_CODE } = require("../../repositories/vuotgio_v2/tongHop.repo");
 
 const NON_KHOA_GROUP_NAME = "Ban giám đốc & các phòng";
 
-const getThongKeKhoa = async (namHoc, khoaId) => {
-    // Nếu khoaId là ALL hoặc không có, chúng ta sẽ lấy toàn trường và nhóm theo Khoa
-    const isAll = !khoaId || khoaId === "ALL";
+const sumField = (rows, field) =>
+    rows.reduce((sum, row) => sum + (Number(row[field]) || 0), 0);
 
-    // Đọc từ snapshot (bắt buộc năm đã khóa, nếu chưa sẽ throw)
-    const sdoList = await snapshotDataService.getSnapshotSDOList(namHoc, isAll ? "ALL" : khoaId);
-    
+const getThongKeKhoa = async (namHoc, khoaId, isDuKien = false) => {
+    let sdoList;
+    let warnings = null;
+
+    if (isDuKien) {
+        const result = await tongHopService.getCollectionSDO(namHoc, khoaId, true);
+        sdoList = result.data || [];
+        warnings = result.warnings || null;
+    } else {
+        // Thống kê chính thức tiếp tục đọc snapshot và yêu cầu năm đã khóa.
+        sdoList = await snapshotDataService.getSnapshotSDOList(namHoc, khoaId);
+    }
+
+    const isAll = !khoaId || khoaId === "ALL";
+    let data;
+
     if (isAll) {
-        // Nhóm theo Khoa/Phòng
         const groupMap = new Map();
-        
-        sdoList.forEach(r => {
-            // Kiểm tra cả maKhoa (alias) và MaPhongBan (tên gốc trong DB)
-            const isNonKhoa = Number(r.isKhoa) === 0;
+
+        sdoList.forEach((row) => {
+            const isNonKhoa = Number(row.isKhoa) === 0;
             const unitCode = isNonKhoa
                 ? NON_KHOA_GROUP_CODE
-                : (r.maKhoa || r.MaPhongBan || "KHAC");
-            const key = unitCode;
-            
-            if (!groupMap.has(key)) {
-                groupMap.set(key, {
+                : (row.maKhoa || row.MaPhongBan || "KHAC");
+
+            if (!groupMap.has(unitCode)) {
+                groupMap.set(unitCode, {
                     maKhoa: unitCode,
-                    tenKhoa: isNonKhoa ? NON_KHOA_GROUP_NAME : (r.khoa || "Khác/Chưa xác định"),
+                    tenKhoa: isNonKhoa ? NON_KHOA_GROUP_NAME : (row.khoa || "Khác/Chưa xác định"),
                     tongSoGV: 0,
                     soTietGiangDay: 0,
                     soTietNgoaiQC: 0,
@@ -49,56 +55,39 @@ const getThongKeKhoa = async (namHoc, khoaId) => {
                     thieuNCKH: 0
                 });
             }
-            
-            const g = groupMap.get(key);
-            g.tongSoGV++;
-            g.soTietGiangDay += (r.soTietGiangDay || 0);
-            g.soTietNgoaiQC += (r.soTietNgoaiQC || 0);
-            g.soTietKTHP += (r.soTietKTHP || 0);
-            g.soTietDoAn += (r.soTietDoAn || 0);
-            g.soTietHDTQ += (r.soTietHDTQ || 0);
-            g.soTietNCKH += (r.soTietNCKH || 0);
-            g.tongThucHien += (r.tongThucHien || 0);
-            g.tongVuot += (r.tongVuot || 0);
-            g.thanhToan += (r.thanhToan || 0);
-            g.thieuTietGiangDay += (r.thieuTietGiangDay || 0);
-            g.thieuNCKH += (r.thieuNCKH || 0);
+
+            const group = groupMap.get(unitCode);
+            group.tongSoGV++;
+            [
+                "soTietGiangDay", "soTietNgoaiQC", "soTietKTHP", "soTietDoAn",
+                "soTietHDTQ", "soTietNCKH", "tongThucHien", "tongVuot",
+                "thanhToan", "thieuTietGiangDay", "thieuNCKH"
+            ].forEach((field) => {
+                group[field] += Number(row[field]) || 0;
+            });
         });
 
-        const dataByKhoa = Array.from(groupMap.values()).sort((a, b) => b.tongThucHien - a.tongThucHien);
-        
-        const summary = {
-            tongSoGV: sdoList.length,
-            tongSoKhoa: dataByKhoa.length,
-            tongThucHien: sdoList.reduce((s, r) => s + (r.tongThucHien || 0), 0),
-            tongVuot: sdoList.reduce((s, r) => s + (r.tongVuot || 0), 0),
-            tongThanhToan: sdoList.reduce((s, r) => s + (r.thanhToan || 0), 0),
-            ngayChot: sdoList.metadata?.ngay_chot,
-            nguoiChotId: sdoList.metadata?.nguoi_chot_id,
-            nguoiChotName: sdoList.metadata?.nguoi_chot_name
-        };
-
-        return {
-            data: dataByKhoa,
-            summary
-        };
+        data = Array.from(groupMap.values()).sort((a, b) => b.tongThucHien - a.tongThucHien);
     } else {
-        // Nếu đã chọn 1 khoa cụ thể, trả về danh sách GV của khoa đó
-        const summary = {
-            tongSoGV: sdoList.length,
-            tongThucHien: sdoList.reduce((s, r) => s + (r.tongThucHien || 0), 0),
-            tongVuot: sdoList.reduce((s, r) => s + (r.tongVuot || 0), 0),
-            tongThanhToan: sdoList.reduce((s, r) => s + (r.thanhToan || 0), 0),
-            ngayChot: sdoList.metadata?.ngay_chot,
-            nguoiChotId: sdoList.metadata?.nguoi_chot_id,
-            nguoiChotName: sdoList.metadata?.nguoi_chot_name
-        };
-
-        return {
-            data: sdoList,
-            summary
-        };
+        data = sdoList;
     }
+
+    const summary = {
+        tongSoGV: sdoList.length,
+        tongThucHien: sumField(sdoList, "tongThucHien"),
+        tongVuot: sumField(sdoList, "tongVuot"),
+        tongThanhToan: sumField(sdoList, "thanhToan")
+    };
+
+    if (isAll) summary.tongSoKhoa = data.length;
+
+    if (!isDuKien) {
+        summary.ngayChot = sdoList.metadata?.ngay_chot;
+        summary.nguoiChotId = sdoList.metadata?.nguoi_chot_id;
+        summary.nguoiChotName = sdoList.metadata?.nguoi_chot_name;
+    }
+
+    return { data, summary, ...(warnings ? { warnings } : {}) };
 };
 
 module.exports = {

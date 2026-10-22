@@ -108,6 +108,8 @@ router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPCont
 
 router.get("/tong-hop-giang-vien", baseController.getTongHopGV);
 router.get("/tai-chinh-duyet", baseController.getTaiChinhDuyet);
+router.get("/thong-ke-du-kien", baseController.getThongKeDuKien);
+router.get("/thong-ke-du-kien/ca-nhan", baseController.getThongKeCaNhanDuKien);
 router.get("/thong-ke-ca-nhan", baseController.getThongKeCaNhan);
 router.get("/ca-nhan", baseController.getVuotGioCaNhan); // Deprecated - redirects to du-kien
 router.get("/ca-nhan-du-kien", baseController.getVuotGioCaNhanDuKien);

@@ -26,6 +26,7 @@ let chartStacked = null;
 let currentTab   = 'all';
 let cachedData   = [];
 let previewPdfObjectUrl = null;
+const isForecastStats = document.body.dataset.statisticsMode === 'du-kien';
 
 /* ════════════════════════════════════════════
    Khởi tạo
@@ -109,8 +110,9 @@ async function loadData() {
   try {
     Swal.showLoading();
 
+    const forecastParam = isForecastStats ? '&isDuKien=true' : '';
     const response = await fetch(
-      `/v2/vuotgio/tong-hop/khoa?namHoc=${encodeURIComponent(namHoc)}`
+      `/v2/vuotgio/tong-hop/khoa?namHoc=${encodeURIComponent(namHoc)}${forecastParam}`
     );
     const result = await response.json();
     Swal.close();
@@ -135,7 +137,10 @@ async function loadData() {
     const snapshotInfo = document.getElementById('snapshotInfo');
     const snapshotDetails = document.getElementById('snapshotDetails');
     if (snapshotInfo && snapshotDetails) {
-      if (summary.ngayChot) {
+      if (isForecastStats) {
+        snapshotDetails.textContent = 'Tính trực tiếp từ dữ liệu dự kiến hiện tại; chưa chốt.';
+        snapshotInfo.style.display = 'block';
+      } else if (summary.ngayChot) {
         const d = new Date(summary.ngayChot);
         const timeStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
         const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -457,7 +462,10 @@ function renderCharts(data) {
 ════════════════════════════════════════════ */
 function viewDepartmentDetail(maKhoa) {
   const namHoc = document.getElementById('namHocXem')?.value || '';
-  window.location.href = `/v2/vuotgio/thong-ke-ca-nhan?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
+  const route = isForecastStats
+    ? '/v2/vuotgio/thong-ke-du-kien/ca-nhan'
+    : '/v2/vuotgio/thong-ke-ca-nhan';
+  window.location.href = `${route}?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
 }
 
 function previewDepartment(maKhoa, tenKhoa) {
@@ -470,7 +478,8 @@ function previewDepartment(maKhoa, tenKhoa) {
   const previewLabel = tenKhoa || decodeURIComponent(maKhoa || '');
   Swal.showLoading();
 
-  fetch(`/v2/vuotgio/tong-hop/preview-khoa/${maKhoa}?namHoc=${encodeURIComponent(namHoc)}`)
+  const forecastParam = isForecastStats ? '&isDuKien=true' : '';
+  fetch(`/v2/vuotgio/tong-hop/preview-khoa/${maKhoa}?namHoc=${encodeURIComponent(namHoc)}${forecastParam}`)
     .then((response) => response.json())
     .then((result) => {
       if (!result.success) {

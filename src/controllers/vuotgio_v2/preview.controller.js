@@ -24,14 +24,12 @@ const getPreviewData = async (req, res) => {
 
         const isLocked = await snapshotDataService.isYearLocked(namHoc);
 
-        if (isLocked) {
+        const explicitlyForecast = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
+        if (isLocked && !explicitlyForecast) {
             console.info('[getPreviewData]', { MaGV, namHoc, mode: 'snapshot' });
             sdo = await snapshotDataService.getSnapshotSDOByUser(namHoc, decodeURIComponent(MaGV));
         } else {
-            let isDuKienBool = true;
-            if (isDuKien !== undefined) {
-                isDuKienBool = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
-            }
+            const isDuKienBool = isDuKien === undefined ? true : explicitlyForecast;
             console.info('[getPreviewData]', { MaGV, namHoc, mode: 'live', isDuKien: isDuKienBool });
             sdo = await tongHopService.getAtomicSDO(namHoc, decodeURIComponent(MaGV), null, isDuKienBool);
         }
@@ -86,14 +84,12 @@ const getPreviewKhoaData = async (req, res) => {
         const isLocked = await snapshotDataService.isYearLocked(namHoc);
         let summaries;
 
-        if (isLocked) {
+        const explicitlyForecast = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
+        if (isLocked && !explicitlyForecast) {
             console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, mode: 'snapshot' });
             summaries = await snapshotDataService.getSnapshotSDOList(namHoc, khoaDecoded);
         } else {
-            let isDuKienBool = true;
-            if (isDuKien !== undefined) {
-                isDuKienBool = isDuKien === 'true' || isDuKien === '1' || isDuKien === true;
-            }
+            const isDuKienBool = isDuKien === undefined ? true : explicitlyForecast;
             console.info('[getPreviewKhoaData]', { khoa: khoaDecoded, namHoc, mode: 'live', isDuKien: isDuKienBool });
             summaries = await tongHopService.getCollectionSDODetail(namHoc, khoaDecoded, isDuKienBool);
         }

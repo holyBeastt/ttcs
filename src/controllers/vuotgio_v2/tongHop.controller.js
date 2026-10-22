@@ -44,11 +44,12 @@ const tongHopTheoGV = async (req, res) => {
  * API Tổng hợp vượt giờ theo Khoa (Thống kê)
  */
 const tongHopTheoKhoa = async (req, res) => {
-    const { namHoc, khoa } = req.query;
+    const { namHoc, khoa, isDuKien } = req.query;
     if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
 
     try {
-        const result = await thongKeService.getThongKeKhoa(namHoc, khoa);
+        const isDuKienBool = isDuKien === "true" || isDuKien === "1";
+        const result = await thongKeService.getThongKeKhoa(namHoc, khoa, isDuKienBool);
         res.json({ success: true, ...result });
     } catch (error) {
         console.error("Lỗi khi tổng hợp vượt giờ theo Khoa:", error);
