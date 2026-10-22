@@ -19,6 +19,13 @@
     async facultyRecords(id, namHoc) {
       return (await fetch(`${statsBase}/khoa/${encodeURIComponent(id)}/cong-trinh?${new URLSearchParams({ namHoc })}`)).json();
     },
+    async institute(namHoc) {
+      return (await fetch(`${statsBase}/hoc-vien?${new URLSearchParams({ namHoc })}`)).json();
+    },
+    async instituteRecords(namHoc, type) {
+      const query = new URLSearchParams({ namHoc, khoaId: "ALL", type });
+      return (await fetch(`${statsBase}/hoc-vien/cong-trinh?${query}`)).json();
+    },
   };
 
   const helpers = () => window.NCKH_V3_STATS.helpers;
@@ -71,6 +78,10 @@
   }
 
   function renderFacultyGroups(groups) {
+    if (isPreview) {
+      return renderGroups(groups);
+    }
+
     const colspan = 9;
     const typeMap = new Map();
     let index = 0;
@@ -143,8 +154,28 @@
       if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình theo khoa");
       return { label: `${row.maPhongBan || "-"} - ${row.tenPhongBan || "Chưa gán khoa"}`, records: recordsResult.data || [], totalHours: row.tongSoTiet };
     }));
-    setKpis("Khoa", summary.length, summary.reduce((total, row) => total + Number(row.tongSoTiet || 0), 0), "Tổng công trình", summary.reduce((total, row) => total + Number(row.soCongTrinh || 0), 0));
+    setKpis(isPreview ? "Khoa / phòng" : "Khoa", summary.length, summary.reduce((total, row) => total + Number(row.tongSoTiet || 0), 0), "Tổng công trình", summary.reduce((total, row) => total + Number(row.soCongTrinh || 0), 0));
     el.content.innerHTML = renderFacultyGroups(groups);
+  }
+
+  async function loadInstitute(namHoc) {
+    const result = await api.institute(namHoc);
+    if (!result.success) throw new Error(result.message || "Không thể lấy thống kê học viện");
+
+    const summary = result.data || {};
+    const groups = await Promise.all((summary.byType || []).map(async (row) => {
+      const recordsResult = await api.instituteRecords(namHoc, row.typeSlug || "ALL");
+      if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình theo loại NCKH");
+      return {
+        label: row.loaiNckhLabel || row.loaiNckh || "N/A",
+        records: recordsResult.data || [],
+        totalHours: row.tongSoTiet,
+      };
+    }));
+
+    const overview = summary.overview || {};
+    setKpis("Loại NCKH", groups.length, overview.tongSoTiet, "Tổng công trình", overview.tongCongTrinh);
+    el.content.innerHTML = renderGroups(groups);
   }
 
   async function loadCurrent() {
@@ -152,12 +183,13 @@
     if (!namHoc) throw new Error("Vui lòng chọn năm học");
     el.content.innerHTML = '<div class="stats-empty"><div class="empty-text">Đang tải dữ liệu...</div></div>';
     if (state.tab === "lecturer") return loadLecturers(namHoc);
-    return loadFaculties(namHoc);
+    if (state.tab === "faculty") return loadFaculties(namHoc);
+    return loadInstitute(namHoc);
   }
 
   function updateControls() {
     const lecturer = state.tab === "lecturer";
-    el.khoaGroup.style.display = "";
+    el.khoaGroup.style.display = state.tab === "institute" ? "none" : "";
     el.keywordGroup.style.display = lecturer ? "" : "none";
   }
 
@@ -169,6 +201,8 @@
       window.location.href = `${exportBase}/giang-vien?${query}`;
     } else if (state.tab === "faculty") {
       window.location.href = `${exportBase}/khoa?${new URLSearchParams({ namHoc, khoaId: el.khoa.value || "ALL" })}`;
+    } else if (state.tab === "institute") {
+      window.location.href = `${exportBase}/hoc-vien?${new URLSearchParams({ namHoc })}`;
     }
   }
 

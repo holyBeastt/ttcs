@@ -388,6 +388,21 @@
   font-weight: 600;
 }
 
+.nckh-preview-stats .nckh-stats-group-header .nckh-v3-group-count {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  padding: 4px 10px;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--stats-primary-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .nckh-stats-subgroup-header .nckh-v3-group-count {
   display: inline-block;
   margin-left: 18px;

@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="/css/nckh_v3_stats.css" />
 </head>
 
-<body>
+<body class="<%= statsScope === 'PREVIEW' ? 'nckh-preview-stats' : '' %>">
   <%- include('../header') %>
 
   <div class="stats-wrap">
@@ -27,6 +27,7 @@
       <nav class="stats-nav" aria-label="Các loại thống kê NCKH">
         <button type="button" class="nav-pill active" data-stat-tab="lecturer"><i class="bi bi-person"></i> Theo giảng viên</button>
         <button type="button" class="nav-pill" data-stat-tab="faculty"><i class="bi bi-building"></i> Theo khoa/phòng</button>
+        <button type="button" class="nav-pill" data-stat-tab="institute"><i class="bi bi-bank"></i> Theo học viện</button>
       </nav>
     </div>
 
