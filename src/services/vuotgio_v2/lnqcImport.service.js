@@ -17,6 +17,59 @@ const calculateQc = (llTotal, bonusTime, studentBonus) => Number(
     (Number(studentBonus) || 0)).toFixed(2)
 );
 
+function trimSheetRangeToPopulatedCells(sheet) {
+  let originalRange = null;
+  if (sheet["!ref"]) {
+    try {
+      originalRange = XLSX.utils.decode_range(sheet["!ref"]);
+    } catch (error) {
+      originalRange = null;
+    }
+  }
+
+  let minRow = Infinity;
+  let minColumn = Infinity;
+  let maxRow = -1;
+  let maxColumn = -1;
+
+  for (const address of Object.keys(sheet)) {
+    if (address.startsWith("!")) continue;
+
+    const cell = sheet[address];
+    if (!cell || ((cell.v === undefined || cell.v === null) && cell.f === undefined)) continue;
+
+    let position;
+    try {
+      position = XLSX.utils.decode_cell(address);
+    } catch (error) {
+      continue;
+    }
+
+    minRow = Math.min(minRow, position.r);
+    minColumn = Math.min(minColumn, position.c);
+    maxRow = Math.max(maxRow, position.r);
+    maxColumn = Math.max(maxColumn, position.c);
+  }
+
+  if (maxRow < 0) return null;
+
+  const range = {
+    s: {
+      r: Math.min(originalRange?.s.r ?? minRow, minRow),
+      c: Math.min(originalRange?.s.c ?? minColumn, minColumn),
+    },
+    e: {
+      r: Math.max(originalRange?.s.r ?? maxRow, maxRow),
+      c: Math.max(originalRange?.s.c ?? maxColumn, maxColumn),
+    },
+  };
+
+  // Some Excel files retain formatting far below/right of their real data.
+  // Keep the parsed worksheet bounds in memory aligned with populated cells.
+  sheet["!ref"] = XLSX.utils.encode_range(range);
+  return range;
+}
+
 function getFirstParenthesesContent(str) {
   const match = String(str || "").match(/\(([^)]+)\)/);
   return match ? match[1] : null;
@@ -43,14 +96,18 @@ function getHeDaoTao(classType, heDaoTaoArr) {
   };
 }
 
-function findHeaderRow(sheet) {
-  const range = XLSX.utils.decode_range(sheet["!ref"]);
+function findHeaderRow(sheet, range) {
   const requiredColumns = ["TT", "Số TC", "Lớp học phần", "Giáo Viên"];
 
-  for (let row = 0; row <= Math.min(range.e.r, 10); row += 1) {
+  const firstRow = range.s.r;
+  const lastHeaderRow = Math.min(range.e.r, firstRow + 10);
+  for (let row = firstRow; row <= lastHeaderRow; row += 1) {
     const rowData = XLSX.utils.sheet_to_json(sheet, {
       header: 1,
-      range: row,
+      range: {
+        s: { r: row, c: range.s.c },
+        e: { r: row, c: range.e.c },
+      },
     })[0] || [];
 
     const rowText = rowData.map((cell) => (cell || "").toString().trim());
@@ -143,12 +200,21 @@ const parseExcel = async (req, res) => {
 
     workbook.SheetNames.forEach((sheetName) => {
       const sheet = workbook.Sheets[sheetName];
-      const headerRowIndex = findHeaderRow(sheet);
+      const sheetRange = trimSheetRangeToPopulatedCells(sheet);
+      if (!sheetRange) {
+        console.log(`[LopNgoaiQC Import] Bỏ qua sheet rỗng "${sheetName}"`);
+        return;
+      }
+
+      const headerRowIndex = findHeaderRow(sheet, sheetRange);
       const dataStartIndex = headerRowIndex + 1;
 
       const headerRow = XLSX.utils.sheet_to_json(sheet, {
         header: 1,
-        range: headerRowIndex,
+        range: {
+          s: { r: headerRowIndex, c: sheetRange.s.c },
+          e: { r: headerRowIndex, c: sheetRange.e.c },
+        },
       })[0] || [];
 
       const validHeaders = headerRow.map((header) => (header || "").toString().trim());
@@ -160,7 +226,10 @@ const parseExcel = async (req, res) => {
 
       const rawRows = XLSX.utils.sheet_to_json(sheet, {
         header: normalizedHeaders,
-        range: dataStartIndex,
+        range: {
+          s: { r: dataStartIndex, c: sheetRange.s.c },
+          e: sheetRange.e,
+        },
         defval: "",
         raw: false,
         cellText: true,

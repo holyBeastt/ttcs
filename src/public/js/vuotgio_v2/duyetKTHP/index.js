@@ -861,6 +861,9 @@ async function handleEditSubmit() {
     const formData = {
         activityType: currentRecord.activityType,
         employeeId: document.getElementById('editGiangVien').value,
+        // The lock check must use the source record's academic year. The edited
+        // year remains in academicYear for the mapper to save the requested value.
+        NamHoc: currentRecord.namhoc,
         academicYear: document.getElementById('editNamHoc').value,
         semester: document.getElementById('editHocKy').value,
         round: document.getElementById('editDot').value,

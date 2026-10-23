@@ -194,8 +194,7 @@ class ExportService {
 
   /**
    * Export institute statistics to Excel.
-   * Sheet 1: All records grouped by Type.
-   * Following sheets: Each faculty's records.
+   * Only institute-wide sheets are included for both official and preview scopes.
    */
   async exportInstituteStats(namHoc, scope) {
     let connection;
@@ -216,20 +215,6 @@ class ExportService {
         groupByType: true,
         useFormulas: true,
       });
-
-      if (scope !== STATS_SCOPE.PREVIEW) {
-        // 2. Following sheets: Individual Faculties
-        const faculties = await statsService.getFilters().then(f => f.khoaList);
-        for (const faculty of faculties) {
-          const records = await statsService.getFacultyRecords(namHoc, faculty.id, scope);
-          if (!records || records.length === 0) continue;
-
-          const sheetName = this._safeSheetName(faculty.TenPhongBan);
-          const worksheet = workbook.addWorksheet(sheetName);
-          this._renderHeader(worksheet, `CHI TIẾT: ${faculty.TenPhongBan}`, namHoc);
-          this._renderResearchTable(worksheet, records, 5, { groupByType: true, useFormulas: true });
-        }
-      }
 
       return workbook;
     } finally {

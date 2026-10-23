@@ -1167,10 +1167,44 @@
 
         const data = await response.json();
 
+        const resultContent = document.createElement('div');
+        const summary = document.createElement('p');
+        summary.textContent = data.message || 'Hoàn tất lưu dữ liệu.';
+        resultContent.appendChild(summary);
+
+        const skippedRows = data.duplicateSkippedRows || [];
+        if (skippedRows.length) {
+          const heading = document.createElement('p');
+          heading.textContent = 'Các dòng bị bỏ qua:';
+          resultContent.appendChild(heading);
+
+          const list = document.createElement('ul');
+          skippedRows.slice(0, 50).forEach((row) => {
+            const item = document.createElement('li');
+            item.textContent = [
+              row.loai,
+              row.giangVien && `Giảng viên: ${row.giangVien}`,
+              row.hocPhan && `Học phần: ${row.hocPhan}`,
+              row.lop && `Lớp: ${row.lop}`,
+              row.khoa && `Khoa: ${row.khoa}`,
+              row.namHoc && `Năm học: ${row.namHoc}`,
+              row.kiHoc && `Kỳ: ${row.kiHoc}`,
+            ].filter(Boolean).join(' | ');
+            list.appendChild(item);
+          });
+          resultContent.appendChild(list);
+
+          if (skippedRows.length > 50) {
+            const more = document.createElement('p');
+            more.textContent = `Còn ${skippedRows.length - 50} dòng; xem phản hồi API để lấy danh sách đầy đủ.`;
+            resultContent.appendChild(more);
+          }
+        }
+
         // Hiển thị thông báo theo message từ server
         Swal.fire({
           title: 'Thông báo',
-          html: data.message,
+          html: resultContent,
           icon: 'success',
           confirmButtonText: 'OK',
           width: 'auto', // Tự động điều chỉnh chiều rộng

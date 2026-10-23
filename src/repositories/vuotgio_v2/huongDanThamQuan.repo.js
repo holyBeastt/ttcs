@@ -47,9 +47,9 @@ const getTable = async (connection, { namHoc, dot, kiHoc, khoa, heDaoTao }) => {
     return rows;
 };
 
-const getById = async (connection, id) => {
+const getById = async (connection, id, forUpdate = false) => {
     const [rows] = await connection.execute(
-        `SELECT * FROM vg_huong_dan_tham_quan_thuc_te WHERE id = ?`,
+        `SELECT * FROM vg_huong_dan_tham_quan_thuc_te WHERE id = ?${forUpdate ? " FOR UPDATE" : ""}`,
         [id]
     );
     return rows[0] || null;

@@ -84,7 +84,7 @@ const adminMoiGiangCoreInfoRoute = require("./routes/adminMoiGiangCoreInfoRoute"
 
 const app = express();
 const port = process.env.PORT || 8888;
-const hostname = process.env.HOST_NAME;
+const hostname = process.env.HOST_NAME || '0.0.0.0';
 
 // Gọi middleware lấy roles và departments
 app.use(constantsMiddleware);
@@ -257,8 +257,11 @@ app.use("/api/mobile/v1", refreshTokenRoute);
 app.use("/api/mobile/v1", mobileProfileRoute);
 app.use("/api/mobile/v1/reports", mobileReportingRoute);
 
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, hostname, () => {
   console.log(`Server running on http://${hostname}:${port}`);
+  if (typeof process.send === 'function') {
+    process.send({ type: 'ttcs-server-ready', host: hostname, port: Number(port) });
+  }
 });
 
 // Phục vụ các file tĩnh từ thư mục node_modules
