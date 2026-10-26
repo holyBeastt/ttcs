@@ -137,7 +137,7 @@ module.exports = {
     giangday: {
         type: 'business',
         description: 'Phân công giảng dạy',
-        uniqueKey: ['Dot', 'HocKy', 'NamHoc', 'TenHocPhan', 'Lop'],
+        uniqueKey: ['Dot', 'HocKy', 'NamHoc', 'TenHocPhan', 'Lop', 'id_User', 'id_Gvm'],
         exportQuery: `
             SELECT g.*, 
                    t.TenDangNhap as tendangnhap_sync, 

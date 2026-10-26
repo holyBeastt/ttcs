@@ -878,9 +878,9 @@ const importTableQC = async (jsonData, req) => {
       const dupMsg = duplicateCourseName
         ? ` (Tại lớp học phần: ${duplicateCourseName})`
         : "";
-      
+
       const messageDetail = `Dữ liệu bị trùng lặp trong bảng quy chuẩn${dupMsg}. Giá trị bị trùng: "${dupValue}". Vui lòng chỉnh sửa lại: Trong cùng một đợt, kì, năm thì tên lớp (bao gồm Tên học phần + tên lớp) phải khác nhau.`;
-      
+
       console.error("======================================");
       console.error("🚨 [LỖI TRÙNG DỮ LIỆU BAN HÀNH] 🚨");
       console.error("Nguyên nhân: Bản ghi đang ban hành đã bị trùng khóa duy nhất trong database.");
@@ -2539,7 +2539,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray, connection) => {
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
         AND qc.MoiGiang = 1 AND gv.isQuanDoi != 1 AND qc.he_dao_tao in (select id from he_dao_tao where cap_do = 1)
     GROUP BY
-        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        gv.MaPhongBan, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
         gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
         gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh;
@@ -2808,7 +2808,7 @@ const insertGiangDay2 = async (
   `;
 
   const value = [dot, ki, namHoc];
-  
+
   try {
     const [quychuanRows] = await connection.query(query, value);
 
@@ -2868,7 +2868,7 @@ WHERE
     AND gv.isQuanDoi != 1
     AND qc.he_dao_tao in (select id from he_dao_tao where cap_do > 1)  
 GROUP BY
-    qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+    gv.MaPhongBan, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
     gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
     gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
     gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh;
@@ -3054,19 +3054,19 @@ const submitData2 = async (req, res) => {
     });
   } catch (error) {
     if (connection) await connection.rollback();
-    
+
     console.error("Lỗi trong submitData2:", error);
 
     if (error.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({
-            success: false,
-            message: `Thất bại: Phát hiện trùng lặp dữ liệu lớp học.<br>Chi tiết kỹ thuật: ${error.sqlMessage}`
-        });
+      return res.status(400).json({
+        success: false,
+        message: `Thất bại: Phát hiện trùng lặp dữ liệu lớp học.<br>Chi tiết kỹ thuật: ${error.sqlMessage}`
+      });
     }
 
-    return res.status(500).json({ 
-        success: false, 
-        message: `Lỗi hệ thống trong quá trình lưu.<br>Chi tiết kỹ thuật: ${error.message || error.sqlMessage || error.toString()}` 
+    return res.status(500).json({
+      success: false,
+      message: `Lỗi hệ thống trong quá trình lưu.<br>Chi tiết kỹ thuật: ${error.message || error.sqlMessage || error.toString()}`
     });
   } finally {
     if (connection) connection.release();
