@@ -2523,7 +2523,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray, connection) => {
   // Lưu hệ mật mã
   const query2 = `
     SELECT
-        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
         gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
         gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh AS MaBoMon,
@@ -2868,7 +2868,7 @@ WHERE
     AND gv.isQuanDoi != 1
     AND qc.he_dao_tao in (select id from he_dao_tao where cap_do > 1)  
 GROUP BY
-    gv.MaPhongBan, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+    qc.Khoa, gv.MaPhongBan, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
     gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
     gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
     gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh;
