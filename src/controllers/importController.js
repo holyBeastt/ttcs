@@ -2521,6 +2521,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray, connection) => {
   // Lưu hệ đóng học phí
 
   // Lưu hệ mật mã
+  const khoaPlaceholders = daDuyetHetArray.map(() => '?').join(', ');
   const query2 = `
     SELECT
         qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
@@ -2536,8 +2537,10 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray, connection) => {
     JOIN
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
-        AND qc.MoiGiang = 1 AND gv.isQuanDoi != 1 AND qc.he_dao_tao in (select id from he_dao_tao where cap_do = 1)
+        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ?
+        AND qc.MoiGiang = 1 AND gv.isQuanDoi != 1
+        AND qc.he_dao_tao IN (SELECT id FROM he_dao_tao WHERE cap_do = 1)
+        AND qc.Khoa IN (${khoaPlaceholders})
     GROUP BY
         gv.MaPhongBan, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
@@ -2545,7 +2548,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray, connection) => {
         gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh;
     `;
 
-  const value = [dot, ki, namHoc];
+  const value = [dot, ki, namHoc, ...daDuyetHetArray];
 
   try {
     const [dataJoin] = await connection.query(query2, value);
@@ -2566,9 +2569,8 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray, connection) => {
         .filter(
           (item) =>
             item.TaiChinhDuyet != 0 &&
-            item.DaLuu == 0 &&
-            daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
-        ) // Loại bỏ các mục có TaiChinhDuyet = 0
+            item.DaLuu == 0
+        ) // Loại bỏ các mục có TaiChinhDuyet = 0 (Khoa đã được filter ở SQL WHERE)
         .map(async (item) => {
           const {
             id_Gvm,
