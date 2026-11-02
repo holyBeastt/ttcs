@@ -4,18 +4,47 @@ const exportRepo = require("../../repositories/nckh_v3/export.repo");
 const statsService = require("./stats.service");
 const { STATS_SCOPE } = require("../../config/nckh_v3/statsScope");
 
+const resolveExportYearFilter = (namHoc, options = {}) => {
+  const hasRange = Boolean(String(options.namHocFrom || "").trim() || String(options.namHocTo || "").trim());
+  const yearRange = hasRange
+    ? {
+        namHocFrom: String(options.namHocFrom || "").trim(),
+        namHocTo: String(options.namHocTo || "").trim(),
+      }
+    : null;
+  const resolved = statsService.resolveNamHocFilter(namHoc, yearRange);
+  return {
+    ...resolved,
+    yearRange,
+    label: yearRange ? `Từ ${yearRange.namHocFrom} đến ${yearRange.namHocTo}` : resolved.namHoc,
+    hasRange: Boolean(resolved.fromYear && resolved.toYear),
+  };
+};
+
 class ExportService {
   /**
    * Export lecturer statistics to Excel.
    * Each lecturer gets one flat table and a total of their credited hours.
    */
-  async exportLecturerStats(namHoc, khoaId, keyword, scope) {
+  async exportLecturerStats(namHoc, khoaId, keyword, scope, options = {}) {
     let connection;
     try {
       connection = await createPoolConnection();
+      const yearFilter = resolveExportYearFilter(namHoc, options);
+      const lecturerId = String(options.lecturerId || "").trim() || null;
+      if (lecturerId && (!Number.isInteger(Number(lecturerId)) || Number(lecturerId) <= 0)) {
+        throw new Error("lecturerId không hợp lệ");
+      }
       
       // 1. Get filtered list of lecturers
-      const lecturers = await statsService.getLecturerSummary(namHoc, khoaId, keyword, scope);
+      const lecturers = await statsService.getLecturerSummary(
+        yearFilter.namHoc,
+        lecturerId ? "ALL" : khoaId,
+        lecturerId ? "" : keyword,
+        scope,
+        lecturerId,
+        yearFilter.yearRange
+      );
       if (!lecturers.length) {
         throw new Error("Không có dữ liệu để xuất");
       }
@@ -36,13 +65,13 @@ class ExportService {
         const worksheet = workbook.addWorksheet(safeName);
 
         // Header info
-        worksheet.mergeCells("A1:I1");
+        worksheet.mergeCells("A1:J1");
         const titleCell = worksheet.getCell("A1");
-        titleCell.value = `THỐNG KÊ CHI TIẾT NGHIÊN CỨU KHOA HỌC - NĂM HỌC ${namHoc}`;
+        titleCell.value = `THỐNG KÊ CHI TIẾT NGHIÊN CỨU KHOA HỌC - NĂM HỌC ${yearFilter.label}`;
         titleCell.font = { size: 14, bold: true };
         titleCell.alignment = { horizontal: "center" };
 
-        worksheet.mergeCells("A2:I2");
+        worksheet.mergeCells("A2:J2");
         const lecturerInfoCell = worksheet.getCell("A2");
         lecturerInfoCell.value = `Giảng viên: ${lecturer.tenNhanVien} - Khoa: ${lecturer.lecturerKhoaName || "N/A"}`;
         lecturerInfoCell.font = { size: 12, italic: true };
@@ -51,10 +80,16 @@ class ExportService {
         worksheet.addRow([]); // Blank row
 
         // Get records for this lecturer
-        const records = await statsService.getLecturerRecords(lecturer.lecturerId, namHoc, scope);
+        const records = await statsService.getLecturerRecords(
+          lecturer.lecturerId,
+          yearFilter.namHoc,
+          scope,
+          yearFilter.yearRange
+        );
         
         const headerRow = worksheet.addRow([
           "STT",
+          "Năm học",
           "Loại NCKH",
           "Phân loại",
           "Tên công trình",
@@ -79,6 +114,7 @@ class ExportService {
         records.forEach((rec, index) => {
           const dataRow = worksheet.addRow([
             index + 1,
+            rec.namHoc,
             rec.loaiNckhLabel || rec.loaiNckh,
             rec.phanLoai,
             rec.tenCongTrinh,
@@ -96,11 +132,11 @@ class ExportService {
               right: { style: "thin" },
             };
             cell.alignment = {
-              horizontal: [1, 6, 7].includes(colNumber) ? "center" : "left",
+              horizontal: [1, 2, 7, 8].includes(colNumber) ? "center" : "left",
               vertical: "middle",
               wrapText: true,
             };
-            if ([6, 7].includes(colNumber)) cell.numFmt = "#,##0.00";
+            if ([7, 8].includes(colNumber)) cell.numFmt = "#,##0.00";
           });
         });
 
@@ -108,11 +144,11 @@ class ExportService {
         const firstDataRow = headerRow.number + 1;
         const lastDataRow = worksheet.rowCount;
         const lecturerHoursCell = {
-          formula: records.length ? `SUM(F${firstDataRow}:F${lastDataRow})` : "0",
+          formula: records.length ? `SUM(G${firstDataRow}:G${lastDataRow})` : "0",
           result: totalLecturerHours,
         };
-        const totalRow = worksheet.addRow(["TỔNG TIẾT CỦA GIẢNG VIÊN", "", "", "", "", lecturerHoursCell, "", "", ""]);
-        worksheet.mergeCells(`A${totalRow.number}:E${totalRow.number}`);
+        const totalRow = worksheet.addRow(["TỔNG TIẾT CỦA GIẢNG VIÊN", "", "", "", "", "", lecturerHoursCell, "", "", ""]);
+        worksheet.mergeCells(`A${totalRow.number}:F${totalRow.number}`);
         totalRow.font = { bold: true };
         totalRow.eachCell((cell, colNumber) => {
           cell.border = {
@@ -122,19 +158,20 @@ class ExportService {
             right: { style: "thin" },
           };
           cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
-          cell.alignment = { horizontal: colNumber === 6 ? "center" : "left", vertical: "middle" };
-          if (colNumber === 6) cell.numFmt = "#,##0.00";
+          cell.alignment = { horizontal: colNumber === 7 ? "center" : "left", vertical: "middle" };
+          if (colNumber === 7) cell.numFmt = "#,##0.00";
         });
 
         worksheet.views = [{ state: "frozen", ySplit: headerRow.number }];
         worksheet.autoFilter = {
           from: { row: headerRow.number, column: 1 },
-          to: { row: Math.max(headerRow.number, totalRow.number - 1), column: 9 },
+          to: { row: Math.max(headerRow.number, totalRow.number - 1), column: 10 },
         };
 
         // Auto-fit columns
         worksheet.columns = [
           { width: 5 },  // STT
+          { width: 16 }, // Năm học
           { width: 22 }, // Loại NCKH
           { width: 24 }, // Phân loại
           { width: 50 }, // Tên công trình
@@ -156,10 +193,11 @@ class ExportService {
    * Export faculty statistics to Excel.
    * If khoaId is 'ALL', create a sheet for each department.
    */
-  async exportFacultyStats(namHoc, khoaId, scope) {
+  async exportFacultyStats(namHoc, khoaId, scope, options = {}) {
     let connection;
     try {
       connection = await createPoolConnection();
+      const yearFilter = resolveExportYearFilter(namHoc, options);
       const workbook = this._createWorkbook();
       workbook.calcProperties.fullCalcOnLoad = true;
 
@@ -169,16 +207,27 @@ class ExportService {
       }
 
       for (const faculty of faculties) {
-        const records = await statsService.getFacultyRecords(namHoc, faculty.id || faculty.khoaId, scope);
+        const records = await statsService.getFacultyRecords(
+          yearFilter.namHoc,
+          faculty.id || faculty.khoaId,
+          scope,
+          yearFilter.yearRange
+        );
         if (faculties.length > 1 && (!records || records.length === 0)) continue;
 
         const sheetName = this._safeSheetName(faculty.TenPhongBan || faculty.tenPhongBan || "Khoa");
         const worksheet = workbook.addWorksheet(sheetName);
 
-        this._renderHeader(worksheet, `THỐNG KÊ NCKH - KHOA/PHÒNG: ${faculty.TenPhongBan || faculty.tenPhongBan}`, namHoc);
+        this._renderHeader(
+          worksheet,
+          `THỐNG KÊ NCKH - KHOA/PHÒNG: ${faculty.TenPhongBan || faculty.tenPhongBan}`,
+          yearFilter.label,
+          yearFilter.hasRange ? 8 : 7
+        );
         this._renderResearchTable(worksheet, records, 5, {
           groupByType: scope !== STATS_SCOPE.PREVIEW,
           useFormulas: true,
+          includeNamHoc: yearFilter.hasRange,
         });
       }
 
@@ -196,24 +245,32 @@ class ExportService {
    * Export institute statistics to Excel.
    * Only institute-wide sheets are included for both official and preview scopes.
    */
-  async exportInstituteStats(namHoc, scope) {
+  async exportInstituteStats(namHoc, scope, options = {}) {
     let connection;
     try {
       connection = await createPoolConnection();
+      const yearFilter = resolveExportYearFilter(namHoc, options);
       const workbook = this._createWorkbook();
       workbook.calcProperties.fullCalcOnLoad = true;
 
-      const instituteSummary = await statsService.getInstituteSummary(namHoc, scope);
+      const instituteSummary = await statsService.getInstituteSummary(yearFilter.namHoc, scope, yearFilter.yearRange);
       const totalSheet = workbook.addWorksheet("Tổng Học viện");
-      this._renderInstituteSummary(totalSheet, instituteSummary, namHoc, true);
+      this._renderInstituteSummary(totalSheet, instituteSummary, yearFilter.label, true);
 
       // 1. Sheet 1: Toàn Học viện
-      const instituteRecords = await statsService.getInstituteRecords(namHoc, "ALL", "ALL", scope);
+      const instituteRecords = await statsService.getInstituteRecords(
+        yearFilter.namHoc,
+        "ALL",
+        "ALL",
+        scope,
+        yearFilter.yearRange
+      );
       const overviewSheet = workbook.addWorksheet("Toàn Học viện");
-      this._renderHeader(overviewSheet, "THỐNG KÊ TOÀN HỌC VIỆN", namHoc);
+      this._renderHeader(overviewSheet, "THỐNG KÊ TOÀN HỌC VIỆN", yearFilter.label, yearFilter.hasRange ? 8 : 7);
       this._renderResearchTable(overviewSheet, instituteRecords, 5, {
         groupByType: true,
         useFormulas: true,
+        includeNamHoc: yearFilter.hasRange,
       });
 
       return workbook;
@@ -237,14 +294,15 @@ class ExportService {
       .substring(0, 31);
   }
 
-  _renderHeader(worksheet, title, namHoc) {
-    worksheet.mergeCells("A1:G1");
+  _renderHeader(worksheet, title, namHoc, columnCount = 7) {
+    const endColumn = this._excelColumnName(columnCount);
+    worksheet.mergeCells(`A1:${endColumn}1`);
     const tCell = worksheet.getCell("A1");
     tCell.value = title;
     tCell.font = { size: 14, bold: true };
     tCell.alignment = { horizontal: "center" };
 
-    worksheet.mergeCells("A2:G2");
+    worksheet.mergeCells(`A2:${endColumn}2`);
     const sCell = worksheet.getCell("A2");
     sCell.value = `Năm học: ${namHoc}`;
     sCell.font = { size: 12, italic: true };
@@ -336,12 +394,26 @@ class ExportService {
     worksheet.views = [{ state: "frozen", ySplit: headerRow.number }];
   }
 
+  _excelColumnName(columnNumber) {
+    let number = Number(columnNumber);
+    let result = "";
+    while (number > 0) {
+      const remainder = (number - 1) % 26;
+      result = String.fromCharCode(65 + remainder) + result;
+      number = Math.floor((number - 1) / 26);
+    }
+    return result || "A";
+  }
+
   _renderResearchTable(worksheet, records, startRow, options = {}) {
     let currentRow = startRow;
+    const includeNamHoc = options.includeNamHoc === true;
+    const columnCount = includeNamHoc ? 8 : 7;
+    const endColumn = this._excelColumnName(columnCount);
 
     const renderBlock = (rows, title = null) => {
       if (title) {
-        worksheet.mergeCells(`A${currentRow}:G${currentRow}`);
+        worksheet.mergeCells(`A${currentRow}:${endColumn}${currentRow}`);
         const groupCell = worksheet.getCell(`A${currentRow}`);
         groupCell.value = title;
         groupCell.font = { bold: true };
@@ -349,7 +421,9 @@ class ExportService {
         currentRow++;
       }
 
-      const headerRow = worksheet.addRow(["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"]);
+      const headerRow = worksheet.addRow(includeNamHoc
+        ? ["STT", "Năm học", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"]
+        : ["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"]);
       headerRow.font = { bold: true };
       headerRow.eachCell(cell => {
         cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
@@ -359,24 +433,35 @@ class ExportService {
       currentRow++;
 
       rows.forEach((rec, idx) => {
-        const dataRow = worksheet.addRow([
-          idx + 1,
-          rec.loaiNckhLabel,
-          rec.phanLoai,
-          rec.tenCongTrinh,
-          rec.tongSoTietCongTrinh, // Sửa từ tongSoTiet thành tongSoTietCongTrinh
-          rec.tacGiaChinh,
-          rec.thanhVien
-        ]);
+        const dataRow = worksheet.addRow(includeNamHoc
+          ? [
+              idx + 1,
+              rec.namHoc,
+              rec.loaiNckhLabel,
+              rec.phanLoai,
+              rec.tenCongTrinh,
+              rec.tongSoTietCongTrinh,
+              rec.tacGiaChinh,
+              rec.thanhVien,
+            ]
+          : [
+              idx + 1,
+              rec.loaiNckhLabel,
+              rec.phanLoai,
+              rec.tenCongTrinh,
+              rec.tongSoTietCongTrinh,
+              rec.tacGiaChinh,
+              rec.thanhVien,
+            ]);
         dataRow.eachCell((cell, colNumber) => {
           cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
-          if (colNumber === 1 || colNumber === 5) {
+          if (colNumber === 1 || colNumber === (includeNamHoc ? 6 : 5)) {
             cell.alignment = { horizontal: "center" };
           } else {
             cell.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
           }
 
-          if (colNumber === 5) {
+          if (colNumber === (includeNamHoc ? 6 : 5)) {
             cell.numFmt = "#,##0.00";
           }
         });
@@ -386,25 +471,22 @@ class ExportService {
       const totalHours = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
       const totalHoursCell = options.useFormulas
         ? {
-            formula: rows.length ? `SUM(E${headerRow.number + 1}:E${worksheet.rowCount})` : "0",
+            formula: rows.length
+              ? `SUM(${includeNamHoc ? "F" : "E"}${headerRow.number + 1}:${includeNamHoc ? "F" : "E"}${worksheet.rowCount})`
+              : "0",
             result: totalHours,
           }
         : totalHours;
-      const totalRow = worksheet.addRow([
-        "",
-        "",
-        "",
-        `Tổng nhóm (${rows.length} công trình)`,
-        totalHoursCell,
-        "",
-        "",
-      ]);
+      const totalRow = worksheet.addRow(includeNamHoc
+        ? ["", "", "", "", `Tổng nhóm (${rows.length} công trình)`, totalHoursCell, "", ""]
+        : ["", "", "", `Tổng nhóm (${rows.length} công trình)`, totalHoursCell, "", ""]);
       totalRow.font = { bold: true };
       totalRow.eachCell((cell, colNumber) => {
         cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
-        cell.alignment = { horizontal: colNumber === 5 ? "center" : "left", vertical: "middle" };
-        if (colNumber === 5) cell.numFmt = "#,##0.00";
+        const hoursColumn = includeNamHoc ? 6 : 5;
+        cell.alignment = { horizontal: colNumber === hoursColumn ? "center" : "left", vertical: "middle" };
+        if (colNumber === hoursColumn) cell.numFmt = "#,##0.00";
       });
       currentRow++;
       worksheet.addRow([]); currentRow++;
@@ -419,9 +501,14 @@ class ExportService {
       renderBlock(records);
     }
 
-    worksheet.columns = [
-      { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 }
-    ];
+    worksheet.columns = includeNamHoc
+      ? [
+          { width: 5 }, { width: 16 }, { width: 20 }, { width: 30 },
+          { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 },
+        ]
+      : [
+          { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 },
+        ];
   }
 
   async _getFacultiesToExport(connection, khoaId) {

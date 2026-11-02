@@ -13,6 +13,40 @@ const ensureNamHoc = (namHoc) => {
   return value;
 };
 
+const parseAcademicYearStart = (value) => {
+  const match = String(value || "").match(/\b(19|20)\d{2}\b/);
+  return match ? Number(match[0]) : null;
+};
+
+const resolveNamHocFilter = (namHoc, yearRange = null) => {
+  const requestedFrom = String(yearRange?.namHocFrom || "").trim();
+  const requestedTo = String(yearRange?.namHocTo || "").trim();
+
+  if (!requestedFrom && !requestedTo) {
+    const safeNamHoc = ensureNamHoc(namHoc);
+    return { namHoc: safeNamHoc, fromYear: null, toYear: null };
+  }
+
+  if (!requestedFrom || !requestedTo) {
+    throw new Error("Phải chọn đủ năm học bắt đầu và năm học kết thúc");
+  }
+
+  const fromYear = parseAcademicYearStart(requestedFrom);
+  const toYear = parseAcademicYearStart(requestedTo);
+  if (!fromYear || !toYear) {
+    throw new Error("Khoảng năm học không hợp lệ");
+  }
+  if (fromYear > toYear) {
+    throw new Error("Năm học bắt đầu không được lớn hơn năm học kết thúc");
+  }
+
+  return {
+    namHoc: requestedFrom,
+    fromYear,
+    toYear,
+  };
+};
+
 const normalizeKhoaId = (khoaId) => {
   const value = String(khoaId || "ALL").trim() || "ALL";
   return value;
@@ -34,9 +68,10 @@ const getLecturerSummary = async (
   khoaId,
   keyword,
   scope = STATS_SCOPE.OFFICIAL,
-  lecturerId = null
+  lecturerId = null,
+  yearRange = null
 ) => {
-  const safeNamHoc = ensureNamHoc(namHoc);
+  const namHocFilter = resolveNamHocFilter(namHoc, yearRange);
   const safeKhoaId = normalizeKhoaId(khoaId);
   const safeKeyword = String(keyword || "").trim();
 
@@ -44,7 +79,9 @@ const getLecturerSummary = async (
   try {
     connection = await createPoolConnection();
     const rows = await statsRepo.listLecturerSummary(connection, {
-      namHoc: safeNamHoc,
+      namHoc: namHocFilter.namHoc,
+      fromYear: namHocFilter.fromYear,
+      toYear: namHocFilter.toYear,
       khoaId: safeKhoaId,
       keyword: safeKeyword,
       lecturerId,
@@ -56,8 +93,8 @@ const getLecturerSummary = async (
   }
 };
 
-const getLecturerRecords = async (lecturerId, namHoc, scope = STATS_SCOPE.OFFICIAL) => {
-  const safeNamHoc = ensureNamHoc(namHoc);
+const getLecturerRecords = async (lecturerId, namHoc, scope = STATS_SCOPE.OFFICIAL, yearRange = null) => {
+  const namHocFilter = resolveNamHocFilter(namHoc, yearRange);
   const safeLecturerId = Number(lecturerId);
 
   if (!Number.isFinite(safeLecturerId) || safeLecturerId <= 0) {
@@ -69,7 +106,9 @@ const getLecturerRecords = async (lecturerId, namHoc, scope = STATS_SCOPE.OFFICI
     connection = await createPoolConnection();
     const rows = await statsRepo.listLecturerRecords(connection, {
       lecturerId: safeLecturerId,
-      namHoc: safeNamHoc,
+      namHoc: namHocFilter.namHoc,
+      fromYear: namHocFilter.fromYear,
+      toYear: namHocFilter.toYear,
       scope: normalizeStatsScope(scope),
     });
     return rows.map(mapper.mapLecturerRecordRow);
@@ -78,22 +117,28 @@ const getLecturerRecords = async (lecturerId, namHoc, scope = STATS_SCOPE.OFFICI
   }
 };
 
-const getFacultySummary = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL) => {
-  const safeNamHoc = ensureNamHoc(namHoc);
+const getFacultySummary = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL, yearRange = null) => {
+  const namHocFilter = resolveNamHocFilter(namHoc, yearRange);
   const safeKhoaId = normalizeKhoaId(khoaId);
 
   let connection;
   try {
     connection = await createPoolConnection();
-    const rows = await statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc, khoaId: safeKhoaId, scope: normalizeStatsScope(scope) });
+    const rows = await statsRepo.listFacultySummary(connection, {
+      namHoc: namHocFilter.namHoc,
+      fromYear: namHocFilter.fromYear,
+      toYear: namHocFilter.toYear,
+      khoaId: safeKhoaId,
+      scope: normalizeStatsScope(scope),
+    });
     return rows.map(mapper.mapFacultySummaryRow);
   } finally {
     if (connection) connection.release();
   }
 };
 
-const getFacultyRecords = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL) => {
-  const safeNamHoc = ensureNamHoc(namHoc);
+const getFacultyRecords = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL, yearRange = null) => {
+  const namHocFilter = resolveNamHocFilter(namHoc, yearRange);
   const safeKhoaId = String(khoaId || "").trim();
 
   if (!safeKhoaId) {
@@ -104,7 +149,9 @@ const getFacultyRecords = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL) =
   try {
     connection = await createPoolConnection();
     const rows = await statsRepo.listFacultyRecords(connection, {
-      namHoc: safeNamHoc,
+      namHoc: namHocFilter.namHoc,
+      fromYear: namHocFilter.fromYear,
+      toYear: namHocFilter.toYear,
       khoaId: safeKhoaId,
       scope: normalizeStatsScope(scope),
     });
@@ -114,18 +161,38 @@ const getFacultyRecords = async (namHoc, khoaId, scope = STATS_SCOPE.OFFICIAL) =
   }
 };
 
-const getInstituteSummary = async (namHoc, scope = STATS_SCOPE.OFFICIAL) => {
-  const safeNamHoc = ensureNamHoc(namHoc);
+const getInstituteSummary = async (namHoc, scope = STATS_SCOPE.OFFICIAL, yearRange = null) => {
+  const namHocFilter = resolveNamHocFilter(namHoc, yearRange);
 
   let connection;
   try {
     connection = await createPoolConnection();
 
     const [overviewRow, lecturerRow, typeRows, facultyRows] = await Promise.all([
-      statsRepo.getInstituteOverview(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
-      statsRepo.countInstituteLecturers(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
-      statsRepo.listInstituteByType(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
-      statsRepo.listFacultySummary(connection, { namHoc: safeNamHoc, scope: normalizeStatsScope(scope) }),
+      statsRepo.getInstituteOverview(connection, {
+        namHoc: namHocFilter.namHoc,
+        fromYear: namHocFilter.fromYear,
+        toYear: namHocFilter.toYear,
+        scope: normalizeStatsScope(scope),
+      }),
+      statsRepo.countInstituteLecturers(connection, {
+        namHoc: namHocFilter.namHoc,
+        fromYear: namHocFilter.fromYear,
+        toYear: namHocFilter.toYear,
+        scope: normalizeStatsScope(scope),
+      }),
+      statsRepo.listInstituteByType(connection, {
+        namHoc: namHocFilter.namHoc,
+        fromYear: namHocFilter.fromYear,
+        toYear: namHocFilter.toYear,
+        scope: normalizeStatsScope(scope),
+      }),
+      statsRepo.listFacultySummary(connection, {
+        namHoc: namHocFilter.namHoc,
+        fromYear: namHocFilter.fromYear,
+        toYear: namHocFilter.toYear,
+        scope: normalizeStatsScope(scope),
+      }),
     ]);
 
     return {
@@ -138,8 +205,8 @@ const getInstituteSummary = async (namHoc, scope = STATS_SCOPE.OFFICIAL) => {
   }
 };
 
-const getInstituteRecords = async (namHoc, khoaId, typeSlug, scope = STATS_SCOPE.OFFICIAL) => {
-  const safeNamHoc = ensureNamHoc(namHoc);
+const getInstituteRecords = async (namHoc, khoaId, typeSlug, scope = STATS_SCOPE.OFFICIAL, yearRange = null) => {
+  const namHocFilter = resolveNamHocFilter(namHoc, yearRange);
   const safeKhoaId = normalizeKhoaId(khoaId);
 
   let loaiNckh = "ALL";
@@ -156,7 +223,9 @@ const getInstituteRecords = async (namHoc, khoaId, typeSlug, scope = STATS_SCOPE
   try {
     connection = await createPoolConnection();
     const rows = await statsRepo.listInstituteRecords(connection, {
-      namHoc: safeNamHoc,
+      namHoc: namHocFilter.namHoc,
+      fromYear: namHocFilter.fromYear,
+      toYear: namHocFilter.toYear,
       khoaId: safeKhoaId,
       loaiNckh,
       scope: normalizeStatsScope(scope),
@@ -175,4 +244,5 @@ module.exports = {
   getFacultyRecords,
   getInstituteSummary,
   getInstituteRecords,
+  resolveNamHocFilter,
 };

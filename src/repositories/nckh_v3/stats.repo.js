@@ -6,9 +6,19 @@ const { STATS_SCOPE, normalizeStatsScope } = require("../../config/nckh_v3/stats
  * Điều kiện chung: năm học + trạng thái phê duyệt (nếu là thống kê chính thức).
  * Không chứa logic lọc khoa.
  */
-const buildStatsWhere = (namHoc, scope = STATS_SCOPE.OFFICIAL) => {
-  const conditions = ["c.nam_hoc = ?"];
-  const params = [namHoc];
+const buildStatsWhere = (namHoc, scope = STATS_SCOPE.OFFICIAL, yearRange = {}) => {
+  const fromYear = Number(yearRange.fromYear);
+  const toYear = Number(yearRange.toYear);
+  const hasYearRange = yearRange.fromYear !== null
+    && yearRange.fromYear !== undefined
+    && yearRange.toYear !== null
+    && yearRange.toYear !== undefined
+    && Number.isInteger(fromYear)
+    && Number.isInteger(toYear);
+  const conditions = hasYearRange
+    ? ["CAST(SUBSTRING(TRIM(c.nam_hoc), 1, 4) AS UNSIGNED) BETWEEN ? AND ?"]
+    : ["c.nam_hoc = ?"];
+  const params = hasYearRange ? [fromYear, toYear] : [namHoc];
 
   if (normalizeStatsScope(scope) === STATS_SCOPE.OFFICIAL) {
     conditions.push("c.khoa_duyet = 1", "c.vien_nc_duyet = 1");
@@ -26,9 +36,11 @@ const listLecturerSummary = async (connection, {
   khoaId = "ALL",
   keyword = "",
   lecturerId = null,
+  fromYear,
+  toYear,
   scope,
 }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
   const normalizedKeyword = String(keyword || "").trim();
   const safeKhoaId = String(khoaId || "ALL").trim();
 
@@ -85,8 +97,8 @@ const listLecturerSummary = async (connection, {
 //    Không lọc theo khoa — hiển thị toàn bộ.
 // ──────────────────────────────────────────────
 
-const listLecturerRecords = async (connection, { lecturerId, namHoc, scope }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+const listLecturerRecords = async (connection, { lecturerId, namHoc, fromYear, toYear, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
 
   const query = `
     SELECT
@@ -145,8 +157,8 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc, scope }) =>
 // 3. Thống kê theo Khoa (tổng hợp)
 // ──────────────────────────────────────────────
 
-const listFacultySummary = async (connection, { namHoc, khoaId = "ALL", scope }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+const listFacultySummary = async (connection, { namHoc, khoaId = "ALL", fromYear, toYear, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
   const query = `
     SELECT
       pb.id AS khoa_id,
@@ -176,8 +188,8 @@ const listFacultySummary = async (connection, { namHoc, khoaId = "ALL", scope })
 // 4. Danh sách công trình theo Khoa
 // ──────────────────────────────────────────────
 
-const listFacultyRecords = async (connection, { namHoc, khoaId, scope }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+const listFacultyRecords = async (connection, { namHoc, khoaId, fromYear, toYear, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
   const safeKhoaId = Number(khoaId);
 
   // Lọc công trình có ít nhất 1 giảng viên thuộc khoa này tham gia
@@ -237,8 +249,8 @@ const listFacultyRecords = async (connection, { namHoc, khoaId, scope }) => {
 // 5. Thống kê Học viện — Tổng quan
 // ──────────────────────────────────────────────
 
-const getInstituteOverview = async (connection, { namHoc, scope }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+const getInstituteOverview = async (connection, { namHoc, fromYear, toYear, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
   const query = `
     SELECT
       COUNT(DISTINCT c.id) AS tong_cong_trinh,
@@ -252,8 +264,8 @@ const getInstituteOverview = async (connection, { namHoc, scope }) => {
   return rows[0] || { tong_cong_trinh: 0, tong_so_tiet: 0 };
 };
 
-const countInstituteLecturers = async (connection, { namHoc, scope }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+const countInstituteLecturers = async (connection, { namHoc, fromYear, toYear, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
   const query = `
     SELECT COUNT(DISTINCT st.nhanvien_id) AS tong_giang_vien_noi_bo
     FROM ${TABLE_SO_TIET} st
@@ -266,8 +278,8 @@ const countInstituteLecturers = async (connection, { namHoc, scope }) => {
   return rows[0] || { tong_giang_vien_noi_bo: 0 };
 };
 
-const listInstituteByType = async (connection, { namHoc, scope }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+const listInstituteByType = async (connection, { namHoc, fromYear, toYear, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
   const query = `
     SELECT
       c.loai_nckh,
@@ -288,8 +300,8 @@ const listInstituteByType = async (connection, { namHoc, scope }) => {
 // 6. Danh sách công trình Học viện
 // ──────────────────────────────────────────────
 
-const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNckh = "ALL", scope }) => {
-  const { where, params } = buildStatsWhere(namHoc, scope);
+const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNckh = "ALL", fromYear, toYear, scope }) => {
+  const { where, params } = buildStatsWhere(namHoc, scope, { fromYear, toYear });
   const safeKhoaId = String(khoaId || "ALL");
 
   // --- Xử lý lọc theo khoa ---

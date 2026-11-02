@@ -70,14 +70,14 @@
   };
 
   const EDIT_TYPE_CONFIG = {
-    DETAI_DUAN: { slug: "de-tai-du-an", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard", maSoLabel: "Mã đề tài" },
-    BAIBAO: { slug: "bai-bao-khoa-hoc", showDate: false, showMaSo: true, requiredMaSo: false, requiredTenTapChi: false, hasSecondary: true, mode: "standard", maSoLabel: "Chỉ số tạp chí/hội nghị", article: true },
-    SANGKIEN: { slug: "sang-kien", showDate: true, showMaSo: false, hasSecondary: true, mode: "standard" },
-    GIAITHUONG: { slug: "giai-thuong", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard", award: true },
-    DEXUAT: { slug: "de-xuat-nghien-cuu", showDate: true, showMaSo: false, hasSecondary: true, mode: "equal" },
-    SACHGIAOTRINH: { slug: "sach-giao-trinh", showDate: true, showMaSo: true, requiredMaSo: true, hasSecondary: true, mode: "standard", maSoLabel: "Số quyết định" },
-    HUONGDAN: { slug: "huong-dan-sv-nckh", showDate: true, showMaSo: true, hasSecondary: false, mode: "equal", maSoLabel: "Mã đề tài" },
-    HOIDONG: { slug: "thanh-vien-hoi-dong", showDate: false, showMaSo: true, hasSecondary: false, mode: "fixed", council: true },
+    DETAI_DUAN: { slug: "de-tai-du-an", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: true, mode: "standard", maSoLabel: "Mã đề tài" },
+    BAIBAO: { slug: "bai-bao-khoa-hoc", showDate: false, requiredDate: false, showMaSo: true, requiredXepLoai: false, requiredMaSo: false, requiredTenTapChi: true, hasSecondary: true, mode: "standard", maSoLabel: "Chỉ số tạp chí/hội nghị", article: true },
+    SANGKIEN: { slug: "sang-kien", showDate: true, requiredDate: true, showMaSo: false, requiredXepLoai: true, hasSecondary: true, mode: "standard" },
+    GIAITHUONG: { slug: "giai-thuong", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: true, mode: "standard", award: true },
+    DEXUAT: { slug: "de-xuat-nghien-cuu", showDate: true, requiredDate: true, showMaSo: false, requiredXepLoai: true, hasSecondary: true, mode: "equal" },
+    SACHGIAOTRINH: { slug: "sach-giao-trinh", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: true, mode: "standard", maSoLabel: "Số quyết định" },
+    HUONGDAN: { slug: "huong-dan-sv-nckh", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: false, mode: "equal", maSoLabel: "Mã đề tài" },
+    HOIDONG: { slug: "thanh-vien-hoi-dong", showDate: false, requiredDate: false, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: false, mode: "fixed", council: true },
   };
 
   const getEditConfig = (loaiNckh) => EDIT_TYPE_CONFIG[String(loaiNckh || "")] || null;
@@ -493,9 +493,10 @@
   }
 
   function editField(label, id, value, type = "text", extra = "") {
+    const required = /\brequired\b/.test(extra);
     return `
       <div class="col-md-6 mb-2">
-        <label class="form-label fw-semibold" for="${id}">${label}</label>
+        <label class="form-label fw-semibold" for="${id}">${label}${required ? ' <span class="required">*</span>' : ""}</label>
         <input id="${id}" class="form-control" type="${type}" value="${escapeHtml(value ?? "")}" ${extra} />
       </div>
     `;
@@ -572,11 +573,16 @@
     ].join("");
 
     const articleFields = config.article
-      ? `${editField("Tên tạp chí / hội thảo", "editTenTapChi", data.tenTapChi)}
+      ? `${editField("Tên tạp chí / hội thảo", "editTenTapChi", data.tenTapChi, "text", config.requiredTenTapChi ? "required" : "")}
          ${editField("Số báo", "editSoBao", data.soBao)}
          ${editField("Số trích dẫn", "editSoTrichDan", data.soTrichDan, "number", "min=\"0\" step=\"1\"")}
-         ${editField("Số quyết định", "editSoQuyetDinh", data.soQuyetDinh)}
-         ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}`
+         ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}
+         ${editField("ISSN/ISBN", "editIssnIsbn", data.issnIsbn)}
+         ${editField("DOI", "editDoi", data.doi)}
+         ${editField("Link minh chứng", "editLinkMinhChung", data.linkMinhChung)}
+         ${editField("Volumn", "editVolumn", data.volumn)}
+         ${editField("Number", "editNumber", data.number)}
+         ${editField("Page", "editPage", data.page)}`
       : "";
     const awardFields = config.award
       ? `${editField("Số quyết định", "editSoQuyetDinh", data.soQuyetDinh)}
@@ -594,20 +600,21 @@
           <div class="nckh-edit-section-title"><i class="bi bi-file-earmark-text"></i> Thông tin công trình</div>
           <div class="row g-3">
           <div class="col-12">
-            <label class="form-label fw-semibold" for="editTenCongTrinh">Tên công trình</label>
+            <label class="form-label fw-semibold" for="editTenCongTrinh">Tên công trình <span class="required">*</span></label>
             <input id="editTenCongTrinh" class="form-control" required value="${escapeHtml(data.tenCongTrinh || "")}" />
           </div>
           <div class="col-md-6 mb-2">
-            <label class="form-label fw-semibold" for="editPhanLoai">Phân loại</label>
+            <label class="form-label fw-semibold" for="editPhanLoai">Phân loại <span class="required">*</span></label>
             <select id="editPhanLoai" class="form-select" required>${phanLoaiHtml}</select>
           </div>
           <div class="col-md-6 mb-2">
-            <label class="form-label fw-semibold" for="editNamHoc">Năm học</label>
+            <label class="form-label fw-semibold" for="editNamHoc">Năm học <span class="required">*</span></label>
             <select id="editNamHoc" class="form-select" required>${yearOptions}</select>
           </div>
           <div class="col-md-4 mb-2">
-            <label class="form-label fw-semibold" for="editXepLoai">Xếp loại</label>
-            <select id="editXepLoai" class="form-select" required>
+            <label class="form-label fw-semibold" for="editXepLoai">Xếp loại${config.requiredXepLoai !== false ? ' <span class="required">*</span>' : ""}</label>
+            <select id="editXepLoai" class="form-select" ${config.requiredXepLoai !== false ? "required" : ""}>
+              ${config.requiredXepLoai === false ? `<option value="" ${!data.xepLoai ? "selected" : ""}>-- Không bắt buộc --</option>` : ""}
               ${["Đạt", "Giỏi", "Xuất sắc"].map((value) => `<option value="${value}" ${value === data.xepLoai ? "selected" : ""}>${value}</option>`).join("")}
             </select>
           </div>
@@ -619,7 +626,7 @@
             <label class="form-label fw-semibold" for="editSoNamThucHien">Số năm thực hiện</label>
             <input id="editSoNamThucHien" class="form-control" type="number" min="1" step="1" value="${participantYears}" />
           </div>
-          ${config.showDate ? editField("Ngày nghiệm thu", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date", "required") : config.article ? editField("Ngày công bố", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date") : ""}
+          ${config.requiredDate ? editField("Ngày nghiệm thu", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date", "required") : config.article ? editField("Ngày công bố", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date") : ""}
           ${config.showMaSo ? editField(config.maSoLabel || (config.council ? "Số quyết định" : "Mã số"), "editMaSo", data.maSo, "text", config.requiredMaSo !== false ? "required" : "") : ""}
           ${articleFields}${awardFields}
           </div>
@@ -665,8 +672,16 @@
       payload.tenTapChi = document.getElementById("editTenTapChi")?.value?.trim() || null;
       payload.soBao = document.getElementById("editSoBao")?.value?.trim() || null;
       payload.soTrichDan = document.getElementById("editSoTrichDan")?.value === "" ? null : Number(document.getElementById("editSoTrichDan")?.value);
-      payload.soQuyetDinh = document.getElementById("editSoQuyetDinh")?.value?.trim() || null;
+      payload.soQuyetDinh = config.article
+        ? data.soQuyetDinh || null
+        : document.getElementById("editSoQuyetDinh")?.value?.trim() || null;
       payload.ngayQuyetDinh = document.getElementById("editNgayQuyetDinh")?.value || null;
+      payload.issnIsbn = document.getElementById("editIssnIsbn")?.value?.trim() || null;
+      payload.doi = document.getElementById("editDoi")?.value?.trim() || null;
+      payload.linkMinhChung = document.getElementById("editLinkMinhChung")?.value?.trim() || null;
+      payload.volumn = document.getElementById("editVolumn")?.value?.trim() || null;
+      payload.number = document.getElementById("editNumber")?.value?.trim() || null;
+      payload.page = document.getElementById("editPage")?.value?.trim() || null;
     }
 
     participants.forEach((participant) => {
@@ -720,6 +735,16 @@
       : Number(data.khoaDuyet) === 1
         ? "Đã duyệt cấp khoa"
         : "Chưa duyệt";
+    const articleMetadata = data.loaiNckh === "BAIBAO"
+      ? `
+          <div class="nckh-detail-item"><span class="nckh-detail-label">ISSN/ISBN</span><div class="nckh-detail-value">${escapeHtml(data.issnIsbn || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">DOI</span><div class="nckh-detail-value">${escapeHtml(data.doi || "—")}</div></div>
+          <div class="nckh-detail-item is-wide"><span class="nckh-detail-label">Link minh chứng</span><div class="nckh-detail-value">${escapeHtml(data.linkMinhChung || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Volumn</span><div class="nckh-detail-value">${escapeHtml(data.volumn || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Number</span><div class="nckh-detail-value">${escapeHtml(data.number || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Page</span><div class="nckh-detail-value">${escapeHtml(data.page || "—")}</div></div>
+        `
+      : "";
     const editButton = state.permission.canEdit && Number(data.vienNcDuyet) !== 1
       ? '<button type="button" class="btn btn-primary" id="detailEditBtn"><i class="bi bi-pencil"></i> Sửa</button>'
       : "";
@@ -737,6 +762,7 @@
           <div class="nckh-detail-item"><span class="nckh-detail-label">Tổng số tiết</span><div class="nckh-detail-value">${formatHours(data.tongSoTiet)}</div></div>
           <div class="nckh-detail-item"><span class="nckh-detail-label">Trạng thái</span><div class="nckh-detail-value">${statusValue}</div></div>
           ${khoaValue ? `<div class="nckh-detail-item is-full"><span class="nckh-detail-label">Khoa</span><div class="nckh-detail-value">${escapeHtml(khoaValue)}</div></div>` : ""}
+          ${articleMetadata}
         </div>
         ${participantHtml}
       </div>
@@ -793,8 +819,16 @@
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập đủ thông tin chính của công trình", "warning");
         return;
       }
-      if (config.showDate && !payload.ngayNghiemThu) {
+      if (config.requiredDate && !payload.ngayNghiemThu) {
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập ngày nghiệm thu", "warning");
+        return;
+      }
+      if (config.requiredXepLoai !== false && !payload.xepLoai) {
+        await Swal.fire("Thiếu thông tin", "Vui lòng chọn xếp loại", "warning");
+        return;
+      }
+      if (config.requiredTenTapChi && !payload.tenTapChi) {
+        await Swal.fire("Thiếu thông tin", "Vui lòng nhập tên tạp chí/hội thảo", "warning");
         return;
       }
       if (config.showMaSo && config.requiredMaSo !== false && !payload.maSo) {

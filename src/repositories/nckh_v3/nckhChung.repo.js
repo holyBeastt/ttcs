@@ -50,6 +50,12 @@ const updateById = async (connection, id, data) => {
         ten_tap_chi = ?,
         so_bao = ?,
         so_trich_dan = ?,
+        issn_isbn = ?,
+        doi = ?,
+        link_minh_chung = ?,
+        volumn = ?,
+        number = ?,
+        page = ?,
         co_quan_chu_tri = ?,
         co_quan_chu_quan = ?,
         thuoc_nhiem_vu = ?,
@@ -77,6 +83,12 @@ const updateById = async (connection, id, data) => {
     data.tenTapChi || null,
     data.soBao || null,
     data.soTrichDan ?? null,
+    data.issnIsbn || null,
+    data.doi || null,
+    data.linkMinhChung || null,
+    data.volumn || null,
+    data.number || null,
+    data.page || null,
     data.coQuanChuTri || null,
     data.coQuanChuQuan || null,
     data.thuocNhiemVu || null,
@@ -150,7 +162,13 @@ const listUnified = async (connection, namHoc, khoaId) => {
       c.created_at,
       c.ngay_nghiem_thu,
       c.xep_loai,
-      c.ma_so
+      c.ma_so,
+      c.issn_isbn,
+      c.doi,
+      c.link_minh_chung,
+      c.volumn,
+      c.number,
+      c.page
     FROM ${TABLE} c
     WHERE c.nam_hoc = ?
   `;

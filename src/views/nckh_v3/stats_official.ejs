@@ -36,6 +36,14 @@
         <label for="officialNamHocFilter">Năm học</label>
         <select id="officialNamHocFilter" class="form-select"></select>
       </div>
+      <div class="tb-group" id="officialExportFromGroup">
+        <label for="officialExportNamHocFrom">Xuất từ năm học</label>
+        <select id="officialExportNamHocFrom" class="form-select"></select>
+      </div>
+      <div class="tb-group" id="officialExportToGroup">
+        <label for="officialExportNamHocTo">Đến năm học</label>
+        <select id="officialExportNamHocTo" class="form-select"></select>
+      </div>
       <div class="tb-group" id="officialKhoaGroup">
         <label for="officialKhoaFilter">Khoa / Phòng ban</label>
         <select id="officialKhoaFilter" class="form-select">
@@ -45,6 +53,12 @@
       <div class="tb-group" id="officialKeywordGroup" style="min-width: 280px;">
         <label for="officialKeywordInput">Tìm giảng viên</label>
         <input id="officialKeywordInput" class="form-control" placeholder="Nhập tên giảng viên..." />
+      </div>
+      <div class="tb-group" id="officialLecturerExportGroup" style="min-width: 280px;">
+        <label for="officialLecturerExportFilter">Giảng viên xuất riêng (tuỳ chọn)</label>
+        <select id="officialLecturerExportFilter" class="form-select">
+          <option value="">Tất cả giảng viên</option>
+        </select>
       </div>
       <div class="tb-actions">
         <button id="officialLoadBtn" class="btn btn-load"><i class="bi bi-search"></i> Hiển thị</button>

@@ -23,6 +23,12 @@ const insertChungExtended = async (connection, data) => {
       ten_tap_chi,
       so_bao,
       so_trich_dan,
+      issn_isbn,
+      doi,
+      link_minh_chung,
+      volumn,
+      number,
+      page,
       co_quan_chu_tri,
       co_quan_chu_quan,
       thuoc_nhiem_vu,
@@ -32,7 +38,7 @@ const insertChungExtended = async (connection, data) => {
       kinh_phi_nam_ba,
       nguon_kinh_phi,
       ngay_quyet_dinh
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
@@ -52,6 +58,12 @@ const insertChungExtended = async (connection, data) => {
     data.tenTapChi || null,
     data.soBao || null,
     data.soTrichDan ?? null,
+    data.issnIsbn || null,
+    data.doi || null,
+    data.linkMinhChung || null,
+    data.volumn || null,
+    data.number || null,
+    data.page || null,
     data.coQuanChuTri || null,
     data.coQuanChuQuan || null,
     data.thuocNhiemVu || null,

@@ -1,5 +1,5 @@
 (function () {
-  const state = { tab: "lecturer", lecturerGroups: [] };
+  const state = { tab: "lecturer", lecturerGroups: [], availableLecturers: [] };
   const isPreview = window.NCKH_STATS_SCOPE === "PREVIEW";
   const statsBase = isPreview ? "/v3/nckh/stats/preview" : "/v3/nckh/stats";
   const exportBase = isPreview ? "/v3/nckh/export/stats/preview" : "/v3/nckh/export/stats";
@@ -40,10 +40,16 @@
 
   function cacheElements() {
     el.namHoc = document.getElementById("officialNamHocFilter");
+    el.exportNamHocFrom = document.getElementById("officialExportNamHocFrom");
+    el.exportNamHocTo = document.getElementById("officialExportNamHocTo");
+    el.exportFromGroup = document.getElementById("officialExportFromGroup");
+    el.exportToGroup = document.getElementById("officialExportToGroup");
     el.khoa = document.getElementById("officialKhoaFilter");
     el.khoaGroup = document.getElementById("officialKhoaGroup");
     el.keyword = document.getElementById("officialKeywordInput");
     el.keywordGroup = document.getElementById("officialKeywordGroup");
+    el.exportLecturer = document.getElementById("officialLecturerExportFilter");
+    el.exportLecturerGroup = document.getElementById("officialLecturerExportGroup");
     el.load = document.getElementById("officialLoadBtn");
     el.export = document.getElementById("officialExportBtn");
     el.content = document.getElementById("officialContent");
@@ -131,6 +137,20 @@
     el.content.innerHTML = renderGroups(groups, { lecturer: true });
   }
 
+  function renderExportLecturerOptions() {
+    if (!el.exportLecturer) return;
+    const currentValue = String(el.exportLecturer.value || "");
+    const options = state.availableLecturers
+      .slice()
+      .sort((a, b) => String(a.tenNhanVien || "").localeCompare(String(b.tenNhanVien || ""), "vi"))
+      .map((lecturer) => `<option value="${escape(lecturer.lecturerId)}">${escape(lecturer.tenNhanVien)}${lecturer.maPhongBan ? ` - ${escape(lecturer.maPhongBan)}` : ""}</option>`)
+      .join("");
+    el.exportLecturer.innerHTML = `<option value="">Tất cả giảng viên</option>${options}`;
+    if (currentValue && state.availableLecturers.some((item) => String(item.lecturerId) === currentValue)) {
+      el.exportLecturer.value = currentValue;
+    }
+  }
+
   async function loadLecturers(namHoc) {
     const khoaId = el.khoa.value || "ALL";
     const result = await api.lecturers(namHoc, khoaId, "");
@@ -139,8 +159,10 @@
     state.lecturerGroups = await Promise.all(summary.map(async (row) => {
       const recordsResult = await api.lecturerRecords(row.lecturerId, namHoc);
       if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình giảng viên");
-      return { label: `${row.tenNhanVien} - ${row.maPhongBan || "Chưa có khoa"}`, records: recordsResult.data || [], totalHours: row.tongSoTietGiangVien };
+      return { lecturerId: row.lecturerId, label: `${row.tenNhanVien} - ${row.maPhongBan || "Chưa có khoa"}`, records: recordsResult.data || [], totalHours: row.tongSoTietGiangVien };
     }));
+    state.availableLecturers = summary;
+    renderExportLecturerOptions();
     renderLecturerGroups();
   }
 
@@ -191,25 +213,48 @@
     const lecturer = state.tab === "lecturer";
     el.khoaGroup.style.display = state.tab === "institute" ? "none" : "";
     el.keywordGroup.style.display = lecturer ? "" : "none";
+    el.exportLecturerGroup.style.display = lecturer ? "" : "none";
   }
 
   function exportCurrent() {
     const namHoc = String(el.namHoc.value || "").trim();
     if (!namHoc) return Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning");
+    const namHocFrom = String(el.exportNamHocFrom?.value || namHoc).trim();
+    const namHocTo = String(el.exportNamHocTo?.value || namHoc).trim();
+    if (!namHocFrom || !namHocTo) return Swal.fire("Thiếu thông tin", "Vui lòng chọn đủ khoảng năm học để xuất Excel", "warning");
+    const yearStart = Number((namHocFrom.match(/\b(19|20)\d{2}\b/) || [])[0]);
+    const yearEnd = Number((namHocTo.match(/\b(19|20)\d{2}\b/) || [])[0]);
+    if (Number.isFinite(yearStart) && Number.isFinite(yearEnd) && yearStart > yearEnd) {
+      return Swal.fire("Khoảng năm học không hợp lệ", "Năm học bắt đầu không được lớn hơn năm học kết thúc", "warning");
+    }
+    const exportParams = { namHoc, namHocFrom, namHocTo };
     if (state.tab === "lecturer") {
-      const query = new URLSearchParams({ namHoc, khoaId: el.khoa.value || "ALL", keyword: el.keyword.value.trim() });
+      exportParams.khoaId = el.khoa.value || "ALL";
+      exportParams.keyword = el.keyword.value.trim();
+      exportParams.lecturerId = el.exportLecturer?.value || "";
+      const query = new URLSearchParams(exportParams);
       window.location.href = `${exportBase}/giang-vien?${query}`;
     } else if (state.tab === "faculty") {
-      window.location.href = `${exportBase}/khoa?${new URLSearchParams({ namHoc, khoaId: el.khoa.value || "ALL" })}`;
+      exportParams.khoaId = el.khoa.value || "ALL";
+      window.location.href = `${exportBase}/khoa?${new URLSearchParams(exportParams)}`;
     } else if (state.tab === "institute") {
-      window.location.href = `${exportBase}/hoc-vien?${new URLSearchParams({ namHoc })}`;
+      window.location.href = `${exportBase}/hoc-vien?${new URLSearchParams(exportParams)}`;
     }
   }
 
   async function init() {
     cacheElements();
     const [years, filters] = await Promise.all([window.NCKH_V3_STATS.api.getNamHoc(), window.NCKH_V3_STATS.api.getFilters()]);
-    if (years?.success) helpers().fillNamHocOptions(el.namHoc, years.NamHoc || []);
+    if (years?.success) {
+      helpers().fillNamHocOptions(el.namHoc, years.NamHoc || []);
+      helpers().fillNamHocOptions(el.exportNamHocFrom, years.NamHoc || []);
+      helpers().fillNamHocOptions(el.exportNamHocTo, years.NamHoc || []);
+      const selectedNamHoc = String(el.namHoc.value || "");
+      if (selectedNamHoc) {
+        if (Array.from(el.exportNamHocFrom.options).some((option) => option.value === selectedNamHoc)) el.exportNamHocFrom.value = selectedNamHoc;
+        if (Array.from(el.exportNamHocTo.options).some((option) => option.value === selectedNamHoc)) el.exportNamHocTo.value = selectedNamHoc;
+      }
+    }
     if (filters?.success) helpers().fillKhoaOptions(el.khoa, filters.data?.khoaList || [], true);
     updateControls();
     el.load.addEventListener("click", () => loadCurrent().catch((error) => helpers().showError(error, "Không thể tải thống kê NCKH")));
