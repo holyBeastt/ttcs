@@ -1,17 +1,29 @@
 (function () {
   const state = { summary: null, typeGroups: [], facultyGroups: [] };
-  const el = { namHocFilter: null, loadDataBtn: null, kpiCongTrinh: null, kpiSoTiet: null, kpiGiangVien: null, typeTableBody: null, facultyTableBody: null };
+  const el = { namHocFromFilter: null, namHocToFilter: null, loadDataBtn: null, kpiCongTrinh: null, kpiSoTiet: null, kpiGiangVien: null, typeTableBody: null, facultyTableBody: null };
   let doughnutInstance = null, barInstance = null;
 
   const COLORS = ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#0ea5e9','#d946ef','#22c55e','#e11d48'];
 
   const api = {
-    async getSummary(namHoc) { const r = await fetch(`/v3/nckh/stats/hoc-vien?${new URLSearchParams({ namHoc })}`); return r.json(); },
-    async getRecords(namHoc, khoaId, type) { const r = await fetch(`/v3/nckh/stats/hoc-vien/cong-trinh?${new URLSearchParams({ namHoc, khoaId, type })}`); return r.json(); },
+    async getSummary(namHocFrom, namHocTo) { const r = await fetch(`/v3/nckh/stats/hoc-vien?${new URLSearchParams({ namHocFrom, namHocTo })}`); return r.json(); },
+    async getRecords(namHocFrom, namHocTo, khoaId, type) { const r = await fetch(`/v3/nckh/stats/hoc-vien/cong-trinh?${new URLSearchParams({ namHocFrom, namHocTo, khoaId, type })}`); return r.json(); },
   };
 
+  function getYearRange() {
+    const namHocFrom = String(el.namHocFromFilter?.value || "").trim();
+    const namHocTo = String(el.namHocToFilter?.value || "").trim();
+    if (!namHocFrom || !namHocTo) throw new Error("Vui lòng chọn đủ khoảng năm học");
+    const yearStart = Number((namHocFrom.match(/\b(19|20)\d{2}\b/) || [])[0]);
+    const yearEnd = Number((namHocTo.match(/\b(19|20)\d{2}\b/) || [])[0]);
+    if (!Number.isFinite(yearStart) || !Number.isFinite(yearEnd)) throw new Error("Khoảng năm học không hợp lệ");
+    if (yearStart > yearEnd) throw new Error("Năm học bắt đầu không được lớn hơn năm học kết thúc");
+    return { namHocFrom, namHocTo };
+  }
+
   function cacheElements() {
-    el.namHocFilter = document.getElementById("namHocFilter");
+    el.namHocFromFilter = document.getElementById("namHocFromFilter");
+    el.namHocToFilter = document.getElementById("namHocToFilter");
     el.loadDataBtn = document.getElementById("loadDataBtn");
     el.kpiCongTrinh = document.getElementById("kpiCongTrinh");
     el.kpiSoTiet = document.getElementById("kpiSoTiet");
@@ -112,22 +124,22 @@
   }
 
   async function loadSummary() {
-    const namHoc = String(el.namHocFilter?.value || "").trim();
-    if (!namHoc) { await Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning"); return; }
-    const result = await api.getSummary(namHoc);
+    let yearRange;
+    try { yearRange = getYearRange(); } catch (error) { await Swal.fire("Khoảng năm học không hợp lệ", error.message, "warning"); return; }
+    const result = await api.getSummary(yearRange.namHocFrom, yearRange.namHocTo);
     if (!result.success) throw new Error(result.message || "Không thể lấy thống kê học viện");
     state.summary = result.data || null;
     const byType = state.summary?.byType || [];
     const byFaculty = state.summary?.byFaculty || [];
     const [typeRecords, facultyRecords] = await Promise.all([
       Promise.all(byType.map(async (group) => {
-        const recordsResult = await api.getRecords(namHoc, "ALL", group.typeSlug || group.loaiNckh);
+        const recordsResult = await api.getRecords(yearRange.namHocFrom, yearRange.namHocTo, "ALL", group.typeSlug || group.loaiNckh);
         if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình theo loại NCKH");
         return { ...group, records: Array.isArray(recordsResult.data) ? recordsResult.data : [] };
       })),
       Promise.all(byFaculty.map(async (group) => {
         if (group.khoaId === null || group.khoaId === undefined) return { ...group, records: [] };
-        const recordsResult = await api.getRecords(namHoc, group.khoaId, "ALL");
+        const recordsResult = await api.getRecords(yearRange.namHocFrom, yearRange.namHocTo, group.khoaId, "ALL");
         if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình theo khoa");
         return { ...group, records: Array.isArray(recordsResult.data) ? recordsResult.data : [] };
       })),
@@ -139,15 +151,18 @@
 
   async function initFilters() {
     const yr = await window.NCKH_V3_STATS.api.getNamHoc();
-    if (yr?.success) window.NCKH_V3_STATS.helpers.fillNamHocOptions(el.namHocFilter, yr.NamHoc || []);
+    if (yr?.success) {
+      window.NCKH_V3_STATS.helpers.fillNamHocOptions(el.namHocFromFilter, yr.NamHoc || []);
+      window.NCKH_V3_STATS.helpers.fillNamHocOptions(el.namHocToFilter, yr.NamHoc || []);
+    }
   }
 
   function bindEvents() {
     el.loadDataBtn?.addEventListener("click", async () => { try { await loadSummary(); } catch (e) { await window.NCKH_V3_STATS.helpers.showError(e, "Không thể tải dữ liệu học viện"); } });
     document.getElementById("exportExcelBtn")?.addEventListener("click", () => {
-      const namHoc = el.namHocFilter?.value;
-      if (!namHoc) return Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning");
-      window.location.href = `/v3/nckh/export/stats/hoc-vien?namHoc=${encodeURIComponent(namHoc)}`;
+      let yearRange;
+      try { yearRange = getYearRange(); } catch (error) { return Swal.fire("Khoảng năm học không hợp lệ", error.message, "warning"); }
+      window.location.href = `/v3/nckh/export/stats/hoc-vien?${new URLSearchParams(yearRange)}`;
     });
   }
 

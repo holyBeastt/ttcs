@@ -201,6 +201,7 @@ const listFacultyRecords = async (connection, { namHoc, khoaId, fromYear, toYear
       c.phan_loai,
       c.nam_hoc,
       COALESCE(SUM(CASE WHEN st.nhanvien_id IS NOT NULL AND nv.phongban_id = ? THEN st.so_tiet ELSE 0 END), 0) AS tong_so_tiet,
+      c.tong_so_tiet AS tong_so_tiet_all,
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
@@ -235,6 +236,7 @@ const listFacultyRecords = async (connection, { namHoc, khoaId, fromYear, toYear
       c.loai_nckh,
       c.phan_loai,
       c.nam_hoc,
+      c.tong_so_tiet,
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so

@@ -45,6 +45,7 @@ const mapCommonRecordRow = (row) => ({
   tenCongTrinh: row.ten_cong_trinh || "",
   namHoc: row.nam_hoc || "",
   tongSoTietCongTrinh: round2(Number(row.tong_so_tiet || 0)),
+  tongSoTietCongTrinhAll: round2(Number(row.tong_so_tiet_all ?? row.tong_so_tiet ?? 0)),
   ngayNghiemThu: row.ngay_nghiem_thu || null,
   xepLoai: row.xep_loai || null,
   maSo: row.ma_so || null,

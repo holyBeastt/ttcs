@@ -24,7 +24,7 @@ const resolveExportYearFilter = (namHoc, options = {}) => {
 class ExportService {
   /**
    * Export lecturer statistics to Excel.
-   * Each lecturer gets one flat table and a total of their credited hours.
+   * Each lecturer gets one sheet grouped by NCKH type and a total of their credited hours.
    */
   async exportLecturerStats(namHoc, khoaId, keyword, scope, options = {}) {
     let connection;
@@ -111,43 +111,104 @@ class ExportService {
           cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE0E0E0" } };
         });
 
-        records.forEach((rec, index) => {
-          const dataRow = worksheet.addRow([
-            index + 1,
-            rec.namHoc,
-            rec.loaiNckhLabel || rec.loaiNckh,
-            rec.phanLoai,
-            rec.tenCongTrinh,
-            rec.vaiTroGiangVien,
-            Number(rec.soTietGiangVien || 0),
-            Number(rec.tongSoTietCongTrinh || 0),
-            rec.tacGiaChinh,
-            rec.thanhVien,
-          ]);
-          dataRow.eachCell((cell, colNumber) => {
+        const recordsByType = new Map();
+        records.forEach((record) => {
+          const typeLabel = record.loaiNckhLabel || record.loaiNckh || "Khác";
+          if (!recordsByType.has(typeLabel)) recordsByType.set(typeLabel, []);
+          recordsByType.get(typeLabel).push(record);
+        });
+
+        const groupSubtotalRows = [];
+        let sequence = 0;
+        for (const [typeLabel, typeRecords] of recordsByType) {
+          const groupHeaderRow = worksheet.addRow([`${typeLabel} (${typeRecords.length} công trình)`, "", "", "", "", "", "", "", "", ""]);
+          worksheet.mergeCells(`A${groupHeaderRow.number}:J${groupHeaderRow.number}`);
+          for (let column = 1; column <= 10; column += 1) {
+            const cell = groupHeaderRow.getCell(column);
+            cell.font = { bold: true, color: { argb: "FF1F4E78" } };
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDDEBF7" } };
+            cell.alignment = { horizontal: "left", vertical: "middle" };
             cell.border = {
               top: { style: "thin" },
               left: { style: "thin" },
               bottom: { style: "thin" },
               right: { style: "thin" },
             };
-            cell.alignment = {
-              horizontal: [1, 2, 7, 8].includes(colNumber) ? "center" : "left",
-              vertical: "middle",
-              wrapText: true,
+          }
+          groupHeaderRow.height = 22;
+
+          const firstGroupDataRow = worksheet.rowCount + 1;
+          typeRecords.forEach((rec) => {
+            const dataRow = worksheet.addRow([
+              ++sequence,
+              rec.namHoc,
+              rec.loaiNckhLabel || rec.loaiNckh,
+              rec.phanLoai,
+              rec.tenCongTrinh,
+              rec.vaiTroGiangVien,
+              Number(rec.soTietGiangVien || 0),
+              Number(rec.tongSoTietCongTrinh || 0),
+              rec.tacGiaChinh,
+              rec.thanhVien,
+            ]);
+            dataRow.eachCell((cell, colNumber) => {
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" },
+              };
+              cell.alignment = {
+                horizontal: [1, 2, 7, 8].includes(colNumber) ? "center" : "left",
+                vertical: "middle",
+                wrapText: true,
+              };
+              if ([7, 8].includes(colNumber)) cell.numFmt = "#,##0.00";
+            });
+          });
+
+          const lastGroupDataRow = worksheet.rowCount;
+          const groupLecturerHours = typeRecords.reduce((total, rec) => total + Number(rec.soTietGiangVien || 0), 0);
+          const groupResearchHours = typeRecords.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
+          const groupTotalRow = worksheet.addRow([
+            `Tổng ${typeLabel}`,
+            "",
+            "",
+            "",
+            "",
+            "",
+            { formula: `SUM(G${firstGroupDataRow}:G${lastGroupDataRow})`, result: groupLecturerHours },
+            { formula: `SUM(H${firstGroupDataRow}:H${lastGroupDataRow})`, result: groupResearchHours },
+            "",
+            "",
+          ]);
+          worksheet.mergeCells(`A${groupTotalRow.number}:F${groupTotalRow.number}`);
+          groupSubtotalRows.push(groupTotalRow.number);
+          groupTotalRow.font = { bold: true };
+          groupTotalRow.eachCell((cell, colNumber) => {
+            cell.border = {
+              top: { style: "thin" },
+              left: { style: "thin" },
+              bottom: { style: "thin" },
+              right: { style: "thin" },
             };
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF5F9FF" } };
+            cell.alignment = { horizontal: [7, 8].includes(colNumber) ? "center" : "left", vertical: "middle" };
             if ([7, 8].includes(colNumber)) cell.numFmt = "#,##0.00";
           });
-        });
+        }
 
         const totalLecturerHours = records.reduce((total, rec) => total + Number(rec.soTietGiangVien || 0), 0);
-        const firstDataRow = headerRow.number + 1;
-        const lastDataRow = worksheet.rowCount;
+        const totalResearchHours = records.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
         const lecturerHoursCell = {
-          formula: records.length ? `SUM(G${firstDataRow}:G${lastDataRow})` : "0",
+          formula: groupSubtotalRows.length ? `SUM(${groupSubtotalRows.map((row) => `G${row}`).join(",")})` : "0",
           result: totalLecturerHours,
         };
-        const totalRow = worksheet.addRow(["TỔNG TIẾT CỦA GIẢNG VIÊN", "", "", "", "", "", lecturerHoursCell, "", "", ""]);
+        const researchHoursCell = {
+          formula: groupSubtotalRows.length ? `SUM(${groupSubtotalRows.map((row) => `H${row}`).join(",")})` : "0",
+          result: totalResearchHours,
+        };
+        const totalRow = worksheet.addRow(["TỔNG TIẾT CỦA GIẢNG VIÊN", "", "", "", "", "", lecturerHoursCell, researchHoursCell, "", ""]);
         worksheet.mergeCells(`A${totalRow.number}:F${totalRow.number}`);
         totalRow.font = { bold: true };
         totalRow.eachCell((cell, colNumber) => {
@@ -163,11 +224,6 @@ class ExportService {
         });
 
         worksheet.views = [{ state: "frozen", ySplit: headerRow.number }];
-        worksheet.autoFilter = {
-          from: { row: headerRow.number, column: 1 },
-          to: { row: Math.max(headerRow.number, totalRow.number - 1), column: 10 },
-        };
-
         // Auto-fit columns
         worksheet.columns = [
           { width: 5 },  // STT
@@ -225,9 +281,10 @@ class ExportService {
           yearFilter.hasRange ? 8 : 7
         );
         this._renderResearchTable(worksheet, records, 5, {
-          groupByType: scope !== STATS_SCOPE.PREVIEW,
+          groupByType: true,
           useFormulas: true,
           includeNamHoc: yearFilter.hasRange,
+          includeFacultyTotal: true,
         });
       }
 
@@ -408,8 +465,14 @@ class ExportService {
   _renderResearchTable(worksheet, records, startRow, options = {}) {
     let currentRow = startRow;
     const includeNamHoc = options.includeNamHoc === true;
-    const columnCount = includeNamHoc ? 8 : 7;
+    const includeFacultyTotal = options.includeFacultyTotal === true;
+    const columnCount = includeNamHoc
+      ? (includeFacultyTotal ? 9 : 8)
+      : (includeFacultyTotal ? 8 : 7);
     const endColumn = this._excelColumnName(columnCount);
+    const facultyHoursColumn = includeNamHoc ? 6 : 5;
+    const allHoursColumn = includeNamHoc ? 7 : 6;
+    const totalHoursColumn = includeNamHoc ? 6 : 5;
 
     const renderBlock = (rows, title = null) => {
       if (title) {
@@ -422,8 +485,12 @@ class ExportService {
       }
 
       const headerRow = worksheet.addRow(includeNamHoc
-        ? ["STT", "Năm học", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"]
-        : ["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"]);
+        ? (includeFacultyTotal
+          ? ["STT", "Năm học", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết (khoa)", "Tổng tiết (all)", "Tác giả chính", "Thành viên"]
+          : ["STT", "Năm học", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"])
+        : (includeFacultyTotal
+          ? ["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết (khoa)", "Tổng tiết (all)", "Tác giả chính", "Thành viên"]
+          : ["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"]));
       headerRow.font = { bold: true };
       headerRow.eachCell(cell => {
         cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
@@ -433,60 +500,57 @@ class ExportService {
       currentRow++;
 
       rows.forEach((rec, idx) => {
+        const facultyTotal = Number(rec.tongSoTietCongTrinh || 0);
+        const allTotal = Number(rec.tongSoTietCongTrinhAll ?? rec.tongSoTietCongTrinh ?? 0);
         const dataRow = worksheet.addRow(includeNamHoc
-          ? [
-              idx + 1,
-              rec.namHoc,
-              rec.loaiNckhLabel,
-              rec.phanLoai,
-              rec.tenCongTrinh,
-              rec.tongSoTietCongTrinh,
-              rec.tacGiaChinh,
-              rec.thanhVien,
-            ]
-          : [
-              idx + 1,
-              rec.loaiNckhLabel,
-              rec.phanLoai,
-              rec.tenCongTrinh,
-              rec.tongSoTietCongTrinh,
-              rec.tacGiaChinh,
-              rec.thanhVien,
-            ]);
+          ? (includeFacultyTotal
+            ? [idx + 1, rec.namHoc, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, facultyTotal, allTotal, rec.tacGiaChinh, rec.thanhVien]
+            : [idx + 1, rec.namHoc, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, rec.tongSoTietCongTrinh, rec.tacGiaChinh, rec.thanhVien])
+          : (includeFacultyTotal
+            ? [idx + 1, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, facultyTotal, allTotal, rec.tacGiaChinh, rec.thanhVien]
+            : [idx + 1, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, rec.tongSoTietCongTrinh, rec.tacGiaChinh, rec.thanhVien]));
         dataRow.eachCell((cell, colNumber) => {
           cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
-          if (colNumber === 1 || colNumber === (includeNamHoc ? 6 : 5)) {
+          const isHoursColumn = includeFacultyTotal
+            ? [facultyHoursColumn, allHoursColumn].includes(colNumber)
+            : colNumber === totalHoursColumn;
+          if (colNumber === 1 || isHoursColumn) {
             cell.alignment = { horizontal: "center" };
           } else {
             cell.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
           }
 
-          if (colNumber === (includeNamHoc ? 6 : 5)) {
+          if (isHoursColumn) {
             cell.numFmt = "#,##0.00";
           }
         });
         currentRow++;
       });
 
-      const totalHours = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
-      const totalHoursCell = options.useFormulas
+      const facultyTotal = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
+      const allTotal = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinhAll ?? rec.tongSoTietCongTrinh ?? 0), 0);
+      const makeTotalCell = (column, result) => options.useFormulas
         ? {
-            formula: rows.length
-              ? `SUM(${includeNamHoc ? "F" : "E"}${headerRow.number + 1}:${includeNamHoc ? "F" : "E"}${worksheet.rowCount})`
-              : "0",
-            result: totalHours,
+            formula: rows.length ? `SUM(${column}${headerRow.number + 1}:${column}${worksheet.rowCount})` : "0",
+            result,
           }
-        : totalHours;
+        : result;
       const totalRow = worksheet.addRow(includeNamHoc
-        ? ["", "", "", "", `Tổng nhóm (${rows.length} công trình)`, totalHoursCell, "", ""]
-        : ["", "", "", `Tổng nhóm (${rows.length} công trình)`, totalHoursCell, "", ""]);
+        ? (includeFacultyTotal
+          ? ["", "", "", "", `Tổng nhóm (${rows.length} công trình)`, makeTotalCell("F", facultyTotal), makeTotalCell("G", allTotal), "", ""]
+          : ["", "", "", "", `Tổng nhóm (${rows.length} công trình)`, makeTotalCell("F", facultyTotal), "", ""])
+        : (includeFacultyTotal
+          ? ["", "", "", `Tổng nhóm (${rows.length} công trình)`, makeTotalCell("E", facultyTotal), makeTotalCell("F", allTotal), "", ""]
+          : ["", "", "", `Tổng nhóm (${rows.length} công trình)`, makeTotalCell("E", facultyTotal), "", ""]));
       totalRow.font = { bold: true };
       totalRow.eachCell((cell, colNumber) => {
         cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
-        const hoursColumn = includeNamHoc ? 6 : 5;
-        cell.alignment = { horizontal: colNumber === hoursColumn ? "center" : "left", vertical: "middle" };
-        if (colNumber === hoursColumn) cell.numFmt = "#,##0.00";
+        const isHoursColumn = includeFacultyTotal
+          ? [facultyHoursColumn, allHoursColumn].includes(colNumber)
+          : colNumber === totalHoursColumn;
+        cell.alignment = { horizontal: isHoursColumn ? "center" : "left", vertical: "middle" };
+        if (isHoursColumn) cell.numFmt = "#,##0.00";
       });
       currentRow++;
       worksheet.addRow([]); currentRow++;
@@ -502,13 +566,23 @@ class ExportService {
     }
 
     worksheet.columns = includeNamHoc
-      ? [
-          { width: 5 }, { width: 16 }, { width: 20 }, { width: 30 },
-          { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 },
-        ]
-      : [
-          { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 },
-        ];
+      ? (includeFacultyTotal
+        ? [
+            { width: 5 }, { width: 16 }, { width: 20 }, { width: 30 },
+            { width: 50 }, { width: 17 }, { width: 17 }, { width: 25 }, { width: 25 },
+          ]
+        : [
+            { width: 5 }, { width: 16 }, { width: 20 }, { width: 30 },
+            { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 },
+          ])
+      : (includeFacultyTotal
+        ? [
+            { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 },
+            { width: 17 }, { width: 17 }, { width: 25 }, { width: 25 },
+          ]
+        : [
+            { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 },
+          ]);
   }
 
   async _getFacultiesToExport(connection, khoaId) {

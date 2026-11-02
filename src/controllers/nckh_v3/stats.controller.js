@@ -18,8 +18,8 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
 
   const lecturerSummary = async (req, res) => {
     try {
-      const { namHoc, khoaId = "ALL", keyword = "" } = req.query;
-      const data = await statsService.getLecturerSummary(namHoc, khoaId, keyword, scope);
+      const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", keyword = "" } = req.query;
+      const data = await statsService.getLecturerSummary(namHoc || namHocFrom, khoaId, keyword, scope, null, { namHocFrom, namHocTo });
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats lecturer summary error:", error);
@@ -29,8 +29,8 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
 
   const lecturerRecords = async (req, res) => {
     try {
-      const { namHoc } = req.query;
-      const data = await statsService.getLecturerRecords(req.params.lecturerId, namHoc, scope);
+      const { namHoc, namHocFrom, namHocTo } = req.query;
+      const data = await statsService.getLecturerRecords(req.params.lecturerId, namHoc || namHocFrom, scope, { namHocFrom, namHocTo });
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats lecturer records error:", error);
@@ -40,8 +40,8 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
 
   const facultySummary = async (req, res) => {
     try {
-      const { namHoc, khoaId = "ALL" } = req.query;
-      const data = await statsService.getFacultySummary(namHoc, khoaId, scope);
+      const { namHoc, namHocFrom, namHocTo, khoaId = "ALL" } = req.query;
+      const data = await statsService.getFacultySummary(namHoc || namHocFrom, khoaId, scope, { namHocFrom, namHocTo });
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats faculty summary error:", error);
@@ -51,8 +51,8 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
 
   const facultyRecords = async (req, res) => {
     try {
-      const { namHoc } = req.query;
-      const data = await statsService.getFacultyRecords(namHoc, req.params.khoaId, scope);
+      const { namHoc, namHocFrom, namHocTo } = req.query;
+      const data = await statsService.getFacultyRecords(namHoc || namHocFrom, req.params.khoaId, scope, { namHocFrom, namHocTo });
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats faculty records error:", error);
@@ -62,8 +62,8 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
 
   const instituteSummary = async (req, res) => {
     try {
-      const { namHoc } = req.query;
-      const data = await statsService.getInstituteSummary(namHoc, scope);
+      const { namHoc, namHocFrom, namHocTo } = req.query;
+      const data = await statsService.getInstituteSummary(namHoc || namHocFrom, scope, { namHocFrom, namHocTo });
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats institute summary error:", error);
@@ -73,8 +73,8 @@ const createStatsController = (scope = STATS_SCOPE.OFFICIAL) => {
 
   const instituteRecords = async (req, res) => {
     try {
-      const { namHoc, khoaId = "ALL", type = "ALL" } = req.query;
-      const data = await statsService.getInstituteRecords(namHoc, khoaId, type, scope);
+      const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", type = "ALL" } = req.query;
+      const data = await statsService.getInstituteRecords(namHoc || namHocFrom, khoaId, type, scope, { namHocFrom, namHocTo });
       res.json({ success: true, data });
     } catch (error) {
       console.error("[NCKH V3] stats institute records error:", error);
