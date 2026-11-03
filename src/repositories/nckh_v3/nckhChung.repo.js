@@ -163,6 +163,7 @@ const listUnified = async (connection, namHoc, khoaId) => {
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
+      c.ten_tap_chi,
       c.issn_isbn,
       c.doi,
       c.link_minh_chung,

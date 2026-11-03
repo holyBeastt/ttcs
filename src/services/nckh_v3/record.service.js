@@ -134,6 +134,7 @@ const toSummaryRecord = (row) => {
     maSo: row.ma_so || "",
     xepLoai: row.xep_loai || "",
     ngayNghiemThu: row.ngay_nghiem_thu || null,
+    tenTapChi: row.ten_tap_chi || null,
     issnIsbn: row.issn_isbn || null,
     doi: row.doi || null,
     linkMinhChung: row.link_minh_chung || null,

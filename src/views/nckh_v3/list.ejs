@@ -155,7 +155,9 @@
     }
 
     .nckh-v3-list-table .col-people {
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     /* ── Action buttons in table: icon-only, compact ── */
@@ -183,7 +185,9 @@
 
     .nckh-v3-person-row {
       display: block;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
       line-height: 1.35;
     }
 
@@ -632,6 +636,7 @@
             <th>STT</th>
             <th class="sortable" data-sort="phan_loai">Phân loại <span class="sort-indicator"></span></th>
             <th class="sortable text-start" data-sort="ten_cong_trinh">Tên công trình <span class="sort-indicator"></span></th>
+            <th class="text-start">Tên tạp chí / hội thảo</th>
             <th>Mã số / Số QĐ</th>
             <th>Xếp loại</th>
             <th>Ngày NT</th>

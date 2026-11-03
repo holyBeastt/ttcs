@@ -407,6 +407,7 @@
             <td>${globalIndex}</td>
             <td>${escapeHtml(row.phanLoai)}</td>
             <td class="text-start col-main">${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}</td>
+            <td class="text-start">${row.loaiNckh === "BAIBAO" ? escapeHtml(row.tenTapChi || "—") : ""}</td>
             <td>${escapeHtml(row.maSo || "")}</td>
             <td>${escapeHtml(row.xepLoai || "")}</td>
             <td>${formatDate(row.ngayNghiemThu)}</td>
@@ -515,18 +516,29 @@
     });
   }
 
-  function buildEmployeeOptions(giangVienList, selectedId) {
+  function buildEmployeeOptions(giangVienList, selectedId, selectedName = "") {
     const options = ['<option value="">-- Chọn giảng viên --</option>'];
+    let hasSelected = false;
     (giangVienList || []).forEach((item) => {
       const id = Number(item.id);
+      if (!Number.isFinite(id) || id <= 0) return;
+      const selected = Number(selectedId) === id;
+      if (selected) hasSelected = true;
+      const unit = item.MaPhongBan ? ` - ${item.MaPhongBan}` : "";
       options.push(
-        `<option value="${id}" ${Number(selectedId) === id ? "selected" : ""}>${escapeHtml(item.TenNhanVien || "")}</option>`
+        `<option value="${id}" ${selected ? "selected" : ""}>${escapeHtml(`${item.TenNhanVien || ""}${unit}`)}</option>`
       );
     });
+
+    // Không làm mất tên hiện tại nếu nhân sự đã bị loại khỏi metadata.
+    if (selectedId && !hasSelected) {
+      options.push(`<option value="${Number(selectedId)}" selected>${escapeHtml(selectedName || selectedId)}</option>`);
+    }
+
     return options.join("");
   }
 
-  function buildParticipantRows(data, config) {
+  function buildParticipantRows(data, config, metadata = {}, allowLecturerEdit = false) {
     const participants = uniqueParticipants(data.participants);
     if (!participants.length) {
       return '<div class="text-muted small" id="editParticipantsEmpty">Chưa có thành viên tham gia.</div>';
@@ -541,15 +553,18 @@
       uy_vien: "Ủy viên",
     };
 
-    return participants.map((item) => {
+    return participants.map((item, index) => {
       const external = item.nhanvienId === null || item.nhanvienId === undefined;
       const name = item.tenNhanVien || item.tenNgoai || "Không rõ tên";
       const unit = external && item.donViNgoai ? ` <span class="nckh-edit-person-unit">— ${escapeHtml(item.donViNgoai)}</span>` : "";
       const role = roleLabels[item.vaiTro] || item.vaiTro || "Thành viên";
+      const nameHtml = !external && allowLecturerEdit
+        ? `<select class="form-select nckh-edit-participant-select" data-participant-index="${index}">${buildEmployeeOptions(metadata.giangVienList, item.nhanvienId, name)}</select>`
+        : `<span class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</span>`;
 
       return `
-        <div class="nckh-edit-participant nckh-edit-participant-readonly">
-          <div class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</div>
+        <div class="nckh-edit-participant ${allowLecturerEdit && !external ? "" : "nckh-edit-participant-readonly"}">
+          ${nameHtml}
           <span class="nckh-edit-person-role">${escapeHtml(role)}</span>
         </div>
       `;
@@ -589,10 +604,20 @@
          ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}`
       : "";
 
-    const yearOptions = Array.from(el.namHocFilter?.options || [])
-      .map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === data.namHoc ? "selected" : ""}>${escapeHtml(option.textContent)}</option>`)
+    const currentNamHoc = String(data.namHoc || "");
+    const yearOptionList = Array.from(el.namHocFilter?.options || []);
+    if (currentNamHoc && !yearOptionList.some((option) => option.value === currentNamHoc)) {
+      yearOptionList.unshift({ value: currentNamHoc, textContent: currentNamHoc });
+    }
+    const yearOptions = yearOptionList
+      .map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === currentNamHoc ? "selected" : ""}>${escapeHtml(option.textContent)}</option>`)
       .join("");
     const participantYears = Math.max(1, ...(data.participants || []).map((item) => Number(item.namThucHien || 1)));
+    const currentXepLoai = String(data.xepLoai || "");
+    const xepLoaiOptions = ["Đạt", "Giỏi", "Xuất sắc"];
+    if (currentXepLoai && !xepLoaiOptions.includes(currentXepLoai)) {
+      xepLoaiOptions.unshift(currentXepLoai);
+    }
 
     return `
       <form id="nckhInlineEditForm" class="nckh-edit-form">
@@ -615,7 +640,7 @@
             <label class="form-label fw-semibold" for="editXepLoai">Xếp loại${config.requiredXepLoai !== false ? ' <span class="required">*</span>' : ""}</label>
             <select id="editXepLoai" class="form-select" ${config.requiredXepLoai !== false ? "required" : ""}>
               ${config.requiredXepLoai === false ? `<option value="" ${!data.xepLoai ? "selected" : ""}>-- Không bắt buộc --</option>` : ""}
-              ${["Đạt", "Giỏi", "Xuất sắc"].map((value) => `<option value="${value}" ${value === data.xepLoai ? "selected" : ""}>${value}</option>`).join("")}
+              ${xepLoaiOptions.map((value) => `<option value="${escapeHtml(value)}" ${value === currentXepLoai ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
             </select>
           </div>
           <div class="col-md-4 mb-2">
@@ -634,8 +659,8 @@
 
         <div class="nckh-edit-section">
           <div class="nckh-edit-section-title"><i class="bi bi-people"></i> Danh sách tham gia</div>
-          <div class="nckh-edit-readonly-note"><i class="bi bi-lock"></i> Thành viên chỉ xem, không chỉnh sửa tại đây.</div>
-          <div id="editParticipants" class="nckh-edit-participants">${buildParticipantRows(data, config)}</div>
+          <div class="nckh-edit-readonly-note"><i class="bi bi-info-circle"></i> Có thể sửa thông tin công trình và đổi giảng viên nội bộ bằng danh sách chọn.</div>
+          <div id="editParticipants" class="nckh-edit-participants">${buildParticipantRows(data, config, metadata, true)}</div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-3">
@@ -657,8 +682,6 @@
       tongSoTiet: Number(selectedOption?.dataset.hours || data.tongSoTiet || 0),
       soNamThucHien: Number(document.getElementById("editSoNamThucHien")?.value || 1),
       xepLoai: document.getElementById("editXepLoai")?.value || null,
-      ngayNghiemThu: document.getElementById("editNgayNghiemThu")?.value || null,
-      maSo: document.getElementById("editMaSo")?.value?.trim() || null,
       tacGiaIds: [],
       thanhVienIds: [],
       tacGiaLienHeIds: [],
@@ -668,13 +691,18 @@
       vaiTro: null,
     };
 
-    if (config.article || config.award) {
+    if (config.requiredDate || config.article) {
+      payload.ngayNghiemThu = document.getElementById("editNgayNghiemThu")?.value || null;
+    }
+
+    if (config.showMaSo) {
+      payload.maSo = document.getElementById("editMaSo")?.value?.trim() || null;
+    }
+
+    if (config.article) {
       payload.tenTapChi = document.getElementById("editTenTapChi")?.value?.trim() || null;
       payload.soBao = document.getElementById("editSoBao")?.value?.trim() || null;
       payload.soTrichDan = document.getElementById("editSoTrichDan")?.value === "" ? null : Number(document.getElementById("editSoTrichDan")?.value);
-      payload.soQuyetDinh = config.article
-        ? data.soQuyetDinh || null
-        : document.getElementById("editSoQuyetDinh")?.value?.trim() || null;
       payload.ngayQuyetDinh = document.getElementById("editNgayQuyetDinh")?.value || null;
       payload.issnIsbn = document.getElementById("editIssnIsbn")?.value?.trim() || null;
       payload.doi = document.getElementById("editDoi")?.value?.trim() || null;
@@ -683,8 +711,12 @@
       payload.number = document.getElementById("editNumber")?.value?.trim() || null;
       payload.page = document.getElementById("editPage")?.value?.trim() || null;
     }
+    if (config.award) {
+      payload.soQuyetDinh = document.getElementById("editSoQuyetDinh")?.value?.trim() || null;
+      payload.ngayQuyetDinh = document.getElementById("editNgayQuyetDinh")?.value || null;
+    }
 
-    participants.forEach((participant) => {
+    participants.forEach((participant, index) => {
       const role = participant.vaiTro || "thanh_vien";
       const isExternal = participant.nhanvienId === null || participant.nhanvienId === undefined;
       if (isExternal) {
@@ -693,14 +725,18 @@
           donVi: String(participant.donViNgoai || "").trim(),
         };
         if (!item.ten || !item.donVi) return;
-        if (config.council) return;
-        if (role === "tac_gia_lien_he") payload.tacGiaLienHeNgoai.push(item);
+        if (config.council) {
+          payload.tacGiaNgoai.push(item);
+          payload.vaiTro = role;
+        }
+        else if (role === "tac_gia_lien_he") payload.tacGiaLienHeNgoai.push(item);
         else if (role === "tac_gia") payload.tacGiaNgoai.push(item);
         else payload.thanhVienNgoai.push(item);
         return;
       }
 
-      const id = Number(participant.nhanvienId || 0);
+      const selected = document.querySelector(`.nckh-edit-participant-select[data-participant-index="${index}"]`);
+      const id = Number(selected?.value || participant.nhanvienId || 0);
       if (!id) return;
       if (config.council) {
         payload.tacGiaIds.push(id);
@@ -1039,6 +1075,10 @@
 
     if (el.loadDataBtn) {
       el.loadDataBtn.addEventListener("click", loadData);
+    }
+
+    if (el.namHocFilter) {
+      el.namHocFilter.addEventListener("change", loadData);
     }
 
     if (el.submitApprovalsBtn) {
