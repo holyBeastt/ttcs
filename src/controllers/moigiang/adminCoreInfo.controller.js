@@ -150,7 +150,8 @@ const deleteCoreInfoRow = async (req, res) => {
   }
 
   try {
-    const result = await adminCoreInfoService.deleteCoreInfo(id);
+    const performedBy = req.session?.userId || req.user?.id || 'UNKNOWN_ADMIN';
+    const result = await adminCoreInfoService.deleteCoreInfo(id, performedBy);
 
     if (!result) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy dữ liệu để xóa.' });

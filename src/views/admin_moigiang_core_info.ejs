@@ -402,6 +402,7 @@
         };
       }
       gridOptions = {
+        getRowId: (params) => String(params.data.ID),
         columnDefs: columnDefs,
         rowData: [],
         defaultColDef: {
@@ -813,10 +814,13 @@
             if (response.ok) {
               const data = await response.json();
               
-              // Xóa dòng khỏi AG Grid
-              const rowNode = gridApi.getRowNode(id);
+              // Xóa dòng khỏi globalData và AG Grid
+              globalData = globalData.filter((item) => String(item.ID) !== String(id));
+              const rowNode = gridApi && typeof gridApi.getRowNode === 'function' ? gridApi.getRowNode(String(id)) : null;
               if (rowNode) {
                 gridApi.applyTransaction({ remove: [rowNode.data] });
+              } else if (gridApi && typeof gridApi.applyTransaction === 'function') {
+                gridApi.applyTransaction({ remove: [{ ID: id }] });
               }
               
               Swal.fire({
@@ -828,9 +832,10 @@
                 padding: "20px",
               });
             } else {
+              const errData = await response.json().catch(() => ({}));
               Swal.fire({
                 title: "Lỗi",
-                text: "Có lỗi xảy ra khi xóa dữ liệu.",
+                text: errData.message || "Có lỗi xảy ra khi xóa dữ liệu.",
                 icon: "error",
                 confirmButtonText: "OK",
                 width: "auto",
