@@ -261,6 +261,7 @@
     [el.exportNamHocFrom, el.exportNamHocTo].forEach((select) => {
       select?.addEventListener("change", reloadCurrent);
     });
+    el.khoa?.addEventListener("change", reloadCurrent);
     el.export.addEventListener("click", exportCurrent);
     el.keyword.addEventListener("input", () => {
       if (state.tab === "lecturer" && state.lecturerGroups.length) renderLecturerGroups();
