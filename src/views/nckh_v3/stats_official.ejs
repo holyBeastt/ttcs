@@ -48,7 +48,8 @@
       </div>
       <div class="tb-group" id="officialKeywordGroup" style="min-width: 280px;">
         <label for="officialKeywordInput">Tìm giảng viên</label>
-        <input id="officialKeywordInput" class="form-control" placeholder="Nhập tên giảng viên..." />
+        <input id="officialKeywordInput" class="form-control" list="officialLecturerSuggestions" autocomplete="off" placeholder="Nhập tên giảng viên..." />
+        <datalist id="officialLecturerSuggestions"></datalist>
       </div>
       <div class="tb-group" id="officialLecturerExportGroup" style="min-width: 280px;" hidden>
         <label for="officialLecturerExportFilter">Giảng viên xuất riêng (tuỳ chọn)</label>

@@ -1,5 +1,5 @@
 (function () {
-  const state = { selectedLecturerId: null, rawLecturers: [], lecturers: [], records: [] };
+  const state = { selectedLecturerId: null, exportLecturerId: null, rawLecturers: [], lecturers: [], records: [] };
   const el = { namHocFromFilter: null, namHocToFilter: null, khoaFilter: null, keywordInput: null, loadDataBtn: null, exportExcelBtn: null, lecturerTableBody: null, recordDetailTableBody: null, recordDetailModalLabel: null };
   let recordDetailModal = null, barInstance = null, pieInstance = null;
 
@@ -28,6 +28,7 @@
     el.namHocToFilter = document.getElementById("namHocToFilter");
     el.khoaFilter = document.getElementById("khoaFilter");
     el.keywordInput = document.getElementById("keywordInput");
+    el.lecturerNameSuggestions = document.getElementById("lecturerNameSuggestions");
     el.loadDataBtn = document.getElementById("loadDataBtn");
     el.exportExcelBtn = document.getElementById("exportExcelBtn");
     el.lecturerTableBody = document.getElementById("lecturerTableBody");
@@ -120,6 +121,19 @@
     renderCharts();
   }
 
+  function renderLecturerNameSuggestions() {
+    if (!el.lecturerNameSuggestions) return;
+    const names = new Map();
+    state.rawLecturers.forEach((lecturer) => {
+      const name = String(lecturer.tenNhanVien || "").trim();
+      if (name && !names.has(name)) names.set(name, lecturer.maPhongBan || "");
+    });
+    el.lecturerNameSuggestions.innerHTML = Array.from(names.entries())
+      .sort((a, b) => a[0].localeCompare(b[0], "vi"))
+      .map(([name, department]) => `<option value="${window.NCKH_V3_STATS.helpers.escapeHtml(name)}" label="${window.NCKH_V3_STATS.helpers.escapeHtml(department)}"></option>`)
+      .join("");
+  }
+
   function renderRecords() {
     if (!el.recordDetailTableBody) return;
     if (!state.records.length) { el.recordDetailTableBody.innerHTML = '<tr><td colspan="9" class="text-muted py-4">Không có dữ liệu chi tiết</td></tr>'; return; }
@@ -134,7 +148,8 @@
     const result = await api.getLecturers(yearRange.namHocFrom, yearRange.namHocTo, khoaId, "");
     if (!result.success) throw new Error(result.message || "Không thể lấy thống kê giảng viên");
     state.rawLecturers = Array.isArray(result.data) ? result.data : [];
-    state.selectedLecturerId = null; state.records = [];
+    state.selectedLecturerId = null; state.exportLecturerId = null; state.records = [];
+    renderLecturerNameSuggestions();
     applyLecturerFilter();
   }
 
@@ -162,12 +177,19 @@
 
   function bindEvents() {
     el.loadDataBtn?.addEventListener("click", async () => { try { await loadSummary(); } catch (e) { await window.NCKH_V3_STATS.helpers.showError(e, "Không thể tải dữ liệu"); } });
-    el.keywordInput?.addEventListener("input", () => { state.selectedLecturerId = null; state.records = []; applyLecturerFilter(); });
+    el.keywordInput?.addEventListener("input", () => {
+      const keyword = normalizeText(el.keywordInput.value);
+      const matches = state.rawLecturers.filter((lecturer) => normalizeText(lecturer.tenNhanVien) === keyword);
+      state.exportLecturerId = matches.length === 1 ? matches[0].lecturerId : null;
+      state.selectedLecturerId = null;
+      state.records = [];
+      applyLecturerFilter();
+    });
     el.exportExcelBtn?.addEventListener("click", () => {
       let yearRange;
       try { yearRange = getYearRange(); } catch (error) { Swal.fire("Khoảng năm học không hợp lệ", error.message, "warning"); return; }
       const khoaId = String(el.khoaFilter?.value || "ALL").trim(), keyword = String(el.keywordInput?.value || "").trim();
-      window.location.href = `/v3/nckh/export/stats/giang-vien?${new URLSearchParams({ ...yearRange, khoaId, keyword })}`;
+      window.location.href = `/v3/nckh/export/stats/giang-vien?${new URLSearchParams({ ...yearRange, khoaId, keyword, lecturerId: state.exportLecturerId || "" })}`;
     });
     el.lecturerTableBody?.addEventListener("click", async (event) => {
       const btn = event.target.closest("button[data-action='detail']"); if (!btn) return;

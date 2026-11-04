@@ -57,7 +57,8 @@
       </div>
       <div class="tb-group" style="min-width: 300px;">
         <label for="keywordInput">Tìm giảng viên</label>
-        <input id="keywordInput" class="form-control" placeholder="Nhập tên giảng viên..." />
+        <input id="keywordInput" class="form-control" list="lecturerNameSuggestions" autocomplete="off" placeholder="Nhập tên giảng viên..." />
+        <datalist id="lecturerNameSuggestions"></datalist>
       </div>
       <div class="tb-actions">
         <button id="loadDataBtn" class="btn btn-load">
