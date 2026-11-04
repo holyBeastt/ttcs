@@ -20,7 +20,7 @@ const NCKH_TYPE_OPTIONS = [
     loaiNckh: "BAIBAO",
     implemented: true,
     mode: "standard",
-    mainActorLabel: "Tác giả chính",
+    mainActorLabel: "Tác giả đứng tên đầu (First Author)",
     hasSecondaryMembers: true,
     phanLoaiPlaceholder: "-- Chọn loại tạp chí --",
     showSoNamThucHien: true,
