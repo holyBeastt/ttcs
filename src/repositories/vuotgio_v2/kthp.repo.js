@@ -13,6 +13,16 @@ const TABLES = Object.freeze({
     CHAM_THI: "vg_kthp_cham_thi",
 });
 
+const APPROVAL_SEMESTERS = Object.freeze([1, 2]);
+const APPROVAL_ROUNDS = Object.freeze([1, 2]);
+
+const hasFilterValue = (value) => value !== null
+    && value !== undefined
+    && !(typeof value === "string" && value.trim() === "");
+
+const isAllFilter = (value) => typeof value === "string"
+    && value.trim().toUpperCase() === "ALL";
+
 const typeLabelSql = (alias = "p") => `CASE ${alias}.loai_kthp
     WHEN 'RA_DE' THEN 'Ra đề'
     WHEN 'NGAN_HANG_CAU_HOI' THEN 'Ngân hàng câu hỏi'
@@ -230,19 +240,25 @@ const create = async (connection, model) => {
 const getTable = async (connection, { namHoc, khoa, heDaoTao, dot, ki }) => {
     let query = `SELECT ${joinedSelect()} ${joinedFrom()} WHERE p.nam_hoc = ?`;
     const params = [namHoc];
-    if (khoa && khoa !== "ALL") {
+    if (hasFilterValue(khoa) && !isAllFilter(khoa)) {
         query += " AND p.khoa = ?";
         params.push(khoa);
     }
-    if (heDaoTao && heDaoTao !== "ALL") {
+    if (hasFilterValue(heDaoTao) && !isAllFilter(heDaoTao)) {
         query += " AND p.he_dao_tao_id = ?";
         params.push(heDaoTao);
     }
-    if (dot && dot !== "ALL") {
+    if (isAllFilter(dot)) {
+        query += " AND p.dot IN (?, ?)";
+        params.push(...APPROVAL_ROUNDS);
+    } else if (hasFilterValue(dot)) {
         query += " AND p.dot = ?";
         params.push(dot);
     }
-    if (ki && ki !== "ALL") {
+    if (isAllFilter(ki)) {
+        query += " AND p.hoc_ky IN (?, ?)";
+        params.push(...APPROVAL_SEMESTERS);
+    } else if (hasFilterValue(ki)) {
         query += " AND p.hoc_ky = ?";
         params.push(ki);
     }
