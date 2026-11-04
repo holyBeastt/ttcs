@@ -1209,6 +1209,10 @@
       el.namHocFilter.addEventListener("change", loadData);
     }
 
+    if (el.khoaFilter) {
+      el.khoaFilter.addEventListener("change", loadData);
+    }
+
     if (el.submitApprovalsBtn) {
       el.submitApprovalsBtn.addEventListener("click", onSubmitApprovals);
     }
