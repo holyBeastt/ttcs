@@ -256,7 +256,11 @@
     }
     if (filters?.success) helpers().fillKhoaOptions(el.khoa, filters.data?.khoaList || [], true);
     updateControls();
-    el.load.addEventListener("click", () => loadCurrent().catch((error) => helpers().showError(error, "Không thể tải thống kê NCKH")));
+    const reloadCurrent = () => loadCurrent().catch((error) => helpers().showError(error, "Không thể tải thống kê NCKH"));
+    el.load.addEventListener("click", reloadCurrent);
+    [el.exportNamHocFrom, el.exportNamHocTo].forEach((select) => {
+      select?.addEventListener("change", reloadCurrent);
+    });
     el.export.addEventListener("click", exportCurrent);
     el.keyword.addEventListener("input", () => {
       if (state.tab === "lecturer" && state.lecturerGroups.length) renderLecturerGroups();
@@ -265,7 +269,7 @@
       state.tab = button.dataset.statTab;
       document.querySelectorAll("[data-stat-tab]").forEach((item) => item.classList.toggle("active", item === button));
       updateControls();
-      loadCurrent().catch((error) => helpers().showError(error, "Không thể tải thống kê NCKH"));
+      reloadCurrent();
     }));
     await loadCurrent();
   }

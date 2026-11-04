@@ -49,6 +49,7 @@ const mapCommonRecordRow = (row) => ({
   ngayNghiemThu: row.ngay_nghiem_thu || null,
   xepLoai: row.xep_loai || null,
   maSo: row.ma_so || null,
+  tenTapChi: row.ten_tap_chi || null,
   tacGiaChinh: row.tac_gia_chinh || "",
   thanhVien: row.thanh_vien || "",
 });
