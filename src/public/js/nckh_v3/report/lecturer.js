@@ -2,6 +2,8 @@
   const state = {
     rawLecturers: [],
     lecturers: [],
+    selectedLecturerId: null,
+    selectedLecturerName: "",
   };
 
   const el = {
@@ -12,8 +14,13 @@
     loadBtn: null,
     tableBody: null,
     exportAllBtn: null,
+    modal: null,
+    modalLabel: null,
+    modalTableBody: null,
+    modalExportBtn: null,
   };
 
+  let detailModalInstance = null;
   const helpers = () => window.NCKH_V3_STATS.helpers;
 
   function normalizeText(v) {
@@ -32,14 +39,22 @@
     el.loadBtn = document.getElementById("reportLoadBtn");
     el.tableBody = document.getElementById("reportTableBody");
     el.exportAllBtn = document.getElementById("reportExportAllBtn");
+    el.modal = document.getElementById("recordDetailModal");
+    el.modalLabel = document.getElementById("recordDetailModalLabel");
+    el.modalTableBody = document.getElementById("recordDetailTableBody");
+    el.modalExportBtn = document.getElementById("modalExportBtn");
+
+    if (el.modal && window.bootstrap) {
+      detailModalInstance = bootstrap.Modal.getOrCreateInstance(el.modal);
+    }
   }
 
-  function renderTable() {
+    function renderTable() {
     if (!el.tableBody) return;
 
     if (!state.lecturers.length) {
       el.tableBody.innerHTML =
-        '<tr><td colspan="6" class="text-muted py-4">Không có dữ liệu giảng viên trong năm học và điều kiện lọc đã chọn</td></tr>';
+        '<tr><td colspan="7" class="text-muted py-4">Không có dữ liệu giảng viên trong năm học và điều kiện lọc đã chọn</td></tr>';
       if (el.exportAllBtn) el.exportAllBtn.style.display = "none";
       return;
     }
@@ -49,14 +64,50 @@
 
     el.tableBody.innerHTML = state.lecturers
       .map((row, i) => {
+        let projectListHtml = "";
+        if (row.danhSachCongTrinh && row.danhSachCongTrinh.length > 0) {
+          const firstTwo = row.danhSachCongTrinh.slice(0, 2);
+          const items = firstTwo
+            .map(
+              (title) =>
+                `<div class="project-preview-item" title="${esc(title)}">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span class="fw-medium">${esc(title)}</span>
+                </div>`
+            )
+            .join("");
+
+          const moreCount = row.danhSachCongTrinh.length - 2;
+          const moreText =
+            moreCount > 0
+              ? `<div class="text-muted fst-italic mt-1" style="font-size: 0.82rem;">+${moreCount} công trình khác...</div>`
+              : "";
+          projectListHtml = `<div class="mt-1">${items}${moreText}</div>`;
+        }
+
+        const projectColHtml = `
+          <div class="mb-1">
+            <span class="badge bg-primary badge-project-count" data-action="view-detail" data-id="${row.lecturerId}" title="Nhấp để xem bảng chi tiết">
+              ${row.soCongTrinh} công trình
+            </span>
+          </div>
+          ${projectListHtml}
+          <div class="mt-2">
+            <button class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.8rem;" data-action="view-detail" data-id="${row.lecturerId}" title="Xem chi tiết các công trình">
+              <i class="bi bi-eye"></i> Chi tiết
+            </button>
+          </div>
+        `;
+
         return `<tr>
-          <td>${i + 1}</td>
-          <td class="text-start fw-semibold">${esc(row.tenNhanVien)}</td>
-          <td>${esc(row.maPhongBan || row.lecturerKhoaName || "-")}</td>
-          <td><span class="badge bg-secondary">${row.soCongTrinh}</span></td>
-          <td class="fw-bold text-primary">${fmt(row.tongSoTietGiangVien)}</td>
-          <td>
-            <button class="btn btn-sm btn-outline-primary" data-action="export-single" data-id="${row.lecturerId}" title="Tải file Word (.docx)">
+          <td class="col-compact fw-medium">${i + 1}</td>
+          <td class="text-start fw-semibold text-primary col-lecturer-name">${esc(row.tenNhanVien)}</td>
+          <td class="col-compact">${esc(row.chucVu || "-")}</td>
+          <td class="col-compact fw-medium">${esc(row.lecturerKhoaName || row.maPhongBan || "-")}</td>
+          <td class="text-start">${projectColHtml}</td>
+          <td class="col-compact text-success fs-6">${fmt(row.tongSoTietGiangVien)}</td>
+          <td class="col-compact">
+            <button class="btn btn-sm btn-outline-primary px-2 py-1" data-action="export-single" data-id="${row.lecturerId}" title="Tải file Word (.docx)">
               <i class="bi bi-file-earmark-word"></i> Xuất Word
             </button>
           </td>
@@ -88,7 +139,7 @@
     }
 
     el.tableBody.innerHTML =
-      '<tr><td colspan="6" class="text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải danh sách...</td></tr>';
+      '<tr><td colspan="7" class="text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải danh sách giảng viên và công trình...</td></tr>';
 
     try {
       const query = new URLSearchParams({ namHoc, khoaId, keyword: "" });
@@ -109,7 +160,73 @@
     } catch (err) {
       await helpers().showError(err, "Lỗi khi tải dữ liệu");
       el.tableBody.innerHTML =
-        '<tr><td colspan="6" class="text-danger py-4">Có lỗi xảy ra khi tải dữ liệu</td></tr>';
+        '<tr><td colspan="7" class="text-danger py-4">Có lỗi xảy ra khi tải dữ liệu</td></tr>';
+    }
+  }
+
+  async function viewLecturerDetail(lecturerId) {
+    const namHoc = String(el.namHoc?.value || "").trim();
+    const scope = String(el.scope?.value || "PREVIEW").trim();
+    const sel = state.rawLecturers.find((item) => Number(item.lecturerId) === Number(lecturerId));
+
+    state.selectedLecturerId = Number(lecturerId);
+    state.selectedLecturerName = sel?.tenNhanVien || "Giảng viên";
+
+    if (el.modalLabel) {
+      el.modalLabel.innerHTML = `<i class="bi bi-journal-text me-2"></i>Chi tiết công trình NCKH - <b>${helpers().escapeHtml(state.selectedLecturerName)}</b> (${namHoc})`;
+    }
+
+    if (el.modalTableBody) {
+      el.modalTableBody.innerHTML =
+        '<tr><td colspan="8" class="text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải chi tiết công trình...</td></tr>';
+    }
+
+    if (detailModalInstance) {
+      detailModalInstance.show();
+    }
+
+    try {
+      const query = new URLSearchParams({ namHoc, khoaId: "ALL" });
+      const apiEndpoint =
+        scope === "OFFICIAL"
+          ? `/v3/nckh/stats/giang-vien/${lecturerId}/cong-trinh?${query}`
+          : `/v3/nckh/stats/preview/giang-vien/${lecturerId}/cong-trinh?${query}`;
+
+      const res = await fetch(apiEndpoint);
+      const result = await res.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Không thể tải công trình của giảng viên");
+      }
+
+      const records = Array.isArray(result.data) ? result.data : [];
+      if (!records.length) {
+        el.modalTableBody.innerHTML =
+          '<tr><td colspan="8" class="text-muted py-4">Giảng viên không có công trình NCKH nào trong năm học này</td></tr>';
+        return;
+      }
+
+      const esc = helpers().escapeHtml;
+      const fmt = helpers().formatHours;
+
+      el.modalTableBody.innerHTML = records
+        .map((rec, idx) => {
+          return `<tr>
+            <td class="col-stt text-center">${idx + 1}</td>
+            <td class="col-loai text-center"><span class="badge bg-info text-dark">${esc(rec.loaiNckhLabel || rec.loaiNckh)}</span></td>
+            <td class="text-start col-ten fw-semibold">${esc(rec.tenCongTrinh)}</td>
+            <td class="text-start col-tacgia">${esc(rec.tacGiaChinh || "-")}</td>
+            <td class="text-start col-thanhvien"><small class="text-muted">${esc(rec.thanhVien || "-")}</small></td>
+            <td class="col-tiet">${fmt(rec.tongSoTietCongTrinh)}</td>
+            <td class="col-tiet fw-bold text-success">${fmt(rec.soTietGiangVien)}</td>
+            <td class="col-vaitro"><span class="badge bg-light text-dark border">${esc(helpers().formatRole(rec.vaiTroGiangVien))}</span></td>
+          </tr>`;
+        })
+        .join("");
+    } catch (err) {
+      console.error("Lỗi khi tải chi tiết công trình:", err);
+      el.modalTableBody.innerHTML =
+        '<tr><td colspan="8" class="text-danger py-4">Có lỗi khi tải danh sách công trình</td></tr>';
     }
   }
 
@@ -195,6 +312,13 @@
 
     if (years?.success) {
       helpers().fillNamHocOptions(el.namHoc, years.NamHoc || []);
+      // If 2025 - 2026 is an option, select it if current selected year has no data
+      const has2025_2026 = Array.from(el.namHoc.options).find(
+        (opt) => opt.value.replace(/\s+/g, "") === "2025-2026"
+      );
+      if (has2025_2026) {
+        el.namHoc.value = has2025_2026.value;
+      }
     }
     if (filters?.success) {
       helpers().fillKhoaOptions(el.khoa, filters.data?.khoaList || [], true);
@@ -226,11 +350,26 @@
       exportAll();
     });
 
+    el.modalExportBtn?.addEventListener("click", () => {
+      if (state.selectedLecturerId) {
+        downloadSingle(state.selectedLecturerId);
+      }
+    });
+
     el.tableBody?.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-action='export-single']");
-      if (!btn) return;
-      const id = btn.getAttribute("data-id");
-      if (id) downloadSingle(id);
+      const btnExport = e.target.closest("button[data-action='export-single']");
+      if (btnExport) {
+        const id = btnExport.getAttribute("data-id");
+        if (id) downloadSingle(id);
+        return;
+      }
+
+      const btnDetail = e.target.closest("[data-action='view-detail']");
+      if (btnDetail) {
+        const id = btnDetail.getAttribute("data-id");
+        if (id) viewLecturerDetail(id);
+        return;
+      }
     });
   }
 
