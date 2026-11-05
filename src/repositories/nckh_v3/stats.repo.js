@@ -111,6 +111,7 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc, fromYear, t
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
+      c.ten_tap_chi,
       st.so_tiet AS so_tiet_giang_vien,
       st.vai_tro AS vai_tro_giang_vien,
       GROUP_CONCAT(
@@ -144,6 +145,7 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc, fromYear, t
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
+      c.ten_tap_chi,
       st.so_tiet,
       st.vai_tro
     ORDER BY c.id DESC
@@ -205,6 +207,7 @@ const listFacultyRecords = async (connection, { namHoc, khoaId, fromYear, toYear
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
+      c.ten_tap_chi,
       GROUP_CONCAT(
         DISTINCT CASE
           WHEN st.vai_tro IN ('tac_gia', 'tac_gia_lien_he') THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
@@ -239,7 +242,8 @@ const listFacultyRecords = async (connection, { namHoc, khoaId, fromYear, toYear
       c.tong_so_tiet,
       c.ngay_nghiem_thu,
       c.xep_loai,
-      c.ma_so
+      c.ma_so,
+      c.ten_tap_chi
     ORDER BY c.id DESC
   `;
 
@@ -341,6 +345,7 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
+      c.ten_tap_chi,
       GROUP_CONCAT(
         DISTINCT CASE
           WHEN st.vai_tro IN ('tac_gia', 'tac_gia_lien_he') THEN TRIM(COALESCE(nv.TenNhanVien, st.ten_ngoai))
@@ -381,7 +386,8 @@ const listInstituteRecords = async (connection, { namHoc, khoaId = "ALL", loaiNc
       c.nam_hoc,
       c.ngay_nghiem_thu,
       c.xep_loai,
-      c.ma_so
+      c.ma_so,
+      c.ten_tap_chi
     ORDER BY c.id DESC
   `;
 

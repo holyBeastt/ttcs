@@ -322,7 +322,7 @@
     if (!state.rows.length) {
       el.tableBody.innerHTML = `
         <tr>
-          <td colspan="14" class="text-center text-muted py-4">Không có dữ liệu</td>
+          <td colspan="13" class="text-center text-muted py-4">Không có dữ liệu</td>
         </tr>
       `;
       return;
@@ -375,7 +375,7 @@
       const groupRows = group.rows;
       html += `
         <tr class="nckh-v3-group-header">
-          <td colspan="14">
+          <td colspan="13">
             <strong>${escapeHtml(group.label)}</strong>
             <span class="nckh-v3-group-count">${groupRows.length} công trình</span>
             <span class="nckh-v3-group-count">${formatHours(group.totalHours)} tiết</span>
@@ -413,7 +413,6 @@
             <td>${formatDate(row.ngayNghiemThu)}</td>
             <td class="text-start col-people">${tacGia || ""}</td>
             <td class="text-start col-people">${thanhVien || ""}</td>
-            <td>${escapeHtml(row.maPhongBan || row.tenPhongBan || "")}</td>
             <td>${formatHours(group.byPerson ? row.personHours : row.tongSoTiet)}</td>
             <td>
               <input
@@ -516,28 +515,6 @@
     });
   }
 
-  function buildEmployeeOptions(giangVienList, selectedId, selectedName = "") {
-    const options = ['<option value="">-- Chọn giảng viên --</option>'];
-    let hasSelected = false;
-    (giangVienList || []).forEach((item) => {
-      const id = Number(item.id);
-      if (!Number.isFinite(id) || id <= 0) return;
-      const selected = Number(selectedId) === id;
-      if (selected) hasSelected = true;
-      const unit = item.MaPhongBan ? ` - ${item.MaPhongBan}` : "";
-      options.push(
-        `<option value="${id}" ${selected ? "selected" : ""}>${escapeHtml(`${item.TenNhanVien || ""}${unit}`)}</option>`
-      );
-    });
-
-    // Không làm mất tên hiện tại nếu nhân sự đã bị loại khỏi metadata.
-    if (selectedId && !hasSelected) {
-      options.push(`<option value="${Number(selectedId)}" selected>${escapeHtml(selectedName || selectedId)}</option>`);
-    }
-
-    return options.join("");
-  }
-
   function buildParticipantRows(data, config, metadata = {}, allowLecturerEdit = false) {
     const participants = uniqueParticipants(data.participants);
     if (!participants.length) {
@@ -556,19 +533,135 @@
     return participants.map((item, index) => {
       const external = item.nhanvienId === null || item.nhanvienId === undefined;
       const name = item.tenNhanVien || item.tenNgoai || "Không rõ tên";
-      const unit = external && item.donViNgoai ? ` <span class="nckh-edit-person-unit">— ${escapeHtml(item.donViNgoai)}</span>` : "";
       const role = roleLabels[item.vaiTro] || item.vaiTro || "Thành viên";
-      const nameHtml = !external && allowLecturerEdit
-        ? `<select class="form-select nckh-edit-participant-select" data-participant-index="${index}">${buildEmployeeOptions(metadata.giangVienList, item.nhanvienId, name)}</select>`
-        : `<span class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</span>`;
+
+      if (allowLecturerEdit) {
+        return `
+          <div
+            class="nckh-edit-participant nckh-edit-participant-row"
+            data-participant-index="${index}"
+            data-role="${escapeHtml(item.vaiTro || "thanh_vien")}"
+            data-selected-id="${external ? "" : Number(item.nhanvienId)}"
+          >
+            <div class="nckh-edit-participant-editor">
+              <div class="nckh-edit-participant-name-wrap">
+                <input
+                  type="text"
+                  class="form-control nckh-edit-participant-name-input"
+                  value="${escapeHtml(name)}"
+                  placeholder="Nhập tên để tìm giảng viên"
+                  autocomplete="off"
+                />
+                <div class="suggestions-list nckh-edit-participant-suggestions"></div>
+              </div>
+              <label class="checkbox-label nckh-edit-participant-external-toggle">
+                <input type="checkbox" class="nckh-edit-participant-external" ${external ? "checked" : ""} />
+                Ngoài học viện
+              </label>
+              <input
+                type="text"
+                class="form-control nckh-edit-participant-external-unit"
+                value="${escapeHtml(external ? item.donViNgoai || "" : "")}"
+                placeholder="Đơn vị công tác"
+                ${external ? "" : "disabled"}
+              />
+              <span class="nckh-edit-person-role">${escapeHtml(role)}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      const unit = external && item.donViNgoai ? ` <span class="nckh-edit-person-unit">— ${escapeHtml(item.donViNgoai)}</span>` : "";
+      const nameHtml = `<span class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</span>`;
 
       return `
-        <div class="nckh-edit-participant ${allowLecturerEdit && !external ? "" : "nckh-edit-participant-readonly"}">
+        <div class="nckh-edit-participant nckh-edit-participant-readonly">
           ${nameHtml}
           <span class="nckh-edit-person-role">${escapeHtml(role)}</span>
         </div>
       `;
     }).join("");
+  }
+
+  function clearParticipantSuggestions(container) {
+    if (!container) return;
+    container.innerHTML = "";
+    container.classList.remove("show");
+  }
+
+  function bindEditParticipantEditors(metadata = {}) {
+    const lecturerList = Array.isArray(metadata.giangVienList) ? metadata.giangVienList : [];
+    const editContainer = Swal.getHtmlContainer();
+    if (!editContainer) return;
+
+    const rows = Array.from(editContainer.querySelectorAll(".nckh-edit-participant-row"));
+    const clearAllSuggestions = () => {
+      rows.forEach((row) => clearParticipantSuggestions(row.querySelector(".nckh-edit-participant-suggestions")));
+    };
+
+    rows.forEach((row) => {
+      const input = row.querySelector(".nckh-edit-participant-name-input");
+      const suggestions = row.querySelector(".nckh-edit-participant-suggestions");
+      const externalToggle = row.querySelector(".nckh-edit-participant-external");
+      const externalUnit = row.querySelector(".nckh-edit-participant-external-unit");
+      if (!input || !suggestions || !externalToggle || !externalUnit) return;
+
+      const renderSuggestions = () => {
+        clearParticipantSuggestions(suggestions);
+        if (externalToggle.checked) return;
+
+        const query = normalizeText(input.value);
+        if (query.length < 2) return;
+
+        const matches = lecturerList
+          .filter((item) => normalizeText(item.TenNhanVien).includes(query))
+          .slice(0, 10);
+        if (!matches.length) return;
+
+        matches.forEach((lecturer) => {
+          const suggestion = document.createElement("div");
+          suggestion.className = "suggestion-item";
+          suggestion.textContent = lecturer.TenNhanVien || "";
+          suggestion.addEventListener("click", () => {
+            const lecturerId = Number(lecturer.id);
+            if (!Number.isFinite(lecturerId) || lecturerId <= 0) return;
+            row.dataset.selectedId = String(lecturerId);
+            input.value = lecturer.TenNhanVien || "";
+            clearParticipantSuggestions(suggestions);
+          });
+          suggestions.appendChild(suggestion);
+        });
+        suggestions.classList.add("show");
+      };
+
+      const syncExternalMode = () => {
+        if (externalToggle.checked) {
+          row.dataset.selectedId = "";
+          externalUnit.disabled = false;
+        } else {
+          externalUnit.disabled = true;
+          externalUnit.value = "";
+        }
+        clearParticipantSuggestions(suggestions);
+      };
+
+      input.addEventListener("input", () => {
+        if (!externalToggle.checked) {
+          row.dataset.selectedId = "";
+          renderSuggestions();
+        }
+      });
+      input.addEventListener("focus", renderSuggestions);
+      externalToggle.addEventListener("change", syncExternalMode);
+
+      syncExternalMode();
+    });
+
+    editContainer.addEventListener("click", (event) => {
+      if (!event.target.closest(".nckh-edit-participant-name-wrap")) {
+        clearAllSuggestions();
+      }
+    });
   }
 
   function buildEditFormHtml(data, config, metadata) {
@@ -659,7 +752,7 @@
 
         <div class="nckh-edit-section">
           <div class="nckh-edit-section-title"><i class="bi bi-people"></i> Danh sách tham gia</div>
-          <div class="nckh-edit-readonly-note"><i class="bi bi-info-circle"></i> Có thể sửa thông tin công trình và đổi giảng viên nội bộ bằng danh sách chọn.</div>
+          <div class="nckh-edit-readonly-note"><i class="bi bi-info-circle"></i> Giữ nguyên số lượng dòng tham gia; có thể đổi giảng viên hoặc chuyển sang ngoài học viện. Không sửa số tiết trực tiếp.</div>
           <div id="editParticipants" class="nckh-edit-participants">${buildParticipantRows(data, config, metadata, true)}</div>
         </div>
 
@@ -691,6 +784,14 @@
       vaiTro: null,
     };
 
+    let participantError = "";
+    const seenInternalIds = new Set();
+    const seenExternalPeople = new Set();
+    const participantRows = Array.from(document.querySelectorAll(".nckh-edit-participant-row"));
+    if (participantRows.length !== participants.length) {
+      participantError = "Danh sách thành viên chỉnh sửa không hợp lệ.";
+    }
+
     if (config.requiredDate || config.article) {
       payload.ngayNghiemThu = document.getElementById("editNgayNghiemThu")?.value || null;
     }
@@ -716,15 +817,30 @@
       payload.ngayQuyetDinh = document.getElementById("editNgayQuyetDinh")?.value || null;
     }
 
-    participants.forEach((participant, index) => {
-      const role = participant.vaiTro || "thanh_vien";
-      const isExternal = participant.nhanvienId === null || participant.nhanvienId === undefined;
+    participantRows.forEach((row, index) => {
+      const participant = participants[index];
+      if (!participant) {
+        participantError = participantError || "Danh sách thành viên chỉnh sửa không hợp lệ.";
+        return;
+      }
+
+      const role = row.dataset.role || participant.vaiTro || "thanh_vien";
+      const isExternal = row.querySelector(".nckh-edit-participant-external")?.checked === true;
       if (isExternal) {
         const item = {
-          ten: String(participant.tenNgoai || participant.tenNhanVien || "").trim(),
-          donVi: String(participant.donViNgoai || "").trim(),
+          ten: String(row.querySelector(".nckh-edit-participant-name-input")?.value || "").trim(),
+          donVi: String(row.querySelector(".nckh-edit-participant-external-unit")?.value || "").trim(),
         };
-        if (!item.ten || !item.donVi) return;
+        if (!item.ten || !item.donVi) {
+          participantError = participantError || `Vui lòng nhập tên và đơn vị công tác cho thành viên thứ ${index + 1}.`;
+          return;
+        }
+        const externalKey = `${normalizeText(item.ten)}|${normalizeText(item.donVi)}`;
+        if (seenExternalPeople.has(externalKey)) {
+          participantError = participantError || `Thành viên ngoài học viện thứ ${index + 1} bị trùng.`;
+          return;
+        }
+        seenExternalPeople.add(externalKey);
         if (config.council) {
           payload.tacGiaNgoai.push(item);
           payload.vaiTro = role;
@@ -735,9 +851,16 @@
         return;
       }
 
-      const selected = document.querySelector(`.nckh-edit-participant-select[data-participant-index="${index}"]`);
-      const id = Number(selected?.value || participant.nhanvienId || 0);
-      if (!id) return;
+      const id = Number(row.dataset.selectedId || 0);
+      if (!id) {
+        participantError = participantError || `Vui lòng chọn giảng viên cho thành viên thứ ${index + 1} từ danh sách gợi ý.`;
+        return;
+      }
+      if (seenInternalIds.has(id)) {
+        participantError = participantError || `Giảng viên ở dòng thứ ${index + 1} bị trùng.`;
+        return;
+      }
+      seenInternalIds.add(id);
       if (config.council) {
         payload.tacGiaIds.push(id);
         payload.vaiTro = role;
@@ -746,7 +869,7 @@
       else payload.thanhVienIds.push(id);
     });
 
-    return payload;
+    return { payload, participantError };
   }
 
   function buildDetailHtml(data) {
@@ -841,6 +964,7 @@
     }
 
     Swal.update({ html: buildEditFormHtml(data, config, metadataResult.data), width: "1100px", customClass: { popup: "nckh-v3-swal-popup" }, showConfirmButton: false, showCancelButton: false });
+    bindEditParticipantEditors(metadataResult.data);
     Swal.getHtmlContainer()?.querySelector("#editPhanLoai")?.addEventListener("change", (event) => {
       const option = event.target.selectedOptions[0];
       const total = Number(option?.dataset.hours || 0);
@@ -850,7 +974,11 @@
     Swal.getHtmlContainer()?.querySelector("#editCancelBtn")?.addEventListener("click", () => showDetailMode(data));
     Swal.getHtmlContainer()?.querySelector("#nckhInlineEditForm")?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const payload = collectEditPayload(data, config);
+      const { payload, participantError } = collectEditPayload(data, config);
+      if (participantError) {
+        await Swal.fire("Thiếu thông tin", participantError, "warning");
+        return;
+      }
       if (!payload.tenCongTrinh || !payload.phanLoai || !payload.namHoc || !payload.tongSoTiet) {
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập đủ thông tin chính của công trình", "warning");
         return;
@@ -1079,6 +1207,10 @@
 
     if (el.namHocFilter) {
       el.namHocFilter.addEventListener("change", loadData);
+    }
+
+    if (el.khoaFilter) {
+      el.khoaFilter.addEventListener("change", loadData);
     }
 
     if (el.submitApprovalsBtn) {

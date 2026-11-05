@@ -46,6 +46,7 @@
     el.khoa = document.getElementById("officialKhoaFilter");
     el.khoaGroup = document.getElementById("officialKhoaGroup");
     el.keyword = document.getElementById("officialKeywordInput");
+    el.lecturerSuggestions = document.getElementById("officialLecturerSuggestions");
     el.keywordGroup = document.getElementById("officialKeywordGroup");
     el.exportLecturer = document.getElementById("officialLecturerExportFilter");
     el.exportLecturerGroup = document.getElementById("officialLecturerExportGroup");
@@ -147,6 +148,17 @@
     el.exportLecturer.innerHTML = `<option value="">Tất cả giảng viên</option>${options}`;
     if (currentValue && state.availableLecturers.some((item) => String(item.lecturerId) === currentValue)) {
       el.exportLecturer.value = currentValue;
+    }
+    if (el.lecturerSuggestions) {
+      const names = new Map();
+      state.availableLecturers.forEach((lecturer) => {
+        const name = String(lecturer.tenNhanVien || "").trim();
+        if (name && !names.has(name)) names.set(name, lecturer.maPhongBan || "");
+      });
+      el.lecturerSuggestions.innerHTML = Array.from(names.entries())
+        .sort((a, b) => a[0].localeCompare(b[0], "vi"))
+        .map(([name, department]) => `<option value="${escape(name)}" label="${escape(department)}"></option>`)
+        .join("");
     }
   }
 
@@ -256,7 +268,12 @@
     }
     if (filters?.success) helpers().fillKhoaOptions(el.khoa, filters.data?.khoaList || [], true);
     updateControls();
-    el.load.addEventListener("click", () => loadCurrent().catch((error) => helpers().showError(error, "Không thể tải thống kê NCKH")));
+    const reloadCurrent = () => loadCurrent().catch((error) => helpers().showError(error, "Không thể tải thống kê NCKH"));
+    el.load.addEventListener("click", reloadCurrent);
+    [el.exportNamHocFrom, el.exportNamHocTo].forEach((select) => {
+      select?.addEventListener("change", reloadCurrent);
+    });
+    el.khoa?.addEventListener("change", reloadCurrent);
     el.export.addEventListener("click", exportCurrent);
     el.keyword.addEventListener("input", () => {
       if (state.tab === "lecturer" && state.lecturerGroups.length) renderLecturerGroups();
@@ -265,7 +282,7 @@
       state.tab = button.dataset.statTab;
       document.querySelectorAll("[data-stat-tab]").forEach((item) => item.classList.toggle("active", item === button));
       updateControls();
-      loadCurrent().catch((error) => helpers().showError(error, "Không thể tải thống kê NCKH"));
+      reloadCurrent();
     }));
     await loadCurrent();
   }
