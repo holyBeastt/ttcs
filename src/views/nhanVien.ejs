@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <title>Danh Sách Nhân Viên - Học Viện Kỹ Thuật Mật Mã</title>
     <link rel="stylesheet" href="/css/table.css" />
     <link rel="stylesheet" href="/css/admin.css" />
     <link
@@ -19,187 +19,204 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .card-box {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        padding: 25px;
+      }
+
+      #createNv {
+        background-color: #2563eb !important;
+        border-color: #2563eb !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border-radius: 6px;
+        transform: none !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+      }
+
+      #createNv:hover {
+        background-color: #1d4ed8 !important;
+        transform: translateY(-1px) !important;
+      }
+
+      #createNv::before {
+        display: none !important;
+      }
+
+      .table th {
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+      }
+
+      .table td {
+        font-size: 0.875rem;
+        vertical-align: middle;
+      }
+
+      .table tbody tr:hover {
+        background-color: #f8fafc !important;
+      }
+    </style>
   </head>
 
   <body>
     <%-include('adminHeader') %>
 
-    <div class="container my-5 box">
-      <div class="d-flex justify-content-start mb-3">
-        <!-- Nút Lọc màu giống nút Hiển thị -->
+    <div class="container-fluid px-4 my-4">
+      <div class="card-box">
+        <!-- Header Tiêu đề -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h3 class="fw-bold text-primary mb-0">
+            <i class="bi bi-people-fill me-2"></i>Danh Sách Nhân Viên
+          </h3>
+          <span class="badge bg-light text-secondary border px-3 py-2">Quản trị viên</span>
+        </div>
 
-        <button id="createNv" class="btn">
-          <i class="bi bi-plus-circle"></i> Thêm Nhân Viên
-        </button>
-        <script>
-          document
-            .getElementById("createNv")
-            .addEventListener("click", function () {
-              window.location.href = "/themNhanVienSite";
-            });
-        </script>
-        <input
-          type="text"
-          placeholder="Tìm kiếm theo tên nhân viên..."
-          class="search mx-3"
-          id="searchInput"
-          style="height: 40px; width: 300px"
-        />
-        <input
-          type="text"
-          placeholder="Tìm kiếm theo mã phòng ban..."
-          class="search mx-3"
-          id="searchPB"
-          style="height: 40px; width: 300px"
-        />
-        <script>
-          function filterNhanVien() {
-            const nameInput = document.getElementById("searchInput").value.toLowerCase();
-            const pbInput = document.getElementById("searchPB").value.toLowerCase();
-            const table = document.getElementById("nhanVienTable");
-            const rows = table.getElementsByTagName("tr");
+        <!-- Toolbar: Nút Thêm và Bộ lọc tìm kiếm -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-2 border-bottom">
+          <div>
+            <button id="createNv" class="btn btn-primary d-flex align-items-center">
+              <i class="bi bi-plus-circle me-1"></i> Thêm Nhân Viên
+            </button>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <div class="input-group" style="width: 280px;">
+              <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
+              <input
+                type="text"
+                placeholder="Tìm theo tên nhân viên..."
+                class="form-control"
+                id="searchInput"
+              />
+            </div>
+            <div class="input-group" style="width: 280px;">
+              <span class="input-group-text bg-white text-muted"><i class="bi bi-building"></i></span>
+              <input
+                type="text"
+                placeholder="Tìm theo mã phòng ban..."
+                class="form-control"
+                id="searchPB"
+              />
+            </div>
+          </div>
+        </div>
 
-            for (let i = 1; i < rows.length; i++) {
-              // Bỏ qua hàng tiêu đề
-              const row = rows[i];
-              const nameCell = row.cells[2]; // Cột tên nhân viên
-              const pbCell = row.cells[4]; // Cột mã phòng ban
-
-              const nameMatch = nameCell && nameCell.textContent.toLowerCase().includes(nameInput);
-              const pbMatch = pbCell && pbCell.textContent.toLowerCase().includes(pbInput);
-
-              // Hiển thị hàng nếu cả hai điều kiện đều khớp
-              row.style.display = nameMatch && pbMatch ? "" : "none";
-            }
-          }
-
-          // Gắn sự kiện `keyup` cho cả hai ô input
-          document.getElementById("searchInput").addEventListener("keyup", filterNhanVien);
-          document.getElementById("searchPB").addEventListener("keyup", filterNhanVien);
-        </script>
-      </div>
-      <div class="pb-3">
-        <table id="nhanVienTable" class="table table-bordered">
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Mã nhân viên</th>
-              <th>Tên nhân viên</th>
-              <th>Giới tính</th>
-              <th>Mã Phòng ban</th>
-              <th>Tên phòng ban</th>
-              <th>Chức vụ</th>
-              <th>% miễn giảm</th>
-              <th>Bộ môn</th>
-              <th>Điện thoại</th>
-              <th>CCCD</th>
-              <th>Ngày cấp CCCD</th>
-              <th>Nơi cấp CCCD</th>
-              <th>Học vị</th>
-              <th>Tên đăng nhập</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody class="nhanVien" id="data-table-body">
-            <% if (nhanvienLists && nhanvienLists.length > 0) { %> <% for (var i
-            = 0; i < nhanvienLists.length; i++) { %>
-            <tr class="nhanVien">
-              <td><%= i+1 %></td>
-              <td><%= nhanvienLists[i].MaNhanVien %></td>
-              <!-- Hiển thị tên tài khoản -->
-              <td><%= nhanvienLists[i].TenNhanVien %></td>
-              <!-- Hiển thị email -->
-              <td><%= nhanvienLists[i].GioiTinh %></td>
-              <td><%= nhanvienLists[i].MaPhongBan %></td>
-              <td><%= nhanvienLists[i].TenPhongBan %></td>
-              <td><%= nhanvienLists[i].ChucVu %></td>
-              <td><%= nhanvienLists[i].PhanTramMienGiam %></td>
-              <td><%= nhanvienLists[i].MonGiangDayChinh %></td>
-              <td><%= nhanvienLists[i].DienThoai %></td>
-              <td><%= nhanvienLists[i].CCCD %></td>
-              <% const options = { year: 'numeric', month: '2-digit', day:
-              '2-digit' }; %>
-              <td>
-                <%= nhanvienLists[i].NgayCapCCCD ? new
-                Date(nhanvienLists[i].NgayCapCCCD).toLocaleDateString('vi-VN',
-                options) : '' %>
-              </td>
-              <td><%= nhanvienLists[i].NoiCapCCCD %></td>
-              <td><%= nhanvienLists[i].HocVi %></td>
-              <td><%= nhanvienLists[i].TenDangNhap %></td>
-              <td class="d-flex" style="border: none">
-                <button
-                  class="action-button edit"
-                  onclick="editNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
-                >
-                  ✏️
-                </button>
-                <button
-                  class="action-button view"
-                  onclick="viewNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
-                >
-                  👁️
-                </button>
-              </td>
-            </tr>
-            <% } %> <% } else { %>
-            <tr>
-              <td colspan="16">Không có tài khoản nào.</td>
-            </tr>
-            <% } %>
-          </tbody>
-        </table>
+        <!-- Bảng Dữ Liệu -->
+        <div class="table-responsive">
+          <table id="nhanVienTable" class="table table-hover table-bordered align-middle mb-0">
+            <thead class="table-primary text-center align-middle">
+              <tr>
+                <th style="width: 50px;">STT</th>
+                <th>Mã NV</th>
+                <th style="min-width: 170px;">Tên nhân viên</th>
+                <th>Giới tính</th>
+                <th>Mã PB</th>
+                <th style="min-width: 150px;">Tên phòng ban</th>
+                <th>Chức vụ</th>
+                <th>% giảm</th>
+                <th>Bộ môn</th>
+                <th>Điện thoại</th>
+                <th>CCCD</th>
+                <th>Ngày cấp CCCD</th>
+                <th>Nơi cấp CCCD</th>
+                <th>Học vị</th>
+                <th>Tên đăng nhập</th>
+                <th style="min-width: 100px;">Hành động</th>
+              </tr>
+            </thead>
+            <tbody class="nhanVien" id="data-table-body">
+              <% if (nhanvienLists && nhanvienLists.length > 0) { %>
+                <% for (var i = 0; i < nhanvienLists.length; i++) { %>
+                  <tr class="nhanVien">
+                    <td class="text-center"><%= i+1 %></td>
+                    <td class="text-center fw-semibold text-primary"><%= nhanvienLists[i].MaNhanVien %></td>
+                    <td class="text-start fw-bold"><%= nhanvienLists[i].TenNhanVien %></td>
+                    <td class="text-center"><%= nhanvienLists[i].GioiTinh %></td>
+                    <td class="text-center fw-semibold"><%= nhanvienLists[i].MaPhongBan %></td>
+                    <td class="text-start"><%= nhanvienLists[i].TenPhongBan %></td>
+                    <td class="text-start"><%= nhanvienLists[i].ChucVu %></td>
+                    <td class="text-center"><%= nhanvienLists[i].PhanTramMienGiam ? nhanvienLists[i].PhanTramMienGiam + '%' : '0%' %></td>
+                    <td class="text-start"><%= nhanvienLists[i].MonGiangDayChinh %></td>
+                    <td class="text-center"><%= nhanvienLists[i].DienThoai %></td>
+                    <td class="text-center"><%= nhanvienLists[i].CCCD %></td>
+                    <% const options = { year: 'numeric', month: '2-digit', day: '2-digit' }; %>
+                    <td class="text-center">
+                      <%= nhanvienLists[i].NgayCapCCCD ? new Date(nhanvienLists[i].NgayCapCCCD).toLocaleDateString('vi-VN', options) : '' %>
+                    </td>
+                    <td class="text-start"><%= nhanvienLists[i].NoiCapCCCD %></td>
+                    <td class="text-center"><%= nhanvienLists[i].HocVi %></td>
+                    <td class="text-center"><%= nhanvienLists[i].TenDangNhap %></td>
+                    <td class="text-center text-nowrap">
+                      <button
+                        class="btn btn-sm btn-outline-primary me-1"
+                        title="Chỉnh sửa thông tin"
+                        onclick="editNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
+                      >
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-info"
+                        title="Xem chi tiết"
+                        onclick="viewNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
+                      >
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                <% } %>
+              <% } else { %>
+                <tr>
+                  <td colspan="16" class="text-center py-4 text-muted">Không tìm thấy tài khoản nhân viên nào.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-    <!-- Script xử lý checkbox -->
-    <!-- <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const selectAllCheckbox = document.getElementById("selectAll");
-        const rowCheckboxes = document.querySelectorAll(".row-checkbox");
 
-        selectAllCheckbox.addEventListener("change", function () {
-          rowCheckboxes.forEach((checkbox) => {
-            checkbox.checked = selectAllCheckbox.checked;
-          });
-        });
-
-        rowCheckboxes.forEach((checkbox) => {
-          checkbox.addEventListener("change", function () {
-            selectAllCheckbox.checked = Array.from(rowCheckboxes).every(
-              (cb) => cb.checked
-            );
-          });
-        });
-      });
-    </script> -->
-    <script>
-      function editNV(button, index) {
-        hre = "/updateNV/" + index;
-        window.location.href = hre;
-      }
-      function viewNV(button, index) {
-        hre = "/viewNV/" + index;
-        window.location.href = hre;
-      }
-    </script>
     <script>
       document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
-
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
-              tenDangNhap
-            )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
-          }
+        .getElementById("createNv")
+        .addEventListener("click", function () {
+          window.location.href = "/themNhanVienSite";
         });
-    </script>
-    <script>
+
+      function filterNhanVien() {
+        const nameInput = document.getElementById("searchInput").value.toLowerCase();
+        const pbInput = document.getElementById("searchPB").value.toLowerCase();
+        const table = document.getElementById("nhanVienTable");
+        const rows = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const nameCell = row.cells[2];
+          const pbCell = row.cells[4];
+
+          const nameMatch = nameCell && nameCell.textContent.toLowerCase().includes(nameInput);
+          const pbMatch = pbCell && pbCell.textContent.toLowerCase().includes(pbInput);
+
+          row.style.display = nameMatch && pbMatch ? "" : "none";
+        }
+      }
+
+      document.getElementById("searchInput").addEventListener("keyup", filterNhanVien);
+      document.getElementById("searchPB").addEventListener("keyup", filterNhanVien);
+
+      function editNV(button, index) {
+        window.location.href = "/updateNV/" + index;
+      }
+
+      function viewNV(button, index) {
+        window.location.href = "/viewNV/" + index;
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('message') === 'insertSuccess') {
@@ -208,8 +225,8 @@
             html: "Cập nhật thông tin nhân viên thành công",
             icon: "success",
             confirmButtonText: "OK",
-            width: "auto", // Tự động điều chỉnh chiều rộng
-            padding: "20px", // Giữ khoảng cách cho nội dung
+            width: "auto",
+            padding: "20px",
           });
         } else if (urlParams.get('message') === 'insertFalse') {
           Swal.fire({
@@ -217,11 +234,11 @@
             html: "Cập nhật thông tin nhân viên thất bại!",
             icon: "error",
             confirmButtonText: "OK",
-            width: "auto", // Tự động điều chỉnh chiều rộng
-            padding: "20px", // Giữ khoảng cách cho nội dung
+            width: "auto",
+            padding: "20px",
           });
         }
-      })
+      });
     </script>
   </body>
 </html>

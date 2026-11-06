@@ -1,35 +1,271 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Thêm Nhân Viên</title>
-  <link rel="stylesheet" href="/css/admin.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link rel="stylesheet" href="/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* Styling form thêm nhân viên */
+    .form-box {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e9ecef;
+      padding: 30px 40px;
+    }
+
+    .form-header-title {
+      color: #1e3a8a;
+      font-weight: 700;
+      font-size: 1.65rem;
+    }
+
+    .form-section-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #1e3a8a;
+      background-color: #f1f5f9;
+      border-left: 4px solid #3b82f6;
+      padding: 8px 14px;
+      border-radius: 4px;
+      margin-top: 24px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper .form-control,
+    .input-wrapper .form-select {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 0.925rem;
+      color: #1e293b;
+      box-shadow: none;
+      transition: all 0.2s ease-in-out;
+      width: 100% !important;
+    }
+
+    #MaPhongBan {
+      width: 100% !important;
+      text-align: center !important;
+      text-align-last: center !important;
+    }
+
+    .input-wrapper .form-control:focus,
+    .input-wrapper .form-select:focus {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.18) !important;
+      outline: none !important;
+    }
+
+    .input-wrapper .form-control.is-invalid,
+    .input-wrapper .form-select.is-invalid {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.15) !important;
+    }
+
+    /* Ngăn icon lỗi/thành công Bootstrap đè lên nút lịch của ô input date */
+    .input-wrapper input[type="date"].is-invalid,
+    .input-wrapper .form-control[type="date"].is-invalid,
+    input[type="date"].is-invalid,
+    .input-wrapper input[type="date"].is-valid,
+    .input-wrapper .form-control[type="date"].is-valid,
+    input[type="date"].is-valid {
+      background-image: none !important;
+      padding-right: 12px !important;
+    }
+
+    /* Ngăn icon checkmark xanh đè lên mũi tên select */
+    .input-wrapper select.is-valid,
+    .input-wrapper .form-select.is-valid,
+    select.is-valid,
+    .form-select.is-valid {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    }
+
+    .invalid-feedback {
+      font-size: 0.82rem;
+      color: #dc2626;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .input-wrapper .form-control[readonly] {
+      background-color: #f8fafc;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+
+    #btnThemNhanVien {
+      background-color: #2563eb !important;
+      border-color: #2563eb !important;
+      color: #ffffff !important;
+      font-weight: 600;
+      letter-spacing: normal;
+      text-transform: none;
+      transform: none !important;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+      border-radius: 6px;
+    }
+
+    #btnThemNhanVien:hover {
+      background-color: #1d4ed8 !important;
+      border-color: #1d4ed8 !important;
+      color: #ffffff !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    #btnThemNhanVien::before {
+      display: none !important;
+    }
+
+    #btnTroVe {
+      background-color: #f1f5f9 !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #475569 !important;
+      font-weight: 600;
+      letter-spacing: normal;
+      text-transform: none;
+      transform: none !important;
+      border-radius: 6px;
+    }
+
+    #btnTroVe:hover {
+      background-color: #e2e8f0 !important;
+      color: #1e293b !important;
+      transform: translateY(-1px) !important;
+    }
+
+    #btnTroVe::before {
+      display: none !important;
+    }
+  </style>
 </head>
 
 <body>
   <%- include('adminHeader') %>
-    <div class="container my-5 box">
-      <h2>Thêm Nhân Viên Mới</h2>
 
-      <form id="themNhanVienForm" action="/themNhanVien" method="POST" onsubmit="setDefaultPassword()">
-        <div class="row mb-3">
+  <div class="container my-5">
+    <div class="form-box">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="form-header-title mb-0">
+          <i class="bi bi-person-plus-fill me-2 text-primary"></i>Thêm Nhân Viên Mới
+        </h2>
+        <span class="badge bg-light text-secondary border px-3 py-2">Quản trị viên</span>
+      </div>
+      <p class="text-muted small mb-4">Điền đầy đủ các thông tin cá nhân, công tác và tài khoản vào biểu mẫu dưới đây.</p>
+
+      <form id="themNhanVienForm" action="/themNhanVien" method="POST" onsubmit="setDefaultPassword()" novalidate>
+        
+        <!-- ================= KHỐI 1: THÔNG TIN CÁ NHÂN & CCCD ================= -->
+        <div class="form-section-title">
+          <i class="bi bi-person-vcard"></i> 1. Thông tin cá nhân & Giấy tờ
+        </div>
+
+        <div class="row g-3">
           <div class="col-md-4 input-wrapper">
-            <label for="TenNhanVien" class="form-label">Tên Nhân Viên*</label>
-            <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" required />
+            <label for="TenNhanVien" class="form-label">Tên Nhân Viên <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" maxlength="255" required placeholder="Ví dụ: Nguyễn Văn A" />
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng nhập họ và tên nhân viên.</div>
           </div>
+
           <div class="col-md-4 input-wrapper">
-            <label for="NgaySinh" class="form-label">Ngày Sinh*</label>
+            <label for="NgaySinh" class="form-label">Ngày Sinh <span class="text-danger">*</span></label>
             <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" required />
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng chọn ngày sinh hợp lệ.</div>
           </div>
+
           <div class="col-md-4 input-wrapper">
-            <label for="HocVi" class="form-label">Học Hàm/Học Vị*</label>
-            <select class="form-control" name="HocVi" id="HocVi">
+            <label for="gioitinh" class="form-label">Giới tính <span class="text-danger">*</span></label>
+            <select class="form-select" name="GioiTinh" id="gioitinh" required>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="CCCD" class="form-label">Số CCCD <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="CCCD" name="CCCD" maxlength="12" pattern="^[0-9]{9,12}$" required placeholder="Nhập 9 hoặc 12 chữ số" />
+            <div class="invalid-feedback" id="cccdFeedback"><i class="bi bi-exclamation-circle me-1"></i>Số CCCD phải gồm từ 9 đến 12 chữ số.</div>
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
+            <input type="date" class="form-control" id="NgayCapCCCD" name="NgayCapCCCD" />
+            <div class="invalid-feedback" id="ngayCapCCCDFeedback"><i class="bi bi-exclamation-circle me-1"></i>Ngày cấp CCCD không hợp lệ.</div>
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
+            <input type="text" class="form-control" id="NoiCapCCCD" name="NoiCapCCCD" maxlength="255" placeholder="Ví dụ: Cục Cảnh sát QLHC về TTXH" />
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="DienThoai" class="form-label">Điện Thoại</label>
+            <input type="tel" class="form-control" id="DienThoai" name="DienThoai" maxlength="10" placeholder="Ví dụ: 0912345678" />
+            <div class="invalid-feedback" id="dienThoaiFeedback"><i class="bi bi-exclamation-circle me-1"></i>Số điện thoại không hợp lệ.</div>
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="DiaChiCCCD" class="form-label">Địa Chỉ trong CCCD</label>
+            <input type="text" class="form-control" id="DiaChiCCCD" name="DiaChiCCCD" maxlength="255" placeholder="Địa chỉ thường trú" />
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay</label>
+            <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay" maxlength="255" placeholder="Địa chỉ tạm trú/nơi ở hiện tại" />
+          </div>
+        </div>
+
+        <!-- ================= KHỐI 2: THÔNG TIN CÔNG TÁC & PHÂN QUYỀN ================= -->
+        <div class="form-section-title">
+          <i class="bi bi-briefcase"></i> 2. Thông tin công tác & Phân quyền
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="MaPhongBan" class="form-label">Mã Phòng Ban <span class="text-danger">*</span></label>
+            <select class="form-select text-center" id="MaPhongBan" name="MaPhongBan" onchange="fetchQuyen(); fetchBoMon();" required>
+              <% departmentLists.forEach(function(department) { %>
+                <option value="<%= department.MaPhongBan %>" data-full-name="<%= department.MaPhongBan %> - <%= department.TenPhongBan || '' %>">
+                  <%= department.MaPhongBan %> - <%= department.TenPhongBan || '' %>
+                </option>
+              <% }); %>
+            </select>
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng chọn mã phòng ban.</div>
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="MonGiangDayChinh" class="form-label">Bộ Môn</label>
+            <select class="form-select" name="MonGiangDayChinh" id="MonGiangDayChinh"></select>
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="ChucVu" class="form-label">Chức Vụ <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="ChucVu" name="ChucVu" maxlength="255" required placeholder="Ví dụ: Giảng viên, Phó khoa..." />
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng nhập chức vụ.</div>
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="HocVi" class="form-label">Học Hàm / Học Vị <span class="text-danger">*</span></label>
+            <select class="form-select" name="HocVi" id="HocVi" required>
               <option value="Cử nhân">Cử nhân</option>
               <option value="Kỹ sư">Kỹ sư</option>
               <option value="Thạc sĩ">Thạc sĩ</option>
@@ -37,374 +273,521 @@
               <option value="Phó giáo sư. Tiến sĩ">Phó giáo sư. Tiến sĩ</option>
               <option value="Giáo sư. Tiến sĩ">Giáo sư. Tiến sĩ</option>
             </select>
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng chọn học vị.</div>
           </div>
-        </div>
-        <div class="row mb-3">
+
           <div class="col-md-4 input-wrapper">
-            <label for="TenDangNhap" class="form-label">Tên đăng nhập*</label>
-            <input type="text" class="form-control" id="TenDangNhap" name="TenDangNhap" required />
+            <label for="Quyen" class="form-label">Quyền Truy Cập <span class="text-danger">*</span></label>
+            <select id="Quyen" class="form-select" name="Quyen" required>
+              <option value="${APP_ROLES.gv}">Giảng Viên</option>
+              <option value="${APP_ROLES.gv_cnbm}">Giáo vụ - Chủ nhiệm bộ môn</option>
+              <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>
+            </select>
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng chọn quyền truy cập.</div>
           </div>
-          <div class="col-md-4 input-wrapper d-flex justify-content-between">
-            <div>
-              <label for="ChucVu" class="form-label">Chức Vụ*</label>
-              <input type="text" class="form-control" id="ChucVu" name="ChucVu" required />
-            </div>
-            <div>
-              <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
-              <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam"
-                style="text-align: center" readonly />
-            </div>
-          </div>
-          <div class="col-md-4 input-wrapper d-flex justify-content-between">
-            <div>
-              <label for="HSL" class="form-label">Hệ số lương*</label>
-              <input type="text" class="form-control" id="HSL" name="HSL" required />
-            </div>
-            <div>
-              <label for="Luong" class="form-label">Lương*</label>
-              <input type="text" class="form-control" id="Luong" name="Luong" />
-            </div>
-          </div>
-          <div class="col-md-4 input-wrapper" hidden>
-            <label for="MatKhau" class="form-label">Mật khẩu</label>
-            <input type="text" class="form-control" id="MatKhau" name="MatKhau" />
-          </div>
-        </div>
-        <div class="row mb-3">
+
           <div class="col-md-4 input-wrapper">
-            <label for="LyDo">Lý do miễn giảm:</label>
-            <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()"></select>
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
-            <select class="form-control" name="MonGiangDayChinh" id="MonGiangDayChinh"></select>
-          </div>
-          <div class="col-md-4 input-wrapper d-flex justify-content-between">
-            <div class="ml-2">
-              <label for="MaPhongBan" class="form-label">Mã Phòng Ban</label>
-              <select class="form-control" id="MaPhongBan" name="MaPhongBan" onchange="fetchQuyen(), fetchBoMon()">
-                <% departmentLists.forEach(function(departmentLists) { %>
-                  <option value="<%= departmentLists.MaPhongBan %>">
-                    <%= departmentLists.MaPhongBan %>
-                  </option>
-                  <% }); %>
-              </select>
-            </div>
-            <div>
-              <label for="Quyen" class="form-label">Quyền</label>
-              <select id="Quyen" class="form-control" name="Quyen" style="width: 250px">
-                <option value="${APP_ROLES.gv}">Giảng Viên</option>
-                <option value="${APP_ROLES.gv_cnbm}">Giáo vụ - Chủ nhiệm bộ môn</option>
-                <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper d-flex justify-content-between">
-            <div>
-              <label for="gioitinh" class="form-label">Giới tính:</label>
-              <select class="form-control" name="GioiTinh" id="gioitinh" style="width: auto">
-                <option value="Nam">Nam</option>
-                <option value="Nữ">Nữ</option>
-              </select>
-            </div>
-            <div>
-              <label for="CCCD" class="form-label">CCCD*</label>
-              <input type="text" class="form-control" id="CCCD" name="CCCD" style="width: 300px" required />
-            </div>
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
-            <input type="date" class="form-control" id="NgayCapCCCD" name="NgayCapCCCD" />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
-            <input type="text" class="form-control" id="NoiCapCCCD" name="NoiCapCCCD" />
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="DienThoai" class="form-label">Điện Thoại</label>
-            <input type="tel" class="form-control" id="DienThoai" name="DienThoai" />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="DiaChiCCCD" class="form-label">Địa Chỉ trong CCCD</label>
-            <input type="text" class="form-control" id="DiaChiCCCD" name="DiaChiCCCD" />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="CacMonLienQuan" class="form-label">Các Môn Liên Quan</label>
-            <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan" />
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
-            <input type="text" class="form-control" id="NoiCongTac" name="NoiCongTac" />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay</label>
-            <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay" />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="MaSoThue" class="form-label">Mã Số Thuế</label>
-            <input type="text" class="form-control" id="MaSoThue" name="MaSoThue" />
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="SoTaiKhoan" class="form-label">Số Tài Khoản</label>
-            <input type="text" class="form-control" id="SoTaiKhoan" name="SoTaiKhoan" />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="NganHang" class="form-label">Ngân Hàng</label>
-            <input type="text" class="form-control" id="NganHang" name="NganHang" />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="ChiNhanh" class="form-label">Chi Nhánh</label>
-            <input type="text" class="form-control" id="ChiNhanh" name="ChiNhanh" />
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="tinhTrang">Tình trạng giảng dạy:</label>
-            <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
+            <label for="tinhTrang" class="form-label">Tình Trạng Giảng Dạy</label>
+            <select class="form-select" name="tinhTrangGiangDay" id="tinhTrang">
               <option value="1">Đang giảng dạy</option>
               <option value="0">Đã ngừng giảng dạy</option>
             </select>
           </div>
+
+          <div class="col-md-6 input-wrapper">
+            <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
+            <input type="text" class="form-control" id="NoiCongTac" name="NoiCongTac" maxlength="20" placeholder="Đơn vị công tác" />
+          </div>
+
+          <div class="col-md-6 input-wrapper">
+            <label for="CacMonLienQuan" class="form-label">Các Môn Liên Quan</label>
+            <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan" maxlength="255" placeholder="Các môn giảng dạy phụ/liên quan" />
+          </div>
         </div>
-        <button type="submit" class="btn" id="btnThemNhanVien">
-          Thêm Nhân Viên
-        </button>
-        <button type="button" class="btn mx-5" onclick="window.location.href='/nhanVien'">
-          Trở về
-        </button>
-        <h6 class="p-2">Ghi chú: Những ô có dấu * là thông tin bắt buộc.</h6>
+
+        <!-- ================= KHỐI 3: LƯƠNG & CHẾ ĐỘ & TÀI CHÍNH ================= -->
+        <div class="form-section-title">
+          <i class="bi bi-cash-stack"></i> 3. Chế độ lương & Tài chính
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-3 input-wrapper">
+            <label for="HSL" class="form-label">Hệ số lương <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0" class="form-control" id="HSL" name="HSL" required placeholder="Ví dụ: 2.34" />
+            <div class="invalid-feedback" id="hslFeedback"><i class="bi bi-exclamation-circle me-1"></i>Hệ số lương phải là số không âm.</div>
+          </div>
+
+          <div class="col-md-3 input-wrapper">
+            <label for="Luong" class="form-label">Lương <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="Luong" name="Luong" pattern="^[0-9]+$" required placeholder="Ví dụ: 15000000" />
+            <div class="invalid-feedback" id="luongFeedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng nhập mức lương (chỉ nhập số).</div>
+          </div>
+
+          <div class="col-md-3 input-wrapper">
+            <label for="LyDo" class="form-label">Lý do miễn giảm</label>
+            <select class="form-select" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()"></select>
+          </div>
+
+          <div class="col-md-3 input-wrapper">
+            <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
+            <input type="text" class="form-control text-center bg-light" id="PhanTramMienGiam" name="PhanTramMienGiam" readonly placeholder="0 %" />
+          </div>
+
+          <div class="col-md-3 input-wrapper">
+            <label for="MaSoThue" class="form-label">Mã Số Thuế</label>
+            <input type="text" class="form-control" id="MaSoThue" name="MaSoThue" maxlength="20" placeholder="Mã số thuế cá nhân" />
+          </div>
+
+          <div class="col-md-3 input-wrapper">
+            <label for="SoTaiKhoan" class="form-label">Số Tài Khoản</label>
+            <input type="text" class="form-control" id="SoTaiKhoan" name="SoTaiKhoan" maxlength="20" placeholder="Số tài khoản ngân hàng" />
+          </div>
+
+          <div class="col-md-3 input-wrapper">
+            <label for="NganHang" class="form-label">Ngân Hàng</label>
+            <input type="text" class="form-control" id="NganHang" name="NganHang" maxlength="255" placeholder="Ví dụ: Vietcombank, BIDV..." />
+          </div>
+
+          <div class="col-md-3 input-wrapper">
+            <label for="ChiNhanh" class="form-label">Chi Nhánh</label>
+            <input type="text" class="form-control" id="ChiNhanh" name="ChiNhanh" maxlength="255" placeholder="Chi nhánh ngân hàng" />
+          </div>
+        </div>
+
+        <!-- ================= KHỐI 4: TÀI KHOẢN HỆ THỐNG ================= -->
+        <div class="form-section-title">
+          <i class="bi bi-shield-lock"></i> 4. Tài khoản đăng nhập hệ thống
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6 input-wrapper">
+            <label for="TenDangNhap" class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="TenDangNhap" name="TenDangNhap" maxlength="20" required placeholder="Tối đa 20 ký tự (ví dụ: Anhnv)" />
+            <div class="invalid-feedback" id="tenDangNhapFeedback"><i class="bi bi-exclamation-circle me-1"></i>Vui lòng nhập tên đăng nhập (tối đa 20 ký tự).</div>
+            <div class="form-text text-muted mt-2">
+              <i class="bi bi-info-circle me-1"></i>Mật khẩu mặc định là <strong>1</strong> (người dùng sẽ tự đổi mật khẩu sau khi nhận tài khoản).
+            </div>
+            <input type="hidden" id="MatKhau" name="MatKhau" value="1" />
+          </div>
+        </div>
+
+        <!-- ================= ACTION BUTTONS ================= -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top">
+          <div class="text-muted small mb-2 mb-md-0">
+            <span class="text-danger fw-bold">*</span> Những ô có dấu sao là thông tin bắt buộc phải nhập.
+          </div>
+          <div>
+            <button type="button" class="btn me-2" id="btnTroVe" onclick="window.location.href='/nhanVien'">
+              <i class="bi bi-arrow-left me-1"></i> Trở về
+            </button>
+            <button type="submit" class="btn" id="btnThemNhanVien">
+              <i class="bi bi-check2-circle me-1"></i> Thêm Nhân Viên
+            </button>
+          </div>
+        </div>
+
       </form>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-      $(document).ready(function () {
-        $("#themNhanVienForm").on("submit", function (e) {
-          e.preventDefault();
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-          var formData = $(this).serialize();
+  <!-- Script xử lý Realtime Inline Validation và AJAX Submit -->
+  <script>
+    // Hàm validate cho từng ô input
+    function validateField(input) {
+      const $el = $(input);
+      let isValid = true;
+      let errorMsg = "";
 
-          $.ajax({
-            url: "/themNhanVien",
-            type: "POST",
-            data: formData,
-            success: function (response) {
-              console.log("res = ", response);
-              Swal.fire({
-                title: "Thông báo",
-                text: response.message,
-                icon: "success",
-                confirmButtonText: "Đồng ý",
-              }).then(() => {
-                window.location.href = "/nhanVien"; // Chuyển hướng sau khi người dùng nhấn "Đồng ý"
-              });
-            },
-            error: function (xhr, status, error) {
-              try {
-                // Nếu responseText là JSON, parse và lấy thông báo lỗi
-                var response = JSON.parse(xhr.responseText);
-                Swal.fire({
-                  title: "Thông báo",
-                  text: response.message || "Đã xảy ra lỗi",
-                  icon: "error",
-                  confirmButtonText: "Đồng ý",
-                });
-              } catch (e) {
-                // Nếu không parse được, hiển thị toàn bộ nội dung
-                Swal.fire({
-                  title: "Thông báo",
-                  text: "Đã xảy ra lỗi: " + xhr.responseText,
-                  icon: "error",
-                  confirmButtonText: "Đồng ý",
-                });
-              }
-            },
-          });
-        });
-      });
-    </script>
-    <script>
-      function setDefaultPassword(event) {
-        const matKhauField = document.getElementById("MatKhau");
-
-        // Nếu mật khẩu chưa nhập, đặt mật khẩu mặc định là "1"
-        if (matKhauField.value === "") {
-          matKhauField.value = "1";
+      // 1. Kiểm tra required
+      if (input.hasAttribute("required") && !input.value.trim()) {
+        isValid = false;
+        errorMsg = "Trường này không được để trống.";
+      }
+      // 2. Kiểm tra pattern nếu có
+      else if (input.value.trim() && input.hasAttribute("pattern")) {
+        const patternRegex = new RegExp(input.getAttribute("pattern"));
+        if (!patternRegex.test(input.value.trim())) {
+          isValid = false;
+          if (input.id === "Luong") {
+            errorMsg = "Lương phải là dãy số hợp lệ (chỉ gồm các chữ số).";
+          } else if (input.id === "CCCD") {
+            errorMsg = "CCCD phải gồm từ 9 đến 12 chữ số.";
+          } else {
+            errorMsg = "Định dạng nhập vào không hợp lệ.";
+          }
         }
       }
-    </script>
-
-    <script>
-      // Helper function để decode HTML entities
-      function decodeHTMLEntities(text) {
-        const textArea = document.createElement('textarea');
-        textArea.innerHTML = text;
-        return textArea.value;
+      // 3. Kiểm tra HSL
+      else if (input.id === "HSL" && input.value.trim()) {
+        const val = parseFloat(input.value);
+        if (isNaN(val) || val < 0) {
+          isValid = false;
+          errorMsg = "Hệ số lương phải là số hợp lệ không âm.";
+        }
       }
+      // 4. Kiểm tra Ngày Sinh (phải đủ 18 tuổi và không vượt quá ngày hiện tại)
+      else if (input.id === "NgaySinh" && input.value) {
+        const today = new Date();
+        const birthDate = new Date(input.value);
 
-      function fetchQuyen() {
-        const maPhongBan = decodeHTMLEntities(document.getElementById("MaPhongBan").value);
-        // Gọi API để lấy thông tin isKhoa
-        fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
-          .then((response) => response.json())
-          .then((data) => {
-            const quyenSelect = document.getElementById("Quyen");
-            quyenSelect.innerHTML = ""; // Xóa các option cũ
+        if (isNaN(birthDate.getTime())) {
+          isValid = false;
+          errorMsg = "Ngày sinh không hợp lệ.";
+        } else if (birthDate > today) {
+          isValid = false;
+          errorMsg = "Ngày sinh không thể là ngày trong tương lai.";
+        } else {
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          if (age < 18) {
+            isValid = false;
+            errorMsg = "Nhân viên phải từ đủ 18 tuổi trở lên (hiện tại: " + (age < 0 ? 0 : age) + " tuổi).";
+          }
+        }
+      }
+      // 5. Kiểm tra Ngày Cấp CCCD (không được lớn hơn ngày hiện tại, phải sau ngày sinh)
+      else if (input.id === "NgayCapCCCD" && input.value) {
+        const today = new Date();
+        const issueDate = new Date(input.value);
 
-            // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
-            if (data.isKhoa === 1) {
-              // Quyền cho các khoa (phòng ban học thuật)
-              quyenSelect.innerHTML = `
-          <option value="${APP_ROLES.gv}">Giảng Viên</option>
-          <option value="${APP_ROLES.gv_cnbm}">Giáo vụ - Chủ nhiệm bộ môn</option>
-          <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>`;
-            } else {
-              // Quyền cho các phòng ban hành chính (isKhoa = 0)
-              // Tất cả phòng ban hành chính đều có cấu trúc quyền tương tự
-              quyenSelect.innerHTML = `
-          <option value="${APP_ROLES.thuong}">Thường</option>
-          <option value="${APP_ROLES.troLy_phong}">Trợ lý phòng</option>
-          <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo phòng</option>`;
+        if (isNaN(issueDate.getTime())) {
+          isValid = false;
+          errorMsg = "Ngày cấp CCCD không hợp lệ.";
+        } else if (issueDate > today) {
+          isValid = false;
+          errorMsg = "Ngày cấp CCCD không được lớn hơn ngày hiện tại.";
+        } else {
+          const ngaySinhVal = document.getElementById("NgaySinh").value;
+          if (ngaySinhVal) {
+            const birthDate = new Date(ngaySinhVal);
+            if (issueDate <= birthDate) {
+              isValid = false;
+              errorMsg = "Ngày cấp CCCD phải sau ngày sinh.";
             }
-          })
-          .catch((error) => console.error("Error:", error));
+          }
+        }
       }
-    </script>
-    <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+      // 6. Kiểm tra Số Điện Thoại (nếu có nhập thì phải gồm 10 chữ số bắt đầu bằng số 0)
+      else if (input.id === "DienThoai" && input.value.trim()) {
+        const phoneRegex = /^(0[3|5|7|8|9])[0-9]{8}$/;
+        if (!phoneRegex.test(input.value.trim())) {
+          isValid = false;
+          errorMsg = "Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09).";
+        }
+      }
 
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
-              tenDangNhap
-            )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
+      if (!isValid) {
+        $el.addClass("is-invalid").removeClass("is-valid");
+        const $feedback = $el.siblings(".invalid-feedback");
+        if ($feedback.length && errorMsg) {
+          $feedback.html('<i class="bi bi-exclamation-circle me-1"></i>' + errorMsg);
+        }
+      } else {
+        $el.removeClass("is-invalid is-valid");
+      }
+
+      return isValid;
+    }
+
+    $(document).ready(function () {
+      // Lắng nghe sự kiện blur để kiểm tra lỗi tức thì khi rời khỏi ô
+      $("#themNhanVienForm input, #themNhanVienForm select").on("blur", function () {
+        validateField(this);
+      });
+
+      // Lắng nghe sự kiện input / change để xóa viền đỏ ngay khi bắt đầu sửa
+      $("#themNhanVienForm input, #themNhanVienForm select").on("input change", function () {
+        if ($(this).hasClass("is-invalid")) {
+          $(this).removeClass("is-invalid");
+        }
+      });
+
+      // Xử lý submit Form
+      $("#themNhanVienForm").on("submit", function (e) {
+        e.preventDefault();
+
+        // Đảm bảo mật khẩu mặc định nếu trống
+        setDefaultPassword();
+
+        // Chạy validate tất cả các trường
+        let formIsValid = true;
+        let firstInvalid = null;
+
+        $("#themNhanVienForm input, #themNhanVienForm select").each(function () {
+          const valid = validateField(this);
+          if (!valid) {
+            formIsValid = false;
+            if (!firstInvalid) {
+              firstInvalid = this;
+            }
           }
         });
-    </script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const maPhongBan = document.getElementById("MaPhongBan").value;
-        fetch(`/getMaBoMon/${maPhongBan}`)
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data); // In ra phản hồi để kiểm tra
-            const maBoMonSelect = document.getElementById("MonGiangDayChinh");
 
-            if (!maBoMonSelect) {
-              console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
-              return;
-            }
+        // Nếu client validation không đạt, cuộn tới ô lỗi đầu tiên và thông báo
+        if (!formIsValid) {
+          if (firstInvalid) {
+            firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+            firstInvalid.focus();
+          }
+          Swal.fire({
+            title: "Thiếu thông tin!",
+            text: "Vui lòng kiểm tra và điền đầy đủ các trường bắt buộc (có dấu *).",
+            icon: "warning",
+            confirmButtonText: "Đã hiểu",
+          });
+          return false;
+        }
 
-            maBoMonSelect.innerHTML = ""; // Xóa các option cũ
+        // Dữ liệu hợp lệ -> Gửi AJAX lên backend
+        var formData = $(this).serialize();
 
-            // Kiểm tra success và dữ liệu maBoMon
-            if (data.success && data.maBoMon) {
-              data.maBoMon.forEach((item) => {
-                const option = document.createElement("option");
-                option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-                option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+        $.ajax({
+          url: "/themNhanVien",
+          type: "POST",
+          data: formData,
+          success: function (response) {
+            Swal.fire({
+              title: "Thành công!",
+              text: response.message || "Thêm nhân viên thành công!",
+              icon: "success",
+              confirmButtonText: "Đồng ý",
+            }).then(() => {
+              window.location.href = "/nhanVien";
+            });
+          },
+          error: function (xhr, status, error) {
+            try {
+              var response = JSON.parse(xhr.responseText);
+              const errMsg = response.message || "Đã xảy ra lỗi!";
 
-                maBoMonSelect.appendChild(option); // Thêm option vào select
+              // Map lỗi từ server trực tiếp vào ô input tương ứng
+              if (errMsg.includes("CCCD")) {
+                $("#CCCD").addClass("is-invalid").focus();
+                $("#cccdFeedback").html('<i class="bi bi-exclamation-circle me-1"></i>' + errMsg);
+              } else if (errMsg.includes("Tên đăng nhập")) {
+                $("#TenDangNhap").addClass("is-invalid").focus();
+                $("#tenDangNhapFeedback").html('<i class="bi bi-exclamation-circle me-1"></i>' + errMsg);
+              } else if (errMsg.includes("Lương")) {
+                $("#Luong").addClass("is-invalid").focus();
+                $("#luongFeedback").html('<i class="bi bi-exclamation-circle me-1"></i>' + errMsg);
+              } else if (errMsg.includes("Hệ số lương")) {
+                $("#HSL").addClass("is-invalid").focus();
+                $("#hslFeedback").html('<i class="bi bi-exclamation-circle me-1"></i>' + errMsg);
+              }
+
+              Swal.fire({
+                title: "Thông báo lỗi",
+                text: errMsg,
+                icon: "error",
+                confirmButtonText: "Đóng",
               });
-            } else {
-              console.error(
-                "Dữ liệu maBoMon không tồn tại hoặc không thành công"
-              );
+            } catch (e) {
+              Swal.fire({
+                title: "Thông báo lỗi",
+                text: "Đã xảy ra lỗi: " + xhr.responseText,
+                icon: "error",
+                confirmButtonText: "Đóng",
+              });
             }
-          })
-          .catch((error) => console.error("Error:", error));
-        fetchLyDo(); // Gọi hàm này để lấy lý do miễn giảm khi trang được tải
+          },
+        });
       });
-    </script>
-    <script>
-      function fetchBoMon() {
-        const maPhongBan = document.getElementById("MaPhongBan").value;
-        fetch(`/getMaBoMon/${maPhongBan}`)
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data); // In ra phản hồi để kiểm tra
-            const maBoMonSelect = document.getElementById("MonGiangDayChinh");
+    });
 
-            if (!maBoMonSelect) {
-              console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
-              return;
-            }
-
-            maBoMonSelect.innerHTML = ""; // Xóa các option cũ
-
-            // Kiểm tra success và dữ liệu maBoMon
-            if (data.success && data.maBoMon) {
-              data.maBoMon.forEach((item) => {
-                const option = document.createElement("option");
-                option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-                option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-
-                maBoMonSelect.appendChild(option); // Thêm option vào select
-              });
-            } else {
-              console.error(
-                "Dữ liệu maBoMon không tồn tại hoặc không thành công"
-              );
-            }
-          })
-          .catch((error) => console.error("Error:", error));
+    function setDefaultPassword() {
+      const matKhauField = document.getElementById("MatKhau");
+      if (matKhauField && !matKhauField.value) {
+        matKhauField.value = "1";
       }
-    </script>
-    <script>
-      function fetchLyDo() {
-        fetch(`/getmiengiam`)
-          .then((response) => response.json())
-          .then((data) => {
-            const lyDoSelect = document.getElementById("LyDo");
-            lyDoSelect.innerHTML = ""; // Xóa các option cũ
+    }
 
+    // Helper function để decode HTML entities
+    function decodeHTMLEntities(text) {
+      const textArea = document.createElement("textarea");
+      textArea.innerHTML = text;
+      return textArea.value;
+    }
+
+    function fetchQuyen() {
+      const maPhongBan = decodeHTMLEntities(document.getElementById("MaPhongBan").value);
+      fetch(`/getQuyenByPhongBan?MaPhongBan=${encodeURIComponent(maPhongBan)}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const quyenSelect = document.getElementById("Quyen");
+          quyenSelect.innerHTML = "";
+
+          if (data.isKhoa === 1) {
+            quyenSelect.innerHTML = `
+              <option value="${APP_ROLES.gv}">Giảng Viên</option>
+              <option value="${APP_ROLES.gv_cnbm}">Giáo vụ - Chủ nhiệm bộ môn</option>
+              <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>`;
+          } else {
+            quyenSelect.innerHTML = `
+              <option value="${APP_ROLES.thuong}">Thường</option>
+              <option value="${APP_ROLES.troLy_phong}">Trợ lý phòng</option>
+              <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo phòng</option>`;
+          }
+        })
+        .catch((error) => console.error("Error fetching quyen:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      setupPhongBanDisplay();
+
+      // Giới hạn ngày sinh tối đa là đủ 18 tuổi tính đến thời điểm hiện tại
+      const maxBirth = new Date();
+      maxBirth.setFullYear(maxBirth.getFullYear() - 18);
+      const maxBirthStr = maxBirth.toISOString().split("T")[0];
+      const ngaySinhEl = document.getElementById("NgaySinh");
+      if (ngaySinhEl) {
+        ngaySinhEl.setAttribute("max", maxBirthStr);
+      }
+
+      // Giới hạn ngày cấp CCCD tối đa là ngày hiện tại
+      const todayStr = new Date().toISOString().split("T")[0];
+      const ngayCapCCCD = document.getElementById("NgayCapCCCD");
+      if (ngayCapCCCD) {
+        ngayCapCCCD.setAttribute("max", todayStr);
+      }
+
+      const maPhongBanEl = document.getElementById("MaPhongBan");
+      if (maPhongBanEl) {
+        fetchBoMon();
+      }
+      fetchLyDo();
+    });
+
+    // Rút gọn giá trị hiển thị của Phòng Ban (chỉ hiện mã như ATTT, CNTT) khi chọn,
+    // nhưng khi mở danh sách dropdown vẫn hiển thị đầy đủ (ATTT - An toàn thông tin...)
+    function setupPhongBanDisplay() {
+      const maPhongBanSelect = document.getElementById("MaPhongBan");
+      if (!maPhongBanSelect) return;
+
+      // Lưu lại text đầy đủ cho tất cả options
+      Array.from(maPhongBanSelect.options).forEach((opt) => {
+        if (!opt.dataset.fullName) {
+          opt.dataset.fullName = opt.getAttribute("data-full-name") || opt.text;
+        }
+      });
+
+      // Mở rộng tất cả options thành tên đầy đủ khi mở dropdown
+      function expandAllOptions() {
+        Array.from(maPhongBanSelect.options).forEach((opt) => {
+          if (opt.dataset.fullName) {
+            opt.text = opt.dataset.fullName;
+          }
+        });
+      }
+
+      // Rút gọn option đang được chọn chỉ còn mã ký hiệu (ví dụ ATTT)
+      function collapseSelectedOption() {
+        const selectedIndex = maPhongBanSelect.selectedIndex;
+        if (selectedIndex >= 0 && maPhongBanSelect.options[selectedIndex]) {
+          const selectedOpt = maPhongBanSelect.options[selectedIndex];
+          selectedOpt.text = selectedOpt.value;
+        }
+      }
+
+      // Khi người dùng click chuột mở danh sách -> hiện tên đầy đủ
+      maPhongBanSelect.addEventListener("mousedown", expandAllOptions);
+
+      // Khi người dùng bấm phím mở danh sách -> hiện tên đầy đủ
+      maPhongBanSelect.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === " " || e.key === "Enter") {
+          expandAllOptions();
+        }
+      });
+
+      // Khi người dùng chọn xong một mục -> rút gọn mục đã chọn về mã
+      maPhongBanSelect.addEventListener("change", function () {
+        collapseSelectedOption();
+      });
+
+      // Khi người dùng click ra ngoài -> đảm bảo mục đang chọn được rút gọn
+      maPhongBanSelect.addEventListener("blur", function () {
+        collapseSelectedOption();
+      });
+
+      // Khởi tạo rút gọn ngay khi nạp trang
+      collapseSelectedOption();
+    }
+
+    function fetchBoMon() {
+      const maPhongBanEl = document.getElementById("MaPhongBan");
+      if (!maPhongBanEl) return;
+      const maPhongBan = maPhongBanEl.value;
+      fetch(`/getMaBoMon/${encodeURIComponent(maPhongBan)}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const maBoMonSelect = document.getElementById("MonGiangDayChinh");
+          if (!maBoMonSelect) return;
+          maBoMonSelect.innerHTML = "";
+
+          if (data.success && data.maBoMon) {
+            data.maBoMon.forEach((item) => {
+              const option = document.createElement("option");
+              option.value = item.MaBoMon;
+              option.textContent = item.TenBoMon;
+              maBoMonSelect.appendChild(option);
+            });
+          }
+        })
+        .catch((error) => console.error("Error fetching bo mon:", error));
+    }
+
+    function fetchLyDo() {
+      fetch(`/getmiengiam`)
+        .then((response) => response.json())
+        .then((data) => {
+          const lyDoSelect = document.getElementById("LyDo");
+          if (!lyDoSelect) return;
+          lyDoSelect.innerHTML = "";
+
+          if (data && data.lydo) {
             data.lydo.forEach((item) => {
               const option = document.createElement("option");
-              option.value = item.LyDo; // hoặc item.LyDo tuỳ bạn muốn lưu gì
+              option.value = item.LyDo;
               option.textContent = item.LyDo;
               lyDoSelect.appendChild(option);
             });
-            layPhanTramTuLyDo(); // Gọi hàm này để lấy phần trăm miễn giảm khi trang được tải
-          })
-          .catch((error) => console.error("Error:", error));
+          }
+          layPhanTramTuLyDo();
+        })
+        .catch((error) => console.error("Error fetching ly do:", error));
+    }
+
+    function layPhanTramTuLyDo() {
+      const lyDoSelect = document.getElementById("LyDo");
+      if (!lyDoSelect) return;
+      const lyDoValue = lyDoSelect.value;
+
+      if (!lyDoValue) {
+        document.getElementById("PhanTramMienGiam").value = "0 %";
+        return;
       }
-    </script>
-    <script>
-      function layPhanTramTuLyDo() {
-        const lyDoValue = document.getElementById("LyDo").value;
 
-        if (!lyDoValue) {
-          document.getElementById("PhanTramMienGiam").value = "";
-          return;
-        }
-
-        fetch(`/getphantram/${lyDoValue}`)
-          .then((response) => response.json())
-          .then((data) => {
+      fetch(`/getphantram/${encodeURIComponent(lyDoValue)}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.phanTram && data.phanTram[0]) {
             document.getElementById("PhanTramMienGiam").value =
               data.phanTram[0].PhanTramMienGiam + " %";
-          })
-          .catch((error) => {
-            console.error("Lỗi khi lấy phần trăm miễn giảm:", error);
-            document.getElementById("PhanTramMienGiam").value = "";
-          });
-      }
-    </script>
+          } else {
+            document.getElementById("PhanTramMienGiam").value = "0 %";
+          }
+        })
+        .catch((error) => {
+          console.error("Lỗi khi lấy phần trăm miễn giảm:", error);
+          document.getElementById("PhanTramMienGiam").value = "0 %";
+        });
+    }
+  </script>
 </body>
 
 </html>
