@@ -80,25 +80,39 @@
       transform: scale(1.04);
     }
 
-    /* ===== Modal Chi tiết công trình chuẩn giao diện thống kê ===== */
+    /* Modal Chi tiết công trình */
     #recordDetailModal .modal-dialog {
-      max-width: 95%;
-      width: 1400px;
+      max-width: 96%;
+      width: 1480px;
+    }
+    #recordDetailModal .stats-table-card .table {
+      table-layout: auto !important;
     }
     #recordDetailModal .stats-table-card thead th {
-      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-      color: #fff;
-      font-size: 0.76rem;
-      font-weight: 700;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+      color: #fff !important;
+      font-size: 0.75rem !important;
+      font-weight: 700 !important;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 12px 10px;
-      border: none;
+      letter-spacing: 0.04em;
+      padding: 11px 10px !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
       white-space: nowrap;
     }
-    #recordDetailModal .stats-table-card tbody td {
-      padding: 10px 12px;
-      font-size: 0.88rem;
+    #recordDetailModal .stats-table-card tbody tr:not(.stats-row-total):not(.nckh-stats-group-header) td {
+      padding: 10px 10px !important;
+      font-size: 0.84rem !important;
+      line-height: 1.45;
+      color: #1e293b !important;
+      font-weight: 400 !important;
+      vertical-align: middle !important;
+      border-color: #f1f5f9 !important;
+    }
+    #recordDetailModal .stats-table-card tbody tr.stats-row-total td {
+      padding: 10px 12px !important;
+      font-size: 0.88rem !important;
+      font-weight: 700 !important;
+      vertical-align: middle !important;
     }
   </style>
 </head>
@@ -191,17 +205,17 @@
             <table class="table table-hover text-center align-middle mb-0">
               <thead>
                 <tr>
-                  <th style="width: 50px">STT</th>
-                  <th style="width: 140px">Loại NCKH</th>
-                  <th style="width: 150px">Phân loại</th>
-                  <th class="text-start" style="min-width: 260px">Tên công trình</th>
-                  <th class="text-start" style="width: 150px">Tác giả chính</th>
-                  <th class="text-start" style="width: 160px">Thành viên</th>
-                  <th style="width: 100px">Mã số</th>
-                  <th style="width: 100px">Ngày NT</th>
-                  <th style="width: 100px">Tổng tiết CT</th>
-                  <th style="width: 110px">Tiết giảng viên</th>
-                  <th style="width: 110px">Vai trò</th>
+                  <th style="width: 45px">STT</th>
+                  <th style="width: 95px">Loại NCKH</th>
+                  <th style="width: 240px; min-width: 220px">Phân loại</th>
+                  <th class="text-start" style="min-width: 280px">Tên công trình</th>
+                  <th class="text-start" style="width: 130px">Tác giả chính</th>
+                  <th class="text-start" style="width: 180px">Thành viên</th>
+                  <th style="width: 75px">Mã số</th>
+                  <th style="width: 95px">Ngày NT</th>
+                  <th style="width: 95px">Tổng tiết CT</th>
+                  <th style="width: 105px">Tiết giảng viên</th>
+                  <th style="width: 85px">Vai trò</th>
                 </tr>
               </thead>
               <tbody id="recordDetailTableBody"></tbody>
