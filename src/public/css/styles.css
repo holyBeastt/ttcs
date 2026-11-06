@@ -102,6 +102,7 @@ body {
   position: relative;
   transform-style: preserve-3d;
   height: 40px;
+  z-index: 1050;
 }
 
 .navbar-bottom .nav-link {
@@ -133,6 +134,7 @@ body {
   /* Đảm bảo menu hiển thị ngay bên dưới */
   padding-top: 0 !important;
   /* Xóa padding trên cùng nếu có */
+  z-index: 1060;
 }
 
 .dropdown-menu {
@@ -142,6 +144,7 @@ body {
   /* Xóa mọi padding không cần thiết */
   width: max-content;
   display: none;
+  z-index: 1060;
 }
 
 .dropdown-item {

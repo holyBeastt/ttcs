@@ -13,6 +13,7 @@ const lopNgoaiQCController = require("../controllers/vuotgio_v2/lopNgoaiQC.contr
 const lopNgoaiQCImportController = require("../controllers/vuotgio_v2/lopNgoaiQCImport.controller");
 const duyetKTHPController = require("../controllers/vuotgio_v2/duyetKTHP.controller");
 const kthpImportController = require("../controllers/vuotgio_v2/coiChamRaDe.file.controller");
+const kthpStatsController = require("../controllers/vuotgio_v2/kthpStats.controller");
 const tongHopController = require("../controllers/vuotgio_v2/tongHop.controller");
 const xuatFileController = require("../controllers/vuotgio_v2/xuatFile.controller");
 const thongKeGiangDayController = require("../controllers/vuotgio_v2/thongKeGiangDay.controller");
@@ -99,6 +100,28 @@ router.post("/duyet-kthp/data", enforceKhoaFilter, duyetKTHPController.getTableD
 router.post("/duyet-kthp/batch-approve", enforceKhoaFilter, checkDataLock, duyetKTHPController.batchApprove);
 router.post("/duyet-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.edit);
 router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.delete);
+
+// =====================================================
+// THỐNG KÊ KẾT THÚC HỌC PHẦN (COI, CHẤM, RA ĐỀ)
+// =====================================================
+
+// Views
+router.get("/kthp/thong-ke", kthpStatsController.renderOfficialPage);
+router.get("/kthp/thong-ke-du-kien", kthpStatsController.renderPreviewPage);
+
+// Stats APIs
+router.get("/kthp/stats/filters", kthpStatsController.getFilters);
+router.get("/kthp/stats/giang-vien", kthpStatsController.getLecturerSummary);
+router.get("/kthp/stats/giang-vien/:id/chi-tiet", kthpStatsController.getLecturerDetail);
+router.get("/kthp/stats/khoa", kthpStatsController.getFacultySummary);
+router.get("/kthp/stats/khoa/:khoaId/chi-tiet", kthpStatsController.getFacultyDetail);
+router.get("/kthp/stats/hoc-vien", kthpStatsController.getInstituteSummary);
+router.get("/kthp/stats/hoc-vien/chi-tiet", kthpStatsController.getInstituteDetail);
+
+// Export Excel APIs
+router.get("/kthp/export/stats/giang-vien", kthpStatsController.exportLecturerStats);
+router.get("/kthp/export/stats/khoa", kthpStatsController.exportFacultyStats);
+router.get("/kthp/export/stats/hoc-vien", kthpStatsController.exportInstituteStats);
 
 
 

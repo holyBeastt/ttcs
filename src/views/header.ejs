@@ -221,7 +221,15 @@
                     data-bs-toggle="dropdown" aria-expanded="false">Coi, chấm, ra đề thi</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownKTHP">
                     <a class="nav-link" id="nav-them-kthp" href="/v2/vuotgio/them-kthp">Thêm mới</a>
-                    <a class="nav-link" id="nav-duyet-kthp" href="/v2/vuotgio/duyet-kthp">Duyệt</a>
+                    <a class="nav-link" id="nav-duyet-kthp" href="/v2/vuotgio/duyet-kthp">DANH SÁCH COI, CHẤM, RA ĐỀ</a>
+                    <div class="dropdown-submenu" id="nav-thong-ke-kthp" style="width: 100%">
+                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownThongKeKTHP"
+                        data-bs-toggle="dropdown" aria-expanded="false">Thống kê coi, chấm thi, ra đề</a>
+                      <div class="dropdown-menu1" aria-labelledby="navbarDropdownThongKeKTHP">
+                        <a class="nav-link" href="/v2/vuotgio/kthp/thong-ke-du-kien">Dự kiến</a>
+                        <a class="nav-link" href="/v2/vuotgio/kthp/thong-ke">Chính thức</a>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -295,6 +303,7 @@
                 <a class="nav-link dropdown-item" href="/thongketonghop-v2">Thống kê tổng hợp</a>
                 <a class="nav-link" id="" href="/thongkedoan">Đồ Án</a>
                 <a class="nav-link" id="" href="/v3/nckh/thong-ke">Nghiên cứu khoa học</a>
+                <a class="nav-link" id="" href="/v2/vuotgio/kthp/thong-ke">Coi, chấm, ra đề thi</a>
               </div>
             </div>
           </div>
@@ -620,8 +629,10 @@
 
     const navSiteKTHP = document.getElementById("nav-site-kthp");
     const navDuyetKTHP = document.getElementById("nav-duyet-kthp");
+    const navThongKeKTHP = document.getElementById("nav-thong-ke-kthp");
     if (navSiteKTHP) navSiteKTHP.style.display = canAccessKTHP ? "" : "none";
     if (navDuyetKTHP) navDuyetKTHP.style.display = canAccessKTHP ? "" : "none";
+    if (navThongKeKTHP) navThongKeKTHP.style.display = canAccessKTHP ? "" : "none";
 
     // Vượt giờ: quyền Khoa và phòng tương ứng được vào cả site thêm mới.
     let navThemLopNgoaiQC = document.getElementById("nav-them-lop-ngoai-qc");
