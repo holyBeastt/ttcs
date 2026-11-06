@@ -81,40 +81,76 @@
         return [];
       }
     },
-    async lecturers(namHoc, khoa, loaiKthp, keyword) {
+    async lecturers(namHoc, khoa, loaiKthp, keyword, namHocFrom, namHocTo) {
       const query = new URLSearchParams({ namHoc, khoa, loaiKthp, keyword, scope: state.scope });
+      if (namHocFrom) query.set("namHocFrom", namHocFrom);
+      if (namHocTo) query.set("namHocTo", namHocTo);
       const res = await fetch(`/v2/vuotgio/kthp/stats/giang-vien?${query}`);
       return res.json();
     },
-    async lecturerRecords(id, namHoc, loaiKthp, khoa) {
+    async lecturerRecords(id, namHoc, loaiKthp, khoa, namHocFrom, namHocTo) {
       const query = new URLSearchParams({ namHoc, loaiKthp, khoa: khoa || "ALL", scope: state.scope });
+      if (namHocFrom) query.set("namHocFrom", namHocFrom);
+      if (namHocTo) query.set("namHocTo", namHocTo);
       const res = await fetch(`/v2/vuotgio/kthp/stats/giang-vien/${id}/chi-tiet?${query}`);
       return res.json();
     },
-    async faculties(namHoc, khoa, loaiKthp) {
+    async faculties(namHoc, khoa, loaiKthp, namHocFrom, namHocTo) {
       const query = new URLSearchParams({ namHoc, khoa: khoa || "ALL", loaiKthp, scope: state.scope });
+      if (namHocFrom) query.set("namHocFrom", namHocFrom);
+      if (namHocTo) query.set("namHocTo", namHocTo);
       const res = await fetch(`/v2/vuotgio/kthp/stats/khoa?${query}`);
       return res.json();
     },
-    async facultyRecords(khoa, namHoc, loaiKthp) {
+    async facultyRecords(khoa, namHoc, loaiKthp, namHocFrom, namHocTo) {
       const query = new URLSearchParams({ namHoc, loaiKthp, scope: state.scope });
+      if (namHocFrom) query.set("namHocFrom", namHocFrom);
+      if (namHocTo) query.set("namHocTo", namHocTo);
       const res = await fetch(`/v2/vuotgio/kthp/stats/khoa/${encodeURIComponent(khoa)}/chi-tiet?${query}`);
       return res.json();
     },
-    async institute(namHoc, loaiKthp) {
+    async institute(namHoc, loaiKthp, namHocFrom, namHocTo) {
       const query = new URLSearchParams({ namHoc, loaiKthp, scope: state.scope });
+      if (namHocFrom) query.set("namHocFrom", namHocFrom);
+      if (namHocTo) query.set("namHocTo", namHocTo);
       const res = await fetch(`/v2/vuotgio/kthp/stats/hoc-vien?${query}`);
       return res.json();
     },
-    async instituteRecords(namHoc, loaiKthp, khoa) {
+    async instituteRecords(namHoc, loaiKthp, khoa, namHocFrom, namHocTo) {
       const query = new URLSearchParams({ namHoc, loaiKthp, khoa: khoa || "ALL", scope: state.scope });
+      if (namHocFrom) query.set("namHocFrom", namHocFrom);
+      if (namHocTo) query.set("namHocTo", namHocTo);
       const res = await fetch(`/v2/vuotgio/kthp/stats/hoc-vien/chi-tiet?${query}`);
       return res.json();
     },
   };
 
+  function getYearRange() {
+    const fromVal = String(el.namHocFrom?.value || el.namHoc?.value || "").trim();
+    const toVal = String(el.namHocTo?.value || fromVal).trim();
+    if (!fromVal || !toVal) {
+      throw new Error("Vui lòng chọn đủ khoảng năm học");
+    }
+    const yearStart = Number((fromVal.match(/\b(19|20)\d{2}\b/) || [])[0]);
+    const yearEnd = Number((toVal.match(/\b(19|20)\d{2}\b/) || [])[0]);
+    if (!Number.isFinite(yearStart) || !Number.isFinite(yearEnd)) {
+      throw new Error("Khoảng năm học không hợp lệ");
+    }
+    if (yearStart > yearEnd) {
+      throw new Error("Từ năm học không được lớn hơn Đến năm học");
+    }
+    return {
+      namHocFrom: fromVal,
+      namHocTo: toVal,
+      namHoc: fromVal === toVal ? fromVal : `${fromVal} - ${toVal}`,
+      label: fromVal === toVal ? fromVal : `${fromVal} → ${toVal}`,
+    };
+  }
+
   function cacheElements() {
-    el.namHoc = document.getElementById("kthpNamHoc");
+    el.namHocFrom = document.getElementById("kthpNamHocFrom");
+    el.namHocTo = document.getElementById("kthpNamHocTo");
+    el.namHoc = document.getElementById("kthpNamHoc") || el.namHocFrom;
     el.khoa = document.getElementById("kthpKhoaFilter");
     el.khoaGroup = document.getElementById("kthpKhoaGroup");
     el.loai = document.getElementById("kthpLoaiFilter");
@@ -122,6 +158,7 @@
     el.keywordGroup = document.getElementById("kthpKeywordGroup");
     el.suggestions = document.getElementById("kthpLecturerSuggestions");
     el.loadBtn = document.getElementById("kthpLoadBtn");
+    el.exportBtn = document.getElementById("kthpExportBtn");
     el.content = document.getElementById("kthpContent");
     el.kpiLabel1 = document.getElementById("kthpKpiLabel1");
     el.kpiValue1 = document.getElementById("kthpKpiValue1");
@@ -133,6 +170,10 @@
     el.chartTitle2 = document.getElementById("kthpChartTitle2");
     el.chartCanvas1 = document.getElementById("kthpChart1");
     el.chartCanvas2 = document.getElementById("kthpChart2");
+
+    if (!window.KTHP_SHOW_CHART && el.chartSection) {
+      el.chartSection.style.display = "none";
+    }
   }
 
   let chart1Instance = null;
@@ -160,8 +201,11 @@
     if (el.chartSection) el.chartSection.style.display = "none";
   }
 
-  function renderLecturerCharts(summary) {
-    if (!window.Chart || !el.chartSection || !el.chartCanvas1 || !el.chartCanvas2) return;
+  function renderLecturerCharts(summary, yearLabel) {
+    if (!window.KTHP_SHOW_CHART || !window.Chart || !el.chartSection || !el.chartCanvas1 || !el.chartCanvas2) {
+      hideChartSection();
+      return;
+    }
     if (!Array.isArray(summary) || summary.length === 0) {
       hideChartSection();
       return;
@@ -170,11 +214,12 @@
     destroyCharts();
     el.chartSection.style.display = "";
 
+    const yrSuffix = yearLabel ? ` (${helpers.escapeHtml(yearLabel)})` : "";
     if (el.chartTitle1) {
-      el.chartTitle1.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>Top giảng viên theo số tiết QC';
+      el.chartTitle1.innerHTML = `<i class="bi bi-bar-chart-fill me-2"></i>Top giảng viên theo số tiết QC${yrSuffix}`;
     }
     if (el.chartTitle2) {
-      el.chartTitle2.innerHTML = '<i class="bi bi-pie-chart-fill me-2"></i>Cơ cấu tiết QC theo phân loại công việc';
+      el.chartTitle2.innerHTML = `<i class="bi bi-pie-chart-fill me-2"></i>Cơ cấu tiết QC theo phân loại công việc${yrSuffix}`;
     }
 
     const sorted = [...summary]
@@ -283,8 +328,11 @@
     });
   }
 
-  function renderFacultyCharts(faculties) {
-    if (!window.Chart || !el.chartSection || !el.chartCanvas1 || !el.chartCanvas2) return;
+  function renderFacultyCharts(faculties, yearLabel) {
+    if (!window.KTHP_SHOW_CHART || !window.Chart || !el.chartSection || !el.chartCanvas1 || !el.chartCanvas2) {
+      hideChartSection();
+      return;
+    }
     if (!Array.isArray(faculties) || faculties.length === 0) {
       hideChartSection();
       return;
@@ -293,11 +341,12 @@
     destroyCharts();
     el.chartSection.style.display = "";
 
+    const yrSuffix = yearLabel ? ` (${helpers.escapeHtml(yearLabel)})` : "";
     if (el.chartTitle1) {
-      el.chartTitle1.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>Tiết quy chuẩn coi, chấm, ra đề theo khoa';
+      el.chartTitle1.innerHTML = `<i class="bi bi-bar-chart-fill me-2"></i>Tiết quy chuẩn coi, chấm, ra đề theo khoa${yrSuffix}`;
     }
     if (el.chartTitle2) {
-      el.chartTitle2.innerHTML = '<i class="bi bi-pie-chart-fill me-2"></i>Tỉ lệ tiết quy chuẩn giữa các khoa';
+      el.chartTitle2.innerHTML = `<i class="bi bi-pie-chart-fill me-2"></i>Tỉ lệ tiết quy chuẩn giữa các khoa${yrSuffix}`;
     }
 
     const labels = faculties.map((f) => f.ma_phong_ban || f.ten_phong_ban || "Chưa rõ");
@@ -398,8 +447,11 @@
     });
   }
 
-  function renderInstituteCharts(byType, faculties) {
-    if (!window.Chart || !el.chartSection || !el.chartCanvas1 || !el.chartCanvas2) return;
+  function renderInstituteCharts(byType, faculties, yearLabel) {
+    if (!window.KTHP_SHOW_CHART || !window.Chart || !el.chartSection || !el.chartCanvas1 || !el.chartCanvas2) {
+      hideChartSection();
+      return;
+    }
     if ((!byType || !byType.length) && (!faculties || !faculties.length)) {
       hideChartSection();
       return;
@@ -408,11 +460,12 @@
     destroyCharts();
     el.chartSection.style.display = "";
 
+    const yrSuffix = yearLabel ? ` (${helpers.escapeHtml(yearLabel)})` : "";
     if (el.chartTitle1) {
-      el.chartTitle1.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>Tổng số tiết QC & Số GV theo khoa toàn học viện';
+      el.chartTitle1.innerHTML = `<i class="bi bi-bar-chart-fill me-2"></i>Tổng số tiết QC & Số GV theo khoa toàn học viện${yrSuffix}`;
     }
     if (el.chartTitle2) {
-      el.chartTitle2.innerHTML = '<i class="bi bi-pie-chart-fill me-2"></i>Phân bổ tiết QC theo loại công việc toàn học viện';
+      el.chartTitle2.innerHTML = `<i class="bi bi-pie-chart-fill me-2"></i>Phân bổ tiết QC theo loại công việc toàn học viện${yrSuffix}`;
     }
 
     const fList = Array.isArray(faculties) ? faculties : [];
@@ -533,12 +586,12 @@
   }
 
   async function loadLecturers() {
-    const namHoc = el.namHoc?.value || "";
+    const yr = getYearRange();
     const khoa = el.khoa?.value || "ALL";
     const loaiKthp = el.loai?.value || "ALL";
     const keyword = el.keyword?.value?.trim() || "";
 
-    const res = await api.lecturers(namHoc, khoa, loaiKthp, keyword);
+    const res = await api.lecturers(yr.namHoc, khoa, loaiKthp, keyword, yr.namHocFrom, yr.namHocTo);
     if (!res.success) throw new Error(res.message || "Không thể lấy dữ liệu giảng viên");
 
     const summary = Array.isArray(res.data) ? res.data : [];
@@ -557,12 +610,12 @@
       return;
     }
 
-    renderLecturerCharts(summary);
+    renderLecturerCharts(summary, yr.label);
 
     // Load records for each lecturer, passing current khoa filter
     const groups = await Promise.all(
       summary.map(async (gv) => {
-        const recordsRes = await api.lecturerRecords(gv.lecturer_id, namHoc, loaiKthp, khoa);
+        const recordsRes = await api.lecturerRecords(gv.lecturer_id, yr.namHoc, loaiKthp, khoa, yr.namHocFrom, yr.namHocTo);
         return {
           lecturerId: gv.lecturer_id,
           name: gv.ten_nhan_vien,
@@ -656,11 +709,11 @@
   }
 
   async function loadFaculties() {
-    const namHoc = el.namHoc?.value || "";
+    const yr = getYearRange();
     const khoa = el.khoa?.value || "ALL";
     const loaiKthp = el.loai?.value || "ALL";
 
-    const res = await api.faculties(namHoc, khoa, loaiKthp);
+    const res = await api.faculties(yr.namHoc, khoa, loaiKthp, yr.namHocFrom, yr.namHocTo);
     if (!res.success) throw new Error(res.message || "Không thể lấy thống kê khoa");
 
     const faculties = Array.isArray(res.data) ? res.data : [];
@@ -671,7 +724,7 @@
       return;
     }
 
-    renderFacultyCharts(faculties);
+    renderFacultyCharts(faculties, yr.label);
 
     const totalHours = faculties.reduce((acc, f) => acc + Number(f.tong_so_tiet_qc || 0), 0);
     const totalJobs = faculties.reduce((acc, f) => acc + Number(f.cong_viec_count || 0), 0);
@@ -742,7 +795,7 @@
         btn.innerHTML = '<i class="bi bi-eye-slash"></i> Thu gọn';
 
         try {
-          const detailRes = await api.facultyRecords(khoaCode, namHoc, loaiKthp);
+          const detailRes = await api.facultyRecords(khoaCode, yr.namHoc, loaiKthp, yr.namHocFrom, yr.namHocTo);
           const records = detailRes.success ? detailRes.data : [];
           if (!records.length) {
             detailRow.innerHTML = '<td colspan="10" class="p-3 bg-light text-center text-muted">Không có công việc nào trong khoa này</td>';
@@ -798,10 +851,10 @@
   }
 
   async function loadInstitute() {
-    const namHoc = el.namHoc?.value || "";
+    const yr = getYearRange();
     const loaiKthp = el.loai?.value || "ALL";
 
-    const res = await api.institute(namHoc, loaiKthp);
+    const res = await api.institute(yr.namHoc, loaiKthp, yr.namHocFrom, yr.namHocTo);
     if (!res.success) throw new Error(res.message || "Không thể lấy thống kê học viện");
 
     const summary = res.data || {};
@@ -834,8 +887,8 @@
 
     // Also load full institute records and faculties for charts
     const [allRecordsRes, facultiesRes] = await Promise.all([
-      api.instituteRecords(namHoc, loaiKthp, el.khoa?.value || "ALL"),
-      api.faculties(namHoc, "ALL", loaiKthp),
+      api.instituteRecords(yr.namHoc, loaiKthp, el.khoa?.value || "ALL", yr.namHocFrom, yr.namHocTo),
+      api.faculties(yr.namHoc, "ALL", loaiKthp, yr.namHocFrom, yr.namHocTo),
     ]);
     const allRecords = allRecordsRes.success ? allRecordsRes.data : [];
     const faculties = facultiesRes.success && Array.isArray(facultiesRes.data) ? facultiesRes.data : [];
@@ -843,7 +896,7 @@
     if (!byType.length && !allRecords.length) {
       hideChartSection();
     } else {
-      renderInstituteCharts(byType, faculties);
+      renderInstituteCharts(byType, faculties, yr.label);
     }
 
     let recIdx = 0;
@@ -888,7 +941,7 @@
         </div>
         <div class="col-md-6">
           <div class="stats-table-card p-4 h-100 d-flex flex-column justify-content-center">
-            <h6 class="fw-bold text-muted mb-3"><i class="bi bi-info-circle me-1"></i> Tổng quan toàn Học viện (${namHoc})</h6>
+            <h6 class="fw-bold text-muted mb-3"><i class="bi bi-info-circle me-1"></i> Tổng quan toàn Học viện (${helpers.escapeHtml(yr.label)})</h6>
             <div class="d-flex justify-content-around text-center mb-2">
               <div>
                 <span class="fs-4 fw-bold text-primary d-block">${overview.tong_khoa || 0}</span>
@@ -934,7 +987,15 @@
   }
 
   async function loadCurrent() {
-    if (!el.namHoc || !el.namHoc.value) return;
+    let yr;
+    try {
+      yr = getYearRange();
+    } catch (err) {
+      if (el.namHocFrom && el.namHocTo) {
+        return Swal.fire("Thông báo", err.message, "warning");
+      }
+      return;
+    }
     el.content.innerHTML = '<div class="stats-table-card text-center py-5"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Đang tải dữ liệu...</div></div>';
     try {
       if (state.tab === "lecturer") {
@@ -951,33 +1012,82 @@
     }
   }
 
+  function exportCurrent() {
+    let yr;
+    try {
+      yr = getYearRange();
+    } catch (err) {
+      return Swal.fire("Thông báo", err.message, "warning");
+    }
+
+    if (state.tab === "lecturer" && (!state.availableLecturers || state.availableLecturers.length === 0)) {
+      return Swal.fire("Thông báo", "Không có dữ liệu để xuất", "info");
+    }
+
+    const isPreview = state.scope === "PREVIEW";
+    const exportBase = isPreview ? "/v2/vuotgio/kthp/export/stats/preview" : "/v2/vuotgio/kthp/export/stats";
+
+    const khoa = el.khoa?.value || "ALL";
+    const loaiKthp = el.loai?.value || "ALL";
+    const keyword = el.keyword?.value?.trim() || "";
+
+    const params = new URLSearchParams({
+      namHoc: yr.namHoc,
+      namHocFrom: yr.namHocFrom,
+      namHocTo: yr.namHocTo,
+      loaiKthp,
+      scope: state.scope,
+    });
+
+    if (state.tab === "lecturer") {
+      params.append("khoa", khoa);
+      params.append("khoaId", khoa);
+      params.append("keyword", keyword);
+      window.location.href = `${exportBase}/giang-vien?${params.toString()}`;
+    } else if (state.tab === "faculty") {
+      params.append("khoa", khoa);
+      params.append("khoaId", khoa);
+      window.location.href = `${exportBase}/khoa?${params.toString()}`;
+    } else if (state.tab === "institute") {
+      window.location.href = `${exportBase}/hoc-vien?${params.toString()}`;
+    }
+  }
+
   async function init() {
     cacheElements();
     updateControls();
 
     const urlParams = new URLSearchParams(window.location.search);
     const urlNamHoc = urlParams.get("namHoc");
+    const urlNamHocFrom = urlParams.get("namHocFrom") || urlNamHoc;
+    const urlNamHocTo = urlParams.get("namHocTo") || urlNamHoc;
 
-    // 1. Populate Năm học từ /api/namhoc (chuẩn theo các trang Vượt giờ)
+    // 1. Populate Năm học từ /api/namhoc cho cả el.namHocFrom và el.namHocTo
     try {
       const namHocList = await api.getNamHoc();
-      el.namHoc.innerHTML = "";
-      if (Array.isArray(namHocList) && namHocList.length > 0) {
-        namHocList.forEach((item, index) => {
-          const option = document.createElement("option");
-          option.value = item.NamHoc;
-          option.textContent = item.NamHoc;
+      const fillSelect = (selectEl, defaultVal) => {
+        if (!selectEl) return;
+        selectEl.innerHTML = "";
+        if (Array.isArray(namHocList) && namHocList.length > 0) {
+          namHocList.forEach((item, index) => {
+            const option = document.createElement("option");
+            option.value = item.NamHoc;
+            option.textContent = item.NamHoc;
 
-          if (urlNamHoc && item.NamHoc === urlNamHoc) {
-            option.selected = true;
-          } else if (
-            !urlNamHoc &&
-            (item.trangthai === 1 || (index === 0 && !namHocList.some((i) => i.trangthai === 1)))
-          ) {
-            option.selected = true;
-          }
-          el.namHoc.appendChild(option);
-        });
+            if (defaultVal && item.NamHoc === defaultVal) {
+              option.selected = true;
+            } else if (!defaultVal && (item.trangthai === 1 || (index === 0 && !namHocList.some((i) => i.trangthai === 1)))) {
+              option.selected = true;
+            }
+            selectEl.appendChild(option);
+          });
+        }
+      };
+
+      fillSelect(el.namHocFrom, urlNamHocFrom);
+      fillSelect(el.namHocTo, urlNamHocTo);
+      if (el.namHoc && el.namHoc !== el.namHocFrom) {
+        fillSelect(el.namHoc, urlNamHoc);
       }
     } catch (err) {
       console.warn("Lỗi tải danh sách năm học:", err);
@@ -1017,8 +1127,12 @@
     });
 
     if (el.loadBtn) el.loadBtn.addEventListener("click", loadCurrent);
+    if (el.exportBtn) el.exportBtn.addEventListener("click", exportCurrent);
 
-    if (el.namHoc) el.namHoc.addEventListener("change", loadCurrent);
+    if (el.namHocFrom) el.namHocFrom.addEventListener("change", loadCurrent);
+    if (el.namHocTo) el.namHocTo.addEventListener("change", loadCurrent);
+    if (el.namHoc && el.namHoc !== el.namHocFrom) el.namHoc.addEventListener("change", loadCurrent);
+
     if (el.khoa) {
       el.khoa.addEventListener("change", () => {
         if (el.keyword) el.keyword.value = "";

@@ -3,13 +3,46 @@
 const statsService = require("../../services/vuotgio_v2/kthpStats.service");
 const exportService = require("../../services/vuotgio_v2/kthpExport.service");
 
+const resolveFilenameYearTag = (namHocFrom, namHocTo, namHoc) => {
+    const from = String(namHocFrom || namHoc || "").trim().replace(/\s+/g, "");
+    const to = String(namHocTo || namHoc || "").trim().replace(/\s+/g, "");
+    if (from && to && from !== to) {
+        return `${from}_den_${to}`;
+    }
+    return from || to || "tatca";
+};
+
 class KthpStatsController {
-    renderOfficialPage(_req, res) {
-        res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", { statsScope: "OFFICIAL" });
+    // Menu Vượt giờ -> Dự kiến: Không có biểu đồ
+    renderPreviewPage(_req, res) {
+        res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", {
+            statsScope: "PREVIEW",
+            showChart: false,
+            pageTitle: "Thống kê coi, chấm thi, ra đề dự kiến"
+        });
     }
 
-    renderPreviewPage(_req, res) {
-        res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", { statsScope: "PREVIEW" });
+    // Menu Vượt giờ -> Chính thức: Không có biểu đồ
+    renderVuotGioOfficialPage(_req, res) {
+        res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", {
+            statsScope: "OFFICIAL",
+            showChart: false,
+            pageTitle: "Thống kê coi, chấm thi, ra đề chính thức"
+        });
+    }
+
+    // Menu Thống Kê -> Coi, chấm, ra đề thi: Chỉ hiển thị biểu đồ cho bản ghi duyệt 2 lần (Chính thức)
+    renderThongKeMenuPage(req, res) {
+        const showChart = req.query.chart !== "0" && req.query.chart !== "false" && req.query.from !== "vuotgio";
+        res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", {
+            statsScope: "OFFICIAL",
+            showChart,
+            pageTitle: "Thống kê coi, chấm thi, ra đề thi"
+        });
+    }
+
+    renderOfficialPage(req, res) {
+        return this.renderThongKeMenuPage(req, res);
     }
 
     async getFilters(_req, res) {
@@ -24,12 +57,14 @@ class KthpStatsController {
 
     async getLecturerSummary(req, res) {
         try {
-            const { namHoc, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
             const data = await statsService.getLecturerSummary({
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 khoa: requestedKhoa,
                 loaiKthp,
                 keyword,
@@ -45,13 +80,15 @@ class KthpStatsController {
 
     async getLecturerDetail(req, res) {
         try {
-            const { namHoc, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", khoaId = "ALL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", khoaId = "ALL" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
             const data = await statsService.getLecturerRecords({
                 lecturerId: req.params.id,
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 loaiKthp,
                 scope,
                 khoa: requestedKhoa,
@@ -65,12 +102,14 @@ class KthpStatsController {
 
     async getFacultySummary(req, res) {
         try {
-            const { namHoc, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
             const data = await statsService.getFacultySummary({
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 khoaId: requestedKhoa,
                 loaiKthp,
                 scope,
@@ -84,11 +123,13 @@ class KthpStatsController {
 
     async getFacultyDetail(req, res) {
         try {
-            const { namHoc, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
             const khoa = req.params.khoaId;
             const data = await statsService.getFacultyRecords({
                 khoa,
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 loaiKthp,
                 scope,
             });
@@ -101,9 +142,11 @@ class KthpStatsController {
 
     async getInstituteSummary(req, res) {
         try {
-            const { namHoc, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
             const data = await statsService.getInstituteSummary({
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 loaiKthp,
                 scope,
             });
@@ -116,10 +159,12 @@ class KthpStatsController {
 
     async getInstituteDetail(req, res) {
         try {
-            const { namHoc, loaiKthp = "ALL", khoa = "ALL", khoaId = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", khoa = "ALL", khoaId = "ALL", scope = "OFFICIAL" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const data = await statsService.getInstituteRecords({
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 loaiKthp,
                 khoa: targetKhoa,
                 scope,
@@ -133,12 +178,14 @@ class KthpStatsController {
 
     async exportLecturerStats(req, res) {
         try {
-            const { namHoc, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
             const workbook = await exportService.exportLecturerStats({
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 khoa: requestedKhoa,
                 loaiKthp,
                 keyword,
@@ -146,7 +193,9 @@ class KthpStatsController {
                 lecturerId,
             });
 
-            const filename = `ThongKe_CoiChamRaDe_GiangVien_${namHoc}_${scope}.xlsx`;
+            const scopeTag = scope === "PREVIEW" ? "DuKien" : "ChinhThuc";
+            const yearTag = resolveFilenameYearTag(namHocFrom, namHocTo, namHoc);
+            const filename = `ThongKe_CoiChamRaDe_GiangVien_${yearTag}_${scopeTag}.xlsx`;
             res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(filename)}`);
 
@@ -160,18 +209,22 @@ class KthpStatsController {
 
     async exportFacultyStats(req, res) {
         try {
-            const { namHoc, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
             const workbook = await exportService.exportFacultyStats({
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 khoaId: requestedKhoa,
                 loaiKthp,
                 scope,
             });
 
-            const filename = `ThongKe_CoiChamRaDe_Khoa_${namHoc}_${scope}.xlsx`;
+            const scopeTag = scope === "PREVIEW" ? "DuKien" : "ChinhThuc";
+            const yearTag = resolveFilenameYearTag(namHocFrom, namHocTo, namHoc);
+            const filename = `ThongKe_CoiChamRaDe_Khoa_${yearTag}_${scopeTag}.xlsx`;
             res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(filename)}`);
 
@@ -185,14 +238,18 @@ class KthpStatsController {
 
     async exportInstituteStats(req, res) {
         try {
-            const { namHoc, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
             const workbook = await exportService.exportInstituteStats({
                 namHoc,
+                namHocFrom,
+                namHocTo,
                 loaiKthp,
                 scope,
             });
 
-            const filename = `ThongKe_CoiChamRaDe_HocVien_${namHoc}_${scope}.xlsx`;
+            const scopeTag = scope === "PREVIEW" ? "DuKien" : "ChinhThuc";
+            const yearTag = resolveFilenameYearTag(namHocFrom, namHocTo, namHoc);
+            const filename = `ThongKe_CoiChamRaDe_HocVien_${yearTag}_${scopeTag}.xlsx`;
             res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(filename)}`);
 

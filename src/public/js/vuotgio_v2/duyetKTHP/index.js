@@ -86,6 +86,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('saveEditBtn').addEventListener('click', handleEditSubmit);
     document.getElementById('updateApprovalBtn').addEventListener('click', submitApprovals);
 
+    // Auto reload on filter dropdown change
+    document.getElementById('namHocXem')?.addEventListener('change', loadData);
+    document.getElementById('khoaXem')?.addEventListener('change', loadData);
+    document.getElementById('heDaoTao')?.addEventListener('change', loadData);
+    document.getElementById('dot')?.addEventListener('change', loadData);
+    document.getElementById('ki')?.addEventListener('change', loadData);
+
     // Filter event listeners
     document.getElementById('filterGiangVien').addEventListener('input', filterTable);
     document.getElementById('filterHocPhan').addEventListener('input', filterTable);
@@ -104,6 +111,7 @@ function setupUpdateButtonVisibility() {
     const role = localStorage.getItem('userRole');
     const MaPhongBan = localStorage.getItem('MaPhongBan');
     const updateBtn = document.getElementById('updateApprovalBtn');
+    if (!updateBtn) return;
 
     const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
     const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
@@ -116,11 +124,16 @@ function setupUpdateButtonVisibility() {
     // Khoa: GV_CNBM duyệt, Lãnh đạo khoa bỏ duyệt
     // Phòng (Khảo thí): Trợ lý duyệt; Lãnh đạo phòng duyệt/bỏ duyệt
     if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)) {
-        updateBtn.style.display = 'flex';
+        updateBtn.style.display = 'inline-flex';
     } else if (MaPhongBan === khaoThi && (role === troLyPhong || role === lanhDaoPhong)) {
-        updateBtn.style.display = 'flex';
+        updateBtn.style.display = 'inline-flex';
     } else if (MaPhongBan === banGiamDoc) {
-        updateBtn.style.display = 'flex';
+        updateBtn.style.display = 'inline-flex';
+    } else {
+        const roleLower = String(role || '').toLowerCase();
+        if (roleLower === 'admin' || roleLower.includes('troly') || roleLower.includes('lanhdao')) {
+            updateBtn.style.display = 'inline-flex';
+        }
     }
 }
 
@@ -266,28 +279,52 @@ async function loadNamHocOptions() {
 // Load khoa
 async function loadKhoaOptions() {
     try {
-        const response = await fetch('/api/khoa');
-        const data = await response.json();
+        let depts = [];
+        try {
+            const fRes = await fetch('/v2/vuotgio/kthp/stats/filters');
+            if (fRes.ok) {
+                const fData = await fRes.json();
+                if (fData.success && Array.isArray(fData.data?.khoa) && fData.data.khoa.length > 0) {
+                    depts = fData.data.khoa;
+                }
+            }
+        } catch (_) {}
+
+        if (!depts || depts.length === 0) {
+            const response = await fetch('/api/khoa');
+            depts = await response.json();
+        }
         
         const khoaXem = document.getElementById('khoaXem');
         const editKhoa = document.getElementById('editKhoa');
         
-        if (editKhoa) {
-            editKhoa.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+        if (khoaXem) {
+            khoaXem.innerHTML = '<option value="ALL">Tất cả khoa</option>';
+            depts.forEach(dept => {
+                const code = dept.MaPhongBan || dept.maPhongBan || '';
+                const name = dept.TenPhongBan || dept.tenPhongBan || '';
+                if (!code) return;
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = name && name !== code ? `${code} - ${name}` : code;
+                khoaXem.appendChild(option);
+            });
+            // Luôn đảm bảo dropdown hoạt động và không bị disabled
+            khoaXem.disabled = false;
+            khoaXem.removeAttribute('disabled');
         }
         
-        data.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept.MaPhongBan;
-            option.textContent = dept.TenPhongBan || dept.MaPhongBan;
-            khoaXem.appendChild(option.cloneNode(true));
-            if (editKhoa) editKhoa.appendChild(option);
-        });
-
-        // Enforce khoa filter: nếu user thuộc khoa, lock dropdown
-        if (typeof KhoaFilterUtils !== 'undefined') {
-            KhoaFilterUtils.applyKhoaFilter(khoaXem);
-            KhoaFilterUtils.applyKhoaFilter(editKhoa);
+        if (editKhoa) {
+            editKhoa.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+            depts.forEach(dept => {
+                const code = dept.MaPhongBan || dept.maPhongBan || '';
+                const name = dept.TenPhongBan || dept.tenPhongBan || '';
+                if (!code) return;
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = name && name !== code ? `${code} - ${name}` : code;
+                editKhoa.appendChild(option);
+            });
         }
     } catch (error) {
         console.error('Error loading khoa:', error);
@@ -410,12 +447,10 @@ async function loadData() {
         }
         globalData = canonicalRows.map(toViewRecord);
         renderTable(globalData);
-        
-        if (globalData.length === 0) {
-            Swal.fire('Thông báo', 'Không có dữ liệu', 'info');
-        }
     } catch (error) {
         console.error('Error loading data:', error);
+        globalData = [];
+        renderTable([]);
         Swal.fire('Lỗi', 'Không thể tải dữ liệu', 'error');
     }
 }
@@ -425,6 +460,19 @@ async function loadData() {
 function renderTable(data) {
     const tableBody = document.getElementById('tableBody');
     tableBody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="13" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+                    Không có dữ liệu
+                </td>
+            </tr>
+        `;
+        updateSummary();
+        return;
+    }
 
     let STT = 1;
     const rowsToRender = sortRows(data);
@@ -665,27 +713,45 @@ function updateSummary() {
 // ==================== FILTER ====================
 
 function filterTable() {
-    const gvFilter = document.getElementById('filterGiangVien').value.toLowerCase();
-    const hpFilter = document.getElementById('filterHocPhan').value.toLowerCase();
+    const gvFilter = (document.getElementById('filterGiangVien')?.value || '').toLowerCase().trim();
+    const hpFilter = (document.getElementById('filterHocPhan')?.value || '').toLowerCase().trim();
 
     const tableRows = document.querySelectorAll('#tableBody tr');
+    let visibleCount = 0;
+    let dataRowCount = 0;
 
     tableRows.forEach(row => {
+        if (!row.hasAttribute('data-id')) return; // Bỏ qua hàng placeholder
+        dataRowCount++;
         const gvCell = row.querySelector('td:nth-child(2)'); // Giảng viên
         const hpCell = row.querySelector('td:nth-child(6)'); // Tên học phần
 
         const gvValue = gvCell ? gvCell.textContent.toLowerCase() : '';
         const hpValue = hpCell ? hpCell.textContent.toLowerCase() : '';
 
-        const gvMatch = gvValue.includes(gvFilter);
-        const hpMatch = hpValue.includes(hpFilter);
+        const gvMatch = !gvFilter || gvValue.includes(gvFilter);
+        const hpMatch = !hpFilter || hpValue.includes(hpFilter);
 
         if (gvMatch && hpMatch) {
             row.style.display = '';
+            visibleCount++;
         } else {
             row.style.display = 'none';
         }
     });
+
+    const tableBody = document.getElementById('tableBody');
+    let noDataRow = document.getElementById('noDataFilterRow');
+    if (dataRowCount > 0 && visibleCount === 0) {
+        if (!noDataRow && tableBody) {
+            noDataRow = document.createElement('tr');
+            noDataRow.id = 'noDataFilterRow';
+            noDataRow.innerHTML = `<td colspan="13" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-3 d-block mb-1"></i>Không có dữ liệu phù hợp với tìm kiếm</td>`;
+            tableBody.appendChild(noDataRow);
+        }
+    } else if (noDataRow) {
+        noDataRow.remove();
+    }
 
     updateSummary();
 }

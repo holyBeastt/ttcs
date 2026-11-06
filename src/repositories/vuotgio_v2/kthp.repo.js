@@ -5,6 +5,23 @@ const {
     KTHP_DETAIL_KINDS,
     detailKindForType,
 } = require("../../constants/vuotgio_v2/kthp.constant");
+const DEPARTMENT_ALIASES = require("../../config/vuotgio_v2/kthpDepartment.alias");
+
+const getDepartmentVariants = (deptCode) => {
+    if (!deptCode || deptCode === "ALL") return [];
+    const clean = String(deptCode).trim();
+    const variants = new Set([clean]);
+    if (DEPARTMENT_ALIASES[clean]) {
+        variants.add(DEPARTMENT_ALIASES[clean]);
+    }
+    for (const [alias, canonical] of Object.entries(DEPARTMENT_ALIASES)) {
+        if (canonical.toLowerCase() === clean.toLowerCase() || alias.toLowerCase() === clean.toLowerCase()) {
+            variants.add(alias);
+            variants.add(canonical);
+        }
+    }
+    return Array.from(variants);
+};
 
 const TABLES = Object.freeze({
     PARENT: "vg_kthp",
@@ -43,7 +60,7 @@ const joinedSelect = () => `
     p.id_user AS id_User,
     p.giang_vien AS giangvien,
     p.giang_vien,
-    p.khoa,
+    COALESCE(NULLIF(p.khoa, ''), nv.MaPhongBan, '') AS khoa,
     p.hoc_ky AS ki,
     p.hoc_ky,
     p.dot,
@@ -96,6 +113,7 @@ const joinedSelect = () => `
 
 const joinedFrom = () => `
     FROM ${TABLES.PARENT} p
+    LEFT JOIN nhanvien nv ON nv.id_User = p.id_user
     LEFT JOIN he_dao_tao hdt ON hdt.id = p.he_dao_tao_id
     LEFT JOIN ${TABLES.RA_DE} rd ON rd.kthp_id = p.id
     LEFT JOIN ${TABLES.COI_THI} ct ON ct.kthp_id = p.id
@@ -238,11 +256,18 @@ const create = async (connection, model) => {
 };
 
 const getTable = async (connection, { namHoc, khoa, heDaoTao, dot, ki }) => {
-    let query = `SELECT ${joinedSelect()} ${joinedFrom()} WHERE p.nam_hoc = ?`;
-    const params = [namHoc];
+    let query = `SELECT ${joinedSelect()} ${joinedFrom()} WHERE (p.nam_hoc = ? OR REPLACE(p.nam_hoc, ' ', '') = REPLACE(?, ' ', ''))`;
+    const params = [namHoc, namHoc];
     if (hasFilterValue(khoa) && !isAllFilter(khoa)) {
-        query += " AND p.khoa = ?";
-        params.push(khoa);
+        const variants = getDepartmentVariants(khoa);
+        if (variants.length > 0) {
+            const placeholders = variants.map(() => "?").join(",");
+            query += ` AND (p.khoa IN (${placeholders}) OR nv.MaPhongBan IN (${placeholders}) OR p.khoa = ?)`;
+            params.push(...variants, ...variants, khoa);
+        } else {
+            query += " AND (p.khoa = ? OR nv.MaPhongBan = ?)";
+            params.push(khoa, khoa);
+        }
     }
     if (hasFilterValue(heDaoTao) && !isAllFilter(heDaoTao)) {
         query += " AND p.he_dao_tao_id = ?";
@@ -452,9 +477,16 @@ const getTotalsByUserIds = async (
 const getApprovalCounts = async (connection, { namHoc, khoa }) => {
     const params = [namHoc];
     let scope = "";
-    if (khoa) {
-        scope = " AND khoa = ?";
-        params.push(khoa);
+    if (hasFilterValue(khoa) && !isAllFilter(khoa)) {
+        const variants = getDepartmentVariants(khoa);
+        if (variants.length > 0) {
+            const placeholders = variants.map(() => "?").join(",");
+            scope = ` AND (khoa IN (${placeholders}) OR khoa = ?)`;
+            params.push(...variants, khoa);
+        } else {
+            scope = " AND khoa = ?";
+            params.push(khoa);
+        }
     }
     const [rows] = await connection.execute(
         `SELECT
