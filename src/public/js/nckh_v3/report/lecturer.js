@@ -229,21 +229,53 @@
         </tr>
       `;
 
-      // 2. Data rows (11 cột chuẩn: STT, Loại NCKH, Phân loại, Tên CT, Tác giả chính, Thành viên, Mã số, Ngày NT, Tổng tiết CT, Tiết GV, Vai trò)
+      // Map tên loại NCKH sang tiếng Việt có dấu chuẩn
+      const LOAI_NCKH_MAP = {
+        DETAI_DUAN: "Đề tài, dự án",
+        BAIBAO: "Bài báo KH",
+        SANGKIEN: "Sáng kiến",
+        GIAITHUONG: "Giải thưởng",
+        DEXUAT: "Đề xuất NC",
+        SACHGIAOTRINH: "Sách, giáo trình",
+        HUONGDAN: "Hướng dẫn SV",
+        HOIDONG: "Hội đồng KH",
+      };
+
+      // 2. Data rows
       const dataRows = records
         .map((rec, idx) => {
+          const loaiText =
+            rec.loaiNckhLabel ||
+            rec.loaiNckh ||
+            rec.loai_nckh_label ||
+            rec.loai_nckh ||
+            "-";
+
+          const rawRole =
+            rec.vaiTroGiangVien ||
+            rec.vaiTro ||
+            rec.vai_tro_giang_vien ||
+            rec.vai_tro ||
+            "";
+          const roleText =
+            (typeof helpers()?.formatRole === "function"
+              ? helpers().formatRole(rawRole)
+              : rawRole) ||
+            rawRole ||
+            "-";
+
           return `<tr>
             <td>${idx + 1}</td>
-            <td><span class="badge bg-info text-dark">${esc(rec.loaiNckhLabel || rec.loaiNckh || "N/A")}</span></td>
-            <td>${esc(rec.phanLoai || "-")}</td>
-            <td class="text-start fw-medium">${esc(rec.tenCongTrinh)}</td>
-            <td class="text-start">${esc(rec.tacGiaChinh || "-")}</td>
-            <td class="text-start"><small class="text-muted">${esc(rec.thanhVien || "-")}</small></td>
-            <td>${esc(rec.maSo || "-")}</td>
-            <td>${esc(date(rec.ngayNghiemThu))}</td>
-            <td>${fmt(rec.tongSoTietCongTrinh)}</td>
-            <td class="fw-bold text-success">${fmt(rec.soTietGiangVien)}</td>
-            <td><span class="badge bg-light text-dark border">${esc(helpers().formatRole(rec.vaiTroGiangVien))}</span></td>
+            <td>${esc(loaiText)}</td>
+            <td>${esc(rec.phanLoai || rec.phan_loai || "-")}</td>
+            <td class="text-start">${esc(rec.tenCongTrinh || rec.ten_cong_trinh || "-")}</td>
+            <td class="text-start">${esc(rec.tacGiaChinh || rec.tac_gia_chinh || "-")}</td>
+            <td class="text-start">${esc(rec.thanhVien || rec.thanh_vien || "-")}</td>
+            <td>${esc(rec.maSo || rec.ma_so || "-")}</td>
+            <td>${esc(date(rec.ngayNghiemThu || rec.ngay_nghiem_thu))}</td>
+            <td>${fmt(rec.tongSoTietCongTrinh ?? rec.tongSoTiet ?? rec.tong_so_tiet)}</td>
+            <td>${fmt(rec.soTietGiangVien ?? rec.so_tiet_giang_vien ?? rec.soTiet)}</td>
+            <td>${esc(roleText)}</td>
           </tr>`;
         })
         .join("");
