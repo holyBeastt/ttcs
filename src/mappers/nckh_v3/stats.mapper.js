@@ -27,7 +27,10 @@ const mapRoleLabel = (role) => {
 
 const mapLecturerSummaryRow = (row) => ({
   lecturerId: Number(row.lecturer_id),
-  tenNhanVien: row.TenNhanVien || "",
+  maNhanVien: row.MaNhanVien || "",
+  tenNhanVien: (row.TenNhanVien || "").trim(),
+  hocVi: (row.HocVi || "").trim(),
+  chucVu: (row.ChucVu || "").trim(),
   maPhongBan: row.MaPhongBan || null,
   lecturerKhoaId:
     row.lecturer_khoa_id !== null && row.lecturer_khoa_id !== undefined
@@ -36,6 +39,9 @@ const mapLecturerSummaryRow = (row) => ({
   lecturerKhoaName: row.lecturer_khoa_name || null,
   soCongTrinh: Number(row.cong_trinh_count || 0),
   tongSoTietGiangVien: round2(Number(row.tong_so_tiet_giang_vien || 0)),
+  danhSachCongTrinh: row.danh_sach_cong_trinh
+    ? row.danh_sach_cong_trinh.split("||").map((s) => s.trim()).filter(Boolean)
+    : [],
 });
 
 const mapCommonRecordRow = (row) => ({

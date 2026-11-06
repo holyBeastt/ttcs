@@ -17,8 +17,8 @@ const buildStatsWhere = (namHoc, scope = STATS_SCOPE.OFFICIAL, yearRange = {}) =
     && Number.isInteger(toYear);
   const conditions = hasYearRange
     ? ["CAST(SUBSTRING(TRIM(c.nam_hoc), 1, 4) AS UNSIGNED) BETWEEN ? AND ?"]
-    : ["c.nam_hoc = ?"];
-  const params = hasYearRange ? [fromYear, toYear] : [namHoc];
+    : ["(c.nam_hoc = ? OR REPLACE(c.nam_hoc, ' ', '') = REPLACE(?, ' ', ''))"];
+  const params = hasYearRange ? [fromYear, toYear] : [namHoc, namHoc];
 
   if (normalizeStatsScope(scope) === STATS_SCOPE.OFFICIAL) {
     conditions.push("c.khoa_duyet = 1", "c.vien_nc_duyet = 1");
@@ -47,12 +47,16 @@ const listLecturerSummary = async (connection, {
   let query = `
     SELECT
       nv.id_User AS lecturer_id,
+      nv.MaNhanVien,
       nv.TenNhanVien,
+      nv.HocVi,
+      nv.ChucVu,
       nv.MaPhongBan,
       pb.id AS lecturer_khoa_id,
       pb.TenPhongBan AS lecturer_khoa_name,
       COUNT(DISTINCT c.id) AS cong_trinh_count,
-      COALESCE(SUM(st.so_tiet), 0) AS tong_so_tiet_giang_vien
+      COALESCE(SUM(st.so_tiet), 0) AS tong_so_tiet_giang_vien,
+      GROUP_CONCAT(DISTINCT c.ten_cong_trinh SEPARATOR '||') AS danh_sach_cong_trinh
     FROM ${TABLE_SO_TIET} st
     INNER JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
     INNER JOIN ${TABLE_CHUNG} c ON c.id = st.nckh_id
@@ -81,7 +85,10 @@ const listLecturerSummary = async (connection, {
   query += `
     GROUP BY
       nv.id_User,
+      nv.MaNhanVien,
       nv.TenNhanVien,
+      nv.HocVi,
+      nv.ChucVu,
       nv.MaPhongBan,
       pb.id,
       pb.TenPhongBan

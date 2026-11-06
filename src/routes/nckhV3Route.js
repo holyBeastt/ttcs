@@ -16,6 +16,7 @@ const adminController = require("../controllers/nckh_v3/adminQuyDinh.controller"
 const statsController = require("../controllers/nckh_v3/stats.controller");
 const officialStatsController = require("../controllers/nckh_v3/officialStats.controller");
 const exportController = require("../controllers/nckh_v3/export.controller");
+const lecturerReportController = require("../controllers/nckh_v3/lecturerReport.controller");
 const { STATS_SCOPE } = require("../config/nckh_v3/statsScope");
 const importController = require("../controllers/nckh_v3/import.controller");
 
@@ -174,6 +175,10 @@ router.get("/export/stats/hoc-vien", (req, res) => exportController.exportInstit
 router.get("/export/stats/preview/giang-vien", (req, res) => exportController.exportLecturerStats(req, res, STATS_SCOPE.PREVIEW));
 router.get("/export/stats/preview/khoa", (req, res) => exportController.exportFacultyStats(req, res, STATS_SCOPE.PREVIEW));
 router.get("/export/stats/preview/hoc-vien", (req, res) => exportController.exportInstituteStats(req, res, STATS_SCOPE.PREVIEW));
+
+// Báo cáo NCKH cá nhân (Xuất Word .docx theo mẫu kê khai)
+router.get("/xuat-bao-cao-ca-nhan", lecturerReportController.renderPage);
+router.get("/bao-cao-ca-nhan/export/:lecturerId", lecturerReportController.exportDocx);
 
 router.get("/hoi-dong-khoa-hoc", (req, res) => {
 	res.redirect("/v3/nckh/them-moi-nckh?type=thanh-vien-hoi-dong");
