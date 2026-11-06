@@ -18,20 +18,34 @@ const NCKH_SECTIONS = [
 /**
  * Fetch all data needed for a single lecturer's NCKH Word report.
  *
- * @param {number|string} lecturerId  - nhanvien.id_User
- * @param {string}        namHoc      - e.g. "2025 - 2026" or "2025-2026"
- * @param {string}        scope       - "PREVIEW" (all records) or "OFFICIAL" (approved only)
+ * @param {number|string} lecturerId    - nhanvien.id_User
+ * @param {string|Object} namHocParam   - e.g. "2025 - 2026" or { namHocFrom, namHocTo }
+ * @param {string}        scope         - "PREVIEW" (all records) or "OFFICIAL" (approved only)
  * @returns {Promise<Object>} structured report data
  */
-async function getLecturerReportData(lecturerId, namHoc, scope = STATS_SCOPE.PREVIEW) {
+async function getLecturerReportData(lecturerId, namHocParam, scope = STATS_SCOPE.PREVIEW) {
   const safeLecturerId = Number(lecturerId);
   if (!Number.isFinite(safeLecturerId) || safeLecturerId <= 0) {
     throw new Error("lecturerId không hợp lệ");
   }
-  const safeNamHoc = String(namHoc || "").trim();
-  if (!safeNamHoc) {
+
+  let requestedFrom = "";
+  let requestedTo = "";
+  if (typeof namHocParam === "object" && namHocParam !== null) {
+    requestedFrom = String(namHocParam.namHocFrom || namHocParam.namHoc || "").trim();
+    requestedTo = String(namHocParam.namHocTo || requestedFrom).trim();
+  } else {
+    requestedFrom = String(namHocParam || "").trim();
+    requestedTo = requestedFrom;
+  }
+
+  if (!requestedFrom) {
     throw new Error("Thiếu năm học");
   }
+
+  const fromYear = Number((requestedFrom.match(/\b(19|20)\d{2}\b/) || [])[0]);
+  const toYear = Number((requestedTo.match(/\b(19|20)\d{2}\b/) || [])[0]);
+  const hasRange = Number.isInteger(fromYear) && Number.isInteger(toYear) && fromYear !== toYear;
 
   const isOfficial = normalizeStatsScope(scope) === STATS_SCOPE.OFFICIAL;
 
@@ -62,7 +76,7 @@ async function getLecturerReportData(lecturerId, namHoc, scope = STATS_SCOPE.PRE
       tenPhongBan: (lecturerRow.TenPhongBan || "").trim(),
     };
 
-    // 2. All NCKH records for this lecturer in the given namHoc
+    // 2. All NCKH records for this lecturer in the given period
     let recordQuery = `
       SELECT
          nc.id              AS nckhId,
@@ -93,9 +107,18 @@ async function getLecturerReportData(lecturerId, namHoc, scope = STATS_SCOPE.PRE
          st.vai_tro         AS vaiTroGiangVien
        FROM nckh_chung nc
        INNER JOIN nckh_so_tiet st ON st.nckh_id = nc.id AND st.nhanvien_id = ?
-       WHERE (nc.nam_hoc = ? OR REPLACE(nc.nam_hoc, ' ', '') = REPLACE(?, ' ', ''))
     `;
-    const queryParams = [safeLecturerId, safeNamHoc, safeNamHoc];
+
+    let queryParams;
+    if (hasRange) {
+      const minYear = Math.min(fromYear, toYear);
+      const maxYear = Math.max(fromYear, toYear);
+      recordQuery += ` WHERE CAST(SUBSTRING(TRIM(nc.nam_hoc), 1, 4) AS UNSIGNED) BETWEEN ? AND ?`;
+      queryParams = [safeLecturerId, minYear, maxYear];
+    } else {
+      recordQuery += ` WHERE (nc.nam_hoc = ? OR REPLACE(nc.nam_hoc, ' ', '') = REPLACE(?, ' ', ''))`;
+      queryParams = [safeLecturerId, requestedFrom, requestedFrom];
+    }
 
     if (isOfficial) {
       recordQuery += ` AND nc.khoa_duyet = 1 AND nc.vien_nc_duyet = 1`;
@@ -118,10 +141,9 @@ async function getLecturerReportData(lecturerId, namHoc, scope = STATS_SCOPE.PRE
            st.vai_tro       AS vaiTro,
            st.so_tiet       AS soTiet,
            st.ten_ngoai     AS tenNgoai,
-           st.don_vi_ngoai  AS donViNgoai,
            nv.TenNhanVien   AS tenNhanVien
          FROM nckh_so_tiet st
-         LEFT JOIN nhanvien nv ON st.nhanvien_id = nv.id_User
+         LEFT JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
          WHERE st.nckh_id IN (${placeholders})
          ORDER BY st.nckh_id, st.id`,
         nckhIds
@@ -132,46 +154,24 @@ async function getLecturerReportData(lecturerId, namHoc, scope = STATS_SCOPE.PRE
           participantsByNckhId[p.nckhId] = [];
         }
         participantsByNckhId[p.nckhId].push({
-          tenNhanVien: (p.tenNhanVien || "").trim(),
-          vaiTro: p.vaiTro || "",
+          nhanvienId: p.nhanvienId,
+          tenNhanVien: (p.tenNhanVien || p.tenNgoai || "").trim(),
+          vaiTro: p.vaiTro,
           soTiet: Number(p.soTiet || 0),
-          tenNgoai: p.tenNgoai || "",
-          donViNgoai: p.donViNgoai || "",
         });
       }
     }
 
-    // 4. Group records by loaiNckh into the 8 sections
+    // 4. Group records by loaiNckh
     const recordsByType = {};
     for (const r of recordRows) {
       if (!recordsByType[r.loaiNckh]) {
         recordsByType[r.loaiNckh] = [];
       }
       recordsByType[r.loaiNckh].push({
-        tenCongTrinh: r.tenCongTrinh || "",
-        phanLoai: r.phanLoai || "",
-        namHoc: r.namHoc || "",
-        tongSoTiet: Number(r.tongSoTiet || 0),
-        ngayNghiemThu: r.ngayNghiemThu || null,
-        xepLoai: r.xepLoai || "",
-        maSo: r.maSo || "",
-        soQuyetDinh: r.soQuyetDinh || "",
-        ngayQuyetDinh: r.ngayQuyetDinh || null,
-        capNhiemVu: r.capNhiemVu || "",
-        kinhPhi: r.kinhPhi || "",
-        tenTapChi: r.tenTapChi || "",
-        soBao: r.soBao || "",
-        soTrichDan: r.soTrichDan || "",
-        coQuanChuTri: r.coQuanChuTri || "",
-        coQuanChuQuan: r.coQuanChuQuan || "",
-        thuocNhiemVu: r.thuocNhiemVu || "",
-        linhVucNghienCuu: r.linhVucNghienCuu || "",
-        kinhPhiNamNhat: r.kinhPhiNamNhat || "",
-        kinhPhiNamHai: r.kinhPhiNamHai || "",
-        kinhPhiNamBa: r.kinhPhiNamBa || "",
-        nguonKinhPhi: r.nguonKinhPhi || "",
+        ...r,
         soTietGiangVien: Number(r.soTietGiangVien || 0),
-        vaiTroGiangVien: r.vaiTroGiangVien || "",
+        tongSoTiet: Number(r.tongSoTiet || 0),
         participants: participantsByNckhId[r.nckhId] || [],
       });
     }
@@ -191,11 +191,15 @@ async function getLecturerReportData(lecturerId, namHoc, scope = STATS_SCOPE.PRE
       };
     });
 
+    const namHocDisplay = hasRange ? `${requestedFrom} - ${requestedTo}` : requestedFrom;
     return {
       lecturer,
-      namHoc: safeNamHoc,
+      namHoc: namHocDisplay,
+      namHocFrom: requestedFrom,
+      namHocTo: requestedTo,
       sections,
       grandTotal,
+      scope,
     };
   } finally {
     if (connection) connection.release();

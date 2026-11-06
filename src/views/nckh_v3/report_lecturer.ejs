@@ -14,14 +14,14 @@
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="/css/nckh_v3.css" />
   <link rel="stylesheet" href="/css/nckh_v3_stats.css" />
-    <style>
+  <style>
     /* ===== Bảng chính ===== */
     .stats-table-card .table {
-      font-size: 1rem;
+      font-size: 0.95rem;
       table-layout: auto;
     }
     .stats-table-card .table thead th {
-      font-size: 0.95rem;
+      font-size: 0.88rem;
       font-weight: 700;
       padding: 12px 14px;
       white-space: nowrap;
@@ -42,7 +42,7 @@
     /* Họ và tên – nổi bật hơn */
     .col-lecturer-name {
       font-size: 0.9rem;
-      font-weight: 200;
+      font-weight: 600;
     }
 
     /* Cột "Công trình NCKH" – chiếm phần không gian còn lại */
@@ -80,34 +80,30 @@
       transform: scale(1.04);
     }
 
-    /* ===== Bảng modal chi tiết ===== */
-    #recordDetailModal .table {
-      font-size: 0.95rem;
-      table-layout: auto;
+    /* ===== Modal Chi tiết công trình chuẩn giao diện thống kê ===== */
+    #recordDetailModal .modal-dialog {
+      max-width: 95%;
+      width: 1400px;
     }
-    #recordDetailModal .table thead th {
-      font-size: 0.9rem;
+    #recordDetailModal .stats-table-card thead th {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: #fff;
+      font-size: 0.76rem;
       font-weight: 700;
-      padding: 10px 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 10px;
+      border: none;
       white-space: nowrap;
-      background-color: #f1f5f9;
-      vertical-align: middle;
     }
-    #recordDetailModal .table tbody td {
-      padding: 9px 12px;
-      vertical-align: middle;
+    #recordDetailModal .stats-table-card tbody td {
+      padding: 10px 12px;
+      font-size: 0.88rem;
     }
-    #recordDetailModal .col-stt   { width: 44px;  white-space: nowrap; }
-    #recordDetailModal .col-loai  { width: 110px; white-space: nowrap; text-align: center; }
-    #recordDetailModal .col-ten   { min-width: 220px; }
-    #recordDetailModal .col-tacgia { width: 140px; }
-    #recordDetailModal .col-thanhvien { width: 140px; }
-    #recordDetailModal .col-tiet  { width: 90px;  white-space: nowrap; text-align: center; }
-    #recordDetailModal .col-vaitro{ width: 95px;  white-space: nowrap; text-align: center; }
   </style>
 </head>
 
-<body>
+<body class="nckh-preview-stats">
   <%- include('../header') %>
 
   <div class="stats-wrap">
@@ -180,7 +176,7 @@
     </div>
   </div>
 
-  <!-- Modal Chi Tiết Công Trình -->
+  <!-- Modal Chi Tiết Công Trình (Chuẩn giao diện /v3/nckh/thong-ke-du-kien) -->
   <div class="modal fade stats-modal" id="recordDetailModal" tabindex="-1" aria-labelledby="recordDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
@@ -192,16 +188,19 @@
         </div>
         <div class="modal-body">
           <div class="stats-table-card table-responsive">
-            <table class="table table-hover text-center align-middle">
+            <table class="table table-hover text-center align-middle mb-0">
               <thead>
                 <tr>
                   <th style="width: 50px">STT</th>
                   <th style="width: 140px">Loại NCKH</th>
-                  <th class="text-start">Tên công trình</th>
-                  <th class="text-start" style="width: 160px">Tác giả chính</th>
+                  <th style="width: 150px">Phân loại</th>
+                  <th class="text-start" style="min-width: 260px">Tên công trình</th>
+                  <th class="text-start" style="width: 150px">Tác giả chính</th>
                   <th class="text-start" style="width: 160px">Thành viên</th>
+                  <th style="width: 100px">Mã số</th>
+                  <th style="width: 100px">Ngày NT</th>
                   <th style="width: 100px">Tổng tiết CT</th>
-                  <th style="width: 100px">Tiết của GV</th>
+                  <th style="width: 110px">Tiết giảng viên</th>
                   <th style="width: 110px">Vai trò</th>
                 </tr>
               </thead>

@@ -49,7 +49,7 @@
     }
   }
 
-    function renderTable() {
+  function renderTable() {
     if (!el.tableBody) return;
 
     if (!state.lecturers.length) {
@@ -105,7 +105,7 @@
           <td class="col-compact">${esc(row.chucVu || "-")}</td>
           <td class="col-compact fw-medium">${esc(row.lecturerKhoaName || row.maPhongBan || "-")}</td>
           <td class="text-start">${projectColHtml}</td>
-          <td class="col-compact text-success fs-6">${fmt(row.tongSoTietGiangVien)}</td>
+          <td class="col-compact text-success fs-6 fw-bold">${fmt(row.tongSoTietGiangVien)}</td>
           <td class="col-compact">
             <button class="btn btn-sm btn-outline-primary px-2 py-1" data-action="export-single" data-id="${row.lecturerId}" title="Tải file Word (.docx)">
               <i class="bi bi-file-earmark-word"></i> Xuất Word
@@ -164,6 +164,10 @@
     }
   }
 
+  /**
+   * Xem chi tiết công trình của giảng viên trong modal
+   * Bảng hiển thị chuẩn 11 cột và phân nhóm giống /v3/nckh/thong-ke-du-kien
+   */
   async function viewLecturerDetail(lecturerId) {
     const namHoc = String(el.namHoc?.value || "").trim();
     const scope = String(el.scope?.value || "PREVIEW").trim();
@@ -171,14 +175,15 @@
 
     state.selectedLecturerId = Number(lecturerId);
     state.selectedLecturerName = sel?.tenNhanVien || "Giảng viên";
+    const khoaLabel = sel?.lecturerKhoaName || sel?.maPhongBan || "Chưa có khoa";
 
     if (el.modalLabel) {
-      el.modalLabel.innerHTML = `<i class="bi bi-journal-text me-2"></i>Chi tiết công trình NCKH - <b>${helpers().escapeHtml(state.selectedLecturerName)}</b> (${namHoc})`;
+      el.modalLabel.innerHTML = `<i class="bi bi-journal-text me-2"></i>Chi tiết công trình NCKH - <b>${helpers().escapeHtml(state.selectedLecturerName)}</b> (${helpers().escapeHtml(namHoc)})`;
     }
 
     if (el.modalTableBody) {
       el.modalTableBody.innerHTML =
-        '<tr><td colspan="8" class="text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải chi tiết công trình...</td></tr>';
+        '<tr><td colspan="11" class="text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải chi tiết công trình...</td></tr>';
     }
 
     if (detailModalInstance) {
@@ -202,31 +207,62 @@
       const records = Array.isArray(result.data) ? result.data : [];
       if (!records.length) {
         el.modalTableBody.innerHTML =
-          '<tr><td colspan="8" class="text-muted py-4">Giảng viên không có công trình NCKH nào trong năm học này</td></tr>';
+          '<tr><td colspan="11" class="text-muted py-4">Giảng viên không có công trình NCKH nào trong năm học này</td></tr>';
         return;
       }
 
       const esc = helpers().escapeHtml;
       const fmt = helpers().formatHours;
+      const date = (val) => val ? new Date(val).toLocaleDateString("vi-VN") : "-";
 
-      el.modalTableBody.innerHTML = records
+      const totalLecturerHours = records.reduce((sum, r) => sum + Number(r.soTietGiangVien || 0), 0);
+      const totalProjectHours = records.reduce((sum, r) => sum + Number(r.tongSoTietCongTrinh || 0), 0);
+
+      // 1. Group header row (chuẩn theo trang /v3/nckh/thong-ke-du-kien)
+      const groupHeaderRow = `
+        <tr class="nckh-stats-group-header">
+          <td colspan="11">
+            <strong>${esc(state.selectedLecturerName)} - ${esc(khoaLabel)}</strong>
+            <span class="nckh-v3-group-count">${records.length} công trình</span>
+            <span class="nckh-v3-group-count">${fmt(totalLecturerHours)} tiết</span>
+          </td>
+        </tr>
+      `;
+
+      // 2. Data rows (11 cột chuẩn: STT, Loại NCKH, Phân loại, Tên CT, Tác giả chính, Thành viên, Mã số, Ngày NT, Tổng tiết CT, Tiết GV, Vai trò)
+      const dataRows = records
         .map((rec, idx) => {
           return `<tr>
-            <td class="col-stt text-center">${idx + 1}</td>
-            <td class="col-loai text-center"><span class="badge bg-info text-dark">${esc(rec.loaiNckhLabel || rec.loaiNckh)}</span></td>
-            <td class="text-start col-ten fw-semibold">${esc(rec.tenCongTrinh)}</td>
-            <td class="text-start col-tacgia">${esc(rec.tacGiaChinh || "-")}</td>
-            <td class="text-start col-thanhvien"><small class="text-muted">${esc(rec.thanhVien || "-")}</small></td>
-            <td class="col-tiet">${fmt(rec.tongSoTietCongTrinh)}</td>
-            <td class="col-tiet fw-bold text-success">${fmt(rec.soTietGiangVien)}</td>
-            <td class="col-vaitro"><span class="badge bg-light text-dark border">${esc(helpers().formatRole(rec.vaiTroGiangVien))}</span></td>
+            <td>${idx + 1}</td>
+            <td><span class="badge bg-info text-dark">${esc(rec.loaiNckhLabel || rec.loaiNckh || "N/A")}</span></td>
+            <td>${esc(rec.phanLoai || "-")}</td>
+            <td class="text-start fw-medium">${esc(rec.tenCongTrinh)}</td>
+            <td class="text-start">${esc(rec.tacGiaChinh || "-")}</td>
+            <td class="text-start"><small class="text-muted">${esc(rec.thanhVien || "-")}</small></td>
+            <td>${esc(rec.maSo || "-")}</td>
+            <td>${esc(date(rec.ngayNghiemThu))}</td>
+            <td>${fmt(rec.tongSoTietCongTrinh)}</td>
+            <td class="fw-bold text-success">${fmt(rec.soTietGiangVien)}</td>
+            <td><span class="badge bg-light text-dark border">${esc(helpers().formatRole(rec.vaiTroGiangVien))}</span></td>
           </tr>`;
         })
         .join("");
+
+      // 3. Total summary row (chuẩn stats-row-total)
+      const totalSummaryRow = `
+        <tr class="stats-row-total">
+          <td colspan="8" class="text-end fw-bold">Tổng cộng:</td>
+          <td class="fw-bold">${fmt(totalProjectHours)}</td>
+          <td class="fw-bold text-success">${fmt(totalLecturerHours)}</td>
+          <td></td>
+        </tr>
+      `;
+
+      el.modalTableBody.innerHTML = groupHeaderRow + dataRows + totalSummaryRow;
     } catch (err) {
       console.error("Lỗi khi tải chi tiết công trình:", err);
       el.modalTableBody.innerHTML =
-        '<tr><td colspan="8" class="text-danger py-4">Có lỗi khi tải danh sách công trình</td></tr>';
+        '<tr><td colspan="11" class="text-danger py-4">Có lỗi khi tải danh sách công trình</td></tr>';
     }
   }
 
@@ -237,7 +273,8 @@
       Swal.fire("Thiếu thông tin", "Vui lòng chọn năm học", "warning");
       return;
     }
-    window.location.href = `/v3/nckh/bao-cao-ca-nhan/export/${lecturerId}?namHoc=${encodeURIComponent(namHoc)}&scope=${encodeURIComponent(scope)}`;
+    const query = new URLSearchParams({ namHoc, scope });
+    window.location.href = `/v3/nckh/bao-cao-ca-nhan/export/${lecturerId}?${query}`;
   }
 
   async function exportAll() {
@@ -265,7 +302,8 @@
       });
 
       try {
-        const url = `/v3/nckh/bao-cao-ca-nhan/export/${gv.lecturerId}?namHoc=${encodeURIComponent(namHoc)}&scope=${encodeURIComponent(scope)}`;
+        const query = new URLSearchParams({ namHoc, scope });
+        const url = `/v3/nckh/bao-cao-ca-nhan/export/${gv.lecturerId}?${query}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -312,6 +350,7 @@
 
     if (years?.success) {
       helpers().fillNamHocOptions(el.namHoc, years.NamHoc || []);
+
       // If 2025 - 2026 is an option, select it if current selected year has no data
       const has2025_2026 = Array.from(el.namHoc.options).find(
         (opt) => opt.value.replace(/\s+/g, "") === "2025-2026"

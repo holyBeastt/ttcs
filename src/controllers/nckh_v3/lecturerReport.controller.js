@@ -17,29 +17,39 @@ class LecturerReportController {
 
   /**
    * Export a single lecturer's NCKH Word report.
-   * GET /v3/nckh/bao-cao-ca-nhan/export/:lecturerId?namHoc=...&scope=...
+   * GET /v3/nckh/bao-cao-ca-nhan/export/:lecturerId?namHocFrom=...&namHocTo=...&scope=...
    */
   async exportDocx(req, res) {
     try {
       const { lecturerId } = req.params;
-      const { namHoc, scope = "PREVIEW" } = req.query;
+      const { namHoc, namHocFrom, namHocTo, scope = "PREVIEW" } = req.query;
 
       if (!lecturerId) {
         return res.status(400).json({ success: false, message: "Thiếu mã giảng viên" });
       }
-      if (!namHoc) {
-        return res.status(400).json({ success: false, message: "Thiếu năm học" });
+
+      const from = String(namHocFrom || namHoc || "").trim();
+      const to = String(namHocTo || from).trim();
+
+      if (!from) {
+        return res.status(400).json({ success: false, message: "Thiếu thông tin năm học" });
       }
 
-      const reportData = await lecturerReportService.getLecturerReportData(lecturerId, namHoc, scope);
+      const reportData = await lecturerReportService.getLecturerReportData(
+        lecturerId,
+        { namHocFrom: from, namHocTo: to },
+        scope
+      );
       const buffer = await lecturerDocxGenerator.generateLecturerReport(reportData);
 
       const lecturerName = reportData.lecturer?.tenNhanVien || "GiangVien";
       const safeName = lecturerName
         .replace(/[*?:\\/\[\]]/g, "")
         .replace(/\s+/g, "_");
-      const safeNamHoc = String(namHoc).replace(/\s+/g, "");
-      const filename = `ThongKe_NCKH_${safeName}_${safeNamHoc}.docx`;
+      const safePeriod = from === to
+        ? from.replace(/\s+/g, "")
+        : `${from}_den_${to}`.replace(/\s+/g, "");
+      const filename = `ThongKe_NCKH_${safeName}_${safePeriod}.docx`;
       const encodedFilename = encodeURIComponent(filename);
 
       res.setHeader(
