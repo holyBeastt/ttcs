@@ -5,6 +5,19 @@ const repo = require("../../repositories/vuotgio_v2/kthpStats.repo");
 
 const normalizeScope = (scope) => (scope === "PREVIEW" ? "PREVIEW" : "OFFICIAL");
 
+const resolveNamHocRange = ({ namHoc, namHocFrom, namHocTo }) => {
+    const from = String(namHocFrom || namHoc || "").trim();
+    const to = String(namHocTo || namHoc || "").trim();
+    if (!from && !to) {
+        throw new Error("Thiếu năm học");
+    }
+    return {
+        namHoc: from || to,
+        namHocFrom: from || to,
+        namHocTo: to || from,
+    };
+};
+
 const getFilters = async () => {
     let connection;
     try {
@@ -15,13 +28,15 @@ const getFilters = async () => {
     }
 };
 
-const getLecturerSummary = async ({ namHoc, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null }) => {
-    if (!namHoc) throw new Error("Thiếu năm học");
+const getLecturerSummary = async ({ namHoc, namHocFrom, namHocTo, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null }) => {
+    const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
         connection = await createPoolConnection();
         return await repo.listLecturerSummary(connection, {
-            namHoc: String(namHoc).trim(),
+            namHoc: years.namHoc,
+            namHocFrom: years.namHocFrom,
+            namHocTo: years.namHocTo,
             khoa: String(khoa || "ALL").trim(),
             loaiKthp: String(loaiKthp || "ALL").trim(),
             keyword: String(keyword || "").trim(),
@@ -33,15 +48,17 @@ const getLecturerSummary = async ({ namHoc, khoa = "ALL", loaiKthp = "ALL", keyw
     }
 };
 
-const getLecturerRecords = async ({ lecturerId, namHoc, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL" }) => {
+const getLecturerRecords = async ({ lecturerId, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL" }) => {
     if (!lecturerId) throw new Error("Thiếu ID giảng viên");
-    if (!namHoc) throw new Error("Thiếu năm học");
+    const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
         connection = await createPoolConnection();
         return await repo.listLecturerRecords(connection, {
             lecturerId: Number(lecturerId),
-            namHoc: String(namHoc).trim(),
+            namHoc: years.namHoc,
+            namHocFrom: years.namHocFrom,
+            namHocTo: years.namHocTo,
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
             khoa: String(khoa || "ALL").trim(),
@@ -51,13 +68,15 @@ const getLecturerRecords = async ({ lecturerId, namHoc, loaiKthp = "ALL", scope 
     }
 };
 
-const getFacultySummary = async ({ namHoc, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" }) => {
-    if (!namHoc) throw new Error("Thiếu năm học");
+const getFacultySummary = async ({ namHoc, namHocFrom, namHocTo, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+    const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
         connection = await createPoolConnection();
         return await repo.listFacultySummary(connection, {
-            namHoc: String(namHoc).trim(),
+            namHoc: years.namHoc,
+            namHocFrom: years.namHocFrom,
+            namHocTo: years.namHocTo,
             khoaId: String(khoaId || "ALL").trim(),
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
@@ -67,15 +86,17 @@ const getFacultySummary = async ({ namHoc, khoaId = "ALL", loaiKthp = "ALL", sco
     }
 };
 
-const getFacultyRecords = async ({ khoa, namHoc, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+const getFacultyRecords = async ({ khoa, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
     if (!khoa) throw new Error("Thiếu mã khoa");
-    if (!namHoc) throw new Error("Thiếu năm học");
+    const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
         connection = await createPoolConnection();
         return await repo.listFacultyRecords(connection, {
             khoa: String(khoa).trim(),
-            namHoc: String(namHoc).trim(),
+            namHoc: years.namHoc,
+            namHocFrom: years.namHocFrom,
+            namHocTo: years.namHocTo,
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
         });
@@ -84,13 +105,15 @@ const getFacultyRecords = async ({ khoa, namHoc, loaiKthp = "ALL", scope = "OFFI
     }
 };
 
-const getInstituteSummary = async ({ namHoc, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
-    if (!namHoc) throw new Error("Thiếu năm học");
+const getInstituteSummary = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+    const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
         connection = await createPoolConnection();
         return await repo.listInstituteSummary(connection, {
-            namHoc: String(namHoc).trim(),
+            namHoc: years.namHoc,
+            namHocFrom: years.namHocFrom,
+            namHocTo: years.namHocTo,
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
         });
@@ -99,13 +122,15 @@ const getInstituteSummary = async ({ namHoc, loaiKthp = "ALL", scope = "OFFICIAL
     }
 };
 
-const getInstituteRecords = async ({ namHoc, loaiKthp = "ALL", khoa = "ALL", scope = "OFFICIAL" }) => {
-    if (!namHoc) throw new Error("Thiếu năm học");
+const getInstituteRecords = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", khoa = "ALL", scope = "OFFICIAL" }) => {
+    const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
         connection = await createPoolConnection();
         return await repo.listInstituteRecords(connection, {
-            namHoc: String(namHoc).trim(),
+            namHoc: years.namHoc,
+            namHocFrom: years.namHocFrom,
+            namHocTo: years.namHocTo,
             loaiKthp: String(loaiKthp || "ALL").trim(),
             khoa: String(khoa || "ALL").trim(),
             scope: normalizeScope(scope),

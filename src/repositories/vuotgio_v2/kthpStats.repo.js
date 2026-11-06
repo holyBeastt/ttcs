@@ -32,9 +32,29 @@ const getDepartmentVariants = (deptCode) => {
     return Array.from(variants);
 };
 
-const buildStatsWhere = ({ namHoc, loaiKthp, scope, khoa, keyword }) => {
-    const conditions = ["(p.nam_hoc = ? OR REPLACE(p.nam_hoc, ' ', '') = REPLACE(?, ' ', ''))"];
-    const params = [namHoc, namHoc];
+const parseAcademicYearStart = (value) => {
+    const match = String(value || "").match(/\b(19|20)\d{2}\b/);
+    return match ? Number(match[0]) : null;
+};
+
+const buildStatsWhere = ({ namHoc, namHocFrom, namHocTo, loaiKthp, scope, khoa, keyword }) => {
+    const fromYear = parseAcademicYearStart(namHocFrom);
+    const toYear = parseAcademicYearStart(namHocTo);
+    const hasYearRange = fromYear !== null && toYear !== null;
+
+    const conditions = [];
+    const params = [];
+
+    if (hasYearRange) {
+        const startY = Math.min(fromYear, toYear);
+        const endY = Math.max(fromYear, toYear);
+        conditions.push("CAST(SUBSTRING(TRIM(p.nam_hoc), 1, 4) AS UNSIGNED) BETWEEN ? AND ?");
+        params.push(startY, endY);
+    } else {
+        const target = String(namHoc || namHocFrom || "").trim();
+        conditions.push("(p.nam_hoc = ? OR REPLACE(p.nam_hoc, ' ', '') = REPLACE(?, ' ', ''))");
+        params.push(target, target);
+    }
 
     // CHÍNH THỨC: Phải duyệt đủ 2 cấp (khoa và khảo thí)
     // DỰ KIẾN: Chưa duyệt đủ 2 cấp (loại trừ các bản ghi đã duyệt đủ)
@@ -105,8 +125,8 @@ const getFilters = async (connection) => {
     };
 };
 
-const listLecturerSummary = async (connection, { namHoc, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null }) => {
-    const { where, params } = buildStatsWhere({ namHoc, loaiKthp, scope, khoa, keyword });
+const listLecturerSummary = async (connection, { namHoc, namHocFrom, namHocTo, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null }) => {
+    const { where, params } = buildStatsWhere({ namHoc, namHocFrom, namHocTo, loaiKthp, scope, khoa, keyword });
 
     let query = `
         SELECT
@@ -148,8 +168,8 @@ const listLecturerSummary = async (connection, { namHoc, khoa = "ALL", loaiKthp 
     return rows;
 };
 
-const listLecturerRecords = async (connection, { lecturerId, namHoc, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL" }) => {
-    const { where, params } = buildStatsWhere({ namHoc, loaiKthp, scope, khoa });
+const listLecturerRecords = async (connection, { lecturerId, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL" }) => {
+    const { where, params } = buildStatsWhere({ namHoc, namHocFrom, namHocTo, loaiKthp, scope, khoa });
 
     const query = `
         SELECT
@@ -201,8 +221,8 @@ const listLecturerRecords = async (connection, { lecturerId, namHoc, loaiKthp = 
     return rows;
 };
 
-const listFacultySummary = async (connection, { namHoc, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" }) => {
-    const { where, params } = buildStatsWhere({ namHoc, loaiKthp, scope, khoa: khoaId });
+const listFacultySummary = async (connection, { namHoc, namHocFrom, namHocTo, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+    const { where, params } = buildStatsWhere({ namHoc, namHocFrom, namHocTo, loaiKthp, scope, khoa: khoaId });
 
     const query = `
         SELECT
@@ -231,8 +251,8 @@ const listFacultySummary = async (connection, { namHoc, khoaId = "ALL", loaiKthp
     return rows;
 };
 
-const listFacultyRecords = async (connection, { khoa, namHoc, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
-    const { where, params } = buildStatsWhere({ namHoc, loaiKthp, scope, khoa });
+const listFacultyRecords = async (connection, { khoa, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+    const { where, params } = buildStatsWhere({ namHoc, namHocFrom, namHocTo, loaiKthp, scope, khoa });
 
     const query = `
         SELECT
@@ -284,8 +304,8 @@ const listFacultyRecords = async (connection, { khoa, namHoc, loaiKthp = "ALL", 
     return rows;
 };
 
-const listInstituteSummary = async (connection, { namHoc, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
-    const { where, params } = buildStatsWhere({ namHoc, loaiKthp, scope });
+const listInstituteSummary = async (connection, { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+    const { where, params } = buildStatsWhere({ namHoc, namHocFrom, namHocTo, loaiKthp, scope });
 
     const queryByType = `
         SELECT
@@ -342,8 +362,8 @@ const listInstituteSummary = async (connection, { namHoc, loaiKthp = "ALL", scop
     };
 };
 
-const listInstituteRecords = async (connection, { namHoc, loaiKthp = "ALL", khoa = "ALL", scope = "OFFICIAL" }) => {
-    const { where, params } = buildStatsWhere({ namHoc, loaiKthp, scope, khoa });
+const listInstituteRecords = async (connection, { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", khoa = "ALL", scope = "OFFICIAL" }) => {
+    const { where, params } = buildStatsWhere({ namHoc, namHocFrom, namHocTo, loaiKthp, scope, khoa });
 
     const query = `
         SELECT

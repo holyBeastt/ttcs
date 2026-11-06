@@ -96,7 +96,7 @@ router.get("/kthp-import/suggestions", kthpImportController.getSuggestions);
 // =====================================================
 
 router.get("/duyet-kthp", baseController.getDuyetKTHP);
-router.post("/duyet-kthp/data", enforceKhoaFilter, duyetKTHPController.getTableData);
+router.post("/duyet-kthp/data", duyetKTHPController.getTableData);
 router.post("/duyet-kthp/batch-approve", enforceKhoaFilter, checkDataLock, duyetKTHPController.batchApprove);
 router.post("/duyet-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.edit);
 router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.delete);
@@ -106,8 +106,12 @@ router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPCont
 // =====================================================
 
 // Views
-router.get("/kthp/thong-ke", kthpStatsController.renderOfficialPage);
-router.get("/kthp/thong-ke-du-kien", kthpStatsController.renderPreviewPage);
+// 1. Menu THỐNG KÊ (các bản ghi đã phê duyệt 2 lần - CÓ biểu đồ)
+router.get("/kthp/thong-ke", (req, res) => kthpStatsController.renderThongKeMenuPage(req, res));
+
+// 2. Menu VƯỢT GIỜ (Dự kiến & Chính thức - KHÔNG biểu đồ)
+router.get("/kthp/thong-ke-du-kien", (req, res) => kthpStatsController.renderPreviewPage(req, res));
+router.get("/kthp/thong-ke-chinh-thuc", (req, res) => kthpStatsController.renderVuotGioOfficialPage(req, res));
 
 // Stats APIs
 router.get("/kthp/stats/filters", kthpStatsController.getFilters);
@@ -122,6 +126,18 @@ router.get("/kthp/stats/hoc-vien/chi-tiet", kthpStatsController.getInstituteDeta
 router.get("/kthp/export/stats/giang-vien", kthpStatsController.exportLecturerStats);
 router.get("/kthp/export/stats/khoa", kthpStatsController.exportFacultyStats);
 router.get("/kthp/export/stats/hoc-vien", kthpStatsController.exportInstituteStats);
+router.get("/kthp/export/stats/preview/giang-vien", (req, res) => {
+    req.query.scope = "PREVIEW";
+    return kthpStatsController.exportLecturerStats(req, res);
+});
+router.get("/kthp/export/stats/preview/khoa", (req, res) => {
+    req.query.scope = "PREVIEW";
+    return kthpStatsController.exportFacultyStats(req, res);
+});
+router.get("/kthp/export/stats/preview/hoc-vien", (req, res) => {
+    req.query.scope = "PREVIEW";
+    return kthpStatsController.exportInstituteStats(req, res);
+});
 
 
 

@@ -1,3 +1,15 @@
+const DEPARTMENT_ALIASES = require("../../config/vuotgio_v2/kthpDepartment.alias");
+
+const isSameDepartment = (deptA, deptB) => {
+    if (!deptA || !deptB) return false;
+    const a = String(deptA).trim().toUpperCase();
+    const b = String(deptB).trim().toUpperCase();
+    if (a === b) return true;
+    const canonicalA = (DEPARTMENT_ALIASES[a] || a).toUpperCase();
+    const canonicalB = (DEPARTMENT_ALIASES[b] || b).toUpperCase();
+    return canonicalA === canonicalB;
+};
+
 const getRoleConfig = () => ({
     gvCnbm: process.env.ROLE_KHOA_GV_CNBM || "GV_CNBM",
     lanhDaoKhoa: process.env.ROLE_KHOA_LANHDAO || "Lãnh đạo khoa",
@@ -30,7 +42,7 @@ const canModifyRecord = (session, record) => {
 
     const isKhoaUser = isKhoa && (role === gvCnbm || role === lanhDaoKhoa);
     if (isKhoaUser) {
-        const belongsToKhoa = Boolean(maPhongBan) && record.khoa === maPhongBan;
+        const belongsToKhoa = Boolean(maPhongBan) && isSameDepartment(record.khoa, maPhongBan);
         return belongsToKhoa
             && Number(record.khoa_duyet) === 0
             && Number(record.khao_thi_duyet) === 0;
@@ -70,7 +82,7 @@ const canChangeApproval = (session, record, requested) => {
     if (maPhongBan === banGiamDoc) return true;
 
     if (isKhoa && (role === gvCnbm || role === lanhDaoKhoa)) {
-        if (!maPhongBan || record.khoa !== maPhongBan) return false;
+        if (!maPhongBan || !isSameDepartment(record.khoa, maPhongBan)) return false;
         if (nextKhaoThi !== currentKhaoThi) return false;
         if (nextKhoa === currentKhoa) return true;
         if (currentKhaoThi === 1) return false;
