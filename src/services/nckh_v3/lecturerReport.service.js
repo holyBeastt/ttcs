@@ -144,7 +144,8 @@ async function getLecturerReportData(lecturerId, namHocParam, scope = STATS_SCOP
            st.vai_tro       AS vaiTro,
            st.so_tiet       AS soTiet,
            st.ten_ngoai     AS tenNgoai,
-           nv.TenNhanVien   AS tenNhanVien
+           nv.TenNhanVien   AS tenNhanVien,
+           nv.HocVi         AS hocVi
          FROM nckh_so_tiet st
          LEFT JOIN nhanvien nv ON nv.id_User = st.nhanvien_id
          WHERE st.nckh_id IN (${placeholders})
@@ -161,6 +162,7 @@ async function getLecturerReportData(lecturerId, namHocParam, scope = STATS_SCOP
           tenNhanVien: (p.tenNhanVien || p.tenNgoai || "").trim(),
           vaiTro: p.vaiTro,
           soTiet: Number(p.soTiet || 0),
+          hocVi: (p.hocVi || "").trim(),
         });
       }
     }

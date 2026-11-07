@@ -361,16 +361,59 @@ function buildHeaderTable(khoaName) {
   });
 }
 
+// Chuẩn hóa học vị sang dạng viết tắt chuẩn (Tiến sĩ -> TS., Thạc sĩ -> ThS., PGS.TS., GS.TS., ...)
+function formatHocVi(hocVi) {
+  if (!hocVi) return "";
+  const s = String(hocVi).trim();
+  const lower = s.toLowerCase();
+  if (lower === "tiến sĩ" || lower === "ts" || lower === "ts.") return "TS.";
+  if (lower === "thạc sĩ" || lower === "ths" || lower === "ths.") return "ThS.";
+  if (
+    (lower.includes("phó giáo sư") && lower.includes("tiến sĩ")) ||
+    lower.includes("pgs.ts") || lower.includes("pgs. ts") || lower.includes("pgs-ts")
+  ) {
+    return "PGS.TS.";
+  }
+  if (
+    (lower.includes("giáo sư") && lower.includes("tiến sĩ")) ||
+    lower.includes("gs.ts") || lower.includes("gs. ts") || lower.includes("gs-ts")
+  ) {
+    return "GS.TS.";
+  }
+  if (lower.startsWith("phó giáo sư") || lower === "pgs" || lower === "pgs.") return "PGS.";
+  if (lower.startsWith("giáo sư") || lower === "gs" || lower === "gs.") return "GS.";
+  if (lower === "kỹ sư" || lower === "ks" || lower === "ks.") return "KS.";
+  if (lower === "cử nhân" || lower === "cn" || lower === "cn.") return "CN.";
+  return s.endsWith(".") ? s : `${s}.`;
+}
+
+// Trích xuất cấp thực hiện ngắn gọn chuẩn mẫu (Cơ sở, Quốc gia, Ban, Bộ, ...)
+function extractCapNhiemVu(capNhiemVu, phanLoai) {
+  if (capNhiemVu && String(capNhiemVu).trim()) {
+    return String(capNhiemVu).trim();
+  }
+  const pl = String(phanLoai || "").trim();
+  const lowerPl = pl.toLowerCase();
+  if (lowerPl.includes("cơ sở") || lowerPl.includes("co so")) return "Cơ sở";
+  if (lowerPl.includes("quốc gia") || lowerPl.includes("quoc gia")) return "Quốc gia";
+  if (lowerPl.includes("ban, bộ") || lowerPl.includes("cấp bộ") || lowerPl.includes("cap bo")) return "Ban, Bộ";
+  if (lowerPl.includes("học viện") || lowerPl.includes("hoc vien")) return "Học viện";
+  if (lowerPl.includes("tỉnh") || lowerPl.includes("tinh")) return "Tỉnh";
+  return pl || "Cơ sở";
+}
+
 /**
  * Mục 1: Đề tài, dự án
  * Mẫu:
  * 1. Nghiên cứu, thử nghiệm... (Mã số: 10/2025/CS) [không in đậm]
  *    \t- Chủ nhiệm đề tài: TS. Lê Đức Thuận
+ *    \t- Thành viên: <Các thành viên khác (trừ chủ nhiệm đề tài)>
  *    \t- Tổng số thành viên: 03
  *    \t- Cấp thực hiện: Cơ sở
  *    \t- Năm thực hiện: 2025
  */
-function buildDeTaiParagraphs(record, subIndex) {
+function buildDeTaiParagraphs(record, subIndex, lecturer = {}) {
+  // 1. Xác định Chủ nhiệm đề tài
   let leader = null;
   if (record.participants && record.participants.length > 0) {
     leader =
@@ -381,21 +424,112 @@ function buildDeTaiParagraphs(record, subIndex) {
       ) || record.participants[0];
   }
 
-  let leaderName = leader ? leader.tenNhanVien || leader.tenNgoai || "" : record.tacGiaChinh || "";
-  const leaderHocVi = leader && leader.hocVi ? String(leader.hocVi).trim() : "";
-  if (leaderHocVi && leaderName && !leaderName.toLowerCase().startsWith(leaderHocVi.toLowerCase())) {
-    leaderName = `${leaderHocVi} ${leaderName}`;
+  let leaderName = leader
+    ? (leader.tenNhanVien || leader.tenNgoai || "").trim()
+    : (record.tacGiaChinh || "").trim();
+
+  let rawLeaderHocVi = leader && leader.hocVi ? String(leader.hocVi).trim() : "";
+  if (!rawLeaderHocVi && lecturer && lecturer.hocVi) {
+    const leaderNorm = normalizeText(leaderName);
+    const lectNorm = normalizeText(lecturer.tenNhanVien || "");
+    const isSame =
+      (leader && leader.nhanvienId && lecturer.idUser && Number(leader.nhanvienId) === Number(lecturer.idUser)) ||
+      (leaderNorm && lectNorm && leaderNorm === lectNorm);
+    if (isSame) {
+      rawLeaderHocVi = String(lecturer.hocVi).trim();
+    }
   }
 
-  const totalMembers = record.participants && record.participants.length > 0
-    ? String(record.participants.length).padStart(2, "0")
-    : "01";
-  const cap = record.capNhiemVu || record.phanLoai || "Cơ sở";
+  const leaderHocVi = formatHocVi(rawLeaderHocVi);
+  if (leaderHocVi && leaderName) {
+    leaderName = leaderName
+      .replace(/^(tiến sĩ|thạc sĩ|phó giáo sư\. tiến sĩ|giáo sư\. tiến sĩ|phó giáo sư|giáo sư|kỹ sư|cử nhân)\s+/i, "")
+      .trim();
+    if (!leaderName.toLowerCase().startsWith(leaderHocVi.toLowerCase())) {
+      leaderName = `${leaderHocVi} ${leaderName}`;
+    }
+  }
+
+  // 2. Danh sách thành viên khác (trừ chủ nhiệm đề tài)
+  const otherMembersList = [];
+  const seenMemberKeys = new Set();
+
+  if (leader) {
+    if (leader.nhanvienId) {
+      seenMemberKeys.add(`id:${leader.nhanvienId}`);
+    }
+    const lName = normalizeText(leader.tenNhanVien || leader.tenNgoai || "");
+    if (lName) {
+      seenMemberKeys.add(`name:${lName}`);
+    }
+  }
+
+  if (record.participants && record.participants.length > 0) {
+    record.participants.forEach((p) => {
+      if (p === leader) return;
+      const idKey = p.nhanvienId ? `id:${p.nhanvienId}` : null;
+      const rawName = (p.tenNhanVien || p.tenNgoai || "").trim();
+      const nameKey = rawName ? `name:${normalizeText(rawName)}` : null;
+
+      if (idKey && seenMemberKeys.has(idKey)) return;
+      if (nameKey && seenMemberKeys.has(nameKey)) return;
+
+      if (idKey) seenMemberKeys.add(idKey);
+      if (nameKey) seenMemberKeys.add(nameKey);
+
+      if (rawName) {
+        otherMembersList.push(rawName);
+      }
+    });
+  }
+
+  // Fallback nếu không có participants trong record (dùng record.thanhVien)
+  if (!otherMembersList.length && record.thanhVien) {
+    const rawThanhVien = String(record.thanhVien)
+      .split(/[,;\r\n\t]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const leaderNorm = normalizeText(
+      leader ? (leader.tenNhanVien || leader.tenNgoai || "") : (record.tacGiaChinh || "")
+    );
+    rawThanhVien.forEach((name) => {
+      const norm = normalizeText(name);
+      if (norm !== leaderNorm && !seenMemberKeys.has(`name:${norm}`)) {
+        seenMemberKeys.add(`name:${norm}`);
+        otherMembersList.push(name);
+      }
+    });
+  }
+
+  const thanhVienText = otherMembersList.join(", ");
+
+  // 3. Tổng số thành viên
+  const totalCount = leader
+    ? 1 + otherMembersList.length
+    : (otherMembersList.length || (record.participants ? record.participants.length : 1));
+  const totalMembers = String(totalCount).padStart(2, "0");
+
+  // 4. Cấp thực hiện
+  const cap = extractCapNhiemVu(record.capNhiemVu, record.phanLoai);
+
+  // 5. Năm thực hiện
   const nam = record.namHoc ? String(record.namHoc).split("-")[0].trim() : "";
 
+  // 6. Tiêu đề công trình + mã số (tránh lặp lại mã số nếu trong tên đã có)
+  let title = String(record.tenCongTrinh || "").trim();
+  const rawMaSo = String(record.maSo || "").trim();
+  if (rawMaSo) {
+    const normTitle = normalizeText(title);
+    const normMaSo = normalizeText(rawMaSo);
+    if (!normTitle.includes(normMaSo) && !normTitle.includes("ma so")) {
+      title = `${title} (Mã số: ${rawMaSo})`;
+    }
+  }
+
   const lines = [
-    `${subIndex}. ${record.tenCongTrinh || ""}${record.maSo ? ` (Mã số: ${record.maSo})` : ""}`,
+    `${subIndex}. ${title}`,
     `\t- Chủ nhiệm đề tài: ${leaderName}`,
+    `\t- Thành viên: ${thanhVienText}`,
     `\t- Tổng số thành viên: ${totalMembers}`,
     `\t- Cấp thực hiện: ${cap}`,
     `\t- Năm thực hiện: ${nam}`,
@@ -1098,7 +1232,7 @@ async function generateLecturerReport(reportData) {
 
         switch (section.loaiNckh) {
           case "DETAI_DUAN":
-            contentParagraphs = buildDeTaiParagraphs(record, subIndex);
+            contentParagraphs = buildDeTaiParagraphs(record, subIndex, lecturer);
             break;
           case "SACHGIAOTRINH":
             contentParagraphs = buildSachParagraphs(record, subIndex, totalRecs);
