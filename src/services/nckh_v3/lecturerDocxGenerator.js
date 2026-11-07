@@ -81,6 +81,185 @@ const COL_WIDTHS = [590, 6606, 1096, 3726, 2268];
 const TOTAL_TABLE_WIDTH = COL_WIDTHS.reduce((a, b) => a + b, 0);
 
 /**
+ * Danh sách Lãnh đạo đơn vị theo từng khoa / phòng ban
+ * Dựa trên bảng lãnh đạo đơn vị và csdl nhanvien:
+ * 1: ATTT -> Hoàng Đức Thọ (Chủ nhiệm Khoa)
+ * 2: CNTT -> Phạm Văn Hưởng (Chủ nhiệm khoa)
+ * 3: DAOTAO -> Nguyễn Quang Quân (Trưởng Ban Đào tạo)
+ * 4: BGĐ -> Hoàng Văn Thức (Giám đốc học viện)
+ * 5: NC&HTPT -> Nguyễn Chung Tiến (Viện trưởng)
+ * 6: VP -> Đặng Thị Hồng Nhung (Trưởng phòng)
+ * 7: ĐTVM -> Bùi Đức Trình (Chủ nhiệm Khoa)
+ * 8: NCKH -> Nguyễn Chung Tiến (Viện trưởng)
+ * 9: ĐTPH -> Phan Văn Đức (Chủ nhiệm khoa)
+ * 10: KT&ĐBCL -> Nguyễn Tuấn Anh (Trưởng phòng KT&ĐBCL)
+ * 11: CB -> Nguyễn Thị Thanh Vân (Chủ nhiệm Khoa)
+ * 12: MM -> Nguyễn Thanh Tùng (Chủ nhiệm khoa)
+ */
+const DEPARTMENT_LEADERS = {
+  BY_ID: {
+    1: "Hoàng Đức Thọ",
+    2: "Phạm Văn Hưởng",
+    3: "Nguyễn Quang Quân",
+    4: "Hoàng Văn Thức",
+    5: "Nguyễn Chung Tiến",
+    6: "Đặng Thị Hồng Nhung",
+    7: "Bùi Đức Trình",
+    8: "Nguyễn Chung Tiến",
+    9: "Phan Văn Đức",
+    10: "Nguyễn Tuấn Anh",
+    11: "Nguyễn Thị Thanh Vân",
+    12: "Nguyễn Thanh Tùng",
+  },
+  BY_CODE: {
+    ATTT: "Hoàng Đức Thọ",
+    CNTT: "Phạm Văn Hưởng",
+    DAOTAO: "Nguyễn Quang Quân",
+    BGD: "Hoàng Văn Thức",
+    "BGĐ": "Hoàng Văn Thức",
+    "NC&HTPT": "Nguyễn Chung Tiến",
+    NCHTPT: "Nguyễn Chung Tiến",
+    NCKH: "Nguyễn Chung Tiến",
+    VP: "Đặng Thị Hồng Nhung",
+    DTVM: "Bùi Đức Trình",
+    "ĐTVM": "Bùi Đức Trình",
+    DTPH: "Phan Văn Đức",
+    "ĐTPH": "Phan Văn Đức",
+    "KT&ĐBCL": "Nguyễn Tuấn Anh",
+    "KT&DBCL": "Nguyễn Tuấn Anh",
+    KTDBCL: "Nguyễn Tuấn Anh",
+    CB: "Nguyễn Thị Thanh Vân",
+    MM: "Nguyễn Thanh Tùng",
+  },
+  BY_NAME_KEYWORDS: [
+    { pattern: /an\s*toan\s*thong\s*tin|attt/i, leader: "Hoàng Đức Thọ" },
+    { pattern: /cong\s*nghe\s*thong\s*tin|cntt/i, leader: "Phạm Văn Hưởng" },
+    { pattern: /dao\s*tao\s*tai\s*phan\s*hieu|dtph|phan\s*hieu/i, leader: "Phan Văn Đức" },
+    { pattern: /dao\s*tao|ban\s*dao\s*tao|phong\s*dao\s*tao/i, leader: "Nguyễn Quang Quân" },
+    { pattern: /ban\s*giam\s*doc|bgd/i, leader: "Hoàng Văn Thức" },
+    { pattern: /hop\s*tac\s*phat\s*trien|vien\s*nghien\s*cuu|nchc|nckh/i, leader: "Nguyễn Chung Tiến" },
+    { pattern: /van\s*phong/i, leader: "Đặng Thị Hồng Nhung" },
+    { pattern: /dien\s*tu\s*vi\s*mach|dtvm/i, leader: "Bùi Đức Trình" },
+    { pattern: /khao\s*thi|dam\s*bao\s*chat\s*luong|kt&dbcl/i, leader: "Nguyễn Tuấn Anh" },
+    { pattern: /co\s*ban/i, leader: "Nguyễn Thị Thanh Vân" },
+    { pattern: /mat\s*ma/i, leader: "Nguyễn Thanh Tùng" },
+  ],
+};
+
+function getDepartmentLeader(lecturer = {}, reportData = {}) {
+  if (reportData.lanhDaoDonVi && String(reportData.lanhDaoDonVi).trim()) {
+    return String(reportData.lanhDaoDonVi).trim();
+  }
+  if (lecturer.lanhDaoDonVi && String(lecturer.lanhDaoDonVi).trim()) {
+    return String(lecturer.lanhDaoDonVi).trim();
+  }
+
+  const pbId = lecturer.phongbanId || lecturer.phongban_id;
+  if (pbId && DEPARTMENT_LEADERS.BY_ID[pbId]) {
+    return DEPARTMENT_LEADERS.BY_ID[pbId];
+  }
+
+  const rawCode = String(lecturer.maPhongBan || "").trim();
+  if (rawCode) {
+    const codeUpper = rawCode.toUpperCase();
+    if (DEPARTMENT_LEADERS.BY_CODE[codeUpper]) {
+      return DEPARTMENT_LEADERS.BY_CODE[codeUpper];
+    }
+    const nonAccentCode = toNonAccentPreserveCase(codeUpper).replace(/[^A-Z0-9&]/g, "");
+    if (DEPARTMENT_LEADERS.BY_CODE[nonAccentCode]) {
+      return DEPARTMENT_LEADERS.BY_CODE[nonAccentCode];
+    }
+  }
+
+  const normDeptName = normalizeText(lecturer.tenPhongBan || lecturer.maPhongBan || "");
+  if (normDeptName) {
+    for (const item of DEPARTMENT_LEADERS.BY_NAME_KEYWORDS) {
+      if (item.pattern.test(normDeptName)) {
+        return item.leader;
+      }
+    }
+  }
+
+  return "";
+}
+
+function formatDepartmentHeader(lecturer = {}) {
+  if (typeof lecturer === "string") {
+    lecturer = { tenPhongBan: lecturer };
+  }
+  const rawName = (lecturer.tenPhongBan || lecturer.maPhongBan || "KHOA CNTT").trim();
+  const rawUpper = rawName.toUpperCase();
+  const code = (lecturer.maPhongBan || "").trim().toUpperCase();
+  const norm = normalizeText(rawName);
+
+  // 1. Ưu tiên xử lý 3 đơn vị đặc thù theo yêu cầu
+  if (
+    code === "DAOTAO" ||
+    rawUpper === "DAOTAO" ||
+    norm === "dao tao" ||
+    norm === "ban dao tao" ||
+    norm === "phong dao tao"
+  ) {
+    return "PHÒNG ĐÀO TẠO";
+  }
+
+  if (
+    code === "NC&HTPT" ||
+    code === "NCHTPT" ||
+    code === "NCKH" ||
+    rawUpper === "NC&HTPT" ||
+    norm.includes("nghien cuu va hop tac") ||
+    norm.includes("nc&htpt")
+  ) {
+    return "VIỆN NGHIÊN CỨU VÀ HỢP TÁC PT";
+  }
+
+  if (
+    code === "KT&ĐBCL" ||
+    code === "KT&DBCL" ||
+    code === "KTDBCL" ||
+    rawUpper === "KT&ĐBCL" ||
+    norm.includes("khao thi va dam bao") ||
+    norm.includes("kt&dbcl")
+  ) {
+    return "PHÒNG KHẢO THÍ VÀ ĐẢM BẢO CL";
+  }
+
+  // 2. Các phòng ban đặc thù khác
+  if (code === "BGĐ" || code === "BGD") {
+    return "BAN GIÁM ĐỐC";
+  }
+  if (code === "VP") {
+    return "VĂN PHÒNG";
+  }
+
+  // 3. Nếu đã có tiền tố đơn vị thì giữ nguyên
+  if (
+    rawUpper.startsWith("KHOA ") ||
+    rawUpper.startsWith("PHÒNG ") ||
+    rawUpper.startsWith("PHONG ") ||
+    rawUpper.startsWith("BAN ") ||
+    rawUpper.startsWith("VIỆN ") ||
+    rawUpper.startsWith("VIEN ") ||
+    rawUpper.startsWith("TRUNG TÂM ") ||
+    rawUpper.startsWith("TRUNG TAM ")
+  ) {
+    return rawUpper;
+  }
+
+  // 4. Các Khoa đào tạo
+  const isFaculty =
+    lecturer.isKhoa === 1 ||
+    ["ATTT", "CNTT", "ĐTVM", "DTVM", "ĐTPH", "DTPH", "CB", "MM"].includes(code);
+
+  if (isFaculty) {
+    return `KHOA ${rawUpper}`;
+  }
+
+  return rawUpper;
+}
+
+/**
  * Bảng Header Quốc hiệu - Tiêu ngữ (3 cột không viền chuẩn khổ ngang)
  */
 function buildHeaderTable(khoaName) {
@@ -297,26 +476,140 @@ function buildSachParagraphs(record, subIndex, totalRecords = 1) {
   );
 }
 
+// Kiểm tra vai trò có thuộc nhóm tác giả chính không
+function isMainRole(role) {
+  const r = String(role || "").toLowerCase().trim();
+  if (r === "thanh_vien" || r.includes("dong_tac_gia") || r.includes("tham_gia")) {
+    return false;
+  }
+  return (
+    r === "tac_gia" ||
+    r.includes("tac_gia_chinh") ||
+    r.includes("tac_gia_lien_he") ||
+    r.includes("chu_bien") ||
+    r.includes("chu_nhiem") ||
+    r.includes("chu_tri") ||
+    r.includes("chinh")
+  );
+}
+
+// Kiểm tra giảng viên kê khai có thuộc nhóm tác giả chính của bài báo không
+function isLecturerMainAuthor(record, lecturerName) {
+  if (!record) return false;
+  const normLecturer = normalizeText(lecturerName);
+
+  if (record.vaiTroGiangVien && isMainRole(record.vaiTroGiangVien)) {
+    return true;
+  }
+
+  if (record.participants && record.participants.length > 0) {
+    for (const p of record.participants) {
+      const name = (p.tenNhanVien || p.tenNgoai || "").trim();
+      if (!name) continue;
+      const normName = normalizeText(name);
+      const isLecturer =
+        normLecturer &&
+        (normName.includes(normLecturer) || normLecturer.includes(normName));
+
+      if (isLecturer && isMainRole(p.vaiTro)) {
+        return true;
+      }
+    }
+  }
+
+  if (record.tacGiaChinh && normLecturer) {
+    const normTacGiaChinh = normalizeText(record.tacGiaChinh);
+    if (normTacGiaChinh.includes(normLecturer) || normLecturer.includes(normTacGiaChinh)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Mục 6: Bài báo, ấn phẩm khoa học
- * Tên tác giả chuyển sang không dấu, tên giảng viên kê khai in đậm & gạch chân
+ * Tên tác giả chuyển sang không dấu; tên giảng viên kê khai in đậm & gạch chân.
+ * - Nếu giảng viên thuộc nhóm tác giả chính: đưa lên đầu danh sách tác giả.
+ * - Nếu không thuộc tác giả chính: đặt ngay sau nhóm tác giả chính.
  */
 function buildBaiBaoParagraphs(record, subIndex, lecturerName) {
   const normLecturer = normalizeText(lecturerName);
 
-  let authorsList = [];
-  if (record.participants && record.participants.length > 0) {
-    authorsList = record.participants
-      .map((p) => p.tenNhanVien || p.tenNgoai || "")
-      .filter(Boolean);
-  }
+  let mainAuthors = [];
+  let otherAuthors = [];
+  let lecturerFoundName = lecturerName || "";
+  let lecturerIsMain = isLecturerMainAuthor(record, lecturerName);
 
-  if (!authorsList.length) {
-    const raw = [record.tacGiaChinh, record.thanhVien].filter(Boolean).join(", ");
-    authorsList = raw
-      .split(",")
+  if (record.participants && record.participants.length > 0) {
+    record.participants.forEach((p) => {
+      const name = (p.tenNhanVien || p.tenNgoai || "").trim();
+      if (!name) return;
+
+      const normName = normalizeText(name);
+      const isLecturer =
+        normLecturer &&
+        (normName.includes(normLecturer) || normLecturer.includes(normName));
+
+      const isMain = isMainRole(p.vaiTro);
+
+      if (isLecturer) {
+        lecturerFoundName = name;
+        if (isMain) {
+          lecturerIsMain = true;
+        }
+      } else if (isMain) {
+        mainAuthors.push(name);
+      } else {
+        otherAuthors.push(name);
+      }
+    });
+  } else {
+    // Fallback nếu không có participants (dùng tacGiaChinh, thanhVien)
+    const rawMain = String(record.tacGiaChinh || "")
+      .split(/[,;\r\n\t]+/)
       .map((s) => s.trim())
       .filter(Boolean);
+    const rawOther = String(record.thanhVien || "")
+      .split(/[,;\r\n\t]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    rawMain.forEach((name) => {
+      const normName = normalizeText(name);
+      if (normLecturer && (normName.includes(normLecturer) || normLecturer.includes(normName))) {
+        lecturerFoundName = name;
+        lecturerIsMain = true;
+      } else {
+        mainAuthors.push(name);
+      }
+    });
+
+    rawOther.forEach((name) => {
+      const normName = normalizeText(name);
+      if (normLecturer && (normName.includes(normLecturer) || normLecturer.includes(normName))) {
+        lecturerFoundName = name;
+      } else {
+        otherAuthors.push(name);
+      }
+    });
+  }
+
+  // Sắp xếp danh sách tác giả:
+  // - Nếu giảng viên là tác giả chính: đưa lên đầu danh sách tác giả.
+  // - Nếu giảng viên không phải tác giả chính: đặt ngay sau nhóm tác giả chính.
+  let authorsList = [];
+  if (lecturerIsMain) {
+    if (lecturerFoundName) {
+      authorsList.push(lecturerFoundName);
+    }
+    authorsList.push(...mainAuthors, ...otherAuthors);
+  } else {
+    authorsList.push(...mainAuthors);
+    if (lecturerFoundName) {
+      authorsList.push(lecturerFoundName);
+    }
+    authorsList.push(...otherAuthors);
   }
 
   if (!authorsList.length && lecturerName) {
@@ -345,7 +638,7 @@ function buildBaiBaoParagraphs(record, subIndex, lecturerName) {
         text: displayAuthor,
         font: FONT_FAMILY,
         size: 26,
-        bold: isLecturer,
+        bold: isLecturer ? true : undefined,
         underline: isLecturer ? {} : undefined,
       })
     );
@@ -693,13 +986,8 @@ function createCell(children, width, options = {}) {
 async function generateLecturerReport(reportData) {
   const { lecturer, namHoc, sections, grandTotal } = reportData;
   const lecturerName = lecturer.tenNhanVien || "";
-  const deptName = lecturer.tenPhongBan || lecturer.maPhongBan || "KHOA CNTT";
-  const leaderSignName =
-    reportData.lanhDaoDonVi ||
-    lecturer.lanhDaoDonVi ||
-    (normalizeText(deptName).includes("cntt") || normalizeText(deptName).includes("cong nghe thong tin")
-      ? "Phạm Văn Hưởng"
-      : "");
+  const deptName = formatDepartmentHeader(lecturer);
+  const leaderSignName = getDepartmentLeader(lecturer, reportData);
 
   const namHocFormatted = formatNamHocText(namHoc);
   const isMultiYear =
@@ -780,6 +1068,17 @@ async function generateLecturerReport(reportData) {
     // 2. Các dòng nội dung của mục
     if (section.records && section.records.length > 0) {
       let records = section.records;
+
+      // Riêng Mục 6 (BAIBAO): Sắp xếp các bài báo theo vai trò của giảng viên kê khai:
+      // Bài báo là tác giả chính lên đầu, sau đó đến các bài báo không thuộc tác giả chính
+      if (section.loaiNckh === "BAIBAO" && records.length > 1) {
+        records = [...records].sort((a, b) => {
+          const mainA = isLecturerMainAuthor(a, lecturerName) ? 0 : 1;
+          const mainB = isLecturerMainAuthor(b, lecturerName) ? 0 : 1;
+          if (mainA !== mainB) return mainA - mainB;
+          return (a.nckhId || a.id || 0) - (b.nckhId || b.id || 0);
+        });
+      }
 
       // Riêng Mục 7 (HUONGDAN): Sắp xếp theo giải thưởng (Giải Nhất -> Giải Nhì -> Giải Ba -> Khuyến khích -> Đạt yêu cầu cấp khoa)
       if (section.loaiNckh === "HUONGDAN" && records.length > 1) {
