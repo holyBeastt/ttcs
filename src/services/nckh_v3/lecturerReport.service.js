@@ -55,8 +55,8 @@ async function getLecturerReportData(lecturerId, namHocParam, scope = STATS_SCOP
 
     // 1. Lecturer info
     const [lecturerRows] = await connection.execute(
-      `SELECT nv.id_User, nv.TenNhanVien, nv.HocVi, nv.MaPhongBan,
-              pb.TenPhongBan
+      `SELECT nv.id_User, nv.TenNhanVien, nv.HocVi, nv.MaPhongBan, nv.phongban_id,
+              pb.TenPhongBan, pb.isKhoa, pb.id AS phongBanId, pb.MaPhongBan AS pbMaPhongBan
        FROM nhanvien nv
        LEFT JOIN phongban pb ON (nv.phongban_id = pb.id OR pb.MaPhongBan = nv.MaPhongBan)
        WHERE nv.id_User = ?
@@ -70,10 +70,13 @@ async function getLecturerReportData(lecturerId, namHocParam, scope = STATS_SCOP
 
     const lecturerRow = lecturerRows[0];
     const lecturer = {
+      idUser: lecturerRow.id_User,
       tenNhanVien: (lecturerRow.TenNhanVien || "").trim(),
       hocVi: (lecturerRow.HocVi || "").trim(),
-      maPhongBan: (lecturerRow.MaPhongBan || "").trim(),
+      maPhongBan: (lecturerRow.MaPhongBan || lecturerRow.pbMaPhongBan || "").trim(),
       tenPhongBan: (lecturerRow.TenPhongBan || "").trim(),
+      phongbanId: lecturerRow.phongban_id || lecturerRow.phongBanId || null,
+      isKhoa: lecturerRow.isKhoa,
     };
 
     // 2. All NCKH records for this lecturer in the given period
