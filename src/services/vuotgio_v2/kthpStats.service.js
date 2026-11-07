@@ -28,7 +28,7 @@ const getFilters = async () => {
     }
 };
 
-const getLecturerSummary = async ({ namHoc, namHocFrom, namHocTo, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null }) => {
+const getLecturerSummary = async ({ namHoc, namHocFrom, namHocTo, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null, heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) => {
     const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
@@ -42,13 +42,18 @@ const getLecturerSummary = async ({ namHoc, namHocFrom, namHocTo, khoa = "ALL", 
             keyword: String(keyword || "").trim(),
             scope: normalizeScope(scope),
             lecturerId: lecturerId ? Number(lecturerId) : null,
+            heDaoTao: String(heDaoTao || "ALL").trim(),
+            dot: String(dot || "ALL").trim(),
+            ki: String(ki || hocKy || "ALL").trim(),
+            hocKy: String(hocKy || ki || "ALL").trim(),
+            hocPhan: String(hocPhan || "").trim(),
         });
     } finally {
         if (connection) connection.release();
     }
 };
 
-const getLecturerRecords = async ({ lecturerId, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL" }) => {
+const getLecturerRecords = async ({ lecturerId, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) => {
     if (!lecturerId) throw new Error("Thiếu ID giảng viên");
     const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
@@ -62,13 +67,19 @@ const getLecturerRecords = async ({ lecturerId, namHoc, namHocFrom, namHocTo, lo
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
             khoa: String(khoa || "ALL").trim(),
+            keyword: String(keyword || "").trim(),
+            heDaoTao: String(heDaoTao || "ALL").trim(),
+            dot: String(dot || "ALL").trim(),
+            ki: String(ki || hocKy || "ALL").trim(),
+            hocKy: String(hocKy || ki || "ALL").trim(),
+            hocPhan: String(hocPhan || "").trim(),
         });
     } finally {
         if (connection) connection.release();
     }
 };
 
-const getFacultySummary = async ({ namHoc, namHocFrom, namHocTo, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+const getFacultySummary = async ({ namHoc, namHocFrom, namHocTo, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) => {
     const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
@@ -80,13 +91,19 @@ const getFacultySummary = async ({ namHoc, namHocFrom, namHocTo, khoaId = "ALL",
             khoaId: String(khoaId || "ALL").trim(),
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
+            keyword: String(keyword || "").trim(),
+            heDaoTao: String(heDaoTao || "ALL").trim(),
+            dot: String(dot || "ALL").trim(),
+            ki: String(ki || hocKy || "ALL").trim(),
+            hocKy: String(hocKy || ki || "ALL").trim(),
+            hocPhan: String(hocPhan || "").trim(),
         });
     } finally {
         if (connection) connection.release();
     }
 };
 
-const getFacultyRecords = async ({ khoa, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+const getFacultyRecords = async ({ khoa, namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) => {
     if (!khoa) throw new Error("Thiếu mã khoa");
     const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
@@ -99,13 +116,19 @@ const getFacultyRecords = async ({ khoa, namHoc, namHocFrom, namHocTo, loaiKthp 
             namHocTo: years.namHocTo,
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
+            keyword: String(keyword || "").trim(),
+            heDaoTao: String(heDaoTao || "ALL").trim(),
+            dot: String(dot || "ALL").trim(),
+            ki: String(ki || hocKy || "ALL").trim(),
+            hocKy: String(hocKy || ki || "ALL").trim(),
+            hocPhan: String(hocPhan || "").trim(),
         });
     } finally {
         if (connection) connection.release();
     }
 };
 
-const getInstituteSummary = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" }) => {
+const getInstituteSummary = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) => {
     const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
@@ -116,13 +139,20 @@ const getInstituteSummary = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "A
             namHocTo: years.namHocTo,
             loaiKthp: String(loaiKthp || "ALL").trim(),
             scope: normalizeScope(scope),
+            khoa: String(khoa || "ALL").trim(),
+            keyword: String(keyword || "").trim(),
+            heDaoTao: String(heDaoTao || "ALL").trim(),
+            dot: String(dot || "ALL").trim(),
+            ki: String(ki || hocKy || "ALL").trim(),
+            hocKy: String(hocKy || ki || "ALL").trim(),
+            hocPhan: String(hocPhan || "").trim(),
         });
     } finally {
         if (connection) connection.release();
     }
 };
 
-const getInstituteRecords = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", khoa = "ALL", scope = "OFFICIAL" }) => {
+const getInstituteRecords = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", khoa = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) => {
     const years = resolveNamHocRange({ namHoc, namHocFrom, namHocTo });
     let connection;
     try {
@@ -134,6 +164,12 @@ const getInstituteRecords = async ({ namHoc, namHocFrom, namHocTo, loaiKthp = "A
             loaiKthp: String(loaiKthp || "ALL").trim(),
             khoa: String(khoa || "ALL").trim(),
             scope: normalizeScope(scope),
+            keyword: String(keyword || "").trim(),
+            heDaoTao: String(heDaoTao || "ALL").trim(),
+            dot: String(dot || "ALL").trim(),
+            ki: String(ki || hocKy || "ALL").trim(),
+            hocKy: String(hocKy || ki || "ALL").trim(),
+            hocPhan: String(hocPhan || "").trim(),
         });
     } finally {
         if (connection) connection.release();

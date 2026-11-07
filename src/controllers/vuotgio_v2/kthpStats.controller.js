@@ -18,6 +18,7 @@ class KthpStatsController {
         res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", {
             statsScope: "PREVIEW",
             showChart: false,
+            filterMode: "kthp_list",
             pageTitle: "Thống kê coi, chấm thi, ra đề dự kiến"
         });
     }
@@ -27,6 +28,7 @@ class KthpStatsController {
         res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", {
             statsScope: "OFFICIAL",
             showChart: false,
+            filterMode: "kthp_list",
             pageTitle: "Thống kê coi, chấm thi, ra đề chính thức"
         });
     }
@@ -37,6 +39,7 @@ class KthpStatsController {
         res.render("vuotgio_v2/vuotgio.thongKe.coiChamRaDe.ejs", {
             statsScope: "OFFICIAL",
             showChart,
+            filterMode: showChart ? "range" : "kthp_list",
             pageTitle: "Thống kê coi, chấm thi, ra đề thi"
         });
     }
@@ -57,7 +60,7 @@ class KthpStatsController {
 
     async getLecturerSummary(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId, heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
@@ -70,6 +73,11 @@ class KthpStatsController {
                 keyword,
                 scope,
                 lecturerId,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
             res.json({ success: true, data });
         } catch (error) {
@@ -80,7 +88,7 @@ class KthpStatsController {
 
     async getLecturerDetail(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", khoaId = "ALL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", khoaId = "ALL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
@@ -92,6 +100,12 @@ class KthpStatsController {
                 loaiKthp,
                 scope,
                 khoa: requestedKhoa,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
             res.json({ success: true, data });
         } catch (error) {
@@ -102,7 +116,7 @@ class KthpStatsController {
 
     async getFacultySummary(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
@@ -113,6 +127,12 @@ class KthpStatsController {
                 khoaId: requestedKhoa,
                 loaiKthp,
                 scope,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
             res.json({ success: true, data });
         } catch (error) {
@@ -123,7 +143,7 @@ class KthpStatsController {
 
     async getFacultyDetail(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
             const khoa = req.params.khoaId;
             const data = await statsService.getFacultyRecords({
                 khoa,
@@ -132,6 +152,12 @@ class KthpStatsController {
                 namHocTo,
                 loaiKthp,
                 scope,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
             res.json({ success: true, data });
         } catch (error) {
@@ -142,13 +168,21 @@ class KthpStatsController {
 
     async getInstituteSummary(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", khoaId = "ALL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
+            const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const data = await statsService.getInstituteSummary({
                 namHoc,
                 namHocFrom,
                 namHocTo,
                 loaiKthp,
                 scope,
+                khoa: targetKhoa,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
             res.json({ success: true, data });
         } catch (error) {
@@ -159,7 +193,7 @@ class KthpStatsController {
 
     async getInstituteDetail(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", khoa = "ALL", khoaId = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", khoa = "ALL", khoaId = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const data = await statsService.getInstituteRecords({
                 namHoc,
@@ -168,6 +202,12 @@ class KthpStatsController {
                 loaiKthp,
                 khoa: targetKhoa,
                 scope,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
             res.json({ success: true, data });
         } catch (error) {
@@ -178,7 +218,7 @@ class KthpStatsController {
 
     async exportLecturerStats(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoa = "ALL", khoaId = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId, heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
@@ -191,6 +231,11 @@ class KthpStatsController {
                 keyword,
                 scope,
                 lecturerId,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
 
             const scopeTag = scope === "PREVIEW" ? "DuKien" : "ChinhThuc";
@@ -209,7 +254,7 @@ class KthpStatsController {
 
     async exportFacultyStats(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", khoa = "ALL", loaiKthp = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
             const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const requestedKhoa = targetKhoa;
 
@@ -220,6 +265,12 @@ class KthpStatsController {
                 khoaId: requestedKhoa,
                 loaiKthp,
                 scope,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
 
             const scopeTag = scope === "PREVIEW" ? "DuKien" : "ChinhThuc";
@@ -238,13 +289,21 @@ class KthpStatsController {
 
     async exportInstituteStats(req, res) {
         try {
-            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" } = req.query;
+            const { namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", khoaId = "ALL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" } = req.query;
+            const targetKhoa = khoa !== "ALL" ? khoa : khoaId;
             const workbook = await exportService.exportInstituteStats({
                 namHoc,
                 namHocFrom,
                 namHocTo,
                 loaiKthp,
                 scope,
+                khoa: targetKhoa,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
 
             const scopeTag = scope === "PREVIEW" ? "DuKien" : "ChinhThuc";

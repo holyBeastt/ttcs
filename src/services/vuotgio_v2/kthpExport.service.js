@@ -102,7 +102,7 @@ const resolveYearLabel = (namHocFrom, namHocTo, namHoc) => {
 };
 
 class KthpExportService {
-    async exportLecturerStats({ namHoc, namHocFrom, namHocTo, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null }) {
+    async exportLecturerStats({ namHoc, namHocFrom, namHocTo, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null, heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) {
         const lecturers = await statsService.getLecturerSummary({
             namHoc,
             namHocFrom,
@@ -112,6 +112,11 @@ class KthpExportService {
             keyword,
             scope,
             lecturerId,
+            heDaoTao,
+            dot,
+            ki,
+            hocKy,
+            hocPhan,
         });
 
         if (!lecturers.length) {
@@ -263,6 +268,12 @@ class KthpExportService {
                 loaiKthp,
                 scope,
                 khoa,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
 
             records.forEach((row) => {
@@ -343,7 +354,7 @@ class KthpExportService {
         return workbook;
     }
 
-    async exportFacultyStats({ namHoc, namHocFrom, namHocTo, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL" }) {
+    async exportFacultyStats({ namHoc, namHocFrom, namHocTo, khoaId = "ALL", loaiKthp = "ALL", scope = "OFFICIAL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) {
         const faculties = await statsService.getFacultySummary({
             namHoc,
             namHocFrom,
@@ -351,6 +362,12 @@ class KthpExportService {
             khoaId,
             loaiKthp,
             scope,
+            keyword,
+            heDaoTao,
+            dot,
+            ki,
+            hocKy,
+            hocPhan,
         });
 
         if (!faculties.length) {
@@ -495,6 +512,12 @@ class KthpExportService {
                 namHocTo,
                 loaiKthp,
                 scope,
+                keyword,
+                heDaoTao,
+                dot,
+                ki,
+                hocKy,
+                hocPhan,
             });
 
             records.forEach((row) => {
@@ -574,13 +597,20 @@ class KthpExportService {
         return workbook;
     }
 
-    async exportInstituteStats({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL" }) {
+    async exportInstituteStats({ namHoc, namHocFrom, namHocTo, loaiKthp = "ALL", scope = "OFFICIAL", khoa = "ALL", keyword = "", heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) {
         const { byType, overview } = await statsService.getInstituteSummary({
             namHoc,
             namHocFrom,
             namHocTo,
             loaiKthp,
             scope,
+            khoa,
+            keyword,
+            heDaoTao,
+            dot,
+            ki,
+            hocKy,
+            hocPhan,
         });
 
         const workbook = new ExcelJS.Workbook();
@@ -667,6 +697,13 @@ class KthpExportService {
             namHocTo,
             loaiKthp,
             scope,
+            khoa,
+            keyword,
+            heDaoTao,
+            dot,
+            ki,
+            hocKy,
+            hocPhan,
         });
 
         if (allRecords && allRecords.length > 0) {
