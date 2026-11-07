@@ -297,26 +297,140 @@ function buildSachParagraphs(record, subIndex, totalRecords = 1) {
   );
 }
 
+// Kiểm tra vai trò có thuộc nhóm tác giả chính không
+function isMainRole(role) {
+  const r = String(role || "").toLowerCase().trim();
+  if (r === "thanh_vien" || r.includes("dong_tac_gia") || r.includes("tham_gia")) {
+    return false;
+  }
+  return (
+    r === "tac_gia" ||
+    r.includes("tac_gia_chinh") ||
+    r.includes("tac_gia_lien_he") ||
+    r.includes("chu_bien") ||
+    r.includes("chu_nhiem") ||
+    r.includes("chu_tri") ||
+    r.includes("chinh")
+  );
+}
+
+// Kiểm tra giảng viên kê khai có thuộc nhóm tác giả chính của bài báo không
+function isLecturerMainAuthor(record, lecturerName) {
+  if (!record) return false;
+  const normLecturer = normalizeText(lecturerName);
+
+  if (record.vaiTroGiangVien && isMainRole(record.vaiTroGiangVien)) {
+    return true;
+  }
+
+  if (record.participants && record.participants.length > 0) {
+    for (const p of record.participants) {
+      const name = (p.tenNhanVien || p.tenNgoai || "").trim();
+      if (!name) continue;
+      const normName = normalizeText(name);
+      const isLecturer =
+        normLecturer &&
+        (normName.includes(normLecturer) || normLecturer.includes(normName));
+
+      if (isLecturer && isMainRole(p.vaiTro)) {
+        return true;
+      }
+    }
+  }
+
+  if (record.tacGiaChinh && normLecturer) {
+    const normTacGiaChinh = normalizeText(record.tacGiaChinh);
+    if (normTacGiaChinh.includes(normLecturer) || normLecturer.includes(normTacGiaChinh)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Mục 6: Bài báo, ấn phẩm khoa học
- * Tên tác giả chuyển sang không dấu, tên giảng viên kê khai in đậm & gạch chân
+ * Tên tác giả chuyển sang không dấu; tên giảng viên kê khai in đậm & gạch chân.
+ * - Nếu giảng viên thuộc nhóm tác giả chính: đưa lên đầu danh sách tác giả.
+ * - Nếu không thuộc tác giả chính: đặt ngay sau nhóm tác giả chính.
  */
 function buildBaiBaoParagraphs(record, subIndex, lecturerName) {
   const normLecturer = normalizeText(lecturerName);
 
-  let authorsList = [];
-  if (record.participants && record.participants.length > 0) {
-    authorsList = record.participants
-      .map((p) => p.tenNhanVien || p.tenNgoai || "")
-      .filter(Boolean);
-  }
+  let mainAuthors = [];
+  let otherAuthors = [];
+  let lecturerFoundName = lecturerName || "";
+  let lecturerIsMain = isLecturerMainAuthor(record, lecturerName);
 
-  if (!authorsList.length) {
-    const raw = [record.tacGiaChinh, record.thanhVien].filter(Boolean).join(", ");
-    authorsList = raw
-      .split(",")
+  if (record.participants && record.participants.length > 0) {
+    record.participants.forEach((p) => {
+      const name = (p.tenNhanVien || p.tenNgoai || "").trim();
+      if (!name) return;
+
+      const normName = normalizeText(name);
+      const isLecturer =
+        normLecturer &&
+        (normName.includes(normLecturer) || normLecturer.includes(normName));
+
+      const isMain = isMainRole(p.vaiTro);
+
+      if (isLecturer) {
+        lecturerFoundName = name;
+        if (isMain) {
+          lecturerIsMain = true;
+        }
+      } else if (isMain) {
+        mainAuthors.push(name);
+      } else {
+        otherAuthors.push(name);
+      }
+    });
+  } else {
+    // Fallback nếu không có participants (dùng tacGiaChinh, thanhVien)
+    const rawMain = String(record.tacGiaChinh || "")
+      .split(/[,;\r\n\t]+/)
       .map((s) => s.trim())
       .filter(Boolean);
+    const rawOther = String(record.thanhVien || "")
+      .split(/[,;\r\n\t]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    rawMain.forEach((name) => {
+      const normName = normalizeText(name);
+      if (normLecturer && (normName.includes(normLecturer) || normLecturer.includes(normName))) {
+        lecturerFoundName = name;
+        lecturerIsMain = true;
+      } else {
+        mainAuthors.push(name);
+      }
+    });
+
+    rawOther.forEach((name) => {
+      const normName = normalizeText(name);
+      if (normLecturer && (normName.includes(normLecturer) || normLecturer.includes(normName))) {
+        lecturerFoundName = name;
+      } else {
+        otherAuthors.push(name);
+      }
+    });
+  }
+
+  // Sắp xếp danh sách tác giả:
+  // - Nếu giảng viên là tác giả chính: đưa lên đầu danh sách tác giả.
+  // - Nếu giảng viên không phải tác giả chính: đặt ngay sau nhóm tác giả chính.
+  let authorsList = [];
+  if (lecturerIsMain) {
+    if (lecturerFoundName) {
+      authorsList.push(lecturerFoundName);
+    }
+    authorsList.push(...mainAuthors, ...otherAuthors);
+  } else {
+    authorsList.push(...mainAuthors);
+    if (lecturerFoundName) {
+      authorsList.push(lecturerFoundName);
+    }
+    authorsList.push(...otherAuthors);
   }
 
   if (!authorsList.length && lecturerName) {
@@ -345,7 +459,7 @@ function buildBaiBaoParagraphs(record, subIndex, lecturerName) {
         text: displayAuthor,
         font: FONT_FAMILY,
         size: 26,
-        bold: isLecturer,
+        bold: isLecturer ? true : undefined,
         underline: isLecturer ? {} : undefined,
       })
     );
@@ -780,6 +894,17 @@ async function generateLecturerReport(reportData) {
     // 2. Các dòng nội dung của mục
     if (section.records && section.records.length > 0) {
       let records = section.records;
+
+      // Riêng Mục 6 (BAIBAO): Sắp xếp các bài báo theo vai trò của giảng viên kê khai:
+      // Bài báo là tác giả chính lên đầu, sau đó đến các bài báo không thuộc tác giả chính
+      if (section.loaiNckh === "BAIBAO" && records.length > 1) {
+        records = [...records].sort((a, b) => {
+          const mainA = isLecturerMainAuthor(a, lecturerName) ? 0 : 1;
+          const mainB = isLecturerMainAuthor(b, lecturerName) ? 0 : 1;
+          if (mainA !== mainB) return mainA - mainB;
+          return (a.nckhId || a.id || 0) - (b.nckhId || b.id || 0);
+        });
+      }
 
       // Riêng Mục 7 (HUONGDAN): Sắp xếp theo giải thưởng (Giải Nhất -> Giải Nhì -> Giải Ba -> Khuyến khích -> Đạt yêu cầu cấp khoa)
       if (section.loaiNckh === "HUONGDAN" && records.length > 1) {
