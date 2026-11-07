@@ -405,49 +405,170 @@ function buildBaiBaoParagraphs(record, subIndex, lecturerName) {
 }
 
 /**
+ * Phân tích kết quả đề tài Hướng dẫn SV NCKH (Mục 7)
+ * Dựa trên cả xepLoai và phanLoai trong CSDL
+ */
+function parseHuongDanKetQua(xepLoai, phanLoai) {
+  const xl = String(xepLoai || "").trim();
+  const pl = String(phanLoai || "").trim();
+  const lowerXl = xl.toLowerCase();
+  const lowerPl = pl.toLowerCase();
+  const normXl = normalizeText(xl);
+  const normPl = normalizeText(pl);
+
+  // 1. Kiểm tra giải Nhất
+  if (
+    lowerXl.includes("nhất") ||
+    lowerPl.includes("nhất") ||
+    normXl.includes("nhat") ||
+    normPl.includes("nhat")
+  ) {
+    return { prefix: "Đề tài đạt giải ", bold: "Nhất" };
+  }
+
+  // 2. Kiểm tra giải Nhì
+  if (
+    lowerXl.includes("nhì") ||
+    lowerPl.includes("nhì") ||
+    normXl.includes("nhi") ||
+    normPl.includes("nhi")
+  ) {
+    return { prefix: "Đề tài đạt giải ", bold: "Nhì" };
+  }
+
+  // 3. Sản phẩm tiêu biểu (nếu xếp loại ghi rõ và không chứa nhì)
+  if (
+    (lowerXl.includes("tiêu biểu") || normXl.includes("tieu bieu")) &&
+    !lowerXl.includes("nhì") &&
+    !normXl.includes("nhi")
+  ) {
+    return { prefix: "Đề tài đạt giải ", bold: "sản phẩm tiêu biểu" };
+  }
+
+  // 4. Giải Khuyến khích (nếu xếp loại ghi rõ khuyến khích, hoặc phân loại chỉ có khuyến khích không có ba)
+  if (
+    lowerXl.includes("khuyến khích") ||
+    normXl.includes("khuyen khich") ||
+    ((lowerPl.includes("khuyến khích") || normPl.includes("khuyen khich")) &&
+      !lowerPl.includes("ba") &&
+      !normPl.includes("ba"))
+  ) {
+    return { prefix: "Đề tài đạt giải ", bold: "Khuyến khích" };
+  }
+
+  // 5. Giải Ba
+  if (
+    lowerXl.includes("giải ba") ||
+    lowerPl.includes("giải ba") ||
+    lowerPl.includes("đạt giải ba") ||
+    normXl.includes("giai ba") ||
+    normPl.includes("giai ba") ||
+    /\bba\b/i.test(lowerXl) ||
+    lowerPl.includes("ba hoặc") ||
+    normPl.includes("ba hoac")
+  ) {
+    return { prefix: "Đề tài đạt giải ", bold: "Ba" };
+  }
+
+  // 6. Đạt yêu cầu cấp khoa
+  if (
+    lowerXl.includes("cấp khoa") ||
+    lowerPl.includes("cấp khoa") ||
+    normXl.includes("cap khoa") ||
+    normPl.includes("cap khoa") ||
+    lowerXl.includes("yêu cầu") ||
+    lowerPl.includes("yêu cầu") ||
+    normXl.includes("yeu cau") ||
+    normPl.includes("yeu cau")
+  ) {
+    return { prefix: "Đề tài ", bold: "đạt yêu cầu cấp khoa" };
+  }
+
+  // 7. Xếp loại khác (ví dụ "Giỏi", "Xuất sắc" nếu người dùng tự nhập)
+  if (xl && lowerXl !== "đạt" && normXl !== "dat") {
+    return { prefix: "Đề tài đạt ", bold: xl };
+  }
+
+  // Mặc định chuẩn cho Hướng dẫn NCKH
+  return { prefix: "Đề tài ", bold: "đạt yêu cầu cấp khoa" };
+}
+
+/**
+ * Thứ tự ưu tiên giải thưởng để sắp xếp Mục 7:
+ * 1. Giải Nhất
+ * 2. Giải Nhì
+ * 3. Sản phẩm tiêu biểu
+ * 4. Giải Ba
+ * 5. Giải Khuyến khích
+ * 6. Đạt yêu cầu cấp khoa
+ * 7. Khác
+ */
+function getHuongDanRank(record) {
+  if (!record) return 999;
+  const { bold } = parseHuongDanKetQua(
+    record.xepLoai || record.xep_loai,
+    record.phanLoai || record.phan_loai
+  );
+  switch (bold) {
+    case "Nhất":
+      return 1;
+    case "Nhì":
+      return 2;
+    case "sản phẩm tiêu biểu":
+      return 3;
+    case "Ba":
+      return 4;
+    case "Khuyến khích":
+      return 5;
+    case "đạt yêu cầu cấp khoa":
+      return 6;
+    default:
+      return 7;
+  }
+}
+
+/**
  * Mục 7: Hướng dẫn sinh viên nghiên cứu khoa học
  * Mẫu:
- * 1. Là đồng hướng dẫn đề tài NCKH của HVSV năm học 2025 – 2026 “...”, số cán bộ hướng dẫn: 02, kết quả: đề tài đạt giải Nhất. (chữ "Nhất" / "Nhì" / "đạt yêu cầu cấp khoa" in đậm)
+ * 1. Là đồng hướng dẫn đề tài NCKH của HVSV năm học 2025 – 2026 “...”
+ *    \t- Cán bộ hướng dẫn: <liệt kê các cán bộ hướng dẫn>
+ *    \t- Kết quả: Đề tài đạt giải Nhất. (chữ "Nhất" / "Nhì" / "đạt yêu cầu cấp khoa" in đậm)
  */
-function buildHuongDanParagraphs(record, subIndex) {
-  const count =
+function buildHuongDanParagraphs(record, subIndex, lecturerName) {
+  const numCount =
     record.participants && record.participants.length > 0
-      ? String(record.participants.length).padStart(2, "0")
-      : "02";
+      ? record.participants.length
+      : 1;
 
   const roleDesc = String(record.vaiTroGiangVien || "").toLowerCase();
-  const roleText =
-    roleDesc.includes("chinh") || roleDesc.includes("chính") || roleDesc.includes("tac_gia")
-      ? "hướng dẫn chính"
-      : "đồng hướng dẫn";
+  let roleText = "đồng hướng dẫn";
+  if (roleDesc.includes("dong") || roleDesc.includes("đồng")) {
+    roleText = "đồng hướng dẫn";
+  } else if (roleDesc.includes("chinh") || roleDesc.includes("chính")) {
+    roleText = "hướng dẫn chính";
+  } else if (numCount > 1) {
+    roleText = "đồng hướng dẫn";
+  } else {
+    roleText = "hướng dẫn chính";
+  }
 
   const namHocFormatted = formatNamHocText(record.namHoc || "");
-  const rawXepLoai = String(record.xepLoai || record.phanLoai || "đạt yêu cầu cấp khoa").trim();
 
-  // Tách phần chữ thường và phần chữ in đậm ở kết quả cuối câu
-  let resultPrefix = "đề tài ";
-  let resultBold = rawXepLoai;
-
-  const lowerXepLoai = rawXepLoai.toLowerCase();
-  if (lowerXepLoai.startsWith("đề tài đạt giải ")) {
-    resultPrefix = "đề tài đạt giải ";
-    resultBold = rawXepLoai.slice("đề tài đạt giải ".length);
-  } else if (lowerXepLoai.startsWith("đạt giải ")) {
-    resultPrefix = "đề tài đạt giải ";
-    resultBold = rawXepLoai.slice("đạt giải ".length);
-  } else if (lowerXepLoai.startsWith("giải ")) {
-    resultPrefix = "đề tài đạt giải ";
-    resultBold = rawXepLoai.slice("giải ".length);
-  } else if (["nhất", "nhì", "ba", "khuyến khích"].includes(lowerXepLoai)) {
-    resultPrefix = "đề tài đạt giải ";
-    resultBold = rawXepLoai;
-  } else if (lowerXepLoai.startsWith("đề tài ")) {
-    resultPrefix = "đề tài ";
-    resultBold = rawXepLoai.slice("đề tài ".length);
-  } else if (!lowerXepLoai.startsWith("đạt")) {
-    resultPrefix = "đề tài đạt ";
-    resultBold = rawXepLoai;
+  let cbhdList = "";
+  if (record.participants && record.participants.length > 0) {
+    cbhdList = record.participants
+      .map((p) => (p.tenNhanVien || p.tenNgoai || "").trim())
+      .filter(Boolean)
+      .join(", ");
   }
+  if (!cbhdList && lecturerName) {
+    cbhdList = lecturerName;
+  }
+
+  const { prefix: resultPrefix, bold: resultBold } = parseHuongDanKetQua(
+    record.xepLoai || record.xep_loai,
+    record.phanLoai || record.phan_loai
+  );
 
   return [
     new Paragraph({
@@ -455,7 +576,29 @@ function buildHuongDanParagraphs(record, subIndex) {
       spacing: { before: 40, after: 40 },
       children: [
         new TextRun({
-          text: `${subIndex}. Là ${roleText} đề tài NCKH của HVSV năm học ${namHocFormatted} “${record.tenCongTrinh || ""}”, số cán bộ hướng dẫn: ${count}, kết quả: ${resultPrefix}`,
+          text: `${subIndex}. Là ${roleText} đề tài NCKH của HVSV năm học ${namHocFormatted} “${record.tenCongTrinh || ""}”`,
+          font: FONT_FAMILY,
+          size: 26,
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFIED,
+      spacing: { before: 40, after: 40 },
+      children: [
+        new TextRun({
+          text: `\t- Cán bộ hướng dẫn: ${cbhdList}`,
+          font: FONT_FAMILY,
+          size: 26,
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFIED,
+      spacing: { before: 40, after: 40 },
+      children: [
+        new TextRun({
+          text: `\t- Kết quả: ${resultPrefix}`,
           font: FONT_FAMILY,
           size: 26,
         }),
@@ -636,9 +779,21 @@ async function generateLecturerReport(reportData) {
 
     // 2. Các dòng nội dung của mục
     if (section.records && section.records.length > 0) {
-      const totalRecs = section.records.length;
+      let records = section.records;
 
-      section.records.forEach((record, idx) => {
+      // Riêng Mục 7 (HUONGDAN): Sắp xếp theo giải thưởng (Giải Nhất -> Giải Nhì -> Giải Ba -> Khuyến khích -> Đạt yêu cầu cấp khoa)
+      if (section.loaiNckh === "HUONGDAN" && records.length > 1) {
+        records = [...records].sort((a, b) => {
+          const rankA = getHuongDanRank(a);
+          const rankB = getHuongDanRank(b);
+          if (rankA !== rankB) return rankA - rankB;
+          return (a.nckhId || a.id || 0) - (b.nckhId || b.id || 0);
+        });
+      }
+
+      const totalRecs = records.length;
+
+      records.forEach((record, idx) => {
         const subIndex = idx + 1;
         let contentParagraphs = [];
 
@@ -653,7 +808,7 @@ async function generateLecturerReport(reportData) {
             contentParagraphs = buildBaiBaoParagraphs(record, subIndex, lecturerName);
             break;
           case "HUONGDAN":
-            contentParagraphs = buildHuongDanParagraphs(record, subIndex);
+            contentParagraphs = buildHuongDanParagraphs(record, subIndex, lecturerName);
             break;
           default:
             contentParagraphs = buildGenericParagraphs(record, subIndex);
