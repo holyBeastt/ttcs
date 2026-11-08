@@ -150,7 +150,6 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         nguonKinhPhi: record.chung.nguonKinhPhi,
         ngayQuyetDinh: record.chung.ngayQuyetDinh,
         fileMinhChung: record.chung.fileMinhChung || payload.fileMinhChung || null,
-      });
       };
 
       await nckhChungRepo.updateById(connection, Number(id), updateData);
