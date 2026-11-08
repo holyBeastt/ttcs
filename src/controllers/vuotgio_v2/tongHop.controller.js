@@ -7,6 +7,29 @@ const tongHopService = require("../../services/vuotgio_v2/tongHop.service");
 const thongKeService = require("../../services/vuotgio_v2/thongKe.service");
 const snapshotDataService = require("../../services/vuotgio_v2/snapshotData.service");
 
+const toLecturerSummary = (sdo) => ({
+    id_User: sdo.id_User,
+    giangVien: sdo.giangVien,
+    maKhoa: sdo.maKhoa,
+    khoa: sdo.khoa,
+    isKhoa: sdo.isKhoa,
+    chucVu: sdo.chucVu,
+    phanTramMienGiam: sdo.phanTramMienGiam,
+    dinhMucChuan: sdo.dinhMucChuan,
+    dinhMucSauMienGiam: sdo.dinhMucSauMienGiam,
+    soTietGiangDay: sdo.soTietGiangDay,
+    soTietNgoaiQC: sdo.soTietNgoaiQC,
+    soTietKTHP: sdo.soTietKTHP,
+    soTietDoAn: sdo.soTietDoAn,
+    soTietHDTQ: sdo.soTietHDTQ,
+    soTietNCKH: sdo.soTietNCKH,
+    tongThucHien: sdo.tongThucHien,
+    thieuTietGiangDay: sdo.thieuTietGiangDay,
+    thieuNCKH: sdo.thieuNCKH,
+    tongVuot: sdo.tongVuot,
+    thanhToan: sdo.thanhToan,
+});
+
 /**
  * API Tổng hợp vượt giờ theo Giảng viên
  */
@@ -62,14 +85,16 @@ const tongHopTheoKhoa = async (req, res) => {
  * API Tổng hợp vượt giờ theo GV từ dữ liệu đã chốt (snapshot)
  */
 const tongHopTheoGVSnapshot = async (req, res) => {
-    const { namHoc, khoa } = req.query;
+    const { namHoc, khoa, detail } = req.query;
     if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu thông tin Năm học" });
 
     try {
-        console.info("[tongHopTheoGVSnapshot] request", { namHoc, khoa });
+        const isDetail = String(detail) === "1";
+        console.info("[tongHopTheoGVSnapshot] request", { namHoc, khoa, detail: isDetail });
         const data = await snapshotDataService.getSnapshotSDOList(namHoc, khoa);
-        console.info("[tongHopTheoGVSnapshot] response", { count: Array.isArray(data) ? data.length : 0 });
-        res.json({ success: true, data });
+        const responseData = isDetail ? data : data.map(toLecturerSummary);
+        console.info("[tongHopTheoGVSnapshot] response", { count: responseData.length, detail: isDetail });
+        res.json({ success: true, data: responseData });
     } catch (error) {
         console.error("Lỗi khi lấy dữ liệu snapshot theo GV:", error);
         const status = error.statusCode || 500;

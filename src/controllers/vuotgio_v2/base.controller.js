@@ -67,7 +67,8 @@ const getVuotGioCaNhanDuKien = (req, res) => {
         idUser, 
         namHoc, 
         title: "Vượt giờ dự kiến cá nhân",
-        mode: "du-kien" 
+        mode: "du-kien",
+        embedded: req.query.embed === '1'
     });
 };
 
@@ -81,7 +82,8 @@ const getVuotGioCaNhanChinhThuc = (req, res) => {
         idUser, 
         namHoc, 
         title: "Vượt giờ chính thức cá nhân",
-        mode: "chinh-thuc" 
+        mode: "chinh-thuc",
+        embedded: req.query.embed === '1'
     });
 };
 
@@ -95,7 +97,8 @@ const getVuotGioCaNhanSauLuu = (req, res) => {
         idUser,
         namHoc,
         title: "Vượt giờ sau lưu cá nhân",
-        mode: "sau-luu"
+        mode: "sau-luu",
+        embedded: req.query.embed === '1'
     });
 };
 
