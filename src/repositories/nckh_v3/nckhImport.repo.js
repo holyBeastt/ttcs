@@ -31,8 +31,9 @@ const insertChungExtended = async (connection, data) => {
       kinh_phi_nam_hai,
       kinh_phi_nam_ba,
       nguon_kinh_phi,
-      ngay_quyet_dinh
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ngay_quyet_dinh,
+      file_minh_chung
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
@@ -61,6 +62,7 @@ const insertChungExtended = async (connection, data) => {
     data.kinhPhiNamBa || null,
     data.nguonKinhPhi || null,
     data.ngayQuyetDinh || null,
+    data.fileMinhChung || null,
   ];
 
   const [result] = await connection.execute(query, params);

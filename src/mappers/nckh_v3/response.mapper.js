@@ -27,6 +27,7 @@ const mapDetailResponse = (mainRow, participantRows) => ({
   kinhPhiNamBa: mainRow.kinh_phi_nam_ba,
   nguonKinhPhi: mainRow.nguon_kinh_phi,
   ngayQuyetDinh: mainRow.ngay_quyet_dinh,
+  fileMinhChung: mainRow.file_minh_chung || null,
   createdAt: mainRow.created_at,
   participants: participantRows.map((row) => ({
     id: row.id,
@@ -53,6 +54,7 @@ const mapListResponse = (rows) => rows.map((row) => ({
   ngayNghiemThu: row.ngay_nghiem_thu,
   xepLoai: row.xep_loai,
   maSo: row.ma_so,
+  fileMinhChung: row.file_minh_chung || null,
   createdAt: row.created_at,
 }));
 

@@ -40,6 +40,7 @@ class NCKHSaveService {
       kinhPhiNamBa: chung.kinhPhiNamBa || null,
       nguonKinhPhi: chung.nguonKinhPhi || null,
       ngayQuyetDinh: chung.ngayQuyetDinh || null,
+      fileMinhChung: chung.fileMinhChung || null,
     });
 
     const participants = (record.participants || [])

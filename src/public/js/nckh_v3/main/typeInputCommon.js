@@ -620,6 +620,12 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         if (document.getElementById("soQuyetDinh")) document.getElementById("soQuyetDinh").value = "";
         if (document.getElementById("ngayQuyetDinh")) document.getElementById("ngayQuyetDinh").value = "";
 
+        // Reset file upload if present
+        const fileMinhChungEl = document.getElementById("fileMinhChung");
+        if (fileMinhChungEl) fileMinhChungEl.value = "";
+        const fileSelectedNameEl = document.getElementById("fileSelectedName");
+        if (fileSelectedNameEl) fileSelectedNameEl.innerHTML = "";
+
         rerenderPhanLoaiForCurrentContext();
       });
     }
@@ -684,6 +690,34 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
       });
 
       if (!confirmResult.isConfirmed) return;
+
+      // Handle optional file upload if a file was selected
+      let fileMinhChungPath = null;
+      const fileMinhChungEl = document.getElementById("fileMinhChung");
+      if (fileMinhChungEl && fileMinhChungEl.files && fileMinhChungEl.files.length > 0) {
+        const file = fileMinhChungEl.files[0];
+        const formData = new FormData();
+        formData.append("fileMinhChung", file);
+
+        try {
+          const uploadRes = await fetch("/v3/nckh/upload-file", {
+            method: "POST",
+            body: formData,
+          }).then((res) => res.json());
+
+          if (!uploadRes.success) {
+            Swal.fire("Lỗi tải file", uploadRes.message || "Không thể tải file minh chứng lên hệ thống", "error");
+            return;
+          }
+          fileMinhChungPath = uploadRes.filePath;
+        } catch (uploadErr) {
+          console.error("Upload error:", uploadErr);
+          Swal.fire("Lỗi tải file", "Đã xảy ra lỗi khi tải file minh chứng", "error");
+          return;
+        }
+      }
+
+      payload.fileMinhChung = fileMinhChungPath;
 
       const result = await api.create(payload);
       if (!result.success) {

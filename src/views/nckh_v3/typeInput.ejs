@@ -224,9 +224,25 @@
         </div>
       <% } %>
 
-      <div class="text-end">
-        <button id="resetBtn" type="button" class="btn btn-outline-secondary me-2">Làm mới</button>
-        <button id="submitBtn" type="submit" class="btn btn-primary">Lưu dữ liệu</button>
+      <div class="form-footer-row">
+        <% if (selectedTypeMeta && selectedTypeMeta.loaiNckh === 'BAIBAO') { %>
+          <div class="upload-container">
+            <input type="file" id="fileMinhChung" style="display: none;" accept=".pdf,.doc,.docx" />
+            <div class="upload-dropzone" onclick="document.getElementById('fileMinhChung').click()">
+              <svg class="upload-icon" viewBox="0 0 24 24" width="36" height="36">
+                <path fill="currentColor" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3zM8 13h3v4h2v-4h3l-4-4-4 4z"/>
+              </svg>
+              <p class="upload-text">Kéo thả file vào đây hoặc <span class="highlight">chọn từ thiết bị</span></p>
+              <p class="upload-hint">Hỗ trợ định dạng PDF, DOC, DOCX (Tối đa 25MB)</p>
+              <div id="fileSelectedName" class="file-selected-name"></div>
+            </div>
+          </div>
+        <% } %>
+
+        <div class="form-actions-buttons">
+          <button id="resetBtn" type="button" class="btn btn-outline-secondary me-2">Làm mới</button>
+          <button id="submitBtn" type="submit" class="btn btn-primary">Lưu dữ liệu</button>
+        </div>
       </div>
     </div>
 </form>

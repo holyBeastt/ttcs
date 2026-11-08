@@ -101,6 +101,7 @@ const createTypeInputService = ({ loaiNckh, mode, logLabel }) => {
         kinhPhiNamBa: record.chung.kinhPhiNamBa,
         nguonKinhPhi: record.chung.nguonKinhPhi,
         ngayQuyetDinh: record.chung.ngayQuyetDinh,
+        fileMinhChung: record.chung.fileMinhChung || payload.fileMinhChung || null,
       });
 
       await nckhSoTietRepo.deleteByNckhId(connection, Number(id));

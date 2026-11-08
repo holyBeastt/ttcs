@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Event listeners
     document.getElementById("loadDataBtn").addEventListener("click", loadData);
     document.getElementById("filterGiangVien").addEventListener("input", filterTable);
+    document.getElementById("exportExcelBtn")?.addEventListener("click", exportToExcel);
+    document.getElementById("exportChiTietExcelBtn")?.addEventListener("click", exportChiTietToExcel);
     
     // =====================================================
     // LOAD DROPDOWNS
@@ -162,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!data || data.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-4">
+                    <td colspan="9" class="text-center text-muted py-4">
                         <i class="fas fa-inbox fa-2x mb-2"></i><br>
                         Không có dữ liệu
                     </td>
@@ -207,6 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <td>${row.KhoaSV || ""}</td>
                     <td>${row.TenDeTai || ""}</td>
                     <td>${row.SoTiet || 0}</td>
+                     <td rowspan="${gvCount}"><strong>${row.TongSoTietGV || 0}</strong></td>
                     <td rowspan="${gvCount}">
                         <button class="btn btn-info btn-view" onclick="viewChiTiet('${encodeURIComponent(row.GiangVien || "")}')">
                             <i class="fas fa-eye"></i>
@@ -401,3 +404,305 @@ function formatDate(dateString) {
     
     return `${day}/${month}/${year}`;
 }
+
+// =====================================================
+// XUẤT EXCEL TỪ BẢNG DỮ LIỆU (SHEETJS)
+// =====================================================
+
+function getSelectedText(selectId) {
+    const el = document.getElementById(selectId);
+    if (!el || el.selectedIndex < 0) return "";
+    return el.options[el.selectedIndex]?.textContent?.trim() || el.value || "";
+}
+
+/**
+ * Xuất dữ liệu bảng chính ra file Excel
+ * Đọc trực tiếp từ DOM tableBody, xử lý nhóm giảng viên (rowspan), bộ lọc tìm kiếm và tính tổng
+ */
+function exportToExcel() {
+    if (typeof XLSX === "undefined") {
+        Swal.fire({
+            icon: "error",
+            title: "Lỗi",
+            text: "Thư viện xuất Excel (SheetJS) chưa được tải thành công. Vui lòng kiểm tra lại kết nối mạng!"
+        });
+        return;
+    }
+
+    const rows = document.querySelectorAll("#tableBody tr");
+    if (!rows || rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes("Không có dữ liệu"))) {
+        Swal.fire({
+            icon: "warning",
+            title: "Thông báo",
+            text: "Không có dữ liệu trong bảng để xuất file Excel!"
+        });
+        return;
+    }
+
+    const dotText = getSelectedText("dotFilter");
+    const kiText = getSelectedText("kiFilter");
+    const namHocText = getSelectedText("namHocFilter");
+    const khoaText = getSelectedText("khoaFilter");
+    const heDaoTaoText = getSelectedText("heDaoTaoFilter");
+
+    // Tiêu đề và dòng thông tin bộ lọc
+    const aoaData = [
+        ["THỐNG KÊ HƯỚNG DẪN ĐỒ ÁN TỐT NGHIỆP - VƯỢT GIỜ"],
+        [`Năm học: ${namHocText} | ${kiText} | ${dotText} | Khoa: ${khoaText} | Hệ đào tạo: ${heDaoTaoText}`],
+        [],
+        ["STT", "Giảng viên", "Khoa", "Sinh viên", "Khóa", "Tên đề tài", "Số tiết", "Tổng số tiết GV"]
+    ];
+
+    const merges = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }
+    ];
+
+    let currentSTT = "";
+    let currentGV = "";
+    let currentKhoa = "";
+    let currentTongSoTiet = "";
+    let lecturerStartRow = -1;
+    let totalHoursSum = 0;
+    let visibleRowCount = 0;
+
+    // Helper merge các ô thông tin giảng viên cho nhóm
+    function closeLecturerGroup() {
+        if (lecturerStartRow !== -1) {
+            const lecturerEndRow = aoaData.length - 1;
+            if (lecturerEndRow > lecturerStartRow) {
+                merges.push({ s: { r: lecturerStartRow, c: 0 }, e: { r: lecturerEndRow, c: 0 } });
+                merges.push({ s: { r: lecturerStartRow, c: 1 }, e: { r: lecturerEndRow, c: 1 } });
+                merges.push({ s: { r: lecturerStartRow, c: 2 }, e: { r: lecturerEndRow, c: 2 } });
+                merges.push({ s: { r: lecturerStartRow, c: 7 }, e: { r: lecturerEndRow, c: 7 } });
+            }
+            lecturerStartRow = -1;
+        }
+    }
+
+    rows.forEach(row => {
+        // Bỏ qua dòng bị ẩn do tìm kiếm tên giảng viên
+        if (row.style.display === "none") return;
+
+        const cells = row.querySelectorAll("td");
+        if (!cells || cells.length === 0) return;
+
+        // Bỏ qua dòng thông báo colspan
+        if (cells.length === 1 && cells[0].getAttribute("colspan")) return;
+
+        visibleRowCount++;
+
+        if (cells.length >= 8) {
+            // Dòng đầu tiên của một giảng viên (có đầy đủ 9 cột kể cả nút chi tiết)
+            closeLecturerGroup();
+
+            currentSTT = cells[0].textContent.trim();
+            currentGV = cells[1].textContent.trim();
+            currentKhoa = cells[2].textContent.trim();
+            const sv = cells[3].textContent.trim();
+            const khoaSV = cells[4].textContent.trim();
+            const deTai = cells[5].textContent.trim();
+            const soTietVal = parseFloat(cells[6].textContent.trim()) || 0;
+            currentTongSoTiet = parseFloat(cells[7].textContent.trim()) || 0;
+
+            totalHoursSum += soTietVal;
+
+            aoaData.push([
+                currentSTT,
+                currentGV,
+                currentKhoa,
+                sv,
+                khoaSV,
+                deTai,
+                soTietVal,
+                currentTongSoTiet
+            ]);
+
+            lecturerStartRow = aoaData.length - 1;
+        } else if (cells.length >= 4) {
+            // Các dòng tiếp theo của cùng giảng viên (4 cột: SV, Khóa, Tên đề tài, Số tiết)
+            const sv = cells[0].textContent.trim();
+            const khoaSV = cells[1].textContent.trim();
+            const deTai = cells[2].textContent.trim();
+            const soTietVal = parseFloat(cells[3].textContent.trim()) || 0;
+
+            totalHoursSum += soTietVal;
+
+            aoaData.push([
+                "",
+                "",
+                "",
+                sv,
+                khoaSV,
+                deTai,
+                soTietVal,
+                ""
+            ]);
+        }
+    });
+
+    // Đóng nhóm giảng viên cuối cùng
+    closeLecturerGroup();
+
+    if (visibleRowCount === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Thông báo",
+            text: "Không có dòng dữ liệu nào hiển thị để xuất file Excel!"
+        });
+        return;
+    }
+
+    // Dòng tổng cộng ở cuối bảng
+    const summaryRowIdx = aoaData.length;
+    aoaData.push([
+        "TỔNG CỘNG SỐ TIẾT",
+        "",
+        "",
+        "",
+        "",
+        "",
+        Number(totalHoursSum.toFixed(2)),
+        ""
+    ]);
+    merges.push({ s: { r: summaryRowIdx, c: 0 }, e: { r: summaryRowIdx, c: 5 } });
+
+    // Tạo worksheet và định dạng độ rộng cột
+    const ws = XLSX.utils.aoa_to_sheet(aoaData);
+    ws["!merges"] = merges;
+    ws["!cols"] = [
+        { wch: 6 },  // STT
+        { wch: 25 }, // Giảng viên
+        { wch: 15 }, // Khoa
+        { wch: 25 }, // Sinh viên
+        { wch: 10 }, // Khóa
+        { wch: 45 }, // Tên đề tài
+        { wch: 12 }, // Số tiết
+        { wch: 16 }  // Tổng số tiết GV
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "HuongDanDATN");
+
+    // Tạo tên file
+    const safeNamHoc = (namHocText || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const dotVal = document.getElementById("dotFilter")?.value || "1";
+    const kiVal = document.getElementById("kiFilter")?.value || "1";
+    const filename = `Huong_Dan_DATN_${safeNamHoc}_Ki_${kiVal}_Dot_${dotVal}.xlsx`;
+
+    XLSX.writeFile(wb, filename);
+}
+
+/**
+ * Xuất dữ liệu từ modal chi tiết hướng dẫn ĐATN ra file Excel
+ */
+function exportChiTietToExcel() {
+    if (typeof XLSX === "undefined") {
+        Swal.fire({
+            icon: "error",
+            title: "Lỗi",
+            text: "Thư viện xuất Excel (SheetJS) chưa được tải thành công!"
+        });
+        return;
+    }
+
+    const giangVien = document.getElementById("modalGiangVien")?.textContent?.trim() || "";
+    const rows = document.querySelectorAll("#chiTietTableBody tr");
+    if (!rows || rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes("Không có dữ liệu"))) {
+        Swal.fire({
+            icon: "warning",
+            title: "Thông báo",
+            text: "Không có dữ liệu chi tiết để xuất Excel!"
+        });
+        return;
+    }
+
+    const dotText = getSelectedText("dotFilter");
+    const kiText = getSelectedText("kiFilter");
+    const namHocText = getSelectedText("namHocFilter");
+
+    const aoaData = [
+        [`CHI TIẾT HƯỚNG DẪN ĐỒ ÁN TỐT NGHIỆP - ${giangVien.toUpperCase()}`],
+        [`Giảng viên: ${giangVien} | Năm học: ${namHocText} | ${kiText} | ${dotText}`],
+        [],
+        ["TT", "Sinh viên", "Mã SV", "Khóa", "Ngành", "Tên đề tài", "Ngày BĐ", "Ngày KT", "Số tiết"]
+    ];
+
+    const merges = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }
+    ];
+
+    let totalHoursSum = 0;
+    rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        if (cells.length < 9) return;
+
+        const tt = cells[0].textContent.trim();
+        const sv = cells[1].textContent.trim();
+        const maSV = cells[2].textContent.trim();
+        const khoaSV = cells[3].textContent.trim();
+        const nganh = cells[4].textContent.trim();
+        const deTai = cells[5].textContent.trim();
+        const ngayBD = cells[6].textContent.trim();
+        const ngayKT = cells[7].textContent.trim();
+        const soTiet = parseFloat(cells[8].textContent.trim()) || 0;
+
+        totalHoursSum += soTiet;
+
+        aoaData.push([
+            tt,
+            sv,
+            maSV,
+            khoaSV,
+            nganh,
+            deTai,
+            ngayBD,
+            ngayKT,
+            soTiet
+        ]);
+    });
+
+    const summaryRowIdx = aoaData.length;
+    aoaData.push([
+        "TỔNG CỘNG SỐ TIẾT",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        Number(totalHoursSum.toFixed(2))
+    ]);
+    merges.push({ s: { r: summaryRowIdx, c: 0 }, e: { r: summaryRowIdx, c: 7 } });
+
+    const ws = XLSX.utils.aoa_to_sheet(aoaData);
+    ws["!merges"] = merges;
+    ws["!cols"] = [
+        { wch: 6 },  // TT
+        { wch: 25 }, // Sinh viên
+        { wch: 14 }, // Mã SV
+        { wch: 10 }, // Khóa
+        { wch: 22 }, // Ngành
+        { wch: 45 }, // Tên đề tài
+        { wch: 14 }, // Ngày BĐ
+        { wch: 14 }, // Ngày KT
+        { wch: 12 }  // Số tiết
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "ChiTiet");
+
+    const safeGv = giangVien.replace(/[^a-zA-Z0-9_\u00C0-\u1EF9]/g, "_");
+    const safeNamHoc = (namHocText || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const dotVal = document.getElementById("dotFilter")?.value || "1";
+    const kiVal = document.getElementById("kiFilter")?.value || "1";
+    const filename = `Chi_Tiet_HDDATN_${safeGv}_${safeNamHoc}_Ki_${kiVal}_Dot_${dotVal}.xlsx`;
+
+    XLSX.writeFile(wb, filename);
+}
+
+// Gắn hàm vào window để có thể gọi từ inline hoặc bên ngoài
+window.exportToExcel = exportToExcel;
+window.exportChiTietToExcel = exportChiTietToExcel;

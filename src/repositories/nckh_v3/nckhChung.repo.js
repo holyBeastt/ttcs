@@ -1,4 +1,31 @@
+const createPoolConnection = require("../../config/databasePool");
+
 const TABLE = "nckh_chung";
+
+// Tự động kiểm tra và thêm cột file_minh_chung nếu database chưa có
+(async () => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const [cols] = await connection.query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE() 
+        AND TABLE_NAME = '${TABLE}' 
+        AND COLUMN_NAME = 'file_minh_chung'
+    `);
+    if (cols.length === 0) {
+      await connection.query(`
+        ALTER TABLE ${TABLE} ADD COLUMN file_minh_chung VARCHAR(500) NULL COMMENT 'Đường dẫn file minh chứng'
+      `);
+      console.log(`[NCKH V3] Đã tự động tạo cột file_minh_chung trong bảng ${TABLE}`);
+    }
+  } catch (err) {
+    console.warn("[NCKH V3] Kiểm tra/tạo cột file_minh_chung:", err.message);
+  } finally {
+    if (connection) connection.release();
+  }
+})();
 
 const insert = async (connection, data) => {
   const query = `
@@ -12,8 +39,9 @@ const insert = async (connection, data) => {
       vien_nc_duyet,
       ngay_nghiem_thu,
       xep_loai,
-      ma_so
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ma_so,
+      file_minh_chung
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
@@ -27,6 +55,7 @@ const insert = async (connection, data) => {
     data.ngayNghiemThu || null,
     data.xepLoai || null,
     data.maSo || null,
+    data.fileMinhChung || null,
   ];
 
   const [result] = await connection.execute(query, params);
@@ -58,7 +87,8 @@ const updateById = async (connection, id, data) => {
         kinh_phi_nam_hai = ?,
         kinh_phi_nam_ba = ?,
         nguon_kinh_phi = ?,
-        ngay_quyet_dinh = ?
+        ngay_quyet_dinh = ?,
+        file_minh_chung = COALESCE(?, file_minh_chung)
     WHERE id = ?
   `;
 
@@ -86,6 +116,7 @@ const updateById = async (connection, id, data) => {
     data.kinhPhiNamBa || null,
     data.nguonKinhPhi || null,
     data.ngayQuyetDinh || null,
+    data.fileMinhChung || null,
     id,
   ];
 
@@ -150,7 +181,8 @@ const listUnified = async (connection, namHoc, khoaId) => {
       c.created_at,
       c.ngay_nghiem_thu,
       c.xep_loai,
-      c.ma_so
+      c.ma_so,
+      c.file_minh_chung
     FROM ${TABLE} c
     WHERE c.nam_hoc = ?
   `;

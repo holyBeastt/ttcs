@@ -111,6 +111,7 @@ class ManualInputStrategy extends NCKHImportStrategy {
         kinhPhiNamBa: payload.kinhPhiNamBa || null,
         nguonKinhPhi: payload.nguonKinhPhi || null,
         ngayQuyetDinh: payload.ngayQuyetDinh || null,
+        fileMinhChung: payload.fileMinhChung || null,
       },
       participants: calculatedParticipants,
       mode: mode,
