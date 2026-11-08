@@ -22,6 +22,17 @@ const withConnection = async (connection, callback) => {
 
 const getTable = async (filters) => withConnection(null, async (connection) => {
     const rows = await repo.getTable(connection, filters);
+
+     const gvTotals = {};
+    rows.forEach(row => {
+        const key = `${row.Khoa}_${row.GiangVien}`;
+        gvTotals[key] = (gvTotals[key] || 0) + (parseFloat(row.SoTiet) || 0);
+    });
+    rows.forEach(row => {
+        const key = `${row.Khoa}_${row.GiangVien}`;
+        row.TongSoTietGV = gvTotals[key];
+    });
+
     const tongSoTiet = rows.reduce((sum, row) => sum + (parseFloat(row.SoTiet) || 0), 0);
     return {
         data: rows,

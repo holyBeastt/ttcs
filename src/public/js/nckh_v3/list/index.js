@@ -406,6 +406,10 @@
           <tr data-id="${row.id}">
             <td>${globalIndex}</td>
             <td>${escapeHtml(row.phanLoai)}</td>
+            <td class="text-start col-main">
+              ${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}
+             nms ${row.fileMinhChung ? `<button type="button" class="btn btn-link p-0 text-primary ms-1 btn-preview-table-file" data-file="${escapeHtml(row.fileMinhChung)}" title="Xem trước file minh chứng" style="font-size:1.05rem;vertical-align:middle;text-decoration:none;"><i class="bi bi-paperclip"></i></button>` : ""}
+            </td>
             <td class="text-start col-main">${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}</td>
             <td class="text-start">${row.loaiNckh === "BAIBAO" ? escapeHtml(row.tenTapChi || "—") : ""}</td>
             <td>${escapeHtml(row.maSo || "")}</td>
@@ -684,6 +688,13 @@
       ? `${editField("Tên tạp chí / hội thảo", "editTenTapChi", data.tenTapChi, "text", config.requiredTenTapChi ? "required" : "")}
          ${editField("Số báo", "editSoBao", data.soBao)}
          ${editField("Số trích dẫn", "editSoTrichDan", data.soTrichDan, "number", "min=\"0\" step=\"1\"")}
+         ${editField("Số quyết định", "editSoQuyetDinh", data.soQuyetDinh)}
+         ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}
+         <div class="col-12 mb-2">
+           <label class="form-label fw-semibold" for="editFileMinhChung">File minh chứng đính kèm (PDF, DOC, DOCX)</label>
+           ${data.fileMinhChung ? `<div class="mb-1 small text-muted"><i class="bi bi-paperclip"></i> File hiện tại: <a href="${escapeHtml(data.fileMinhChung)}" target="_blank" rel="noopener noreferrer">${escapeHtml(data.fileMinhChung.split("/").pop())}</a></div>` : ""}
+           <input type="file" id="editFileMinhChung" class="form-control" accept=".pdf,.doc,.docx" />
+         </div>`
          ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}
          ${editField("ISSN/ISBN", "editIssnIsbn", data.issnIsbn)}
          ${editField("DOI", "editDoi", data.doi)}
@@ -872,6 +883,100 @@
     return { payload, participantError };
   }
 
+  function openFilePreviewModal(fileUrl, fileName) {
+    let modal = document.getElementById("nckhFilePreviewModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "nckhFilePreviewModal";
+      modal.className = "nckh-file-preview-overlay";
+      modal.innerHTML = `
+        <div class="nckh-file-preview-dialog">
+          <div class="nckh-file-preview-header">
+            <div class="nckh-file-preview-title">
+              <i class="bi bi-file-earmark-text text-primary"></i>
+              <span id="previewModalFileName">Xem file minh chứng</span>
+            </div>
+            <div class="nckh-file-preview-actions">
+              <a id="previewModalDownloadBtn" href="#" download class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+                <i class="bi bi-download"></i> Tải về
+              </a>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="previewModalCloseBtn">
+                <i class="bi bi-x-lg"></i> Đóng
+              </button>
+            </div>
+          </div>
+          <div class="nckh-file-preview-body" id="previewModalBody"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      modal.querySelector("#previewModalCloseBtn")?.addEventListener("click", () => {
+        closeFilePreviewModal();
+      });
+
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          closeFilePreviewModal();
+        }
+      });
+    }
+
+    const titleEl = modal.querySelector("#previewModalFileName");
+    const downloadBtn = modal.querySelector("#previewModalDownloadBtn");
+    const bodyEl = modal.querySelector("#previewModalBody");
+
+    const displayName = fileName || String(fileUrl).split("/").pop().split("\\").pop();
+    if (titleEl) titleEl.textContent = displayName;
+    if (downloadBtn) {
+      downloadBtn.href = fileUrl;
+      downloadBtn.download = displayName;
+    }
+
+    const ext = String(fileUrl).split(".").pop().toLowerCase();
+
+    if (bodyEl) {
+      if (ext === "pdf") {
+        bodyEl.innerHTML = `<iframe src="${fileUrl}" style="width: 100%; height: 100%; border: none;" title="${escapeHtml(displayName)}"></iframe>`;
+      } else if (ext === "doc" || ext === "docx") {
+        bodyEl.innerHTML = `
+          <div style="text-align: center; padding: 40px 24px; background: #ffffff; border-radius: 12px; max-width: 520px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); margin: auto;">
+            <i class="bi bi-file-earmark-word-fill text-primary" style="font-size: 4rem;"></i>
+            <h5 class="mt-3 mb-2" style="color: #1e293b; font-weight: 700;">${escapeHtml(displayName)}</h5>
+            <p class="text-muted small mb-4" style="line-height: 1.5;">
+              Định dạng Word (.${ext}) không hỗ trợ xem trực tiếp trong trình duyệt offline. Vui lòng bấm nút bên dưới để tải file về máy tính và xem nội dung.
+            </p>
+            <a href="${fileUrl}" download="${escapeHtml(displayName)}" class="btn btn-primary px-4 py-2" style="font-weight: 600;">
+              <i class="bi bi-download me-2"></i> Tải về file Word (.${ext.toUpperCase()})
+            </a>
+          </div>
+        `;
+      } else if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) {
+        bodyEl.innerHTML = `<img src="${fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain; margin: auto;" alt="${escapeHtml(displayName)}" />`;
+      } else {
+        bodyEl.innerHTML = `<iframe src="${fileUrl}" style="width: 100%; height: 100%; border: none;" title="${escapeHtml(displayName)}"></iframe>`;
+      }
+    }
+
+    modal.style.display = "flex";
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        closeFilePreviewModal();
+        document.removeEventListener("keydown", onKeyDown);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+  }
+
+  function closeFilePreviewModal() {
+    const modal = document.getElementById("nckhFilePreviewModal");
+    if (modal) {
+      modal.style.display = "none";
+      const bodyEl = modal.querySelector("#previewModalBody");
+      if (bodyEl) bodyEl.innerHTML = "";
+    }
+  }
+
   function buildDetailHtml(data) {
     const participantHtml = `
       <div class="nckh-edit-section nckh-detail-participant-section">
@@ -908,6 +1013,42 @@
       ? '<button type="button" class="btn btn-primary" id="detailEditBtn"><i class="bi bi-pencil"></i> Sửa</button>'
       : "";
 
+    const isBaiBao = data.loaiNckh === "BAIBAO";
+    const hasFile = Boolean(data.fileMinhChung);
+    const fileName = hasFile ? String(data.fileMinhChung).split("/").pop().split("\\").pop() : "";
+    const fileExt = hasFile ? fileName.split(".").pop().toLowerCase() : "";
+    const fileIcon = fileExt === "pdf"
+      ? "bi-file-earmark-pdf-fill text-danger"
+      : fileExt === "doc" || fileExt === "docx"
+        ? "bi-file-earmark-word-fill text-primary"
+        : "bi-file-earmark-text-fill text-secondary";
+
+    const fileMinhChungHtml = isBaiBao || hasFile
+      ? hasFile
+        ? `
+          <div class="nckh-detail-item is-wide nckh-file-clickable" id="detailFileMinhChungItem" role="button" title="Nhấn để xem trước và tải về file minh chứng">
+            <span class="nckh-detail-label">File minh chứng</span>
+            <div class="nckh-detail-value mt-1 d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                <i class="bi ${fileIcon} fs-5 flex-shrink-0"></i>
+                <span class="fw-semibold text-primary text-decoration-underline file-name-text text-truncate">${escapeHtml(fileName)}</span>
+              </div>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-1 px-2 flex-shrink-0">
+                <i class="bi bi-eye me-1"></i> Xem file & tải về
+              </span>
+            </div>
+          </div>
+        `
+        : `
+          <div class="nckh-detail-item is-wide" id="detailFileMinhChungItem">
+            <span class="nckh-detail-label">File minh chứng</span>
+            <div class="nckh-detail-value text-muted fst-italic">
+              Chưa có
+            </div>
+          </div>
+        `
+      : "";
+
     return `
       <div class="nckh-detail-content">
         <div class="nckh-detail-grid">
@@ -921,6 +1062,7 @@
           <div class="nckh-detail-item"><span class="nckh-detail-label">Tổng số tiết</span><div class="nckh-detail-value">${formatHours(data.tongSoTiet)}</div></div>
           <div class="nckh-detail-item"><span class="nckh-detail-label">Trạng thái</span><div class="nckh-detail-value">${statusValue}</div></div>
           ${khoaValue ? `<div class="nckh-detail-item is-full"><span class="nckh-detail-label">Khoa</span><div class="nckh-detail-value">${escapeHtml(khoaValue)}</div></div>` : ""}
+          ${fileMinhChungHtml}
           ${articleMetadata}
         </div>
         ${participantHtml}
@@ -935,6 +1077,16 @@
   function bindDetailActions(data) {
     Swal.getHtmlContainer()?.querySelector("#detailCloseBtn")?.addEventListener("click", () => Swal.close());
     Swal.getHtmlContainer()?.querySelector("#detailEditBtn")?.addEventListener("click", () => enterEditMode(data));
+
+    if (data.fileMinhChung) {
+      const fileItem = Swal.getHtmlContainer()?.querySelector("#detailFileMinhChungItem.nckh-file-clickable");
+      if (fileItem) {
+        fileItem.addEventListener("click", () => {
+          const fileName = String(data.fileMinhChung).split("/").pop().split("\\").pop();
+          openFilePreviewModal(data.fileMinhChung, fileName);
+        });
+      }
+    }
   }
 
   function showDetailMode(data) {
@@ -998,6 +1150,33 @@
       if (config.showMaSo && config.requiredMaSo !== false && !payload.maSo) {
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập mã số / số quyết định", "warning");
         return;
+      }
+
+      const editFileInput = document.getElementById("editFileMinhChung");
+      if (editFileInput && editFileInput.files && editFileInput.files.length > 0) {
+        const file = editFileInput.files[0];
+        if (file.size > 25 * 1024 * 1024) {
+          await Swal.fire("File quá lớn", "Dung lượng file tối đa là 25MB", "warning");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("fileMinhChung", file);
+        try {
+          const uploadRes = await fetch("/v3/nckh/upload-file", {
+            method: "POST",
+            body: formData,
+          }).then((res) => res.json());
+
+          if (!uploadRes.success) {
+            await Swal.fire("Lỗi tải file", uploadRes.message || "Không thể tải file minh chứng lên hệ thống", "error");
+            return;
+          }
+          payload.fileMinhChung = uploadRes.filePath;
+        } catch (uploadErr) {
+          console.error("Upload error:", uploadErr);
+          await Swal.fire("Lỗi tải file", "Đã xảy ra lỗi khi tải file minh chứng", "error");
+          return;
+        }
       }
 
       const saveButton = document.getElementById("editSaveBtn");
@@ -1264,6 +1443,16 @@
   }
 
   function onTableClick(event) {
+    const previewBtn = event.target.closest(".btn-preview-table-file");
+    if (previewBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      const fileUrl = previewBtn.getAttribute("data-file");
+      const fileName = String(fileUrl).split("/").pop().split("\\").pop();
+      openFilePreviewModal(fileUrl, fileName);
+      return;
+    }
+
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 

@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const portalController = require("../controllers/nckh_v3/portal.controller");
 const deTaiDuAnV3Controller = require("../controllers/nckh_v3/deTaiDuAn.controller");
@@ -22,6 +24,38 @@ const importController = require("../controllers/nckh_v3/import.controller");
 
 // Multer memory storage for Excel upload
 const uploadMemory = multer({ storage: multer.memoryStorage() });
+
+// Multer disk storage for NCKH file upload
+const nckhUploadDir = path.join(__dirname, "../public/uploads/nckh");
+if (!fs.existsSync(nckhUploadDir)) {
+  fs.mkdirSync(nckhUploadDir, { recursive: true });
+}
+
+const nckhDiskStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, nckhUploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, `${base}-${uniqueSuffix}${ext}`);
+  },
+});
+
+const uploadNckhFile = multer({
+  storage: nckhDiskStorage,
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+  fileFilter: (req, file, cb) => {
+    const allowed = [".pdf", ".doc", ".docx"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Chỉ chấp nhận file định dạng PDF, DOC, DOCX"));
+    }
+  },
+});
 
 // Auth middleware: only trợ lý / lãnh đạo from Viện NCKH&HTPT
 const importAuthMiddleware = (req, res, next) => {
@@ -69,6 +103,31 @@ router.get("/bai-bao-khoa-hoc/:id", baiBaoKhoaHocController.detail);
 router.post("/bai-bao-khoa-hoc", baiBaoKhoaHocController.create);
 router.put("/bai-bao-khoa-hoc/:id", baiBaoKhoaHocController.update);
 router.delete("/bai-bao-khoa-hoc/:id", baiBaoKhoaHocController.remove);
+
+// Upload file minh chứng NCKH
+router.post("/upload-file", (req, res) => {
+	uploadNckhFile.single("fileMinhChung")(req, res, (err) => {
+		if (err instanceof multer.MulterError) {
+			if (err.code === "LIMIT_FILE_SIZE") {
+				return res.status(400).json({ success: false, message: "Dung lượng file vượt quá giới hạn 25MB" });
+			}
+			return res.status(400).json({ success: false, message: `Lỗi tải file: ${err.message}` });
+		} else if (err) {
+			return res.status(400).json({ success: false, message: err.message || "Lỗi tải file" });
+		}
+		if (!req.file) {
+			return res.status(400).json({ success: false, message: "Không tìm thấy file tải lên" });
+		}
+		const relativePath = `/uploads/nckh/${req.file.filename}`;
+		return res.json({
+			success: true,
+			filePath: relativePath,
+			fileName: req.file.filename,
+			originalName: req.file.originalname,
+			size: req.file.size,
+		});
+	});
+});
 
 router.get("/sang-kien/metadata", sangKienController.getMetadata);
 router.get("/sang-kien/list/:namHoc/:khoaId", sangKienController.list);

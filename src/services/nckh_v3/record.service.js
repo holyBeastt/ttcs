@@ -147,6 +147,7 @@ const toSummaryRecord = (row) => {
     tongSoTiet: round2(Number(row.tong_so_tiet || 0)),
     khoaDuyet: Number(row.khoa_duyet || 0),
     vienNcDuyet: Number(row.vien_nc_duyet || 0),
+    fileMinhChung: row.file_minh_chung || null,
     createdAt: row.created_at || null,
   };
 };
@@ -269,6 +270,7 @@ const detail = async (id) => {
       kinhPhiNamBa: main.kinh_phi_nam_ba || null,
       nguonKinhPhi: main.nguon_kinh_phi || null,
       ngayQuyetDinh: main.ngay_quyet_dinh || null,
+      fileMinhChung: main.file_minh_chung || null,
       participants: participants.map((item) => ({
         id: item.id,
         nhanvienId: item.nhanvien_id,
