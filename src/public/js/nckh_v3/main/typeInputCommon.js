@@ -619,6 +619,12 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         if (document.getElementById("soTrichDan")) document.getElementById("soTrichDan").value = "";
         if (document.getElementById("soQuyetDinh")) document.getElementById("soQuyetDinh").value = "";
         if (document.getElementById("ngayQuyetDinh")) document.getElementById("ngayQuyetDinh").value = "";
+        if (document.getElementById("issnIsbn")) document.getElementById("issnIsbn").value = "";
+        if (document.getElementById("doi")) document.getElementById("doi").value = "";
+        if (document.getElementById("linkMinhChung")) document.getElementById("linkMinhChung").value = "";
+        if (document.getElementById("volumn")) document.getElementById("volumn").value = "";
+        if (document.getElementById("number")) document.getElementById("number").value = "";
+        if (document.getElementById("page")) document.getElementById("page").value = "";
 
         // Reset file upload if present
         const fileMinhChungEl = document.getElementById("fileMinhChung");
@@ -665,6 +671,12 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
         soTrichDan: document.getElementById("soTrichDan") && document.getElementById("soTrichDan").value !== "" ? Number(document.getElementById("soTrichDan").value) : null,
         soQuyetDinh: document.getElementById("soQuyetDinh") ? String(document.getElementById("soQuyetDinh").value).trim() : null,
         ngayQuyetDinh: document.getElementById("ngayQuyetDinh") ? document.getElementById("ngayQuyetDinh").value || null : null,
+        issnIsbn: document.getElementById("issnIsbn") ? String(document.getElementById("issnIsbn").value).trim() || null : null,
+        doi: document.getElementById("doi") ? String(document.getElementById("doi").value).trim() || null : null,
+        linkMinhChung: document.getElementById("linkMinhChung") ? String(document.getElementById("linkMinhChung").value).trim() || null : null,
+        volumn: document.getElementById("volumn") ? String(document.getElementById("volumn").value).trim() || null : null,
+        number: document.getElementById("number") ? String(document.getElementById("number").value).trim() || null : null,
+        page: document.getElementById("page") ? String(document.getElementById("page").value).trim() || null : null,
       };
 
       if (config.mode === "fixed") {

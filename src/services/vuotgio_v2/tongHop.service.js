@@ -38,10 +38,11 @@ const chuanHoaNamHoc = (namHoc) => {
     return namHoc;
 };
 
-const getNckhScope = (options = {}) =>
-    options.nckhScope === STATS_SCOPE.PREVIEW
-        ? STATS_SCOPE.PREVIEW
-        : STATS_SCOPE.OFFICIAL;
+const getNckhScope = (options = {}, isDuKien = false) => {
+    if (options.nckhScope === STATS_SCOPE.PREVIEW) return STATS_SCOPE.PREVIEW;
+    if (options.nckhScope === STATS_SCOPE.OFFICIAL) return STATS_SCOPE.OFFICIAL;
+    return isDuKien ? STATS_SCOPE.PREVIEW : STATS_SCOPE.OFFICIAL;
+};
 
 /**
  * Lấy SDO nguyên bản (Atomic SDO) cho 1 giảng viên
@@ -64,7 +65,7 @@ const getAtomicSDO = async (
         repo.getKthpByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
         repo.getDoAnByIdUser(activeConnection, { namHoc, idUser: id_User, isDuKien }),
         repo.getHuongDanThamQuanByIdUser(activeConnection, { namHoc, idUser: id_User, requireApproval }),
-        id_User ? statsService.getLecturerRecords(id_User, namHoc, getNckhScope(options)) : [],
+        id_User ? statsService.getLecturerRecords(id_User, namHoc, getNckhScope(options, isDuKien)) : [],
         repo.getDinhMuc(activeConnection),
         repo.getChuNhiemKhoaByKhoa(activeConnection, nv.maKhoa)
     ]);
@@ -84,7 +85,7 @@ const getCollectionSDO = async (
     const namHoc = chuanHoaNamHoc(namHocInput);
     const [rawData, nckhData, dinhMuc] = await Promise.all([
         repo.getDuLieuThoTongHop(connection, { namHoc, khoa, isDuKien, requireApproval: !isDuKien }),
-        statsService.getLecturerSummary(namHoc, "ALL", "", getNckhScope(options)),
+        statsService.getLecturerSummary(namHoc, "ALL", "", getNckhScope(options, isDuKien)),
         repo.getDinhMuc(connection)
     ]);
 
@@ -145,7 +146,7 @@ const getCollectionSDODetail = async (
         repo.getKthpByIds(connection, { namHoc, ids, requireApproval }),
         repo.getDoAnByIds(connection, { namHoc, ids, isDuKien }),
         repo.getHuongDanThamQuanByIds(connection, { namHoc, ids, requireApproval }),
-        statsService.getLecturerSummary(namHoc, "ALL", "", getNckhScope(options)),
+        statsService.getLecturerSummary(namHoc, "ALL", "", getNckhScope(options, isDuKien)),
         repo.getDinhMuc(connection),
         repo.getNhanVienByIds(connection, ids),
     ]);

@@ -85,6 +85,7 @@
 | Lớp | Công nghệ |
 |---|---|
 | **Frontend** | EJS (server-side rendering), Bootstrap 5, jQuery, jQuery UI |
+| **Mobile app** | Flutter / Dart — ứng dụng đọc thống kê cá nhân và theo khoa cho NCKH, Vượt Giờ |
 | **Backend** | Node.js, Express.js |
 | **Cơ sở dữ liệu** | MySQL (mysql2/promise — raw SQL, connection pool) |
 | **Xác thực** | Express Session + JWT (access token 15 phút, refresh token 30 ngày), bcrypt (auto-migrate plaintext → hash) |
@@ -204,6 +205,7 @@ ttcs/
 │   ├── helpers/                    # Schema validator
 │   ├── utils/                      # Log change tracker
 │   └── public/                     # CSS, JS, images, exports
+├── mobile_app/                     # Flutter app: dashboard NCKH / Vượt Giờ (read-only)
 ├── Giang_Vien_Moi/                 # File storage: guest lecturer docs (CCCD, etc.)
 ├── uploads/                        # General file uploads
 ├── backups/                        # Database backup files

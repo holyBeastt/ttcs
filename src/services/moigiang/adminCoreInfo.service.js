@@ -108,11 +108,25 @@ const updateCoreInfo = async (records, performedBy) => {
 /**
  * Xóa một record theo ID.
  *
- * @param {number} id
+ * @param {number|string} id
+ * @param {string|number} [performedBy]
  * @returns {Promise<boolean>}
  */
-const deleteCoreInfo = async (id) => {
+const deleteCoreInfo = async (id, performedBy = 'UNKNOWN_ADMIN') => {
   const affectedRows = await adminCoreInfoRepository.deleteRecord(id);
+  if (affectedRows > 0) {
+    try {
+      await adminCoreInfoRepository.insertAuditLog({
+        recordId: parseInt(id, 10) || id,
+        changedBy: performedBy,
+        changedAt: new Date(),
+        newVersion: 0,
+        changes: { action: 'DELETE' },
+      });
+    } catch (logErr) {
+      console.warn('[AdminCoreInfo] Không thể ghi audit log khi xóa:', logErr);
+    }
+  }
   return affectedRows > 0;
 };
 

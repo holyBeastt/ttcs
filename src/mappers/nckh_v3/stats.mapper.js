@@ -27,7 +27,10 @@ const mapRoleLabel = (role) => {
 
 const mapLecturerSummaryRow = (row) => ({
   lecturerId: Number(row.lecturer_id),
-  tenNhanVien: row.TenNhanVien || "",
+  maNhanVien: row.MaNhanVien || "",
+  tenNhanVien: (row.TenNhanVien || "").trim(),
+  hocVi: (row.HocVi || "").trim(),
+  chucVu: (row.ChucVu || "").trim(),
   maPhongBan: row.MaPhongBan || null,
   lecturerKhoaId:
     row.lecturer_khoa_id !== null && row.lecturer_khoa_id !== undefined
@@ -36,6 +39,9 @@ const mapLecturerSummaryRow = (row) => ({
   lecturerKhoaName: row.lecturer_khoa_name || null,
   soCongTrinh: Number(row.cong_trinh_count || 0),
   tongSoTietGiangVien: round2(Number(row.tong_so_tiet_giang_vien || 0)),
+  danhSachCongTrinh: row.danh_sach_cong_trinh
+    ? row.danh_sach_cong_trinh.split("||").map((s) => s.trim()).filter(Boolean)
+    : [],
 });
 
 const mapCommonRecordRow = (row) => ({
@@ -45,9 +51,11 @@ const mapCommonRecordRow = (row) => ({
   tenCongTrinh: row.ten_cong_trinh || "",
   namHoc: row.nam_hoc || "",
   tongSoTietCongTrinh: round2(Number(row.tong_so_tiet || 0)),
+  tongSoTietCongTrinhAll: round2(Number(row.tong_so_tiet_all ?? row.tong_so_tiet ?? 0)),
   ngayNghiemThu: row.ngay_nghiem_thu || null,
   xepLoai: row.xep_loai || null,
   maSo: row.ma_so || null,
+  tenTapChi: row.ten_tap_chi || null,
   tacGiaChinh: row.tac_gia_chinh || "",
   thanhVien: row.thanh_vien || "",
 });

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NCKH V3 - Xuất mẫu kê khai cá nhân</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/nckh_v3.css" />
+  <link rel="stylesheet" href="/css/nckh_v3_stats.css" />
+  <style>
+    /* ===== Bảng chính ===== */
+    .stats-table-card .table {
+      font-size: 0.95rem;
+      table-layout: auto;
+    }
+    .stats-table-card .table thead th {
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 12px 14px;
+      white-space: nowrap;
+      background-color: #f1f5f9;
+      vertical-align: middle;
+    }
+    .stats-table-card .table tbody td {
+      padding: 10px 14px;
+      vertical-align: middle;
+    }
+
+    /* Cột tự co theo nội dung, không chiếm khoảng trống thừa */
+    .col-compact {
+      white-space: nowrap;
+      width: 1%;
+    }
+
+    /* Họ và tên – nổi bật hơn */
+    .col-lecturer-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Cột "Công trình NCKH" – chiếm phần không gian còn lại */
+    .col-projects {
+      min-width: 280px;
+    }
+
+    /* Preview tên công trình */
+    .project-preview-item {
+      line-height: 1.5;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .project-preview-item i {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+    .project-preview-item span {
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .badge-project-count {
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 5px 10px;
+      transition: all 0.2s;
+    }
+    .badge-project-count:hover {
+      opacity: 0.85;
+      transform: scale(1.04);
+    }
+
+    /* Modal Chi tiết công trình */
+    #recordDetailModal .modal-dialog {
+      max-width: 96%;
+      width: 1480px;
+    }
+    #recordDetailModal .stats-table-card .table {
+      table-layout: auto !important;
+    }
+    #recordDetailModal .stats-table-card thead th {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+      color: #fff !important;
+      font-size: 0.75rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 11px 10px !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      white-space: nowrap;
+    }
+    #recordDetailModal .stats-table-card tbody tr:not(.stats-row-total):not(.nckh-stats-group-header) td {
+      padding: 10px 10px !important;
+      font-size: 0.84rem !important;
+      line-height: 1.45;
+      color: #1e293b !important;
+      font-weight: 400 !important;
+      vertical-align: middle !important;
+      border-color: #f1f5f9 !important;
+    }
+    #recordDetailModal .stats-table-card tbody tr.stats-row-total td {
+      padding: 10px 12px !important;
+      font-size: 0.88rem !important;
+      font-weight: 700 !important;
+      vertical-align: middle !important;
+    }
+  </style>
+</head>
+
+<body class="nckh-preview-stats">
+  <%- include('../header') %>
+
+  <div class="stats-wrap">
+    <!-- Page Header -->
+    <div class="stats-page-header">
+      <div>
+        <h1 class="stats-page-title">
+          <span class="title-icon"><i class="bi bi-file-earmark-word"></i></span>
+          Xuất mẫu kê khai NCKH cá nhân
+        </h1>
+        <p style="color: var(--stats-text-secondary); font-size: 0.88rem; margin: 6px 0 0 54px;">
+          Chọn năm học, lọc theo khoa/phòng ban, xem chi tiết công trình và xuất báo cáo Word (.docx) chuẩn mẫu Học viện Kỹ thuật Mật mã
+        </p>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="stats-toolbar">
+      <div class="tb-group">
+        <label for="reportNamHoc">Năm học</label>
+        <select id="reportNamHoc" class="form-select"></select>
+      </div>
+      <div class="tb-group">
+        <label for="reportScope">Trạng thái công trình</label>
+        <select id="reportScope" class="form-select">
+          <option value="PREVIEW" selected>Tất cả (Dự kiến / Kê khai)</option>
+          <option value="OFFICIAL">Chính thức (Đã duyệt 2 cấp)</option>
+        </select>
+      </div>
+      <div class="tb-group">
+        <label for="reportKhoa">Khoa / Phòng ban</label>
+        <select id="reportKhoa" class="form-select">
+          <option value="ALL">Tất cả khoa</option>
+        </select>
+      </div>
+      <div class="tb-group" style="min-width: 260px;">
+        <label for="reportKeyword">Tìm giảng viên</label>
+        <input id="reportKeyword" class="form-control" placeholder="Nhập tên giảng viên..." />
+      </div>
+      <div class="tb-actions">
+        <button id="reportLoadBtn" class="btn btn-load">
+          <i class="bi bi-search"></i> Hiển thị
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="stats-table-card table-responsive">
+      <table class="table table-hover text-center align-middle mb-0">
+        <thead>
+          <tr>
+            <th class="col-compact">STT</th>
+            <th class="text-start" style="min-width: 200px; width: 16%;">Họ và tên</th>
+            <th class="col-compact">Chức vụ</th>
+            <th class="col-compact">Khoa / Đơn vị</th>
+            <th class="text-start col-projects">Công trình NCKH</th>
+            <th class="col-compact">Tổng tiết</th>
+            <th class="col-compact">Xuất Word</th>
+          </tr>
+        </thead>
+        <tbody id="reportTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Export All Button -->
+    <div class="d-flex justify-content-end mt-3">
+      <button id="reportExportAllBtn" class="btn btn-export" style="display: none;">
+        <i class="bi bi-download me-1"></i> Xuất tất cả Word
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Chi Tiết Công Trình (Chuẩn giao diện /v3/nckh/thong-ke-du-kien) -->
+  <div class="modal fade stats-modal" id="recordDetailModal" tabindex="-1" aria-labelledby="recordDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="recordDetailModalLabel">
+            <i class="bi bi-journal-text me-2"></i>Chi tiết công trình NCKH
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="stats-table-card table-responsive">
+            <table class="table table-hover text-center align-middle mb-0">
+              <thead>
+                <tr>
+                  <th style="width: 45px">STT</th>
+                  <th style="width: 95px">Loại NCKH</th>
+                  <th style="width: 240px; min-width: 220px">Phân loại</th>
+                  <th class="text-start" style="min-width: 280px">Tên công trình</th>
+                  <th class="text-start" style="width: 130px">Tác giả chính</th>
+                  <th class="text-start" style="width: 180px">Thành viên</th>
+                  <th style="width: 75px">Mã số</th>
+                  <th style="width: 95px">Ngày NT</th>
+                  <th style="width: 95px">Tổng tiết CT</th>
+                  <th style="width: 105px">Tiết giảng viên</th>
+                  <th style="width: 85px">Vai trò</th>
+                </tr>
+              </thead>
+              <tbody id="recordDetailTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="modalExportBtn">
+            <i class="bi bi-file-earmark-word me-1"></i> Xuất file Word cho giảng viên này
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i> Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <script src="/js/nckh_v3/stats/common.js"></script>
+  <script src="/js/nckh_v3/report/lecturer.js"></script>
+</body>
+
+</html>

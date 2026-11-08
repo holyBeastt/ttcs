@@ -67,7 +67,8 @@ const getVuotGioCaNhanDuKien = (req, res) => {
         idUser, 
         namHoc, 
         title: "Vượt giờ dự kiến cá nhân",
-        mode: "du-kien" 
+        mode: "du-kien",
+        embedded: req.query.embed === '1'
     });
 };
 
@@ -81,7 +82,8 @@ const getVuotGioCaNhanChinhThuc = (req, res) => {
         idUser, 
         namHoc, 
         title: "Vượt giờ chính thức cá nhân",
-        mode: "chinh-thuc" 
+        mode: "chinh-thuc",
+        embedded: req.query.embed === '1'
     });
 };
 
@@ -95,7 +97,8 @@ const getVuotGioCaNhanSauLuu = (req, res) => {
         idUser,
         namHoc,
         title: "Vượt giờ sau lưu cá nhân",
-        mode: "sau-luu"
+        mode: "sau-luu",
+        embedded: req.query.embed === '1'
     });
 };
 
@@ -108,14 +111,28 @@ const getVuotGioCaNhan = getVuotGioCaNhanDuKien;
  * Render trang Thống kê Khoa
  */
 const getThongKeKhoa = (req, res) => {
-    res.render("vuotgio_v2/vuotgio.thongKeKhoa.ejs");
+    res.render("vuotgio_v2/vuotgio.thongKeKhoa.ejs", { mode: "chinh-thuc" });
+};
+
+/**
+ * Render trang Thống kê Vượt giờ Dự kiến
+ */
+const getThongKeDuKien = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.thongKeKhoa.ejs", { mode: "du-kien" });
 };
 
 /**
  * Render trang Thống Kê Cá Nhân
  */
 const getThongKeCaNhan = (req, res) => {
-    res.render("vuotgio_v2/vuotgio.thongKeCaNhan.ejs");
+    res.render("vuotgio_v2/vuotgio.thongKeCaNhan.ejs", { mode: "chinh-thuc" });
+};
+
+/**
+ * Render danh sách thống kê giảng viên dự kiến
+ */
+const getThongKeCaNhanDuKien = (req, res) => {
+    res.render("vuotgio_v2/vuotgio.thongKeCaNhan.ejs", { mode: "du-kien" });
 };
 
 /**
@@ -249,7 +266,9 @@ module.exports = {
     getVuotGioCaNhanChinhThuc,
     getVuotGioCaNhanSauLuu,
     getThongKeKhoa,
+    getThongKeDuKien,
     getThongKeCaNhan,
+    getThongKeCaNhanDuKien,
     getXuatFile,
     getHuongDanDATN,
     getHuongDanThamQuan,

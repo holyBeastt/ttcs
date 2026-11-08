@@ -148,14 +148,14 @@ $(document).ready(function () {
         if (MaPhongBan === banGiamDoc) return true;
 
         if (type === 'khoa') {
-            if (role === gvCnbm && action === 'check') return true;
+            if ((role === gvCnbm || role === lanhDaoKhoa) && action === 'check') return true;
             if (role === lanhDaoKhoa && action === 'uncheck') return true;
             return false;
         }
 
         if (type === 'daoTao') {
             if (MaPhongBan !== daoTao && MaPhongBan !== vanPhong) return false;
-            if (role === troLyPhong && action === 'check') return true;
+            if ((role === troLyPhong || role === lanhDaoPhong) && action === 'check') return true;
             if (role === lanhDaoPhong && action === 'uncheck') return true;
             return false;
         }
@@ -169,14 +169,22 @@ $(document).ready(function () {
 
     function canEditDelete(data) {
         const role = localStorage.getItem('userRole');
+        const maPhongBan = localStorage.getItem('MaPhongBan');
         const gvCnbm = window.APP_ROLES?.gv_cnbm || 'GV_CNBM';
         const lanhDaoKhoa = window.APP_ROLES?.lanhDao_khoa || 'Lãnh đạo khoa';
+        const lanhDaoPhong = window.APP_ROLES?.lanhDao_phong || 'Lãnh đạo phòng';
+        const daoTao = window.APP_DEPARTMENTS?.daoTao || 'DAOTAO';
+        const isDaoTaoLeader = maPhongBan === daoTao && role === lanhDaoPhong;
+        const isFacultyEditor = role === gvCnbm || role === lanhDaoKhoa;
 
-        // Chỉ GV_CNBM và Lãnh đạo khoa có quyền sửa/xóa
-        if (role !== gvCnbm && role !== lanhDaoKhoa) return false;
+        // Không sửa/xóa sau khi khoa đã duyệt.
+        if (Number(data.khoa_duyet || 0) === 1) return false;
 
-        // Chỉ sửa/xóa khi chưa duyệt
-        return (data.khoa_duyet || 0) === 0 && (data.dao_tao_duyet || 0) === 0;
+        // Lãnh đạo Phòng Đào tạo được thao tác trước khi khoa duyệt.
+        if (isDaoTaoLeader) return true;
+
+        // GV_CNBM và Lãnh đạo khoa chỉ thao tác khi cả hai bên chưa duyệt.
+        return isFacultyEditor && Number(data.dao_tao_duyet || 0) === 0;
     }
 
     // ==================== INITIALIZATION ====================

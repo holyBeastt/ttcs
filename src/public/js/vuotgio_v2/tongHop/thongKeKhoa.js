@@ -26,16 +26,84 @@ let chartStacked = null;
 let currentTab   = 'all';
 let cachedData   = [];
 let previewPdfObjectUrl = null;
+let statisticsTab = 'academy';
+let lecturerOptions = [];
+let statisticsRequestVersion = 0;
+const isForecastStats = document.body.dataset.statisticsMode === 'du-kien';
 
 /* ════════════════════════════════════════════
    Khởi tạo
 ════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function () {
+  setupStatisticsTabs();
   loadNamHocOptions();
 
   const loadBtn = document.getElementById('loadDataBtn');
   if (loadBtn) loadBtn.addEventListener('click', loadData);
+
+  const lecturerSearch = document.getElementById('lecturerStatisticsSearch');
+  const lecturerSuggestions = document.getElementById('lecturerStatisticsSuggestions');
+  if (lecturerSearch) {
+    lecturerSearch.addEventListener('input', () => {
+      lecturerSearch.dataset.selectedId = '';
+      renderLecturerDeclaration('');
+      renderLecturerSuggestions();
+    });
+
+    lecturerSearch.addEventListener('focus', renderLecturerSuggestions);
+
+    document.addEventListener('click', (event) => {
+      if (
+        lecturerSuggestions &&
+        !lecturerSearch.contains(event.target) &&
+        !lecturerSuggestions.contains(event.target)
+      ) {
+        clearLecturerSuggestions();
+      }
+    });
+  }
 });
+
+function setupStatisticsTabs() {
+  document.querySelectorAll('[data-statistics-tab]').forEach((button) => {
+    button.addEventListener('click', () => setStatisticsTab(button.dataset.statisticsTab));
+  });
+}
+
+function setStatisticsTab(tab) {
+  statisticsTab = tab || 'academy';
+
+  document.querySelectorAll('[data-statistics-tab]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.statisticsTab === statisticsTab);
+  });
+
+  const academyVisible = statisticsTab === 'academy';
+  ['academyKpi', 'academyCharts', 'academyTable'].forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) element.hidden = !academyVisible;
+  });
+
+  const facultyPanel = document.getElementById('facultyStatisticsPanel');
+  const lecturerPanel = document.getElementById('lecturerStatisticsPanel');
+  const lecturerSearchToolbar = document.getElementById('lecturerSearchToolbar');
+  if (facultyPanel) facultyPanel.hidden = statisticsTab !== 'faculty';
+  if (lecturerPanel) lecturerPanel.hidden = statisticsTab !== 'lecturer';
+  if (lecturerSearchToolbar) lecturerSearchToolbar.hidden = statisticsTab !== 'lecturer';
+
+  const compactToggle = document.querySelector('#academyToolbar .tab-toggle');
+  if (compactToggle) compactToggle.style.display = academyVisible ? '' : 'none';
+
+  const toolbarInfo = document.getElementById('toolbarInfo');
+  if (toolbarInfo && !academyVisible) {
+    toolbarInfo.textContent = statisticsTab === 'faculty'
+      ? 'Danh sách giảng viên được nhóm theo Khoa/Phòng'
+      : 'Tìm một giảng viên để xem bảng kê chi tiết';
+  }
+
+  if (statisticsTab !== 'academy') {
+    loadData();
+  }
+}
 
 /* ════════════════════════════════════════════
    Load danh sách năm học
@@ -97,6 +165,13 @@ function escapeHtml(text) {
    Load dữ liệu từ API
 ════════════════════════════════════════════ */
 async function loadData() {
+  const requestVersion = ++statisticsRequestVersion;
+  if (statisticsTab === 'faculty') return loadFacultyStatistics(requestVersion);
+  if (statisticsTab === 'lecturer') return loadLecturerStatistics(requestVersion);
+  return loadAcademyStatistics(requestVersion);
+}
+
+async function loadAcademyStatistics(requestVersion) {
   const namHoc = document.getElementById('namHocXem')?.value;
 
   if (!namHoc) {
@@ -109,8 +184,9 @@ async function loadData() {
   try {
     Swal.showLoading();
 
+    const forecastParam = isForecastStats ? '&isDuKien=true' : '';
     const response = await fetch(
-      `/v2/vuotgio/tong-hop/khoa?namHoc=${encodeURIComponent(namHoc)}`
+      `/v2/vuotgio/tong-hop/khoa?namHoc=${encodeURIComponent(namHoc)}${forecastParam}`
     );
     const result = await response.json();
     Swal.close();
@@ -118,6 +194,8 @@ async function loadData() {
     if (!result.success) {
       throw new Error(result.message || 'Không thể tải dữ liệu');
     }
+
+    if (requestVersion !== statisticsRequestVersion) return;
 
     cachedData = result.data || [];
 
@@ -135,7 +213,10 @@ async function loadData() {
     const snapshotInfo = document.getElementById('snapshotInfo');
     const snapshotDetails = document.getElementById('snapshotDetails');
     if (snapshotInfo && snapshotDetails) {
-      if (summary.ngayChot) {
+      if (isForecastStats) {
+        snapshotDetails.textContent = 'Tính trực tiếp từ dữ liệu dự kiến hiện tại; chưa chốt.';
+        snapshotInfo.style.display = 'block';
+      } else if (summary.ngayChot) {
         const d = new Date(summary.ngayChot);
         const timeStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
         const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -146,11 +227,261 @@ async function loadData() {
       }
     }
   } catch (error) {
+    if (requestVersion !== statisticsRequestVersion) return;
     Swal.close();
     console.error('Error loading data:', error);
     Swal.fire('Lỗi', error.message || 'Không thể tải dữ liệu', 'error');
     clearSkeletonRows();
   }
+}
+
+function getLecturerDataUrl(namHoc, detail) {
+  const query = new URLSearchParams({
+    namHoc,
+    khoa: 'ALL',
+  });
+
+  if (isForecastStats) {
+    query.set('detail', detail ? '1' : '0');
+    query.set('isDuKien', 'true');
+    return `/v2/vuotgio/tong-hop/giang-vien?${query.toString()}`;
+  }
+
+  query.set('detail', detail ? '1' : '0');
+  return `/v2/vuotgio/tong-hop/giang-vien-snapshot?${query.toString()}`;
+}
+
+async function fetchLecturerData(namHoc, detail = false) {
+  const response = await fetch(getLecturerDataUrl(namHoc, detail));
+  const result = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || 'Không thể tải dữ liệu giảng viên');
+  }
+  return Array.isArray(result.data) ? result.data : [];
+}
+
+async function loadFacultyStatistics(requestVersion) {
+  const namHoc = document.getElementById('namHocXem')?.value;
+  const content = document.getElementById('facultyStatisticsContent');
+  if (!namHoc || !content) return;
+
+  content.innerHTML = '<div class="lecturer-empty">Đang tải dữ liệu theo khoa/phòng...</div>';
+
+  try {
+    const rows = await fetchLecturerData(namHoc, false);
+    if (requestVersion !== statisticsRequestVersion) return;
+    renderFacultyStatistics(rows, namHoc);
+  } catch (error) {
+    if (requestVersion !== statisticsRequestVersion) return;
+    console.error('Error loading faculty statistics:', error);
+    content.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(error.message || 'Không thể tải dữ liệu')}</div>`;
+  }
+}
+
+function renderFacultyStatistics(rows, namHoc) {
+  const content = document.getElementById('facultyStatisticsContent');
+  const meta = document.getElementById('facultyPanelMeta');
+  if (!content) return;
+
+  const groups = new Map();
+  rows.forEach((row) => {
+    const code = row.maKhoa || row.MaPhongBan || 'KHAC';
+    const name = row.khoa || code || 'Khác/Chưa xác định';
+    if (!groups.has(code)) groups.set(code, { code, name, rows: [] });
+    groups.get(code).rows.push(row);
+  });
+
+  const orderedGroups = Array.from(groups.values()).sort((a, b) =>
+    String(a.name).localeCompare(String(b.name), 'vi')
+  );
+
+  if (meta) meta.textContent = `${orderedGroups.length} khoa/phòng · ${rows.length} giảng viên · Năm học ${namHoc}`;
+
+  if (!orderedGroups.length) {
+    content.innerHTML = '<div class="lecturer-empty">Không có dữ liệu giảng viên cho năm học này.</div>';
+    return;
+  }
+
+  const renderRow = (row, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(row.giangVien || '')}</td>
+      <td class="num">${fmt(row.dinhMucSauMienGiam ?? row.dinhMucChuan)}</td>
+      <td class="num">${fmt(row.soTietGiangDay)}</td>
+      <td class="num">${fmt(row.soTietNgoaiQC)}</td>
+      <td class="num">${fmt(row.soTietKTHP)}</td>
+      <td class="num">${fmt(row.soTietDoAn)}</td>
+      <td class="num">${fmt(row.soTietHDTQ)}</td>
+      <td class="num">${fmt(row.soTietNCKH)}</td>
+      <td class="num total">${fmt(row.tongThucHien)}</td>
+      <td class="num">${fmt(row.thieuNCKH)}</td>
+      <td class="num vuot">${fmt(row.tongVuot)}</td>
+      <td class="num paid">${fmt(row.thanhToan)}</td>
+    </tr>`;
+
+  const sumGroupField = (group, field) => group.rows.reduce((sum, row) => {
+    const value = field === 'dinhMuc'
+      ? row.dinhMucSauMienGiam ?? row.dinhMucChuan
+      : row[field];
+    return sum + (Number(value) || 0);
+  }, 0);
+
+  const renderTotalRow = (group) => `
+    <tr class="faculty-total-row">
+      <td colspan="2">Tổng cộng ${escapeHtml(group.code)} (${group.rows.length} giảng viên)</td>
+      <td class="num">${fmt(sumGroupField(group, 'dinhMuc'))}</td>
+      <td class="num">${fmt(sumGroupField(group, 'soTietGiangDay'))}</td>
+      <td class="num">${fmt(sumGroupField(group, 'soTietNgoaiQC'))}</td>
+      <td class="num">${fmt(sumGroupField(group, 'soTietKTHP'))}</td>
+      <td class="num">${fmt(sumGroupField(group, 'soTietDoAn'))}</td>
+      <td class="num">${fmt(sumGroupField(group, 'soTietHDTQ'))}</td>
+      <td class="num">${fmt(sumGroupField(group, 'soTietNCKH'))}</td>
+      <td class="num total">${fmt(sumGroupField(group, 'tongThucHien'))}</td>
+      <td class="num">${fmt(sumGroupField(group, 'thieuNCKH'))}</td>
+      <td class="num vuot">${fmt(sumGroupField(group, 'tongVuot'))}</td>
+      <td class="num paid">${fmt(sumGroupField(group, 'thanhToan'))}</td>
+    </tr>`;
+
+  content.innerHTML = orderedGroups.map((group) => `
+    <div class="faculty-group">
+      <div class="faculty-group-title">
+        <strong>${escapeHtml(group.code)} - ${escapeHtml(group.name)}</strong>
+        <span>${group.rows.length} giảng viên</span>
+      </div>
+      <table class="faculty-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Giảng viên</th>
+            <th>Định mức</th>
+            <th>Giảng dạy</th>
+            <th>Ngoài QC</th>
+            <th>KTHP</th>
+            <th>Đồ án</th>
+            <th>TQTT</th>
+            <th>NCKH</th>
+            <th>Tổng thực hiện</th>
+            <th>Thiếu NCKH</th>
+            <th>Vượt giờ</th>
+            <th>Thanh toán</th>
+          </tr>
+        </thead>
+        <tbody>${group.rows.map(renderRow).join('')}${renderTotalRow(group)}</tbody>
+      </table>
+    </div>
+  `).join('');
+}
+
+async function loadLecturerStatistics(requestVersion) {
+  const namHoc = document.getElementById('namHocXem')?.value;
+  const search = document.getElementById('lecturerStatisticsSearch');
+  const suggestions = document.getElementById('lecturerStatisticsSuggestions');
+  const meta = document.getElementById('lecturerPanelMeta');
+  if (!namHoc || !search || !suggestions) return;
+
+  search.disabled = true;
+  search.value = '';
+  search.dataset.selectedId = '';
+  clearLecturerSuggestions();
+
+  try {
+    lecturerOptions = await fetchLecturerData(namHoc, false);
+    if (requestVersion !== statisticsRequestVersion) return;
+    lecturerOptions.sort((a, b) => String(a.giangVien || '').localeCompare(String(b.giangVien || ''), 'vi'));
+
+    if (!lecturerOptions.length) {
+      search.placeholder = 'Không có dữ liệu giảng viên';
+      renderLecturerDeclaration('');
+      if (meta) meta.textContent = `Năm học ${namHoc}`;
+      return;
+    }
+
+    const currentUserId = String(localStorage.getItem('id_User') || '');
+    const defaultRow = lecturerOptions.find((row) => String(row.id_User) === currentUserId) || lecturerOptions[0];
+    search.placeholder = 'Nhập tên để tìm từng giảng viên...';
+    search.value = getLecturerLabel(defaultRow);
+    search.dataset.selectedId = String(defaultRow.id_User);
+    if (meta) meta.textContent = `${lecturerOptions.length} giảng viên · Năm học ${namHoc}`;
+    renderLecturerDeclaration(defaultRow.id_User);
+  } catch (error) {
+    if (requestVersion !== statisticsRequestVersion) return;
+    console.error('Error loading lecturer statistics:', error);
+    search.placeholder = error.message || 'Không thể tải dữ liệu';
+    search.value = '';
+    renderLecturerDeclaration('');
+  } finally {
+    if (requestVersion === statisticsRequestVersion) search.disabled = false;
+  }
+}
+
+function getLecturerLabel(row) {
+  const name = row?.giangVien || row?.id_User || '';
+  return row?.khoa ? `${name} - ${row.khoa}` : String(name);
+}
+
+function normalizeLecturerSearch(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function clearLecturerSuggestions() {
+  const suggestions = document.getElementById('lecturerStatisticsSuggestions');
+  if (!suggestions) return;
+  suggestions.innerHTML = '';
+  suggestions.classList.remove('show');
+}
+
+function renderLecturerSuggestions() {
+  const search = document.getElementById('lecturerStatisticsSearch');
+  const suggestions = document.getElementById('lecturerStatisticsSuggestions');
+  if (!search || !suggestions || search.disabled) return;
+
+  const query = normalizeLecturerSearch(search.value);
+  clearLecturerSuggestions();
+  if (query.length < 2) return;
+
+  const matches = lecturerOptions
+    .filter((row) => normalizeLecturerSearch(getLecturerLabel(row)).includes(query))
+    .slice(0, 10);
+
+  if (!matches.length) return;
+
+  matches.forEach((row) => {
+    const item = document.createElement('div');
+    item.className = 'lecturer-suggestion-item';
+    item.textContent = getLecturerLabel(row);
+    item.addEventListener('click', () => {
+      search.value = getLecturerLabel(row);
+      search.dataset.selectedId = String(row.id_User);
+      clearLecturerSuggestions();
+      renderLecturerDeclaration(row.id_User);
+    });
+    suggestions.appendChild(item);
+  });
+
+  suggestions.classList.add('show');
+}
+
+function renderLecturerDeclaration(idUser) {
+  const frame = document.getElementById('lecturerDeclarationFrame');
+  const empty = document.getElementById('lecturerDeclarationEmpty');
+  const namHoc = document.getElementById('namHocXem')?.value;
+  if (!frame || !empty) return;
+
+  if (!idUser || !namHoc) {
+    frame.hidden = true;
+    frame.removeAttribute('src');
+    empty.hidden = false;
+    return;
+  }
+
+  const route = isForecastStats ? '/v2/vuotgio/ca-nhan-du-kien' : '/v2/vuotgio/ca-nhan-sau-luu';
+  frame.src = `${route}?idUser=${encodeURIComponent(idUser)}&namHoc=${encodeURIComponent(namHoc)}&embed=1`;
+  frame.hidden = false;
+  empty.hidden = true;
 }
 
 /* ════════════════════════════════════════════
@@ -457,7 +788,10 @@ function renderCharts(data) {
 ════════════════════════════════════════════ */
 function viewDepartmentDetail(maKhoa) {
   const namHoc = document.getElementById('namHocXem')?.value || '';
-  window.location.href = `/v2/vuotgio/thong-ke-ca-nhan?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
+  const route = isForecastStats
+    ? '/v2/vuotgio/thong-ke-du-kien/ca-nhan'
+    : '/v2/vuotgio/thong-ke-ca-nhan';
+  window.location.href = `${route}?namHoc=${encodeURIComponent(namHoc)}&khoa=${maKhoa}`;
 }
 
 function previewDepartment(maKhoa, tenKhoa) {
@@ -470,7 +804,8 @@ function previewDepartment(maKhoa, tenKhoa) {
   const previewLabel = tenKhoa || decodeURIComponent(maKhoa || '');
   Swal.showLoading();
 
-  fetch(`/v2/vuotgio/tong-hop/preview-khoa/${maKhoa}?namHoc=${encodeURIComponent(namHoc)}`)
+  const forecastParam = isForecastStats ? '&isDuKien=true' : '';
+  fetch(`/v2/vuotgio/tong-hop/preview-khoa/${maKhoa}?namHoc=${encodeURIComponent(namHoc)}${forecastParam}`)
     .then((response) => response.json())
     .then((result) => {
       if (!result.success) {

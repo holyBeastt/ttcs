@@ -13,6 +13,7 @@ const lopNgoaiQCController = require("../controllers/vuotgio_v2/lopNgoaiQC.contr
 const lopNgoaiQCImportController = require("../controllers/vuotgio_v2/lopNgoaiQCImport.controller");
 const duyetKTHPController = require("../controllers/vuotgio_v2/duyetKTHP.controller");
 const kthpImportController = require("../controllers/vuotgio_v2/coiChamRaDe.file.controller");
+const kthpStatsController = require("../controllers/vuotgio_v2/kthpStats.controller");
 const tongHopController = require("../controllers/vuotgio_v2/tongHop.controller");
 const xuatFileController = require("../controllers/vuotgio_v2/xuatFile.controller");
 const thongKeGiangDayController = require("../controllers/vuotgio_v2/thongKeGiangDay.controller");
@@ -95,10 +96,48 @@ router.get("/kthp-import/suggestions", kthpImportController.getSuggestions);
 // =====================================================
 
 router.get("/duyet-kthp", baseController.getDuyetKTHP);
-router.post("/duyet-kthp/data", enforceKhoaFilter, duyetKTHPController.getTableData);
+router.post("/duyet-kthp/data", duyetKTHPController.getTableData);
 router.post("/duyet-kthp/batch-approve", enforceKhoaFilter, checkDataLock, duyetKTHPController.batchApprove);
 router.post("/duyet-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.edit);
 router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.delete);
+
+// =====================================================
+// THỐNG KÊ KẾT THÚC HỌC PHẦN (COI, CHẤM, RA ĐỀ)
+// =====================================================
+
+// Views
+// 1. Menu THỐNG KÊ (các bản ghi đã phê duyệt 2 lần - CÓ biểu đồ)
+router.get("/kthp/thong-ke", (req, res) => kthpStatsController.renderThongKeMenuPage(req, res));
+
+// 2. Menu VƯỢT GIỜ (Dự kiến & Chính thức - KHÔNG biểu đồ)
+router.get("/kthp/thong-ke-du-kien", (req, res) => kthpStatsController.renderPreviewPage(req, res));
+router.get("/kthp/thong-ke-chinh-thuc", (req, res) => kthpStatsController.renderVuotGioOfficialPage(req, res));
+
+// Stats APIs
+router.get("/kthp/stats/filters", kthpStatsController.getFilters);
+router.get("/kthp/stats/giang-vien", kthpStatsController.getLecturerSummary);
+router.get("/kthp/stats/giang-vien/:id/chi-tiet", kthpStatsController.getLecturerDetail);
+router.get("/kthp/stats/khoa", kthpStatsController.getFacultySummary);
+router.get("/kthp/stats/khoa/:khoaId/chi-tiet", kthpStatsController.getFacultyDetail);
+router.get("/kthp/stats/hoc-vien", kthpStatsController.getInstituteSummary);
+router.get("/kthp/stats/hoc-vien/chi-tiet", kthpStatsController.getInstituteDetail);
+
+// Export Excel APIs
+router.get("/kthp/export/stats/giang-vien", kthpStatsController.exportLecturerStats);
+router.get("/kthp/export/stats/khoa", kthpStatsController.exportFacultyStats);
+router.get("/kthp/export/stats/hoc-vien", kthpStatsController.exportInstituteStats);
+router.get("/kthp/export/stats/preview/giang-vien", (req, res) => {
+    req.query.scope = "PREVIEW";
+    return kthpStatsController.exportLecturerStats(req, res);
+});
+router.get("/kthp/export/stats/preview/khoa", (req, res) => {
+    req.query.scope = "PREVIEW";
+    return kthpStatsController.exportFacultyStats(req, res);
+});
+router.get("/kthp/export/stats/preview/hoc-vien", (req, res) => {
+    req.query.scope = "PREVIEW";
+    return kthpStatsController.exportInstituteStats(req, res);
+});
 
 
 
@@ -108,6 +147,8 @@ router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPCont
 
 router.get("/tong-hop-giang-vien", baseController.getTongHopGV);
 router.get("/tai-chinh-duyet", baseController.getTaiChinhDuyet);
+router.get("/thong-ke-du-kien", baseController.getThongKeDuKien);
+router.get("/thong-ke-du-kien/ca-nhan", baseController.getThongKeCaNhanDuKien);
 router.get("/thong-ke-ca-nhan", baseController.getThongKeCaNhan);
 router.get("/ca-nhan", baseController.getVuotGioCaNhan); // Deprecated - redirects to du-kien
 router.get("/ca-nhan-du-kien", baseController.getVuotGioCaNhanDuKien);

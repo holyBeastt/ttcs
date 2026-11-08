@@ -5,6 +5,13 @@
 
 const service = require("../../services/vuotgio_v2/huongDanThamQuan.service");
 
+const getSessionActor = (req) => ({
+    id: req.session?.userId || 1,
+    name: req.session?.TenNhanVien || 'ADMIN',
+    role: req.session?.role || req.session?.Quyen || '',
+    MaPhongBan: req.session?.MaPhongBan || ''
+});
+
 /**
  * Lấy danh sách bộ lọc cho trang
  */
@@ -77,10 +84,7 @@ const save = async (req, res) => {
  * Cập nhật bản ghi
  */
 const edit = async (req, res) => {
-    const user = {
-        id: req.session?.userId || 1,
-        name: req.session?.TenNhanVien || 'ADMIN'
-    };
+    const user = getSessionActor(req);
     const { id } = req.params;
 
     try {
@@ -88,7 +92,7 @@ const edit = async (req, res) => {
         res.status(200).json({ success: true, message: "Cập nhật thành công!" });
     } catch (error) {
         console.error("Error in edit huongDanThamQuan:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(error.statusCode || 500).json({ success: false, message: error.message });
     }
 };
 
@@ -119,10 +123,7 @@ const batchApprove = async (req, res) => {
  * Xóa bản ghi
  */
 const deleteRecord = async (req, res) => {
-    const user = {
-        id: req.session?.userId || 1,
-        name: req.session?.TenNhanVien || 'ADMIN'
-    };
+    const user = getSessionActor(req);
     const { id } = req.params;
 
     try {
@@ -130,7 +131,7 @@ const deleteRecord = async (req, res) => {
         res.status(200).json({ success: true, message: "Xóa thành công!" });
     } catch (error) {
         console.error("Error in delete huongDanThamQuan:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(error.statusCode || 500).json({ success: false, message: error.message });
     }
 };
 

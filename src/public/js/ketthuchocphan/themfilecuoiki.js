@@ -258,6 +258,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!response.ok) throw new Error('Không tải được hệ đào tạo');
             const payload = await response.json();
             const systems = Array.isArray(payload) ? payload : (payload.data || []);
+            const defaultSystem = systems.find((system) =>
+                (system.he_dao_tao || system.HeDaoTao || system.value || '').trim() === 'ĐH Đóng học phí'
+            );
             systems.forEach((system) => {
                 const name = system.he_dao_tao || system.HeDaoTao || system.value;
                 if (!system.id || !name) return;
@@ -267,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 option.textContent = name;
                 select.appendChild(option);
             });
+            if (defaultSystem?.id) select.value = String(defaultSystem.id);
         } catch (error) {
             select.innerHTML = '<option value="">Không tải được hệ đào tạo</option>';
             console.error(error);

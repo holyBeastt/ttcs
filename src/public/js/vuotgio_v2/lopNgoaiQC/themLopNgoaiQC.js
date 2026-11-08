@@ -87,14 +87,16 @@ async function loadNamHocOptions() {
         const data = await response.json();
         const select = document.getElementById('namHocFilter');
         select.innerHTML = '<option value="">Chọn năm học</option>';
+        const defaultYear = data.find(item => Number(item.trangthai) === 1) || data[0];
 
         data.forEach(item => {
             const option = document.createElement('option');
             option.value = item.NamHoc;
             option.textContent = item.NamHoc;
-            if (item.trangthai === 1) option.selected = true;
             select.appendChild(option);
         });
+
+        if (defaultYear) select.value = defaultYear.NamHoc;
     } catch (error) {
         console.error('Error loading nam hoc:', error);
     }

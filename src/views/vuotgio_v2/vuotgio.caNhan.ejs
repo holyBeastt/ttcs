@@ -32,6 +32,23 @@
             margin-bottom: 1rem;
         }
 
+        .page-header-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .page-header-actions .btn,
+        .page-header-actions .form-select {
+            height: 2.6em;
+            margin: 0;
+        }
+        .page-header-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* --- Info Card --- */
         .info-card {
             background: #fff;
@@ -199,11 +216,17 @@
             font-size: 0.85rem;
             font-style: italic;
         }
+
+        .embedded-view .container {
+            margin-top: 12px !important;
+        }
     </style>
 </head>
 
-<body>
-    <%- include('../header') %>
+<body class="<%= embedded ? 'embedded-view' : '' %>">
+    <% if (!embedded) { %>
+        <%- include('../header') %>
+    <% } %>
 
     <div class="container mt-4 mb-5" id="app">
         <!-- Input ẩn lưu trữ tham số ban đầu -->
@@ -216,13 +239,30 @@
                 <i class="fas fa-user-clock me-2"></i> 
                 <%= mode === 'du-kien' ? 'Bảng Kê Vượt Giờ Cá Nhân (Dự Kiến)' : 'Bảng Kê Vượt Giờ Cá Nhân (Chính Thức)' %>
             </h2>
-            <div class="d-flex gap-2">
-                <select class="form-select w-auto" id="namHocFilter">
+            <div class="page-header-actions">
+                <% if (!embedded && (mode === 'du-kien' || mode === 'chinh-thuc')) {
+                    const returnPath = mode === 'du-kien'
+                        ? '/v2/vuotgio/tong-hop-giang-vien'
+                        : '/v2/vuotgio/tai-chinh-duyet';
+                    const returnLabel = 'Quay lại';
+                %>
+                    <a
+                        class="btn btn-outline-primary text-nowrap"
+                        id="btnBackToParent"
+                        data-target-path="<%= returnPath %>"
+                        href="<%= returnPath %>?namHoc=<%= encodeURIComponent(namHoc || '') %>"
+                    >
+                        <i class="fas fa-arrow-left me-1"></i><%= returnLabel %>
+                    </a>
+                <% } %>
+                <select class="form-select w-auto" id="namHocFilter" <%= embedded ? 'style="display:none;"' : '' %>>
                     <!-- Danh sách năm học sẽ được load qua JS -->
                 </select>
-                <button class="btn btn-primary" id="btnFilter" onclick="loadData()" style="height: 2.6em; margin-top: 18px; display: flex; align-items: center;">
-                    <i class="fas fa-search me-1"></i> Xem dữ liệu
-                </button>
+                <% if (!embedded) { %>
+                    <button class="btn btn-primary" id="btnFilter" onclick="loadData()">
+                        <i class="fas fa-search me-1"></i> Xem dữ liệu
+                    </button>
+                <% } %>
             </div>
         </div>
 

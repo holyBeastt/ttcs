@@ -8,11 +8,16 @@ class ExportController {
    */
   async exportLecturerStats(req, res, scope = STATS_SCOPE.OFFICIAL) {
     try {
-      const { namHoc, khoaId = "ALL", keyword = "" } = req.query;
-      if (!namHoc) return res.status(400).json({ success: false, message: "Thiếu năm học" });
+      const { namHoc, namHocFrom, namHocTo, khoaId = "ALL", keyword = "", lecturerId = "" } = req.query;
+      if (!namHoc && (!namHocFrom || !namHocTo)) return res.status(400).json({ success: false, message: "Thiếu năm học" });
 
-      const workbook = await exportService.exportLecturerStats(namHoc, khoaId, keyword, scope);
-      const filename = `ThongKe_NCKH_GiangVien_${namHoc}.xlsx`;
+      const workbook = await exportService.exportLecturerStats(namHoc || namHocFrom, khoaId, keyword, scope, {
+        namHocFrom,
+        namHocTo,
+        lecturerId,
+      });
+      const yearLabel = namHocFrom && namHocTo ? `${namHocFrom}_den_${namHocTo}` : namHoc;
+      const filename = `ThongKe_NCKH_GiangVien_${yearLabel}.xlsx`;
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(filename)}`);
@@ -31,11 +36,12 @@ class ExportController {
    */
   async exportFacultyStats(req, res, scope = STATS_SCOPE.OFFICIAL) {
     try {
-      const { namHoc, khoaId = "ALL" } = req.query;
-      if (!namHoc) throw new Error("Thiếu năm học");
+      const { namHoc, namHocFrom, namHocTo, khoaId = "ALL" } = req.query;
+      if (!namHoc && (!namHocFrom || !namHocTo)) throw new Error("Thiếu năm học");
 
-      const workbook = await exportService.exportFacultyStats(namHoc, khoaId, scope);
-      const filename = `ThongKe_NCKH_Khoa_${namHoc}.xlsx`;
+      const workbook = await exportService.exportFacultyStats(namHoc || namHocFrom, khoaId, scope, { namHocFrom, namHocTo });
+      const yearLabel = namHocFrom && namHocTo ? `${namHocFrom}_den_${namHocTo}` : namHoc;
+      const filename = `ThongKe_NCKH_Khoa_${yearLabel}.xlsx`;
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(filename)}`);
@@ -54,11 +60,12 @@ class ExportController {
    */
   async exportInstituteStats(req, res, scope = STATS_SCOPE.OFFICIAL) {
     try {
-      const { namHoc } = req.query;
-      if (!namHoc) throw new Error("Thiếu năm học");
+      const { namHoc, namHocFrom, namHocTo } = req.query;
+      if (!namHoc && (!namHocFrom || !namHocTo)) throw new Error("Thiếu năm học");
 
-      const workbook = await exportService.exportInstituteStats(namHoc, scope);
-      const filename = `ThongKe_NCKH_HocVien_${namHoc}.xlsx`;
+      const workbook = await exportService.exportInstituteStats(namHoc || namHocFrom, scope, { namHocFrom, namHocTo });
+      const yearLabel = namHocFrom && namHocTo ? `${namHocFrom}_den_${namHocTo}` : namHoc;
+      const filename = `ThongKe_NCKH_HocVien_${yearLabel}.xlsx`;
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(filename)}`);

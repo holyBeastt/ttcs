@@ -70,14 +70,14 @@
   };
 
   const EDIT_TYPE_CONFIG = {
-    DETAI_DUAN: { slug: "de-tai-du-an", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard", maSoLabel: "Mã đề tài" },
-    BAIBAO: { slug: "bai-bao-khoa-hoc", showDate: false, showMaSo: true, requiredMaSo: false, requiredTenTapChi: false, hasSecondary: true, mode: "standard", maSoLabel: "Chỉ số tạp chí/hội nghị", article: true },
-    SANGKIEN: { slug: "sang-kien", showDate: true, showMaSo: false, hasSecondary: true, mode: "standard" },
-    GIAITHUONG: { slug: "giai-thuong", showDate: true, showMaSo: true, hasSecondary: true, mode: "standard", award: true },
-    DEXUAT: { slug: "de-xuat-nghien-cuu", showDate: true, showMaSo: false, hasSecondary: true, mode: "equal" },
-    SACHGIAOTRINH: { slug: "sach-giao-trinh", showDate: true, showMaSo: true, requiredMaSo: true, hasSecondary: true, mode: "standard", maSoLabel: "Số quyết định" },
-    HUONGDAN: { slug: "huong-dan-sv-nckh", showDate: true, showMaSo: true, hasSecondary: false, mode: "equal", maSoLabel: "Mã đề tài" },
-    HOIDONG: { slug: "thanh-vien-hoi-dong", showDate: false, showMaSo: true, hasSecondary: false, mode: "fixed", council: true },
+    DETAI_DUAN: { slug: "de-tai-du-an", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: true, mode: "standard", maSoLabel: "Mã đề tài" },
+    BAIBAO: { slug: "bai-bao-khoa-hoc", showDate: false, requiredDate: false, showMaSo: true, requiredXepLoai: false, requiredMaSo: false, requiredTenTapChi: true, hasSecondary: true, mode: "standard", maSoLabel: "Chỉ số tạp chí/hội nghị", article: true },
+    SANGKIEN: { slug: "sang-kien", showDate: true, requiredDate: true, showMaSo: false, requiredXepLoai: true, hasSecondary: true, mode: "standard" },
+    GIAITHUONG: { slug: "giai-thuong", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: true, mode: "standard", award: true },
+    DEXUAT: { slug: "de-xuat-nghien-cuu", showDate: true, requiredDate: true, showMaSo: false, requiredXepLoai: true, hasSecondary: true, mode: "equal" },
+    SACHGIAOTRINH: { slug: "sach-giao-trinh", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: true, mode: "standard", maSoLabel: "Số quyết định" },
+    HUONGDAN: { slug: "huong-dan-sv-nckh", showDate: true, requiredDate: true, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: false, mode: "equal", maSoLabel: "Mã đề tài" },
+    HOIDONG: { slug: "thanh-vien-hoi-dong", showDate: false, requiredDate: false, showMaSo: true, requiredMaSo: true, requiredXepLoai: true, hasSecondary: false, mode: "fixed", council: true },
   };
 
   const getEditConfig = (loaiNckh) => EDIT_TYPE_CONFIG[String(loaiNckh || "")] || null;
@@ -322,7 +322,7 @@
     if (!state.rows.length) {
       el.tableBody.innerHTML = `
         <tr>
-          <td colspan="14" class="text-center text-muted py-4">Không có dữ liệu</td>
+          <td colspan="13" class="text-center text-muted py-4">Không có dữ liệu</td>
         </tr>
       `;
       return;
@@ -375,7 +375,7 @@
       const groupRows = group.rows;
       html += `
         <tr class="nckh-v3-group-header">
-          <td colspan="14">
+          <td colspan="13">
             <strong>${escapeHtml(group.label)}</strong>
             <span class="nckh-v3-group-count">${groupRows.length} công trình</span>
             <span class="nckh-v3-group-count">${formatHours(group.totalHours)} tiết</span>
@@ -410,12 +410,13 @@
               ${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}
              nms ${row.fileMinhChung ? `<button type="button" class="btn btn-link p-0 text-primary ms-1 btn-preview-table-file" data-file="${escapeHtml(row.fileMinhChung)}" title="Xem trước file minh chứng" style="font-size:1.05rem;vertical-align:middle;text-decoration:none;"><i class="bi bi-paperclip"></i></button>` : ""}
             </td>
+            <td class="text-start col-main">${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}</td>
+            <td class="text-start">${row.loaiNckh === "BAIBAO" ? escapeHtml(row.tenTapChi || "—") : ""}</td>
             <td>${escapeHtml(row.maSo || "")}</td>
             <td>${escapeHtml(row.xepLoai || "")}</td>
             <td>${formatDate(row.ngayNghiemThu)}</td>
             <td class="text-start col-people">${tacGia || ""}</td>
             <td class="text-start col-people">${thanhVien || ""}</td>
-            <td>${escapeHtml(row.maPhongBan || row.tenPhongBan || "")}</td>
             <td>${formatHours(group.byPerson ? row.personHours : row.tongSoTiet)}</td>
             <td>
               <input
@@ -496,9 +497,10 @@
   }
 
   function editField(label, id, value, type = "text", extra = "") {
+    const required = /\brequired\b/.test(extra);
     return `
       <div class="col-md-6 mb-2">
-        <label class="form-label fw-semibold" for="${id}">${label}</label>
+        <label class="form-label fw-semibold" for="${id}">${label}${required ? ' <span class="required">*</span>' : ""}</label>
         <input id="${id}" class="form-control" type="${type}" value="${escapeHtml(value ?? "")}" ${extra} />
       </div>
     `;
@@ -517,18 +519,7 @@
     });
   }
 
-  function buildEmployeeOptions(giangVienList, selectedId) {
-    const options = ['<option value="">-- Chọn giảng viên --</option>'];
-    (giangVienList || []).forEach((item) => {
-      const id = Number(item.id);
-      options.push(
-        `<option value="${id}" ${Number(selectedId) === id ? "selected" : ""}>${escapeHtml(item.TenNhanVien || "")}</option>`
-      );
-    });
-    return options.join("");
-  }
-
-  function buildParticipantRows(data, config) {
+  function buildParticipantRows(data, config, metadata = {}, allowLecturerEdit = false) {
     const participants = uniqueParticipants(data.participants);
     if (!participants.length) {
       return '<div class="text-muted small" id="editParticipantsEmpty">Chưa có thành viên tham gia.</div>';
@@ -543,19 +534,138 @@
       uy_vien: "Ủy viên",
     };
 
-    return participants.map((item) => {
+    return participants.map((item, index) => {
       const external = item.nhanvienId === null || item.nhanvienId === undefined;
       const name = item.tenNhanVien || item.tenNgoai || "Không rõ tên";
-      const unit = external && item.donViNgoai ? ` <span class="nckh-edit-person-unit">— ${escapeHtml(item.donViNgoai)}</span>` : "";
       const role = roleLabels[item.vaiTro] || item.vaiTro || "Thành viên";
+
+      if (allowLecturerEdit) {
+        return `
+          <div
+            class="nckh-edit-participant nckh-edit-participant-row"
+            data-participant-index="${index}"
+            data-role="${escapeHtml(item.vaiTro || "thanh_vien")}"
+            data-selected-id="${external ? "" : Number(item.nhanvienId)}"
+          >
+            <div class="nckh-edit-participant-editor">
+              <div class="nckh-edit-participant-name-wrap">
+                <input
+                  type="text"
+                  class="form-control nckh-edit-participant-name-input"
+                  value="${escapeHtml(name)}"
+                  placeholder="Nhập tên để tìm giảng viên"
+                  autocomplete="off"
+                />
+                <div class="suggestions-list nckh-edit-participant-suggestions"></div>
+              </div>
+              <label class="checkbox-label nckh-edit-participant-external-toggle">
+                <input type="checkbox" class="nckh-edit-participant-external" ${external ? "checked" : ""} />
+                Ngoài học viện
+              </label>
+              <input
+                type="text"
+                class="form-control nckh-edit-participant-external-unit"
+                value="${escapeHtml(external ? item.donViNgoai || "" : "")}"
+                placeholder="Đơn vị công tác"
+                ${external ? "" : "disabled"}
+              />
+              <span class="nckh-edit-person-role">${escapeHtml(role)}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      const unit = external && item.donViNgoai ? ` <span class="nckh-edit-person-unit">— ${escapeHtml(item.donViNgoai)}</span>` : "";
+      const nameHtml = `<span class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</span>`;
 
       return `
         <div class="nckh-edit-participant nckh-edit-participant-readonly">
-          <div class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</div>
+          ${nameHtml}
           <span class="nckh-edit-person-role">${escapeHtml(role)}</span>
         </div>
       `;
     }).join("");
+  }
+
+  function clearParticipantSuggestions(container) {
+    if (!container) return;
+    container.innerHTML = "";
+    container.classList.remove("show");
+  }
+
+  function bindEditParticipantEditors(metadata = {}) {
+    const lecturerList = Array.isArray(metadata.giangVienList) ? metadata.giangVienList : [];
+    const editContainer = Swal.getHtmlContainer();
+    if (!editContainer) return;
+
+    const rows = Array.from(editContainer.querySelectorAll(".nckh-edit-participant-row"));
+    const clearAllSuggestions = () => {
+      rows.forEach((row) => clearParticipantSuggestions(row.querySelector(".nckh-edit-participant-suggestions")));
+    };
+
+    rows.forEach((row) => {
+      const input = row.querySelector(".nckh-edit-participant-name-input");
+      const suggestions = row.querySelector(".nckh-edit-participant-suggestions");
+      const externalToggle = row.querySelector(".nckh-edit-participant-external");
+      const externalUnit = row.querySelector(".nckh-edit-participant-external-unit");
+      if (!input || !suggestions || !externalToggle || !externalUnit) return;
+
+      const renderSuggestions = () => {
+        clearParticipantSuggestions(suggestions);
+        if (externalToggle.checked) return;
+
+        const query = normalizeText(input.value);
+        if (query.length < 2) return;
+
+        const matches = lecturerList
+          .filter((item) => normalizeText(item.TenNhanVien).includes(query))
+          .slice(0, 10);
+        if (!matches.length) return;
+
+        matches.forEach((lecturer) => {
+          const suggestion = document.createElement("div");
+          suggestion.className = "suggestion-item";
+          suggestion.textContent = lecturer.TenNhanVien || "";
+          suggestion.addEventListener("click", () => {
+            const lecturerId = Number(lecturer.id);
+            if (!Number.isFinite(lecturerId) || lecturerId <= 0) return;
+            row.dataset.selectedId = String(lecturerId);
+            input.value = lecturer.TenNhanVien || "";
+            clearParticipantSuggestions(suggestions);
+          });
+          suggestions.appendChild(suggestion);
+        });
+        suggestions.classList.add("show");
+      };
+
+      const syncExternalMode = () => {
+        if (externalToggle.checked) {
+          row.dataset.selectedId = "";
+          externalUnit.disabled = false;
+        } else {
+          externalUnit.disabled = true;
+          externalUnit.value = "";
+        }
+        clearParticipantSuggestions(suggestions);
+      };
+
+      input.addEventListener("input", () => {
+        if (!externalToggle.checked) {
+          row.dataset.selectedId = "";
+          renderSuggestions();
+        }
+      });
+      input.addEventListener("focus", renderSuggestions);
+      externalToggle.addEventListener("change", syncExternalMode);
+
+      syncExternalMode();
+    });
+
+    editContainer.addEventListener("click", (event) => {
+      if (!event.target.closest(".nckh-edit-participant-name-wrap")) {
+        clearAllSuggestions();
+      }
+    });
   }
 
   function buildEditFormHtml(data, config, metadata) {
@@ -575,7 +685,7 @@
     ].join("");
 
     const articleFields = config.article
-      ? `${editField("Tên tạp chí / hội thảo", "editTenTapChi", data.tenTapChi)}
+      ? `${editField("Tên tạp chí / hội thảo", "editTenTapChi", data.tenTapChi, "text", config.requiredTenTapChi ? "required" : "")}
          ${editField("Số báo", "editSoBao", data.soBao)}
          ${editField("Số trích dẫn", "editSoTrichDan", data.soTrichDan, "number", "min=\"0\" step=\"1\"")}
          ${editField("Số quyết định", "editSoQuyetDinh", data.soQuyetDinh)}
@@ -585,16 +695,33 @@
            ${data.fileMinhChung ? `<div class="mb-1 small text-muted"><i class="bi bi-paperclip"></i> File hiện tại: <a href="${escapeHtml(data.fileMinhChung)}" target="_blank" rel="noopener noreferrer">${escapeHtml(data.fileMinhChung.split("/").pop())}</a></div>` : ""}
            <input type="file" id="editFileMinhChung" class="form-control" accept=".pdf,.doc,.docx" />
          </div>`
+         ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}
+         ${editField("ISSN/ISBN", "editIssnIsbn", data.issnIsbn)}
+         ${editField("DOI", "editDoi", data.doi)}
+         ${editField("Link minh chứng", "editLinkMinhChung", data.linkMinhChung)}
+         ${editField("Volumn", "editVolumn", data.volumn)}
+         ${editField("Number", "editNumber", data.number)}
+         ${editField("Page", "editPage", data.page)}`
       : "";
     const awardFields = config.award
       ? `${editField("Số quyết định", "editSoQuyetDinh", data.soQuyetDinh)}
          ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}`
       : "";
 
-    const yearOptions = Array.from(el.namHocFilter?.options || [])
-      .map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === data.namHoc ? "selected" : ""}>${escapeHtml(option.textContent)}</option>`)
+    const currentNamHoc = String(data.namHoc || "");
+    const yearOptionList = Array.from(el.namHocFilter?.options || []);
+    if (currentNamHoc && !yearOptionList.some((option) => option.value === currentNamHoc)) {
+      yearOptionList.unshift({ value: currentNamHoc, textContent: currentNamHoc });
+    }
+    const yearOptions = yearOptionList
+      .map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === currentNamHoc ? "selected" : ""}>${escapeHtml(option.textContent)}</option>`)
       .join("");
     const participantYears = Math.max(1, ...(data.participants || []).map((item) => Number(item.namThucHien || 1)));
+    const currentXepLoai = String(data.xepLoai || "");
+    const xepLoaiOptions = ["Đạt", "Giỏi", "Xuất sắc"];
+    if (currentXepLoai && !xepLoaiOptions.includes(currentXepLoai)) {
+      xepLoaiOptions.unshift(currentXepLoai);
+    }
 
     return `
       <form id="nckhInlineEditForm" class="nckh-edit-form">
@@ -602,21 +729,22 @@
           <div class="nckh-edit-section-title"><i class="bi bi-file-earmark-text"></i> Thông tin công trình</div>
           <div class="row g-3">
           <div class="col-12">
-            <label class="form-label fw-semibold" for="editTenCongTrinh">Tên công trình</label>
+            <label class="form-label fw-semibold" for="editTenCongTrinh">Tên công trình <span class="required">*</span></label>
             <input id="editTenCongTrinh" class="form-control" required value="${escapeHtml(data.tenCongTrinh || "")}" />
           </div>
           <div class="col-md-6 mb-2">
-            <label class="form-label fw-semibold" for="editPhanLoai">Phân loại</label>
+            <label class="form-label fw-semibold" for="editPhanLoai">Phân loại <span class="required">*</span></label>
             <select id="editPhanLoai" class="form-select" required>${phanLoaiHtml}</select>
           </div>
           <div class="col-md-6 mb-2">
-            <label class="form-label fw-semibold" for="editNamHoc">Năm học</label>
+            <label class="form-label fw-semibold" for="editNamHoc">Năm học <span class="required">*</span></label>
             <select id="editNamHoc" class="form-select" required>${yearOptions}</select>
           </div>
           <div class="col-md-4 mb-2">
-            <label class="form-label fw-semibold" for="editXepLoai">Xếp loại</label>
-            <select id="editXepLoai" class="form-select" required>
-              ${["Đạt", "Giỏi", "Xuất sắc"].map((value) => `<option value="${value}" ${value === data.xepLoai ? "selected" : ""}>${value}</option>`).join("")}
+            <label class="form-label fw-semibold" for="editXepLoai">Xếp loại${config.requiredXepLoai !== false ? ' <span class="required">*</span>' : ""}</label>
+            <select id="editXepLoai" class="form-select" ${config.requiredXepLoai !== false ? "required" : ""}>
+              ${config.requiredXepLoai === false ? `<option value="" ${!data.xepLoai ? "selected" : ""}>-- Không bắt buộc --</option>` : ""}
+              ${xepLoaiOptions.map((value) => `<option value="${escapeHtml(value)}" ${value === currentXepLoai ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
             </select>
           </div>
           <div class="col-md-4 mb-2">
@@ -627,7 +755,7 @@
             <label class="form-label fw-semibold" for="editSoNamThucHien">Số năm thực hiện</label>
             <input id="editSoNamThucHien" class="form-control" type="number" min="1" step="1" value="${participantYears}" />
           </div>
-          ${config.showDate ? editField("Ngày nghiệm thu", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date", "required") : config.article ? editField("Ngày công bố", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date") : ""}
+          ${config.requiredDate ? editField("Ngày nghiệm thu", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date", "required") : config.article ? editField("Ngày công bố", "editNgayNghiemThu", toInputDate(data.ngayNghiemThu), "date") : ""}
           ${config.showMaSo ? editField(config.maSoLabel || (config.council ? "Số quyết định" : "Mã số"), "editMaSo", data.maSo, "text", config.requiredMaSo !== false ? "required" : "") : ""}
           ${articleFields}${awardFields}
           </div>
@@ -635,8 +763,8 @@
 
         <div class="nckh-edit-section">
           <div class="nckh-edit-section-title"><i class="bi bi-people"></i> Danh sách tham gia</div>
-          <div class="nckh-edit-readonly-note"><i class="bi bi-lock"></i> Thành viên chỉ xem, không chỉnh sửa tại đây.</div>
-          <div id="editParticipants" class="nckh-edit-participants">${buildParticipantRows(data, config)}</div>
+          <div class="nckh-edit-readonly-note"><i class="bi bi-info-circle"></i> Giữ nguyên số lượng dòng tham gia; có thể đổi giảng viên hoặc chuyển sang ngoài học viện. Không sửa số tiết trực tiếp.</div>
+          <div id="editParticipants" class="nckh-edit-participants">${buildParticipantRows(data, config, metadata, true)}</div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-3">
@@ -658,8 +786,6 @@
       tongSoTiet: Number(selectedOption?.dataset.hours || data.tongSoTiet || 0),
       soNamThucHien: Number(document.getElementById("editSoNamThucHien")?.value || 1),
       xepLoai: document.getElementById("editXepLoai")?.value || null,
-      ngayNghiemThu: document.getElementById("editNgayNghiemThu")?.value || null,
-      maSo: document.getElementById("editMaSo")?.value?.trim() || null,
       tacGiaIds: [],
       thanhVienIds: [],
       tacGiaLienHeIds: [],
@@ -669,32 +795,83 @@
       vaiTro: null,
     };
 
-    if (config.article || config.award) {
+    let participantError = "";
+    const seenInternalIds = new Set();
+    const seenExternalPeople = new Set();
+    const participantRows = Array.from(document.querySelectorAll(".nckh-edit-participant-row"));
+    if (participantRows.length !== participants.length) {
+      participantError = "Danh sách thành viên chỉnh sửa không hợp lệ.";
+    }
+
+    if (config.requiredDate || config.article) {
+      payload.ngayNghiemThu = document.getElementById("editNgayNghiemThu")?.value || null;
+    }
+
+    if (config.showMaSo) {
+      payload.maSo = document.getElementById("editMaSo")?.value?.trim() || null;
+    }
+
+    if (config.article) {
       payload.tenTapChi = document.getElementById("editTenTapChi")?.value?.trim() || null;
       payload.soBao = document.getElementById("editSoBao")?.value?.trim() || null;
       payload.soTrichDan = document.getElementById("editSoTrichDan")?.value === "" ? null : Number(document.getElementById("editSoTrichDan")?.value);
+      payload.ngayQuyetDinh = document.getElementById("editNgayQuyetDinh")?.value || null;
+      payload.issnIsbn = document.getElementById("editIssnIsbn")?.value?.trim() || null;
+      payload.doi = document.getElementById("editDoi")?.value?.trim() || null;
+      payload.linkMinhChung = document.getElementById("editLinkMinhChung")?.value?.trim() || null;
+      payload.volumn = document.getElementById("editVolumn")?.value?.trim() || null;
+      payload.number = document.getElementById("editNumber")?.value?.trim() || null;
+      payload.page = document.getElementById("editPage")?.value?.trim() || null;
+    }
+    if (config.award) {
       payload.soQuyetDinh = document.getElementById("editSoQuyetDinh")?.value?.trim() || null;
       payload.ngayQuyetDinh = document.getElementById("editNgayQuyetDinh")?.value || null;
     }
 
-    participants.forEach((participant) => {
-      const role = participant.vaiTro || "thanh_vien";
-      const isExternal = participant.nhanvienId === null || participant.nhanvienId === undefined;
+    participantRows.forEach((row, index) => {
+      const participant = participants[index];
+      if (!participant) {
+        participantError = participantError || "Danh sách thành viên chỉnh sửa không hợp lệ.";
+        return;
+      }
+
+      const role = row.dataset.role || participant.vaiTro || "thanh_vien";
+      const isExternal = row.querySelector(".nckh-edit-participant-external")?.checked === true;
       if (isExternal) {
         const item = {
-          ten: String(participant.tenNgoai || participant.tenNhanVien || "").trim(),
-          donVi: String(participant.donViNgoai || "").trim(),
+          ten: String(row.querySelector(".nckh-edit-participant-name-input")?.value || "").trim(),
+          donVi: String(row.querySelector(".nckh-edit-participant-external-unit")?.value || "").trim(),
         };
-        if (!item.ten || !item.donVi) return;
-        if (config.council) return;
-        if (role === "tac_gia_lien_he") payload.tacGiaLienHeNgoai.push(item);
+        if (!item.ten || !item.donVi) {
+          participantError = participantError || `Vui lòng nhập tên và đơn vị công tác cho thành viên thứ ${index + 1}.`;
+          return;
+        }
+        const externalKey = `${normalizeText(item.ten)}|${normalizeText(item.donVi)}`;
+        if (seenExternalPeople.has(externalKey)) {
+          participantError = participantError || `Thành viên ngoài học viện thứ ${index + 1} bị trùng.`;
+          return;
+        }
+        seenExternalPeople.add(externalKey);
+        if (config.council) {
+          payload.tacGiaNgoai.push(item);
+          payload.vaiTro = role;
+        }
+        else if (role === "tac_gia_lien_he") payload.tacGiaLienHeNgoai.push(item);
         else if (role === "tac_gia") payload.tacGiaNgoai.push(item);
         else payload.thanhVienNgoai.push(item);
         return;
       }
 
-      const id = Number(participant.nhanvienId || 0);
-      if (!id) return;
+      const id = Number(row.dataset.selectedId || 0);
+      if (!id) {
+        participantError = participantError || `Vui lòng chọn giảng viên cho thành viên thứ ${index + 1} từ danh sách gợi ý.`;
+        return;
+      }
+      if (seenInternalIds.has(id)) {
+        participantError = participantError || `Giảng viên ở dòng thứ ${index + 1} bị trùng.`;
+        return;
+      }
+      seenInternalIds.add(id);
       if (config.council) {
         payload.tacGiaIds.push(id);
         payload.vaiTro = role;
@@ -703,7 +880,7 @@
       else payload.thanhVienIds.push(id);
     });
 
-    return payload;
+    return { payload, participantError };
   }
 
   function openFilePreviewModal(fileUrl, fileName) {
@@ -822,6 +999,16 @@
       : Number(data.khoaDuyet) === 1
         ? "Đã duyệt cấp khoa"
         : "Chưa duyệt";
+    const articleMetadata = data.loaiNckh === "BAIBAO"
+      ? `
+          <div class="nckh-detail-item"><span class="nckh-detail-label">ISSN/ISBN</span><div class="nckh-detail-value">${escapeHtml(data.issnIsbn || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">DOI</span><div class="nckh-detail-value">${escapeHtml(data.doi || "—")}</div></div>
+          <div class="nckh-detail-item is-wide"><span class="nckh-detail-label">Link minh chứng</span><div class="nckh-detail-value">${escapeHtml(data.linkMinhChung || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Volumn</span><div class="nckh-detail-value">${escapeHtml(data.volumn || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Number</span><div class="nckh-detail-value">${escapeHtml(data.number || "—")}</div></div>
+          <div class="nckh-detail-item"><span class="nckh-detail-label">Page</span><div class="nckh-detail-value">${escapeHtml(data.page || "—")}</div></div>
+        `
+      : "";
     const editButton = state.permission.canEdit && Number(data.vienNcDuyet) !== 1
       ? '<button type="button" class="btn btn-primary" id="detailEditBtn"><i class="bi bi-pencil"></i> Sửa</button>'
       : "";
@@ -876,6 +1063,7 @@
           <div class="nckh-detail-item"><span class="nckh-detail-label">Trạng thái</span><div class="nckh-detail-value">${statusValue}</div></div>
           ${khoaValue ? `<div class="nckh-detail-item is-full"><span class="nckh-detail-label">Khoa</span><div class="nckh-detail-value">${escapeHtml(khoaValue)}</div></div>` : ""}
           ${fileMinhChungHtml}
+          ${articleMetadata}
         </div>
         ${participantHtml}
       </div>
@@ -928,6 +1116,7 @@
     }
 
     Swal.update({ html: buildEditFormHtml(data, config, metadataResult.data), width: "1100px", customClass: { popup: "nckh-v3-swal-popup" }, showConfirmButton: false, showCancelButton: false });
+    bindEditParticipantEditors(metadataResult.data);
     Swal.getHtmlContainer()?.querySelector("#editPhanLoai")?.addEventListener("change", (event) => {
       const option = event.target.selectedOptions[0];
       const total = Number(option?.dataset.hours || 0);
@@ -937,13 +1126,25 @@
     Swal.getHtmlContainer()?.querySelector("#editCancelBtn")?.addEventListener("click", () => showDetailMode(data));
     Swal.getHtmlContainer()?.querySelector("#nckhInlineEditForm")?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const payload = collectEditPayload(data, config);
+      const { payload, participantError } = collectEditPayload(data, config);
+      if (participantError) {
+        await Swal.fire("Thiếu thông tin", participantError, "warning");
+        return;
+      }
       if (!payload.tenCongTrinh || !payload.phanLoai || !payload.namHoc || !payload.tongSoTiet) {
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập đủ thông tin chính của công trình", "warning");
         return;
       }
-      if (config.showDate && !payload.ngayNghiemThu) {
+      if (config.requiredDate && !payload.ngayNghiemThu) {
         await Swal.fire("Thiếu thông tin", "Vui lòng nhập ngày nghiệm thu", "warning");
+        return;
+      }
+      if (config.requiredXepLoai !== false && !payload.xepLoai) {
+        await Swal.fire("Thiếu thông tin", "Vui lòng chọn xếp loại", "warning");
+        return;
+      }
+      if (config.requiredTenTapChi && !payload.tenTapChi) {
+        await Swal.fire("Thiếu thông tin", "Vui lòng nhập tên tạp chí/hội thảo", "warning");
         return;
       }
       if (config.showMaSo && config.requiredMaSo !== false && !payload.maSo) {
@@ -1181,6 +1382,14 @@
 
     if (el.loadDataBtn) {
       el.loadDataBtn.addEventListener("click", loadData);
+    }
+
+    if (el.namHocFilter) {
+      el.namHocFilter.addEventListener("change", loadData);
+    }
+
+    if (el.khoaFilter) {
+      el.khoaFilter.addEventListener("change", loadData);
     }
 
     if (el.submitApprovalsBtn) {

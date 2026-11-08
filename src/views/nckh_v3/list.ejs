@@ -155,7 +155,9 @@
     }
 
     .nckh-v3-list-table .col-people {
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     /* ── Action buttons in table: icon-only, compact ── */
@@ -183,7 +185,9 @@
 
     .nckh-v3-person-row {
       display: block;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
       line-height: 1.35;
     }
 
@@ -513,6 +517,38 @@
       border-radius: 8px !important;
     }
 
+    .nckh-edit-participant-editor {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto minmax(160px, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nckh-edit-participant-name-wrap {
+      position: relative;
+      min-width: 0;
+    }
+
+    .nckh-edit-participant-name-wrap .form-control,
+    .nckh-edit-participant-external-unit {
+      min-height: 38px;
+    }
+
+    .nckh-edit-participant-name-wrap .suggestions-list {
+      top: calc(100% + 3px);
+      left: 0;
+      right: 0;
+    }
+
+    .nckh-edit-participant-external-toggle {
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .nckh-edit-participant-editor .nckh-edit-person-role {
+      justify-self: end;
+    }
+
     .nckh-edit-participant .btn {
       width: 38px;
       height: 38px;
@@ -559,6 +595,14 @@
 
       .nckh-detail-item.is-wide {
         grid-column: auto;
+      }
+
+      .nckh-edit-participant-editor {
+        grid-template-columns: 1fr;
+      }
+
+      .nckh-edit-participant-editor .nckh-edit-person-role {
+        justify-self: start;
       }
 
       .nckh-detail-item.is-full {
@@ -618,7 +662,7 @@
           <i class="bi bi-search"></i> Hiển thị
         </button>
         <button id="submitApprovalsBtn" class="btn btn-success" style="display: none;">
-          <i class="bi bi-check-circle"></i> Lưu
+          <i class="bi bi-check-circle"></i> Cập nhật
         </button>
       </div>
     </div>
@@ -632,12 +676,12 @@
             <th>STT</th>
             <th class="sortable" data-sort="phan_loai">Phân loại <span class="sort-indicator"></span></th>
             <th class="sortable text-start" data-sort="ten_cong_trinh">Tên công trình <span class="sort-indicator"></span></th>
+            <th class="text-start">Tên tạp chí / hội thảo</th>
             <th>Mã số / Số QĐ</th>
             <th>Xếp loại</th>
             <th>Ngày NT</th>
             <th class="text-start">Tác giả / CN</th>
             <th class="text-start">Thành viên</th>
-            <th>Khoa</th>
             <th>Số tiết</th>
             <th style="width: 56px;">
               <div style="line-height: 1.3;">

@@ -205,6 +205,8 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <!-- ========== V2 - Vượt Giờ ========== -->
+                <a class="nav-link" href="/v2/vuotgio/thong-ke-giang-day">Thông tin giảng dạy quy chuẩn</a>
+                <a class="nav-link" href="/v2/vuotgio/huong-dan-datn">Thông tin đồ án tốt nghiệp</a>
                 <div class="dropdown-submenu" id="nav-site-lop-ngoai-qc" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownLopNgoaiQC"
                     data-bs-toggle="dropdown" aria-expanded="false">Lớp ngoài quy chuẩn</a>
@@ -219,20 +221,33 @@
                     data-bs-toggle="dropdown" aria-expanded="false">Coi, chấm, ra đề thi</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownKTHP">
                     <a class="nav-link" id="nav-them-kthp" href="/v2/vuotgio/them-kthp">Thêm mới</a>
-                    <a class="nav-link" id="nav-duyet-kthp" href="/v2/vuotgio/duyet-kthp">Duyệt</a>
+                    <a class="nav-link" id="nav-duyet-kthp" href="/v2/vuotgio/duyet-kthp">DANH SÁCH COI, CHẤM, RA ĐỀ</a>
+                    <div class="dropdown-submenu" id="nav-thong-ke-kthp" style="width: 100%">
+                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownThongKeKTHP"
+                        data-bs-toggle="dropdown" aria-expanded="false">Thống kê coi, chấm thi, ra đề</a>
+                      <div class="dropdown-menu1" aria-labelledby="navbarDropdownThongKeKTHP">
+                        <a class="nav-link" href="/v2/vuotgio/kthp/thong-ke-du-kien">Dự kiến</a>
+                        <a class="nav-link" href="/v2/vuotgio/kthp/thong-ke-chinh-thuc">Chính thức</a>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <!-- <a class="nav-link" href="/v2/vuotgio/kthp-import">Import file Coi, Chấm, Ra Đề Thi</a> -->
-                <a class="nav-link" href="/v2/vuotgio/thong-ke-giang-day">Thông tin giảng dạy quy chuẩn</a>
-                <a class="nav-link" href="/v2/vuotgio/huong-dan-datn">Thông tin đồ án tốt nghiệp</a>
                 <a class="nav-link" href="/v2/vuotgio/huong-dan-tham-quan">Hướng dẫn tham quan thực tế</a>
-                <a class="nav-link" id="nav-tai-chinh-duyet-vuot-gio" href="/v2/vuotgio/tai-chinh-duyet">Tài chính duyệt vượt giờ</a>
 
                 <!-- ========== Dự Kiến ========== -->
                 <a class="nav-link" href="/v2/vuotgio/ca-nhan-du-kien">Vượt giờ dự kiến cá nhân</a>
                 <a class="nav-link" href="/v2/vuotgio/tong-hop-giang-vien">Thông tin vượt giờ dự kiến</a>
-                <a class="nav-link" href="/v2/vuotgio/thong-ke-khoa">Thống kê vượt giờ</a>
+                <a class="nav-link" id="nav-tai-chinh-duyet-vuot-gio" href="/v2/vuotgio/tai-chinh-duyet">Tài chính duyệt vượt giờ</a>
+                <div class="dropdown-submenu" id="nav-thong-ke-vuot-gio" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownThongKeVuotGio"
+                    data-bs-toggle="dropdown" aria-expanded="false">Thống kê vượt giờ</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownThongKeVuotGio">
+                    <a class="nav-link" href="/v2/vuotgio/thong-ke-du-kien">Dự kiến</a>
+                    <a class="nav-link" href="/v2/vuotgio/thong-ke-khoa">Chính thức</a>
+                  </div>
+                </div>
                 <a class="nav-link" href="/v2/vuotgio/xuat-file">Xuất file kê khai vượt giờ và NCKH</a>
 
               </div>
@@ -247,8 +262,15 @@
               <div id="nckhNav2" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/v3/nckh/danh-sach-nckh?type=de-tai-du-an">Danh sách NCKH</a>
                 <a class="nav-link" id="" href="/v3/nckh/them-moi-nckh?type=de-tai-du-an">Thêm mới NCKH</a>
-                <a class="nav-link" href="/v3/nckh/thong-ke-du-kien">Thống kê NCKH dự kiến</a>
-                <a class="nav-link" href="/v3/nckh/thong-ke">Thống kê NCKH chính thức</a>
+                <div class="dropdown-submenu" id="nav-thong-ke-nckh" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownThongKeNckh"
+                    data-bs-toggle="dropdown" aria-expanded="false">Thống kê NCKH</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownThongKeNckh">
+                    <a class="nav-link" href="/v3/nckh/thong-ke-du-kien">Dự kiến</a>
+                    <a class="nav-link" href="/v3/nckh/thong-ke">Chính thức</a>
+                  </div>
+                </div>
+                <a class="nav-link" href="/v3/nckh/xuat-bao-cao-ca-nhan">Xuất mẫu kê khai NCKH</a>
               </div>
             </div>
           </div>
@@ -280,7 +302,8 @@
                 </div>
                 <a class="nav-link dropdown-item" href="/thongketonghop-v2">Thống kê tổng hợp</a>
                 <a class="nav-link" id="" href="/thongkedoan">Đồ Án</a>
-                <a class="nav-link" id="" href="/thongkenckh">Nghiên cứu khoa học</a>
+                <a class="nav-link" id="" href="/v3/nckh/thong-ke">Nghiên cứu khoa học</a>
+                <a class="nav-link" id="" href="/v2/vuotgio/kthp/thong-ke">Coi, chấm, ra đề thi</a>
               </div>
             </div>
           </div>
@@ -606,8 +629,10 @@
 
     const navSiteKTHP = document.getElementById("nav-site-kthp");
     const navDuyetKTHP = document.getElementById("nav-duyet-kthp");
+    const navThongKeKTHP = document.getElementById("nav-thong-ke-kthp");
     if (navSiteKTHP) navSiteKTHP.style.display = canAccessKTHP ? "" : "none";
     if (navDuyetKTHP) navDuyetKTHP.style.display = canAccessKTHP ? "" : "none";
+    if (navThongKeKTHP) navThongKeKTHP.style.display = canAccessKTHP ? "" : "none";
 
     // Vượt giờ: quyền Khoa và phòng tương ứng được vào cả site thêm mới.
     let navThemLopNgoaiQC = document.getElementById("nav-them-lop-ngoai-qc");

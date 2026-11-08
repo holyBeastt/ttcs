@@ -1,38 +1,108 @@
 .navbar-nav .dropdown:hover .dropdown-menu {
-    display: block;
-    /* right: 0;
-    left: auto; */
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-  }
-        .input-wrapper input {
-          background-color: #FAF7F0;
-          border: none;
-          font-size: 1rem;
-          width: 100%;
-          border-radius: 5px;
-          color: black;
-          box-shadow: 0 0.4rem #dfd9d9;
-          cursor: pointer;
-        }
-        select {
-          background-color: #FAF7F0 !important;
-          border: none;
-          font-size: 1rem;
-          width: 100%;
-          border-radius: 5px;
-          color: black;
-          box-shadow: 0 0.4rem #dfd9d9;
-          cursor: pointer;
-        }
-  
-        .input-wrapper input:focus {
-          outline-color: black;
-        }
-        select:focus {
-          outline-color: black;
-        }
-        
-        
-        
-        
+  display: block;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  z-index: 1060 !important;
+}
+
+/* Kiểu dáng form quản trị hiện đại */
+.input-wrapper input,
+.input-wrapper .form-control {
+  background-color: #ffffff;
+  border: 1px solid #ced4da;
+  font-size: 0.95rem;
+  width: 100%;
+  border-radius: 6px;
+  color: #212529;
+  padding: 8px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: text;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+select,
+.input-wrapper select,
+.input-wrapper .form-select {
+  background-color: #ffffff !important;
+  border: 1px solid #ced4da;
+  font-size: 0.95rem;
+  width: 100% !important;
+  border-radius: 6px;
+  color: #212529;
+  padding: 8px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#MaPhongBan {
+  width: 100% !important;
+  text-align: center !important;
+  text-align-last: center !important;
+}
+
+.input-wrapper input:focus,
+.input-wrapper .form-control:focus,
+select:focus,
+.input-wrapper select:focus,
+.input-wrapper .form-select:focus {
+  border-color: #3eacff !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 0.2rem rgba(62, 172, 255, 0.25) !important;
+}
+
+/* Trạng thái lỗi Validation */
+.input-wrapper input.is-invalid,
+.input-wrapper .form-control.is-invalid,
+select.is-invalid,
+.input-wrapper select.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.2) !important;
+}
+
+/* Ngăn icon lỗi/thành công Bootstrap đè lên nút lịch của ô input date */
+.input-wrapper input[type="date"].is-invalid,
+.input-wrapper .form-control[type="date"].is-invalid,
+input[type="date"].is-invalid,
+.input-wrapper input[type="date"].is-valid,
+.input-wrapper .form-control[type="date"].is-valid,
+input[type="date"].is-valid {
+  background-image: none !important;
+  padding-right: 12px !important;
+}
+
+/* Ngăn icon checkmark xanh đè lên mũi tên dropdown của select */
+.input-wrapper select.is-valid,
+.input-wrapper .form-select.is-valid,
+select.is-valid,
+.form-select.is-valid {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+}
+
+.invalid-feedback {
+  font-size: 0.825rem;
+  color: #dc3545;
+  margin-top: 4px;
+}
+
+/* Card bao quanh form */
+.form-box {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+  padding: 30px 35px;
+  margin-bottom: 40px;
+}
+
+.form-section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-top: 15px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

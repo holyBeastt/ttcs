@@ -188,6 +188,20 @@ async function loadHeDaoTaoOptions() {
                 option.dataset.name = String(item.value);
                 doiTuongSelect.appendChild(option);
             });
+
+            const defaultSystem = heDaoTaoList.find((item) =>
+                item.value.trim().toLocaleLowerCase('vi-VN') === 'đh đóng học phí'
+            ) || heDaoTaoList.find((item) =>
+                item.value.toLocaleLowerCase('vi-VN').includes('đóng học phí')
+            );
+
+            if (defaultSystem) {
+                const defaultId = String(defaultSystem.id);
+                Array.from(doiTuongSelect.options).forEach((option) => {
+                    option.defaultSelected = option.value === defaultId;
+                });
+                doiTuongSelect.value = defaultId;
+            }
         }
     } catch (error) {
         console.error('Error loading he dao tao:', error);

@@ -142,6 +142,14 @@ $(document).ready(function () {
 
                 // He Dao Tao
                 setSelectOptions($('#he_dao_tao_id'), d.heDaoTao.map(h => h.id), "-- Chọn hệ đào tạo --", d.heDaoTao);
+                const defaultHeDaoTao = d.heDaoTao.find(h =>
+                    String(h.he_dao_tao || '').trim().toLocaleLowerCase('vi') === 'đh đóng học phí'
+                ) || d.heDaoTao.find(h =>
+                    String(h.he_dao_tao || '').trim().toLocaleLowerCase('vi').includes('đóng học phí')
+                );
+                if (defaultHeDaoTao) {
+                    $('#he_dao_tao_id').val(String(defaultHeDaoTao.id));
+                }
 
                 // Set default year if activeNamHoc exists
                 if (d.activeNamHoc) {

@@ -14,6 +14,19 @@ const getInitParams = () => {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[caNhan] DOMContentLoaded');
     const { idUser, namHoc } = getInitParams();
+
+    const parentPageLink = document.getElementById('btnBackToParent');
+    if (parentPageLink) {
+        parentPageLink.addEventListener('click', () => {
+            const selectedNamHoc = document.getElementById('namHocFilter')?.value || namHoc;
+            const params = new URLSearchParams();
+            if (selectedNamHoc) params.set('namHoc', selectedNamHoc);
+            const query = params.toString();
+            parentPageLink.href = query
+                ? `${parentPageLink.dataset.targetPath}?${query}`
+                : parentPageLink.dataset.targetPath;
+        });
+    }
     
     await loadNamHocOptions(namHoc);
 

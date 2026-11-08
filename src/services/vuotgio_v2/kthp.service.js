@@ -57,11 +57,7 @@ const canonicalRows = (rows) => rows.map(mapper.rowToCanonical);
 
 const getTableData = async (req, res) => {
     const { NamHoc, heDaoTao, dot, ki } = req.body;
-    const requestedKhoa = req.body.khoa || req.body.Khoa;
-    // User thuộc khoa chỉ được xem/thao tác dữ liệu của chính khoa mình.
-    const khoa = req.khoaFilter?.isKhoa && req.khoaFilter?.MaPhongBan
-        ? req.khoaFilter.MaPhongBan
-        : requestedKhoa;
+    const khoa = req.body.khoa || req.body.Khoa || "ALL";
     let connection;
     try {
         connection = await createPoolConnection();

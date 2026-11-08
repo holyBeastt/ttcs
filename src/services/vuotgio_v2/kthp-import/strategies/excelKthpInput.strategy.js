@@ -56,6 +56,46 @@ const getTypeForSheet = (sheetName) => {
 const isEmptyRow = (row) => !row || row.every((value) =>
     value === null || value === undefined || collapseWhitespace(value) === "");
 
+// Build rows from cells that actually contain data. sheet_to_json() walks the
+// whole worksheet !ref range, which can include thousands of formatted but
+// empty rows at the bottom of an Excel sheet.
+const getPopulatedRows = (worksheet) => {
+    const cells = [];
+    let firstColumn = Infinity;
+    let lastColumn = -1;
+    for (const address of Object.keys(worksheet)) {
+        if (address.startsWith("!")) continue;
+        const sourceCell = worksheet[address];
+        if (!sourceCell) continue;
+
+        const hasValue = sourceCell.v !== null
+            && sourceCell.v !== undefined
+            && (typeof sourceCell.v !== "string" || collapseWhitespace(sourceCell.v) !== "");
+        const hasFormula = typeof sourceCell.f === "string" && sourceCell.f.trim() !== "";
+        if (!hasValue && !hasFormula) continue;
+
+        const { r, c } = XLSX.utils.decode_cell(address);
+        cells.push({ rowIndex: r, columnIndex: c, value: sourceCell.v ?? null });
+        firstColumn = Math.min(firstColumn, c);
+        lastColumn = Math.max(lastColumn, c);
+    }
+    if (cells.length === 0) return [];
+
+    const rowsByIndex = new Map();
+    for (const cell of cells) {
+        let row = rowsByIndex.get(cell.rowIndex);
+        if (!row) {
+            row = Array(lastColumn - firstColumn + 1).fill(null);
+            rowsByIndex.set(cell.rowIndex, row);
+        }
+        row[cell.columnIndex - firstColumn] = cell.value;
+    }
+
+    return [...rowsByIndex.entries()]
+        .sort(([left], [right]) => left - right)
+        .map(([rowIndex, values]) => ({ rowNumber: rowIndex + 1, values }));
+};
+
 const rowToRawObject = (headers, row) => Object.fromEntries(
     headers.map((header, index) => [collapseWhitespace(header) || `column_${index + 1}`, row[index] ?? null])
 );
@@ -218,16 +258,13 @@ class ExcelKthpInputStrategy extends KthpInputStrategy {
             if (!typeInfo) continue;
             recognizedSheetCount += 1;
 
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
-                header: 1,
-                defval: null,
-            });
-            const headerRowIndex = rows.findIndex((row) => {
-                const keys = (row || []).map(headerKey);
+            const rows = getPopulatedRows(workbook.Sheets[sheetName]);
+            const headerRow = rows.find(({ values }) => {
+                const keys = values.map(headerKey);
                 return keys.includes("ho va ten")
                     || (keys.includes("ho dem") && keys.includes("ten"));
             });
-            if (headerRowIndex < 0) {
+            if (!headerRow) {
                 const error = new Error(
                     `Không tìm thấy header giảng viên trong sheet "${sheetName}"`
                 );
@@ -235,22 +272,15 @@ class ExcelKthpInputStrategy extends KthpInputStrategy {
                 throw error;
             }
 
-            const headers = rows[headerRowIndex];
-            let emptyRows = 0;
-            for (let index = headerRowIndex + 1; index < rows.length; index += 1) {
-                const row = rows[index];
-                if (isEmptyRow(row)) {
-                    emptyRows += 1;
-                    if (emptyRows >= 2) break;
-                    continue;
-                }
-                emptyRows = 0;
+            const headers = headerRow.values;
+            for (const { rowNumber, values: row } of rows) {
+                if (rowNumber <= headerRow.rowNumber || isEmptyRow(row)) continue;
                 if (!getLecturerName(row, headers)) continue;
                 dtos.push(createDtoFromRow({
                     row,
                     headers,
                     sheetName,
-                    rowNumber: index + 1,
+                    rowNumber,
                     fileName,
                     typeInfo,
                     context,

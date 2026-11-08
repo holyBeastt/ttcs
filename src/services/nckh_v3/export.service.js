@@ -2,19 +2,49 @@ const ExcelJS = require("exceljs");
 const createPoolConnection = require("../../config/databasePool");
 const exportRepo = require("../../repositories/nckh_v3/export.repo");
 const statsService = require("./stats.service");
+const { STATS_SCOPE } = require("../../config/nckh_v3/statsScope");
+
+const resolveExportYearFilter = (namHoc, options = {}) => {
+  const hasRange = Boolean(String(options.namHocFrom || "").trim() || String(options.namHocTo || "").trim());
+  const yearRange = hasRange
+    ? {
+        namHocFrom: String(options.namHocFrom || "").trim(),
+        namHocTo: String(options.namHocTo || "").trim(),
+      }
+    : null;
+  const resolved = statsService.resolveNamHocFilter(namHoc, yearRange);
+  return {
+    ...resolved,
+    yearRange,
+    label: yearRange ? `Từ ${yearRange.namHocFrom} đến ${yearRange.namHocTo}` : resolved.namHoc,
+    hasRange: Boolean(resolved.fromYear && resolved.toYear),
+  };
+};
 
 class ExportService {
   /**
    * Export lecturer statistics to Excel.
-   * Each lecturer will have their own sheet, grouped by research type.
+   * Each lecturer gets one sheet grouped by NCKH type and a total of their credited hours.
    */
-  async exportLecturerStats(namHoc, khoaId, keyword, scope) {
+  async exportLecturerStats(namHoc, khoaId, keyword, scope, options = {}) {
     let connection;
     try {
       connection = await createPoolConnection();
+      const yearFilter = resolveExportYearFilter(namHoc, options);
+      const lecturerId = String(options.lecturerId || "").trim() || null;
+      if (lecturerId && (!Number.isInteger(Number(lecturerId)) || Number(lecturerId) <= 0)) {
+        throw new Error("lecturerId không hợp lệ");
+      }
       
       // 1. Get filtered list of lecturers
-      const lecturers = await statsService.getLecturerSummary(namHoc, khoaId, keyword, scope);
+      const lecturers = await statsService.getLecturerSummary(
+        yearFilter.namHoc,
+        lecturerId ? "ALL" : khoaId,
+        lecturerId ? "" : keyword,
+        scope,
+        lecturerId,
+        yearFilter.yearRange
+      );
       if (!lecturers.length) {
         throw new Error("Không có dữ liệu để xuất");
       }
@@ -23,6 +53,7 @@ class ExportService {
       workbook.creator = "NCKH V3 System";
       workbook.lastModifiedBy = "NCKH V3 System";
       workbook.created = new Date();
+      workbook.calcProperties.fullCalcOnLoad = true;
 
       // 2. Iterate through each lecturer and create a sheet
       for (const lecturer of lecturers) {
@@ -34,13 +65,13 @@ class ExportService {
         const worksheet = workbook.addWorksheet(safeName);
 
         // Header info
-        worksheet.mergeCells("A1:G1");
+        worksheet.mergeCells("A1:K1");
         const titleCell = worksheet.getCell("A1");
-        titleCell.value = `THỐNG KÊ CHI TIẾT NGHIÊN CỨU KHOA HỌC - NĂM HỌC ${namHoc}`;
+        titleCell.value = `THỐNG KÊ CHI TIẾT NGHIÊN CỨU KHOA HỌC - NĂM HỌC ${yearFilter.label}`;
         titleCell.font = { size: 14, bold: true };
         titleCell.alignment = { horizontal: "center" };
 
-        worksheet.mergeCells("A2:G2");
+        worksheet.mergeCells("A2:K2");
         const lecturerInfoCell = worksheet.getCell("A2");
         lecturerInfoCell.value = `Giảng viên: ${lecturer.tenNhanVien} - Khoa: ${lecturer.lecturerKhoaName || "N/A"}`;
         lecturerInfoCell.font = { size: 12, italic: true };
@@ -49,113 +80,164 @@ class ExportService {
         worksheet.addRow([]); // Blank row
 
         // Get records for this lecturer
-        const records = await statsService.getLecturerRecords(lecturer.lecturerId, namHoc, scope);
+        const records = await statsService.getLecturerRecords(
+          lecturer.lecturerId,
+          yearFilter.namHoc,
+          scope,
+          yearFilter.yearRange
+        );
         
-        // Group records by type
-        const groupedRecords = this._groupRecordsByType(records);
+        const headerRow = worksheet.addRow([
+          "STT",
+          "Năm học",
+          "Loại NCKH",
+          "Phân loại",
+          "Tên công trình",
+          "Tên tạp chí / hội thảo",
+          "Vai trò",
+          "Tiết giảng viên",
+          "Tổng tiết công trình",
+          "Tác giả chính",
+          "Thành viên",
+        ]);
+        headerRow.font = { bold: true };
+        headerRow.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+          cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE0E0E0" } };
+        });
 
-        let currentRow = 5;
+        const recordsByType = new Map();
+        records.forEach((record) => {
+          const typeLabel = record.loaiNckhLabel || record.loaiNckh || "Khác";
+          if (!recordsByType.has(typeLabel)) recordsByType.set(typeLabel, []);
+          recordsByType.get(typeLabel).push(record);
+        });
 
-        for (const [typeLabel, groupRows] of Object.entries(groupedRecords)) {
-          // Group Title Row
-          const groupTitleRow = worksheet.addRow([typeLabel]);
-          groupTitleRow.font = { bold: true };
-          worksheet.mergeCells(`A${currentRow}:G${currentRow}`);
-          currentRow++;
-
-          // Table Header
-          const headerRow = worksheet.addRow([
-            "STT",
-            "Tên công trình",
-            "Vai trò",
-            "Số tiết",
-            "Tổng tiết CT",
-            "Tác giả chính",
-            "Thành viên"
-          ]);
-          headerRow.font = { bold: true };
-          headerRow.eachCell((cell) => {
+        const groupSubtotalRows = [];
+        let sequence = 0;
+        for (const [typeLabel, typeRecords] of recordsByType) {
+          const groupHeaderRow = worksheet.addRow([`${typeLabel} (${typeRecords.length} công trình)`, "", "", "", "", "", "", "", "", "", ""]);
+          worksheet.mergeCells(`A${groupHeaderRow.number}:K${groupHeaderRow.number}`);
+          for (let column = 1; column <= 11; column += 1) {
+            const cell = groupHeaderRow.getCell(column);
+            cell.font = { bold: true, color: { argb: "FF1F4E78" } };
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDDEBF7" } };
+            cell.alignment = { horizontal: "left", vertical: "middle" };
             cell.border = {
               top: { style: "thin" },
               left: { style: "thin" },
               bottom: { style: "thin" },
-              right: { style: "thin" }
+              right: { style: "thin" },
             };
-            cell.alignment = { horizontal: "center" };
-            cell.fill = {
-              type: "pattern",
-              pattern: "solid",
-              fgColor: { argb: "FFE0E0E0" }
-            };
-          });
-          currentRow++;
+          }
+          groupHeaderRow.height = 22;
 
-          // Data Rows
-          groupRows.forEach((rec, idx) => {
+          const firstGroupDataRow = worksheet.rowCount + 1;
+          typeRecords.forEach((rec) => {
             const dataRow = worksheet.addRow([
-              idx + 1,
+              ++sequence,
+              rec.namHoc,
+              rec.loaiNckhLabel || rec.loaiNckh,
+              rec.phanLoai,
               rec.tenCongTrinh,
+              rec.tenTapChi,
               rec.vaiTroGiangVien,
-              rec.soTietGiangVien,
-              rec.tongSoTietCongTrinh,
+              Number(rec.soTietGiangVien || 0),
+              Number(rec.tongSoTietCongTrinh || 0),
               rec.tacGiaChinh,
-              rec.thanhVien
+              rec.thanhVien,
             ]);
             dataRow.eachCell((cell, colNumber) => {
               cell.border = {
                 top: { style: "thin" },
                 left: { style: "thin" },
                 bottom: { style: "thin" },
-                right: { style: "thin" }
+                right: { style: "thin" },
               };
-              if ([1, 3, 4, 5].includes(colNumber)) {
-                cell.alignment = { horizontal: "center", vertical: "middle" };
-              } else {
-                cell.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
-              }
-              if ([4, 5].includes(colNumber)) {
-                cell.numFmt = "#,##0.00";
-              }
+              cell.alignment = {
+                horizontal: [1, 2, 8, 9].includes(colNumber) ? "center" : "left",
+                vertical: "middle",
+                wrapText: true,
+              };
+              if ([8, 9].includes(colNumber)) cell.numFmt = "#,##0.00";
             });
-            currentRow++;
           });
 
-          const totalLecturerHours = groupRows.reduce((total, rec) => total + Number(rec.soTietGiangVien || 0), 0);
-          const totalProjectHours = groupRows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
-          const totalRow = worksheet.addRow([
+          const lastGroupDataRow = worksheet.rowCount;
+          const groupLecturerHours = typeRecords.reduce((total, rec) => total + Number(rec.soTietGiangVien || 0), 0);
+          const groupResearchHours = typeRecords.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
+          const groupTotalRow = worksheet.addRow([
+            `Tổng ${typeLabel}`,
             "",
-            `Tổng nhóm (${groupRows.length} công trình)`,
             "",
-            totalLecturerHours,
-            totalProjectHours,
+            "",
+            "",
+            "",
+            "",
+            { formula: `SUM(H${firstGroupDataRow}:H${lastGroupDataRow})`, result: groupLecturerHours },
+            { formula: `SUM(I${firstGroupDataRow}:I${lastGroupDataRow})`, result: groupResearchHours },
             "",
             "",
           ]);
-          totalRow.font = { bold: true };
-          totalRow.eachCell((cell, colNumber) => {
+          worksheet.mergeCells(`A${groupTotalRow.number}:G${groupTotalRow.number}`);
+          groupSubtotalRows.push(groupTotalRow.number);
+          groupTotalRow.font = { bold: true };
+          groupTotalRow.eachCell((cell, colNumber) => {
             cell.border = {
               top: { style: "thin" },
               left: { style: "thin" },
               bottom: { style: "thin" },
-              right: { style: "thin" }
+              right: { style: "thin" },
             };
-            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
-            cell.alignment = { horizontal: [4, 5].includes(colNumber) ? "center" : "left", vertical: "middle" };
-            if ([4, 5].includes(colNumber)) cell.numFmt = "#,##0.00";
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF5F9FF" } };
+            cell.alignment = { horizontal: [8, 9].includes(colNumber) ? "center" : "left", vertical: "middle" };
+            if ([8, 9].includes(colNumber)) cell.numFmt = "#,##0.00";
           });
-          currentRow++;
-
-          worksheet.addRow([]); // Blank row after group
-          currentRow++;
         }
 
+        const totalLecturerHours = records.reduce((total, rec) => total + Number(rec.soTietGiangVien || 0), 0);
+        const totalResearchHours = records.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
+        const lecturerHoursCell = {
+          formula: groupSubtotalRows.length ? `SUM(${groupSubtotalRows.map((row) => `H${row}`).join(",")})` : "0",
+          result: totalLecturerHours,
+        };
+        const researchHoursCell = {
+          formula: groupSubtotalRows.length ? `SUM(${groupSubtotalRows.map((row) => `I${row}`).join(",")})` : "0",
+          result: totalResearchHours,
+        };
+        const totalRow = worksheet.addRow(["TỔNG TIẾT CỦA GIẢNG VIÊN", "", "", "", "", "", "", lecturerHoursCell, researchHoursCell, "", ""]);
+        worksheet.mergeCells(`A${totalRow.number}:G${totalRow.number}`);
+        totalRow.font = { bold: true };
+        totalRow.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
+          cell.alignment = { horizontal: [8, 9].includes(colNumber) ? "center" : "left", vertical: "middle" };
+          if ([8, 9].includes(colNumber)) cell.numFmt = "#,##0.00";
+        });
+
+        worksheet.views = [{ state: "frozen", ySplit: headerRow.number }];
         // Auto-fit columns
         worksheet.columns = [
           { width: 5 },  // STT
+          { width: 16 }, // Năm học
+          { width: 22 }, // Loại NCKH
+          { width: 24 }, // Phân loại
           { width: 50 }, // Tên công trình
-          { width: 15 }, // Vai trò
-          { width: 10 }, // Số tiết
-          { width: 15 }, // Tổng tiết CT
+          { width: 40 }, // Tên tạp chí / hội thảo
+          { width: 22 }, // Vai trò
+          { width: 16 }, // Tiết giảng viên
+          { width: 20 }, // Tổng tiết công trình
           { width: 30 }, // Tác giả chính
           { width: 30 }  // Thành viên
         ];
@@ -171,11 +253,13 @@ class ExportService {
    * Export faculty statistics to Excel.
    * If khoaId is 'ALL', create a sheet for each department.
    */
-  async exportFacultyStats(namHoc, khoaId, scope) {
+  async exportFacultyStats(namHoc, khoaId, scope, options = {}) {
     let connection;
     try {
       connection = await createPoolConnection();
+      const yearFilter = resolveExportYearFilter(namHoc, options);
       const workbook = this._createWorkbook();
+      workbook.calcProperties.fullCalcOnLoad = true;
 
       const faculties = await this._getFacultiesToExport(connection, khoaId);
       if (!faculties.length) {
@@ -183,14 +267,29 @@ class ExportService {
       }
 
       for (const faculty of faculties) {
-        const records = await statsService.getFacultyRecords(namHoc, faculty.id || faculty.khoaId, scope);
+        const records = await statsService.getFacultyRecords(
+          yearFilter.namHoc,
+          faculty.id || faculty.khoaId,
+          scope,
+          yearFilter.yearRange
+        );
         if (faculties.length > 1 && (!records || records.length === 0)) continue;
 
         const sheetName = this._safeSheetName(faculty.TenPhongBan || faculty.tenPhongBan || "Khoa");
         const worksheet = workbook.addWorksheet(sheetName);
 
-        this._renderHeader(worksheet, `THỐNG KÊ NCKH - KHOA/PHÒNG: ${faculty.TenPhongBan || faculty.tenPhongBan}`, namHoc);
-        this._renderResearchTable(worksheet, records, 5, { groupByType: true });
+        this._renderHeader(
+          worksheet,
+          `THỐNG KÊ NCKH - KHOA/PHÒNG: ${faculty.TenPhongBan || faculty.tenPhongBan}`,
+          yearFilter.label,
+          yearFilter.hasRange ? 10 : 9
+        );
+        this._renderResearchTable(worksheet, records, 5, {
+          groupByType: true,
+          useFormulas: true,
+          includeNamHoc: yearFilter.hasRange,
+          includeFacultyTotal: true,
+        });
       }
 
       if (workbook.worksheets.length === 0) {
@@ -205,32 +304,35 @@ class ExportService {
 
   /**
    * Export institute statistics to Excel.
-   * Sheet 1: All records grouped by Type.
-   * Following sheets: Each faculty's records.
+   * Only institute-wide sheets are included for both official and preview scopes.
    */
-  async exportInstituteStats(namHoc, scope) {
+  async exportInstituteStats(namHoc, scope, options = {}) {
     let connection;
     try {
       connection = await createPoolConnection();
+      const yearFilter = resolveExportYearFilter(namHoc, options);
       const workbook = this._createWorkbook();
+      workbook.calcProperties.fullCalcOnLoad = true;
+
+      const instituteSummary = await statsService.getInstituteSummary(yearFilter.namHoc, scope, yearFilter.yearRange);
+      const totalSheet = workbook.addWorksheet("Tổng Học viện");
+      this._renderInstituteSummary(totalSheet, instituteSummary, yearFilter.label, true);
 
       // 1. Sheet 1: Toàn Học viện
-      const instituteRecords = await statsService.getInstituteRecords(namHoc, "ALL", "ALL", scope);
+      const instituteRecords = await statsService.getInstituteRecords(
+        yearFilter.namHoc,
+        "ALL",
+        "ALL",
+        scope,
+        yearFilter.yearRange
+      );
       const overviewSheet = workbook.addWorksheet("Toàn Học viện");
-      this._renderHeader(overviewSheet, "THỐNG KÊ TOÀN HỌC VIỆN", namHoc);
-      this._renderResearchTable(overviewSheet, instituteRecords, 5, { groupByType: true });
-
-      // 2. Following sheets: Individual Faculties
-      const faculties = await statsService.getFilters().then(f => f.khoaList);
-      for (const faculty of faculties) {
-        const records = await statsService.getFacultyRecords(namHoc, faculty.id, scope);
-        if (!records || records.length === 0) continue;
-
-        const sheetName = this._safeSheetName(faculty.TenPhongBan);
-        const worksheet = workbook.addWorksheet(sheetName);
-        this._renderHeader(worksheet, `CHI TIẾT: ${faculty.TenPhongBan}`, namHoc);
-        this._renderResearchTable(worksheet, records, 5, { groupByType: true });
-      }
+      this._renderHeader(overviewSheet, "THỐNG KÊ TOÀN HỌC VIỆN", yearFilter.label, yearFilter.hasRange ? 9 : 8);
+      this._renderResearchTable(overviewSheet, instituteRecords, 5, {
+        groupByType: true,
+        useFormulas: true,
+        includeNamHoc: yearFilter.hasRange,
+      });
 
       return workbook;
     } finally {
@@ -253,26 +355,132 @@ class ExportService {
       .substring(0, 31);
   }
 
-  _renderHeader(worksheet, title, namHoc) {
-    worksheet.mergeCells("A1:G1");
+  _renderHeader(worksheet, title, namHoc, columnCount = 7) {
+    const endColumn = this._excelColumnName(columnCount);
+    worksheet.mergeCells(`A1:${endColumn}1`);
     const tCell = worksheet.getCell("A1");
     tCell.value = title;
     tCell.font = { size: 14, bold: true };
     tCell.alignment = { horizontal: "center" };
 
-    worksheet.mergeCells("A2:G2");
+    worksheet.mergeCells(`A2:${endColumn}2`);
     const sCell = worksheet.getCell("A2");
     sCell.value = `Năm học: ${namHoc}`;
     sCell.font = { size: 12, italic: true };
     sCell.alignment = { horizontal: "center" };
   }
 
+  _renderInstituteSummary(worksheet, summary, namHoc, useFormulas = false) {
+    worksheet.mergeCells("A1:C1");
+    const titleCell = worksheet.getCell("A1");
+    titleCell.value = "TỔNG HỢP NCKH TOÀN HỌC VIỆN";
+    titleCell.font = { size: 14, bold: true };
+    titleCell.alignment = { horizontal: "center" };
+
+    worksheet.mergeCells("A2:C2");
+    const yearCell = worksheet.getCell("A2");
+    yearCell.value = `Năm học: ${namHoc}`;
+    yearCell.font = { size: 12, italic: true };
+    yearCell.alignment = { horizontal: "center" };
+
+    worksheet.addRow([]);
+    const headerRow = worksheet.addRow(["Loại NCKH", "Số công trình", "Tổng số tiết"]);
+    headerRow.font = { bold: true };
+    headerRow.eachCell((cell) => {
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE0E0E0" } };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    const byType = summary?.byType || [];
+    byType.forEach((row) => {
+      const dataRow = worksheet.addRow([
+        row.loaiNckhLabel || row.loaiNckh || "N/A",
+        Number(row.soCongTrinh || 0),
+        Number(row.tongSoTiet || 0),
+      ]);
+      dataRow.eachCell((cell, columnNumber) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+        cell.alignment = { horizontal: columnNumber === 1 ? "left" : "center", vertical: "middle" };
+        if (columnNumber === 2) cell.numFmt = "#,##0";
+        if (columnNumber === 3) cell.numFmt = "#,##0.00";
+      });
+    });
+
+    const overview = summary?.overview || {};
+    const firstTypeRow = headerRow.number + 1;
+    const lastTypeRow = worksheet.rowCount;
+    const totalWorksCell = useFormulas
+      ? {
+          formula: byType.length ? `SUM(B${firstTypeRow}:B${lastTypeRow})` : "0",
+          result: Number(overview.tongCongTrinh || 0),
+        }
+      : Number(overview.tongCongTrinh || 0);
+    const totalHoursCell = useFormulas
+      ? {
+          formula: byType.length ? `SUM(C${firstTypeRow}:C${lastTypeRow})` : "0",
+          result: Number(overview.tongSoTiet || 0),
+        }
+      : Number(overview.tongSoTiet || 0);
+    const totalRow = worksheet.addRow([
+      "TỔNG HỌC VIỆN - TẤT CẢ LOẠI NCKH",
+      totalWorksCell,
+      totalHoursCell,
+    ]);
+    totalRow.font = { bold: true };
+    totalRow.eachCell((cell, columnNumber) => {
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
+      cell.alignment = { horizontal: columnNumber === 1 ? "left" : "center", vertical: "middle" };
+      if (columnNumber === 2) cell.numFmt = "#,##0";
+      if (columnNumber === 3) cell.numFmt = "#,##0.00";
+    });
+
+    worksheet.columns = [{ width: 42 }, { width: 20 }, { width: 20 }];
+    worksheet.views = [{ state: "frozen", ySplit: headerRow.number }];
+  }
+
+  _excelColumnName(columnNumber) {
+    let number = Number(columnNumber);
+    let result = "";
+    while (number > 0) {
+      const remainder = (number - 1) % 26;
+      result = String.fromCharCode(65 + remainder) + result;
+      number = Math.floor((number - 1) / 26);
+    }
+    return result || "A";
+  }
+
   _renderResearchTable(worksheet, records, startRow, options = {}) {
     let currentRow = startRow;
+    const includeNamHoc = options.includeNamHoc === true;
+    const includeFacultyTotal = options.includeFacultyTotal === true;
+    const columnCount = includeNamHoc
+      ? (includeFacultyTotal ? 10 : 9)
+      : (includeFacultyTotal ? 9 : 8);
+    const endColumn = this._excelColumnName(columnCount);
+    const facultyHoursColumn = includeNamHoc ? 7 : 6;
+    const allHoursColumn = includeNamHoc ? 8 : 7;
+    const totalHoursColumn = includeNamHoc ? 7 : 6;
 
     const renderBlock = (rows, title = null) => {
       if (title) {
-        worksheet.mergeCells(`A${currentRow}:G${currentRow}`);
+        worksheet.mergeCells(`A${currentRow}:${endColumn}${currentRow}`);
         const groupCell = worksheet.getCell(`A${currentRow}`);
         groupCell.value = title;
         groupCell.font = { bold: true };
@@ -280,7 +488,13 @@ class ExportService {
         currentRow++;
       }
 
-      const headerRow = worksheet.addRow(["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tổng tiết", "Tác giả chính", "Thành viên"]);
+      const headerRow = worksheet.addRow(includeNamHoc
+          ? (includeFacultyTotal
+          ? ["STT", "Năm học", "Loại NCKH", "Phân loại", "Tên công trình", "Tên tạp chí / hội thảo", "Tổng tiết (khoa)", "Tổng tiết (all)", "Tác giả chính", "Thành viên"]
+          : ["STT", "Năm học", "Loại NCKH", "Phân loại", "Tên công trình", "Tên tạp chí / hội thảo", "Tổng tiết", "Tác giả chính", "Thành viên"])
+        : (includeFacultyTotal
+          ? ["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tên tạp chí / hội thảo", "Tổng tiết (khoa)", "Tổng tiết (all)", "Tác giả chính", "Thành viên"]
+          : ["STT", "Loại NCKH", "Phân loại", "Tên công trình", "Tên tạp chí / hội thảo", "Tổng tiết", "Tác giả chính", "Thành viên"]));
       headerRow.font = { bold: true };
       headerRow.eachCell(cell => {
         cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
@@ -290,46 +504,57 @@ class ExportService {
       currentRow++;
 
       rows.forEach((rec, idx) => {
-        const dataRow = worksheet.addRow([
-          idx + 1,
-          rec.loaiNckhLabel,
-          rec.phanLoai,
-          rec.tenCongTrinh,
-          rec.tongSoTietCongTrinh, // Sửa từ tongSoTiet thành tongSoTietCongTrinh
-          rec.tacGiaChinh,
-          rec.thanhVien
-        ]);
+        const facultyTotal = Number(rec.tongSoTietCongTrinh || 0);
+        const allTotal = Number(rec.tongSoTietCongTrinhAll ?? rec.tongSoTietCongTrinh ?? 0);
+        const dataRow = worksheet.addRow(includeNamHoc
+          ? (includeFacultyTotal
+            ? [idx + 1, rec.namHoc, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, rec.tenTapChi, facultyTotal, allTotal, rec.tacGiaChinh, rec.thanhVien]
+            : [idx + 1, rec.namHoc, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, rec.tenTapChi, rec.tongSoTietCongTrinh, rec.tacGiaChinh, rec.thanhVien])
+          : (includeFacultyTotal
+            ? [idx + 1, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, rec.tenTapChi, facultyTotal, allTotal, rec.tacGiaChinh, rec.thanhVien]
+            : [idx + 1, rec.loaiNckhLabel, rec.phanLoai, rec.tenCongTrinh, rec.tenTapChi, rec.tongSoTietCongTrinh, rec.tacGiaChinh, rec.thanhVien]));
         dataRow.eachCell((cell, colNumber) => {
           cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
-          if (colNumber === 1 || colNumber === 5) {
+          const isHoursColumn = includeFacultyTotal
+            ? [facultyHoursColumn, allHoursColumn].includes(colNumber)
+            : colNumber === totalHoursColumn;
+          if (colNumber === 1 || isHoursColumn) {
             cell.alignment = { horizontal: "center" };
           } else {
             cell.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
           }
 
-          if (colNumber === 5) {
+          if (isHoursColumn) {
             cell.numFmt = "#,##0.00";
           }
         });
         currentRow++;
       });
 
-      const totalHours = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
-      const totalRow = worksheet.addRow([
-        "",
-        "",
-        "",
-        `Tổng nhóm (${rows.length} công trình)`,
-        totalHours,
-        "",
-        "",
-      ]);
+      const facultyTotal = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinh || 0), 0);
+      const allTotal = rows.reduce((total, rec) => total + Number(rec.tongSoTietCongTrinhAll ?? rec.tongSoTietCongTrinh ?? 0), 0);
+      const makeTotalCell = (column, result) => options.useFormulas
+        ? {
+            formula: rows.length ? `SUM(${column}${headerRow.number + 1}:${column}${worksheet.rowCount})` : "0",
+            result,
+          }
+        : result;
+      const totalRow = worksheet.addRow(includeNamHoc
+          ? (includeFacultyTotal
+          ? ["", "", "", "", `Tổng nhóm (${rows.length} công trình)`, "", makeTotalCell("G", facultyTotal), makeTotalCell("H", allTotal), "", ""]
+          : ["", "", "", "", `Tổng nhóm (${rows.length} công trình)`, "", makeTotalCell("G", facultyTotal), "", ""])
+        : (includeFacultyTotal
+          ? ["", "", "", `Tổng nhóm (${rows.length} công trình)`, "", makeTotalCell("F", facultyTotal), makeTotalCell("G", allTotal), "", ""]
+          : ["", "", "", `Tổng nhóm (${rows.length} công trình)`, "", makeTotalCell("F", facultyTotal), "", ""]));
       totalRow.font = { bold: true };
       totalRow.eachCell((cell, colNumber) => {
         cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFF6FF" } };
-        cell.alignment = { horizontal: colNumber === 5 ? "center" : "left", vertical: "middle" };
-        if (colNumber === 5) cell.numFmt = "#,##0.00";
+        const isHoursColumn = includeFacultyTotal
+          ? [facultyHoursColumn, allHoursColumn].includes(colNumber)
+          : colNumber === totalHoursColumn;
+        cell.alignment = { horizontal: isHoursColumn ? "center" : "left", vertical: "middle" };
+        if (isHoursColumn) cell.numFmt = "#,##0.00";
       });
       currentRow++;
       worksheet.addRow([]); currentRow++;
@@ -344,9 +569,24 @@ class ExportService {
       renderBlock(records);
     }
 
-    worksheet.columns = [
-      { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 }, { width: 15 }, { width: 25 }, { width: 25 }
-    ];
+    worksheet.columns = includeNamHoc
+        ? (includeFacultyTotal
+        ? [
+            { width: 5 }, { width: 16 }, { width: 20 }, { width: 30 },
+            { width: 50 }, { width: 40 }, { width: 17 }, { width: 17 }, { width: 25 }, { width: 25 },
+          ]
+        : [
+            { width: 5 }, { width: 16 }, { width: 20 }, { width: 30 },
+            { width: 50 }, { width: 40 }, { width: 15 }, { width: 25 }, { width: 25 },
+          ])
+      : (includeFacultyTotal
+        ? [
+            { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 }, { width: 40 },
+            { width: 17 }, { width: 17 }, { width: 25 }, { width: 25 },
+          ]
+        : [
+            { width: 5 }, { width: 20 }, { width: 30 }, { width: 50 }, { width: 40 }, { width: 15 }, { width: 25 }, { width: 25 },
+          ]);
   }
 
   async _getFacultiesToExport(connection, khoaId) {

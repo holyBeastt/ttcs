@@ -59,6 +59,7 @@ Khi thực hiện vòng lặp `INSERT INTO giangday`:
 1. **Repository Ảo:** Không tồn tại một Repository chuẩn mực cho luồng này. Mọi thay đổi về cấu trúc lưu trữ phải tác động trực tiếp vào các hàm `insertGiangDay` / `insertGiangDay2` của `importController.js`.
 2. **Hợp nhất Code:** Hai hàm này có logic vòng lặp và câu lệnh SQL giống nhau đến 90%. Trong tương lai, nên refactor thành một hàm `saveGiangDayToDB(data, type)` nằm trong `tongHop.repo.js` và truyền cờ phân biệt.
 3. **Tuyệt đối không sửa `id_Gvm` của Cơ hữu:** Giá trị `id_Gvm = 1` là xương sống của toàn bộ hệ thống tính Vượt giờ V2. Nếu thay đổi giá trị này, toàn bộ báo cáo Vượt giờ sẽ bị sai số.
+4. **`id_User` và `id_Gvm` là thành phần của Sync Unique Key:** Trong `syncConfig.js`, `uniqueKey` của bảng `giangday` bao gồm `['Dot', 'HocKy', 'NamHoc', 'TenHocPhan', 'Lop', 'id_User', 'id_Gvm']`. Điều này phản ánh thực tế nghiệp vụ: cùng một lớp học phần trong cùng một đợt có thể được dạy bởi nhiều giảng viên (ví dụ: lớp ghép cơ hữu + mời), và mỗi combination `(Dot, HocKy, NamHoc, TenHocPhan, Lop, id_User, id_Gvm)` là một record riêng biệt. Cơ chế sync dùng tập key này để xác định record đã tồn tại chưa, tránh trùng lặp.
 
 ---
 
