@@ -1,656 +1,1194 @@
 <!DOCTYPE html>
 <html lang="vi">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Thống kê giảng dạy cơ hữu - Vượt giờ V2</title>
-
-		<link
-			rel="stylesheet"
-			href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-		/>
-		<link
-			rel="stylesheet"
-			href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-		/>
-		<link rel="stylesheet" href="/css/styles.css" />
-		<link rel="stylesheet" href="/css/table.css" />
-
-		<style>
-			.page-wrap {
-				padding: 20px;
-			}
-
-			.panel {
-				background: #fff;
-				border-radius: 12px;
-				padding: 16px;
-				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-			}
-
-			.title {
-				font-size: 1.3rem;
-				font-weight: 600;
-				margin-bottom: 14px;
-			}
-
-			.header-actions {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				margin-bottom: 20px;
-			}
-
-			.loc {
-				display: flex;
-				gap: 10px;
-				align-items: center;
-			}
-
-			.summary {
-				position: fixed;
-				bottom: 20px;
-				right: 20px;
-				display: flex;
-				flex-direction: column;
-				gap: 5px;
-				z-index: 1000;
-				background: rgba(255, 255, 255, 0.9);
-				padding: 12px 16px;
-				border-radius: 12px;
-				box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-				border: 1px solid rgba(255, 255, 255, 0.18);
-				backdrop-filter: blur(8px);
-				-webkit-backdrop-filter: blur(8px);
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-			}
-
-			.summary.collapsed {
-				transform: translateY(calc(100% + 10px));
-			}
-
-			.summary-toggle {
-				position: absolute;
-				top: -35px;
-				right: 0;
-				width: 35px;
-				height: 35px;
-				background: #1f4ea8;
-				color: white;
-				border: none;
-				border-radius: 10px 0 0 10px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				cursor: pointer;
-				box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-				transition: all 0.3s ease;
-			}
-
-			.summary.collapsed .summary-toggle {
-				transform: translateY(5px);
-				border-radius: 10px 10px 0 0;
-				right: 10px;
-				top: -40px;
-			}
-
-			.summary-box {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 20px;
-				min-width: 200px;
-				padding: 4px 0;
-			}
-
-			.search {
-				height: 45px !important;
-				padding: 0 1rem !important;
-				box-sizing: border-box;
-			}
-
-			.btn {
-				height: 45px !important;
-				display: inline-flex;
-				align-items: center;
-				justify-content: center;
-				padding: 0 1.5rem !important;
-				box-sizing: border-box;
-				margin-bottom: 0 !important; /* Xóa margin bottom mặc định của .btn */
-			}
-
-			.summary-box .label {
-				color: #516078;
-				font-size: 0.85rem;
-				font-weight: 500;
-			}
-
-			.summary-box .value {
-				color: #1f4ea8;
-				font-weight: 700;
-				font-size: 1rem;
-			}
-
-			.table-wrap {
-				margin-top: 14px;
-				overflow: auto;
-			}
-
-			table.class-table {
-				width: 100%;
-				border-collapse: collapse;
-			}
-
-			.class-table th,
-			.class-table td {
-				border: 1px solid #dbe3f0;
-				padding: 8px;
-				font-size: 0.9rem;
-				vertical-align: middle;
-				text-align: center;
-			}
-
-			.class-table th:nth-child(1),
-			.class-table td:nth-child(1) {
-				width: 42px;
-				min-width: 42px;
-				max-width: 42px;
-				padding-left: 4px;
-				padding-right: 4px;
-			}
-
-			.class-table th:nth-child(2),
-			.class-table td:nth-child(2) {
-				width: 190px;
-				min-width: 190px;
-				max-width: 190px;
-			}
-
-			.class-table th:nth-child(3),
-			.class-table td:nth-child(3) {
-				width: 200px;
-				min-width: 200px;
-				max-width: 200px;
-			}
-
-			.class-table th:nth-child(4),
-			.class-table td:nth-child(4) {
-				width: 130px;
-				min-width: 130px;
-				max-width: 130px;
-			}
-
-			.class-table th:nth-child(5),
-			.class-table td:nth-child(5) {
-				width: 64px;
-				min-width: 64px;
-				max-width: 64px;
-			}
-
-			.class-table th:nth-child(6),
-			.class-table td:nth-child(6) {
-				width: 52px;
-				min-width: 52px;
-				max-width: 52px;
-			}
-
-			.class-table th:nth-child(7),
-			.class-table td:nth-child(7) {
-				width: 48px;
-				min-width: 48px;
-				max-width: 48px;
-			}
-
-			.class-table th:nth-child(8),
-			.class-table td:nth-child(8) {
-				width: 110px;
-				min-width: 110px;
-				max-width: 110px;
-			}
-
-			.class-table th:nth-child(9),
-			.class-table td:nth-child(9) {
-				width: 110px;
-				min-width: 110px;
-				max-width: 110px;
-			}
-
-			.class-table th:nth-child(10),
-			.class-table td:nth-child(10) {
-				width: 110px;
-				min-width: 110px;
-				max-width: 110px;
-			}
-
-			.class-table th:nth-child(11),
-			.class-table td:nth-child(11) {
-				width: 80px;
-				min-width: 80px;
-				max-width: 80px;
-			}
-
-			.class-table th:nth-child(12),
-			.class-table td:nth-child(12) {
-				width: 160px;
-				min-width: 160px;
-				max-width: 160px;
-			}
-
-			.class-table th {
-				background: #1f4ea8;
-				color: #fff;
-				position: sticky;
-				top: 0;
-				z-index: 1;
-			}
-
-			.group-head {
-				background: #f8fbff;
-			}
-
-			.empty-cell {
-				text-align: center;
-				color: #7a879c;
-				padding: 16px;
-			}
-
-			@media (max-width: 1200px) {
-				.header-actions {
-					flex-direction: column;
-					height: auto !important;
-					align-items: stretch;
-					gap: 15px;
-				}
-				.loc {
-					flex-wrap: wrap;
-				}
-			}
-		</style>
-	</head>
-
-	<body>
-		<%- include('../header') %>
-
-		<div class="page-wrap">
-			<div class="alert alert-info shadow-sm" role="alert">
-				<i class="bi bi-info-circle me-2"></i>
-				Sau khi phân hệ mời giảng hoàn thiện mới có dữ liệu chính thức trong bảng, nếu không có dữ liệu, vui lòng xem <a href="/v2/vuotgio/tong-hop-giang-vien" class="alert-link">thông tin vượt giờ dự kiến</a>.
-			</div>
-			<div class="panel">
-				<div class="title">Thống kê lớp giảng dạy theo giảng viên </div>
-
-				<div class="header-actions" style="height: 45px">
-					<input
-						id="searchInput"
-						type="text"
-						class="search"
-						placeholder="Tìm kiếm theo Tên..."
-						style="width: 250px"
-					/>
-
-					<div class="loc d-flex">
-						<select id="filterDot" class="selectop mx-1">
-							<option value="ALL" selected>Tất cả đợt</option>
-							<option value="1">Đợt 1</option>
-							<option value="2">Đợt 2</option>
-						</select>
-						<select id="filterKi" class="selectop mx-1">
-							<option value="ALL" selected>Tất cả kỳ</option>
-							<option value="1">Kỳ 1</option>
-							<option value="2">Kỳ 2</option>
-						</select>
-						<select id="filterNamHoc" class="selectop mx-1">
-							<option value="ALL">Tất cả năm học</option>
-						</select>
-						<select id="filterKhoa" class="selectop mx-1">
-							<option value="ALL" selected>Tất cả khoa</option>
-						</select>
-						<select id="filterHeDaoTao" class="selectop mx-1">
-							<option value="ALL" selected>Tất cả hệ đào tạo</option>
-						</select>
-						
-						<button class="btn text-nowrap mx-2" id="btnShow" style="height: 45px">Hiển thị</button>
-					</div>
-				</div>
-
-				<div class="summary" id="summaryBox">
-					<button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
-						<i class="bi bi-chevron-down"></i>
-					</button>
-					<div class="summary-box">
-						<div class="label">Tổng giảng viên</div>
-						<div class="value" id="totalTeachers">0</div>
-					</div>
-					<div class="summary-box">
-						<div class="label">Tổng lớp học phần</div>
-						<div class="value" id="totalCourses">0</div>
-					</div>
-					<div class="summary-box">
-						<div class="label">Tổng tiết Quy chuẩn</div>
-						<div class="value" id="totalQuyChuan">0.00</div>
-					</div>
-				</div>
-
-				<div class="table-wrap">
-					<table class="class-table" id="classTable">
-						<thead>
-							<tr>
-								<th>STT</th>
-								<th>Giảng viên</th>
-								<th>Môn học</th>
-								<th>Tên lớp</th>
-								<th>Số tín chỉ</th>
-								<th>Đợt</th>
-								<th>Kỳ</th>
-								<th>Năm học</th>
-								<th>Số tiết QC</th>
-								<th>Tổng số tiết</th>
-								<th>Khoa</th>
-								<th>Hệ đào tạo</th>
-							</tr>
-						</thead>
-						<tbody id="dataTableBody"></tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-
-		<script>
-			const state = {
-				rawGroups: [],
-				filteredGroups: [],
-				heDaoTaoMap: new Map(),
-				lastSummary: {
-					totalTeachers: 0,
-					totalCourses: 0,
-					totalQuyChuan: 0,
-				},
-			};
-
-			const els = {
-				dot: document.getElementById("filterDot"),
-				ki: document.getElementById("filterKi"),
-				namHoc: document.getElementById("filterNamHoc"),
-				khoa: document.getElementById("filterKhoa"),
-				heDaoTao: document.getElementById("filterHeDaoTao"),
-				search: document.getElementById("searchInput"),
-				btnShow: document.getElementById("btnShow"),
-				tableBody: document.getElementById("dataTableBody"),
-				totalTeachers: document.getElementById("totalTeachers"),
-				totalCourses: document.getElementById("totalCourses"),
-				totalQuyChuan: document.getElementById("totalQuyChuan"),
-			};
-
-			function getHeDaoTaoLabel(rawValue) {
-				if (rawValue === null || rawValue === undefined || rawValue === "") return "";
-				if (rawValue === "ALL") return "Tất cả";
-
-				const key = String(rawValue).trim();
-				return state.heDaoTaoMap.get(key) || rawValue;
-			}
-
-			function setSelectOptions(selectElement, values, options = {}) {
-				const { isHeDaoTao = false, defaultLabel = "" } = options;
-				selectElement.innerHTML = "";
-
-				if (defaultLabel) {
-					const defaultOpt = document.createElement("option");
-					defaultOpt.value = "ALL";
-					defaultOpt.textContent = defaultLabel;
-					selectElement.appendChild(defaultOpt);
-				}
-
-				values.forEach((value) => {
-					if (value === "ALL" && defaultLabel) return; // Tránh lặp "Tất cả" nếu đã có defaultLabel
-
-					const option = document.createElement("option");
-					option.value = value;
-					option.textContent = isHeDaoTao
-						? getHeDaoTaoLabel(value)
-						: value === "ALL"
-						? "Tất cả"
-						: value;
-					selectElement.appendChild(option);
-				});
-			}
-
-			function updateSummary(groups) {
-				const totalTeachers = groups.length;
-				const totalCourses = groups.reduce(
-					(sum, teacher) => sum + teacher.courses.length,
-					0
-				);
-				const totalQuyChuan = groups.reduce(
-					(sum, teacher) => sum + (Number(teacher.tongSoTietKy) || 0),
-					0
-				);
-
-				els.totalTeachers.textContent = totalTeachers;
-				els.totalCourses.textContent = totalCourses;
-				els.totalQuyChuan.textContent = totalQuyChuan.toFixed(2);
-			}
-
-			function getTeacherHeDaoTaoSortKey(teacher) {
-				const labels = Array.from(
-					new Set((teacher.courses || []).map((c) => getHeDaoTaoLabel(c.heDaoTao) || ""))
-				).sort((a, b) => a.localeCompare(b, "vi"));
-
-				return labels[0] || "";
-			}
-
-			function sortTeacherGroups(groups) {
-				return [...groups].sort((a, b) => {
-					const heA = getTeacherHeDaoTaoSortKey(a);
-					const heB = getTeacherHeDaoTaoSortKey(b);
-					const byHe = heA.localeCompare(heB, "vi");
-					if (byHe !== 0) return byHe;
-
-					return String(a.giangVien || "").localeCompare(String(b.giangVien || ""), "vi");
-				});
-			}
-
-			function renderTable(groups) {
-				els.tableBody.innerHTML = "";
-
-				if (!groups.length) {
-					const tr = document.createElement("tr");
-					tr.innerHTML =
-						'<td class="empty-cell" colspan="12">Không có dữ liệu phù hợp bộ lọc</td>';
-					els.tableBody.appendChild(tr);
-					updateSummary([]);
-					return;
-				}
-
-				let stt = 1;
-				groups.forEach((teacher) => {
-					const rowSpan = teacher.courses.length;
-					if (!rowSpan) return;
-
-					teacher.courses.forEach((course, index) => {
-						const tr = document.createElement("tr");
-						if (index === 0) {
-							tr.classList.add("group-head");
-						}
-
-						let rowHtml = "";
-						if (index === 0) {
-									rowHtml += `<td rowspan="${rowSpan}">${stt}</td>`;
-							rowHtml += `<td rowspan="${rowSpan}">${teacher.giangVien}</td>`;
-						}
-
-						rowHtml += `<td>${course.tenHocPhan || ""}</td>`;
-						rowHtml += `<td>${course.lop || ""}</td>`;
-								rowHtml += `<td>${course.soTinChi ?? ""}</td>`;
-								rowHtml += `<td>${course.dot ?? ""}</td>`;
-								rowHtml += `<td>${course.kiHoc ?? ""}</td>`;
-								rowHtml += `<td>${course.namHoc ?? ""}</td>`;
-								rowHtml += `<td>${(Number(course.quyChuan) || 0).toFixed(2)}</td>`;
-
-						if (index === 0) {
-									rowHtml += `<td rowspan="${rowSpan}">${(
-								Number(teacher.tongSoTietKy) || 0
-							).toFixed(2)}</td>`;
-									rowHtml += `<td rowspan="${rowSpan}">${teacher.khoa || ""}</td>`;
-						}
-
-						rowHtml += `<td>${getHeDaoTaoLabel(course.heDaoTao)}</td>`;
-						tr.innerHTML = rowHtml;
-						els.tableBody.appendChild(tr);
-					});
-
-					stt += 1;
-				});
-
-				updateSummary(groups);
-			}
-
-			function applyClientSearch() {
-				const q = els.search.value.trim().toLowerCase();
-				if (!q) {
-					state.filteredGroups = sortTeacherGroups(state.rawGroups);
-					renderTable(state.filteredGroups);
-					return;
-				}
-
-				state.filteredGroups = sortTeacherGroups(
-					state.rawGroups.filter((teacher) =>
-						String(teacher.giangVien || "").toLowerCase().includes(q)
-					)
-				);
-				renderTable(state.filteredGroups);
-			}
-
-			function getFilterPayload() {
-				return {
-					dot: els.dot.value === "ALL" ? null : els.dot.value,
-					ki: els.ki.value === "ALL" ? null : els.ki.value,
-					namHoc: els.namHoc.value === "ALL" ? null : els.namHoc.value,
-					khoa: els.khoa.value === "ALL" ? null : els.khoa.value,
-					heDaoTao: els.heDaoTao.value === "ALL" ? null : els.heDaoTao.value,
-				};
-			}
-
-			async function loadHeDaoTaoMap() {
-				try {
-					const response = await fetch("/api/gvm/v1/he-dao-tao");
-					const json = await response.json();
-					if (!json.success || !Array.isArray(json.data)) return;
-
-					json.data.forEach((item) => {
-						const key = String(item.id).trim();
-						state.heDaoTaoMap.set(key, item.he_dao_tao);
-					});
-				} catch (error) {
-					console.error("Không thể tải danh mục hệ đào tạo:", error);
-				}
-			}
-
-			async function loadNamHoc() {
-				try {
-					const response = await fetch("/api/namhoc");
-					const data = await response.json();
-					els.namHoc.innerHTML = '<option value="ALL">Tất cả năm học</option>';
-					data.forEach((item, index) => {
-						const option = document.createElement("option");
-						option.value = item.NamHoc;
-						option.textContent = item.NamHoc;
-						if (item.trangthai === 1 || (index === 0 && !data.some(i => i.trangthai === 1))) {
-							option.selected = true;
-						}
-						els.namHoc.appendChild(option);
-					});
-				} catch (error) {
-					console.error("Error loading NamHoc:", error);
-				}
-			}
-
-			async function loadKhoa() {
-				try {
-					const response = await fetch("/api/khoa");
-					const data = await response.json();
-					els.khoa.innerHTML = '<option value="ALL">Tất cả khoa</option>';
-					data.forEach(item => {
-						const option = document.createElement("option");
-						option.value = item.MaPhongBan;
-						option.textContent = item.TenPhongBan || item.MaPhongBan;
-						els.khoa.appendChild(option);
-					});
-				} catch (error) {
-					console.error("Error loading Khoa:", error);
-				}
-			}
-
-			async function loadHeDaoTaoFilter() {
-				try {
-					const response = await fetch("/api/gvm/v1/he-dao-tao");
-					const data = await response.json();
-					if (!data.success) return;
-					els.heDaoTao.innerHTML = '<option value="ALL">Tất cả hệ</option>';
-					data.data.forEach((item, index) => {
-						if (item.he_dao_tao && item.he_dao_tao.toLowerCase().includes('đồ án')) return;
-						const option = document.createElement("option");
-						option.value = item.id;
-						option.textContent = item.he_dao_tao;
-						els.heDaoTao.appendChild(option);
-					});
-				} catch (error) {
-					console.error("Error loading He Dao Tao:", error);
-				}
-			}
-
-			async function loadFilters() {
-				await Promise.all([
-					loadNamHoc(),
-					loadKhoa(),
-					loadHeDaoTaoFilter()
-				]);
-			}
-
-			async function loadData() {
-				const payload = getFilterPayload();
-				const response = await fetch("/v2/vuotgio/thong-ke-giang-day/data", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(payload),
-				});
-				const json = await response.json();
-
-				if (!json.success) {
-					throw new Error(json.message || "Không lấy được dữ liệu");
-				}
-
-				state.rawGroups = json.data || [];
-				applyClientSearch();
-			}
-
-			async function initPage() {
-				try {
-					await loadHeDaoTaoMap();
-					await loadFilters();
-					await loadData();
-				} catch (error) {
-					console.error(error);
-					els.tableBody.innerHTML =
-						'<tr><td class="empty-cell" colspan="12">Lỗi tải dữ liệu</td></tr>';
-				}
-			}
-
-			els.btnShow.addEventListener("click", async () => {
-				try {
-					await loadData();
-				} catch (error) {
-					console.error(error);
-					alert("Không tải được dữ liệu thống kê");
-				}
-			});
-
-			els.search.addEventListener("input", applyClientSearch);
-
-			document.getElementById("btnToggleSummary").addEventListener("click", () => {
-				document.getElementById("summaryBox").classList.toggle("collapsed");
-			});
-
-			initPage();
-		</script>
-	</body>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vượt Giờ V2 - <%= typeof pageTitle !== 'undefined' ? pageTitle : (statsScope === 'PREVIEW' ? 'Thống kê giảng dạy quy chuẩn dự kiến' : 'Thống kê giảng dạy quy chuẩn chính thức') %></title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/nckh_v3_stats.css" />
+
+    <style>
+        .page-wrap {
+            padding: 24px 30px;
+        }
+
+        /* 3 Pill buttons header style */
+        .nckh-scope-toggle {
+            display: inline-flex;
+            background: #ffffff;
+            padding: 4px;
+            border-radius: 30px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            gap: 6px;
+        }
+
+        .nckh-tab-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 18px;
+            border-radius: 24px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .nckh-tab-btn:hover {
+            color: #0284c7;
+            background: #f0f9ff;
+        }
+
+        .nckh-tab-btn.active {
+            background: #0284c7;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+
+        /* Toolbar Card matching KTHP & ĐATN */
+        .kthp-toolbar-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .kthp-toolbar-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .kthp-filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 140px;
+            min-width: 130px;
+        }
+
+        .kthp-filter-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .kthp-filter-group select,
+        .kthp-filter-group .form-select,
+        .kthp-toolbar-card select {
+            width: 100% !important;
+            height: 38px !important;
+            padding: 6px 30px 6px 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            line-height: 1.5 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+        }
+
+        .kthp-filter-group select:focus,
+        .kthp-filter-group .form-select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        .kthp-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .kthp-toolbar-actions .btn {
+            height: 38px !important;
+            padding: 0 20px !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px;
+            white-space: nowrap !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .kthp-toolbar-actions .btn-show {
+            border: 1.5px solid #0891b2 !important;
+            color: #0891b2 !important;
+            background: #ffffff !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-toolbar-actions .btn-show:hover {
+            background: #0891b2 !important;
+            color: #ffffff !important;
+        }
+
+        .kthp-toolbar-actions .btn-excel {
+            border: 1.5px solid #059669 !important;
+            color: #059669 !important;
+            background: #ffffff !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-toolbar-actions .btn-excel:hover {
+            background: #059669 !important;
+            color: #ffffff !important;
+        }
+
+        .kthp-search-wrapper {
+            position: relative;
+            flex: 1 1 280px;
+            max-width: 420px;
+        }
+
+        .kthp-search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .kthp-search-wrapper input {
+            height: 38px !important;
+            padding-left: 36px !important;
+            padding-right: 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            background-color: #ffffff !important;
+            width: 100% !important;
+        }
+
+        .kthp-search-wrapper input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        /* Floating Summary Popup Widget (Góc phải dưới như ban đầu - Image 2) */
+        .summary {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .summary.collapsed {
+            transform: translateY(calc(100% + 10px));
+        }
+
+        .summary-toggle {
+            position: absolute;
+            top: -34px;
+            right: 0;
+            width: 36px;
+            height: 34px;
+            background: #1f4ea8;
+            color: white;
+            border: none;
+            border-radius: 8px 0 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .summary.collapsed .summary-toggle {
+            transform: translateY(4px);
+            border-radius: 8px 8px 0 0;
+            right: 10px;
+            top: -38px;
+        }
+
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            min-width: 220px;
+            padding: 4px 0;
+        }
+
+        .summary-box .label {
+            color: #475569;
+            font-size: 0.86rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .summary-box .value {
+            color: #0284c7;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* Group table styles */
+        .class-table th {
+            background: #1f4ea8;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            vertical-align: middle;
+            text-align: center !important;
+            font-size: 0.86rem;
+            padding: 10px 8px;
+        }
+
+        .class-table td {
+            vertical-align: middle;
+            font-size: 0.86rem;
+            padding: 8px;
+        }
+
+        .faculty-header-row {
+            background: #e0f2fe !important;
+            border-top: 2px solid #0284c7 !important;
+            border-bottom: 1.5px solid #0284c7 !important;
+        }
+
+        .faculty-header-row td {
+            padding: 10px 14px !important;
+            font-size: 0.92rem !important;
+            color: #0369a1 !important;
+        }
+
+        .faculty-subtotal-row {
+            background: #f8fafc !important;
+            border-bottom: 2px solid #cbd5e1 !important;
+        }
+
+        .faculty-subtotal-row td {
+            padding: 8px 14px !important;
+        }
+
+        .teacher-group-first {
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../header') %>
+
+    <div class="page-wrap">
+        <!-- Breadcrumb / Header Row -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+            <div>
+                <h4 class="fw-bold mb-0 d-flex align-items-center text-primary">
+                    <span class="p-2 rounded bg-primary bg-opacity-10 text-primary me-2 d-inline-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-mortarboard-fill fs-5"></i>
+                    </span>
+                    <%= typeof pageTitle !== 'undefined' ? pageTitle : (statsScope === 'PREVIEW' ? 'Thống kê giảng dạy quy chuẩn dự kiến' : 'Thống kê giảng dạy quy chuẩn chính thức') %>
+                </h4>
+            </div>
+
+            <!-- Tab switcher (Giảng viên, Khoa, Học viện) - Image 4 -->
+            <div class="nckh-scope-toggle">
+                <button type="button" class="nckh-tab-btn active" data-tab="giang-vien">
+                    <i class="bi bi-person me-1"></i> Theo giảng viên
+                </button>
+                <button type="button" class="nckh-tab-btn" data-tab="khoa">
+                    <i class="bi bi-building me-1"></i> Theo khoa/phòng
+                </button>
+                <button type="button" class="nckh-tab-btn" data-tab="hoc-vien">
+                    <i class="bi bi-bank me-1"></i> Theo học viện
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Banner (Image 3) -->
+        <div class="alert alert-info shadow-sm d-flex align-items-center mb-3" role="alert" style="border-radius: 8px;">
+            <i class="bi bi-info-circle me-2 fs-5"></i>
+            <div>
+                Sau khi phân hệ mời giảng hoàn thiện mới có dữ liệu chính thức trong bảng, nếu không có dữ liệu, vui lòng xem <a href="/v2/vuotgio/tong-hop-giang-vien" class="alert-link fw-semibold">thông tin vượt giờ dự kiến</a>.
+            </div>
+        </div>
+
+        <!-- 2-Row Filter Toolbar Card -->
+        <div class="kthp-toolbar-card">
+            <!-- Row 1: 5 combobox filters -->
+            <div class="kthp-toolbar-row">
+                <div class="kthp-filter-group">
+                    <label for="filterNamHoc"><i class="bi bi-calendar-event me-1"></i> Năm học</label>
+                    <select id="filterNamHoc" class="form-select">
+                        <option value="ALL">Tất cả năm học</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="filterKhoa"><i class="bi bi-building me-1"></i> Khoa</label>
+                    <select id="filterKhoa" class="form-select">
+                        <option value="ALL">Tất cả khoa</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="filterHeDaoTao"><i class="bi bi-mortarboard me-1"></i> Hệ đào tạo</label>
+                    <select id="filterHeDaoTao" class="form-select">
+                        <option value="ALL">Tất cả hệ</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="filterDot"><i class="bi bi-layers me-1"></i> Đợt</label>
+                    <select id="filterDot" class="form-select">
+                        <option value="ALL">Cả 2 đợt</option>
+                        <option value="1">Đợt 1</option>
+                        <option value="2">Đợt 2</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="filterKi"><i class="bi bi-clock me-1"></i> Kỳ</label>
+                    <select id="filterKi" class="form-select">
+                        <option value="ALL">Cả 2 kỳ</option>
+                        <option value="1">Kỳ 1</option>
+                        <option value="2">Kỳ 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Search input + 2 Action buttons (Hiển thị & Xuất Excel) -->
+            <div class="kthp-toolbar-row mt-3">
+                <div class="kthp-search-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm theo tên giảng viên, môn học, lớp..." />
+                </div>
+
+                <div class="kthp-toolbar-actions">
+                    <button type="button" class="btn btn-show" id="btnShow">
+                        <i class="bi bi-search"></i> HIỂN THỊ
+                    </button>
+                    <button type="button" class="btn btn-excel" id="btnExport">
+                        <i class="bi bi-file-earmark-excel"></i> XUẤT EXCEL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card Section -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-0" id="tableContainer">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0 class-table" id="classTable">
+                        <thead id="tableHead"></thead>
+                        <tbody id="dataTableBody">
+                            <tr>
+                                <td colspan="12" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Summary Popup Box (Image 2 - góc phải dưới như ban đầu) -->
+        <div class="summary" id="summaryBox">
+            <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="summary-box">
+                <div class="label"><i class="bi bi-people text-primary me-2"></i> Tổng giảng viên</div>
+                <div class="value" id="totalTeachers">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label"><i class="bi bi-book text-primary me-2"></i> Tổng lớp học phần</div>
+                <div class="value" id="totalCourses">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label"><i class="bi bi-clock-history text-success me-2"></i> Tổng tiết Quy chuẩn</div>
+                <div class="value text-success" id="totalQuyChuan">0.00</div>
+            </div>
+        </div>
+
+        <!-- Modal Chi tiết Giảng dạy theo Khoa -->
+        <div class="modal fade" id="khoaDetailModal" tabindex="-1" aria-labelledby="khoaDetailModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content shadow-lg border-0 rounded-4">
+                    <div class="modal-header bg-primary text-white py-3 px-4 rounded-top-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-building fs-4"></i>
+                            <div>
+                                <h5 class="modal-title fw-bold mb-0" id="khoaDetailModalLabel">Chi tiết giảng dạy khoa</h5>
+                                <small class="text-white-50" id="khoaDetailSubtitle"></small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <!-- Thẻ tóm tắt số liệu của khoa -->
+                        <div class="d-flex flex-wrap gap-3 mb-3 p-3 bg-light rounded-3 border align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary rounded-pill p-2"><i class="bi bi-people-fill"></i></span>
+                                <div>
+                                    <div class="text-muted small">Số giảng viên</div>
+                                    <div class="fw-bold fs-6" id="modalKhoaLecturers">0</div>
+                                </div>
+                            </div>
+                            <div class="border-end mx-2 d-none d-md-block" style="height: 32px;"></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-info text-white rounded-pill p-2"><i class="bi bi-book-fill"></i></span>
+                                <div>
+                                    <div class="text-muted small">Số lớp học phần</div>
+                                    <div class="fw-bold fs-6" id="modalKhoaCourses">0</div>
+                                </div>
+                            </div>
+                            <div class="border-end mx-2 d-none d-md-block" style="height: 32px;"></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-pill p-2"><i class="bi bi-clock-fill"></i></span>
+                                <div>
+                                    <div class="text-muted small">Tổng tiết quy chuẩn</div>
+                                    <div class="fw-bold fs-6 text-success" id="modalKhoaHours">0.00</div>
+                                </div>
+                            </div>
+                            <div class="ms-auto d-flex align-items-center">
+                                <input type="text" id="modalKhoaSearch" class="form-control form-control-sm" placeholder="Tìm GV, môn, lớp trong khoa..." style="max-width: 260px;" />
+                            </div>
+                        </div>
+
+                        <!-- Bảng chi tiết môn học / lớp học của Khoa -->
+                        <div class="table-responsive" style="max-height: 520px;">
+                            <table class="table table-bordered table-hover align-middle mb-0 class-table" id="modalKhoaTable">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="width: 50px;">STT</th>
+                                        <th class="text-center" style="width: 180px;">Giảng viên</th>
+                                        <th class="text-center" style="width: 220px;">Môn học</th>
+                                        <th class="text-center" style="width: 140px;">Tên lớp</th>
+                                        <th class="text-center" style="width: 65px;">Số TC</th>
+                                        <th class="text-center" style="width: 60px;">Đợt</th>
+                                        <th class="text-center" style="width: 60px;">Kỳ</th>
+                                        <th class="text-center" style="width: 110px;">Năm học</th>
+                                        <th class="text-center" style="width: 100px;">Số tiết QC</th>
+                                        <th class="text-center" style="width: 110px;">Tổng số tiết</th>
+                                        <th class="text-center" style="width: 120px;">Hệ đào tạo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalKhoaTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light px-4 py-2 border-top">
+                        <button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.STATS_SCOPE = "<%= typeof statsScope !== 'undefined' ? statsScope : 'OFFICIAL' %>";
+
+        const state = {
+            currentTab: "giang-vien",
+            rawFacultyGroups: [],
+            rawDeptSummary: [],
+            rawHocVienRows: [],
+            heDaoTaoMap: new Map(),
+            searchTimer: null
+        };
+
+        const els = {
+            dot: document.getElementById("filterDot"),
+            ki: document.getElementById("filterKi"),
+            namHoc: document.getElementById("filterNamHoc"),
+            khoa: document.getElementById("filterKhoa"),
+            heDaoTao: document.getElementById("filterHeDaoTao"),
+            search: document.getElementById("searchInput"),
+            btnShow: document.getElementById("btnShow"),
+            btnExport: document.getElementById("btnExport"),
+            tabButtons: document.querySelectorAll(".nckh-tab-btn"),
+            tableHead: document.getElementById("tableHead"),
+            tableBody: document.getElementById("dataTableBody"),
+            totalTeachers: document.getElementById("totalTeachers"),
+            totalCourses: document.getElementById("totalCourses"),
+            totalQuyChuan: document.getElementById("totalQuyChuan"),
+            summaryBox: document.getElementById("summaryBox"),
+            btnToggleSummary: document.getElementById("btnToggleSummary")
+        };
+
+        function getHeDaoTaoLabel(rawValue) {
+            if (rawValue === null || rawValue === undefined || rawValue === "") return "";
+            if (rawValue === "ALL") return "Tất cả";
+            const key = String(rawValue).trim();
+            return state.heDaoTaoMap.get(key) || rawValue;
+        }
+
+        function setSelectOptions(selectElement, items, options = {}) {
+            const { defaultLabel = "" } = options;
+            if (!selectElement) return;
+            const curVal = selectElement.value;
+            selectElement.innerHTML = "";
+
+            if (defaultLabel) {
+                const defaultOpt = document.createElement("option");
+                defaultOpt.value = "ALL";
+                defaultOpt.textContent = defaultLabel;
+                selectElement.appendChild(defaultOpt);
+            }
+
+            (items || []).forEach((item) => {
+                if (!item) return;
+                let val = "";
+                let label = "";
+
+                if (typeof item === "object") {
+                    val = item.id !== undefined ? String(item.id).trim() : (item.code || item.value || "").trim();
+                    label = item.displayName || item.name || item.label || val;
+                } else {
+                    val = String(item).trim();
+                    label = String(item).trim();
+                }
+
+                if (val === "ALL" || val === "") return;
+
+                const option = document.createElement("option");
+                option.value = val;
+                option.textContent = label;
+                selectElement.appendChild(option);
+            });
+
+            if (curVal && Array.from(selectElement.options).some((o) => o.value === curVal)) {
+                selectElement.value = curVal;
+            }
+        }
+
+        function updateSummary(summary = {}) {
+            if (els.totalTeachers) els.totalTeachers.textContent = (summary.totalTeachers || 0).toLocaleString("vi-VN");
+            if (els.totalCourses) els.totalCourses.textContent = (summary.totalCourses || 0).toLocaleString("vi-VN");
+            if (els.totalQuyChuan) els.totalQuyChuan.textContent = (summary.totalQuyChuan || 0).toLocaleString("vi-VN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // ============================================
+        // 1. TAB THEO GIẢNG VIÊN (Group by Khoa)
+        // ============================================
+        function renderGiangVienTable(facultyGroups) {
+            els.tableHead.innerHTML = `
+                <tr>
+                    <th style="width: 50px;" class="text-center">STT</th>
+                    <th style="width: 190px;" class="text-center">Giảng viên</th>
+                    <th style="width: 220px;" class="text-center">Môn học</th>
+                    <th style="width: 140px;" class="text-center">Tên lớp</th>
+                    <th style="width: 65px;" class="text-center">Số TC</th>
+                    <th style="width: 60px;" class="text-center">Đợt</th>
+                    <th style="width: 60px;" class="text-center">Kỳ</th>
+                    <th style="width: 110px;" class="text-center">Năm học</th>
+                    <th style="width: 100px;" class="text-center">Số tiết QC</th>
+                    <th style="width: 110px;" class="text-center">Tổng số tiết</th>
+                    <th style="width: 100px;" class="text-center">Khoa</th>
+                    <th style="width: 120px;" class="text-center">Hệ đào tạo</th>
+                </tr>
+            `;
+
+            els.tableBody.innerHTML = "";
+
+            if (!facultyGroups || !facultyGroups.length) {
+                els.tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            <span class="fs-6 fw-semibold">Không tìm thấy bản ghi hợp lệ</span>
+                        </td>
+                    </tr>
+                `;
+                updateSummary({});
+                return;
+            }
+
+            let overallSTT = 1;
+            const uniqueTeachersSet = new Set();
+            let grandCourses = 0;
+            let grandHours = 0;
+
+            facultyGroups.forEach((faculty) => {
+                if (!faculty.teachers || !faculty.teachers.length) return;
+
+                faculty.teachers.forEach((t) => {
+                    if (t.giangVien) uniqueTeachersSet.add(t.giangVien.trim());
+                });
+
+                const facDisplayName = faculty.khoaDisplayName || (faculty.tenPhongBan ? `${faculty.tenPhongBan} (${faculty.khoa})` : faculty.khoa);
+
+                // Dòng Header Khoa
+                const facHeaderTr = document.createElement("tr");
+                facHeaderTr.className = "faculty-header-row";
+                facHeaderTr.innerHTML = `
+                    <td colspan="12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-building me-2"></i>
+                                <strong>KHOA: ${facDisplayName}</strong>
+                            </span>
+                            <span class="badge bg-white text-dark border px-2 py-1">
+                                Số GV: <strong>${faculty.teachers.length}</strong> | 
+                                Tổng số lớp: <strong>${faculty.totalCourses}</strong> | 
+                                Tổng số tiết QC: <strong class="text-success">${faculty.totalQuyChuan.toFixed(2)}</strong>
+                            </span>
+                        </div>
+                    </td>
+                `;
+                els.tableBody.appendChild(facHeaderTr);
+
+                // Các giảng viên trong Khoa
+                faculty.teachers.forEach((teacher) => {
+                    const rowSpan = teacher.courses.length;
+                    if (!rowSpan) return;
+
+                    grandCourses += rowSpan;
+                    grandHours += Number(teacher.tongSoTietKy) || 0;
+
+                    teacher.courses.forEach((course, index) => {
+                        const tr = document.createElement("tr");
+                        if (index === 0) tr.classList.add("teacher-group-first");
+
+                        let rowHtml = "";
+                        if (index === 0) {
+                            rowHtml += `<td class="text-center align-middle" rowspan="${rowSpan}">${overallSTT}</td>`;
+                            rowHtml += `<td class="align-middle" rowspan="${rowSpan}"><span class="fw-semibold text-primary">${teacher.giangVien}</span></td>`;
+                        }
+
+                        rowHtml += `<td>${course.tenHocPhan || ""}</td>`;
+                        rowHtml += `<td>${course.lop || ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.soTinChi ?? ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.dot ?? ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.kiHoc ?? ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.namHoc ?? ""}</td>`;
+                        rowHtml += `<td class="text-end fw-semibold">${(Number(course.quyChuan) || 0).toFixed(2)}</td>`;
+
+                        if (index === 0) {
+                            rowHtml += `<td class="text-end fw-bold text-success align-middle" rowspan="${rowSpan}">${(Number(teacher.tongSoTietKy) || 0).toFixed(2)}</td>`;
+                            rowHtml += `<td class="text-center align-middle" rowspan="${rowSpan}">${teacher.khoa || ""}</td>`;
+                        }
+
+                        rowHtml += `<td class="text-center">${getHeDaoTaoLabel(course.heDaoTao)}</td>`;
+                        tr.innerHTML = rowHtml;
+                        els.tableBody.appendChild(tr);
+                    });
+
+                    overallSTT += 1;
+                });
+
+                // Dòng tổng cộng cho từng Khoa
+                const subtotalTr = document.createElement("tr");
+                subtotalTr.className = "faculty-subtotal-row";
+                subtotalTr.innerHTML = `
+                    <td colspan="9" class="text-end fw-bold">Tổng cộng ${facDisplayName}:</td>
+                    <td class="text-end fw-bold text-success">${Number(faculty.totalQuyChuan || 0).toFixed(2)}</td>
+                    <td colspan="2"></td>
+                `;
+                els.tableBody.appendChild(subtotalTr);
+            });
+
+            updateSummary({
+                totalTeachers: uniqueTeachersSet.size,
+                totalCourses: grandCourses,
+                totalQuyChuan: grandHours
+            });
+        }
+
+        // ============================================
+        // 2. TAB THEO KHOA / PHÒNG
+        // ============================================
+        function renderKhoaTable(deptSummary) {
+            els.tableHead.innerHTML = `
+                <tr>
+                    <th style="width: 60px;" class="text-center">STT</th>
+                    <th class="text-center">Khoa / Phòng ban</th>
+                    <th style="width: 160px;" class="text-center">Số giảng viên</th>
+                    <th style="width: 180px;" class="text-center">Số lớp học phần</th>
+                    <th style="width: 180px;" class="text-center">Tổng số tiết QC</th>
+                    <th style="width: 150px;" class="text-center">Thao tác</th>
+                </tr>
+            `;
+
+            els.tableBody.innerHTML = "";
+
+            if (!deptSummary || !deptSummary.length) {
+                els.tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            <span class="fs-6 fw-semibold">Không tìm thấy bản ghi hợp lệ</span>
+                        </td>
+                    </tr>
+                `;
+                updateSummary({});
+                return;
+            }
+
+            let totalCourses = 0;
+            let totalHours = 0;
+            const uniqueTeachersSet = new Set();
+
+            deptSummary.forEach((row, idx) => {
+                const numTeachers = row.soGiangVien ?? row.totalTeachers ?? (row.teachers ? row.teachers.length : 0);
+                const numCourses = row.soLopHocPhan ?? row.totalCourses ?? 0;
+                const hours = Number(row.tongQuyChuan ?? row.totalQuyChuan ?? 0);
+
+                totalCourses += numCourses;
+                totalHours += hours;
+
+                (row.teachers || []).forEach((t) => {
+                    if (t.giangVien) uniqueTeachersSet.add(t.giangVien.trim());
+                });
+
+                const displayName = row.khoaDisplayName || (row.tenPhongBan ? `${row.tenPhongBan} (${row.khoa})` : row.khoa);
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="text-center">${idx + 1}</td>
+                    <td class="text-center fw-semibold text-primary">${displayName}</td>
+                    <td class="text-center fw-bold text-dark">${numTeachers}</td>
+                    <td class="text-center fw-bold text-dark">${numCourses}</td>
+                    <td class="text-center fw-bold text-success">${hours.toFixed(2)}</td>
+                    <td class="text-center text-nowrap" style="white-space: nowrap !important;">
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-khoa-detail text-nowrap" data-khoa="${row.khoa}" style="white-space: nowrap !important; padding: 4px 14px; font-weight: 600;">
+                            <i class="bi bi-eye me-1"></i> Xem chi tiết
+                        </button>
+                    </td>
+                `;
+                els.tableBody.appendChild(tr);
+            });
+
+            // Bind nút Xem chi tiết từng khoa
+            els.tableBody.querySelectorAll(".btn-khoa-detail").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const targetKhoa = btn.getAttribute("data-khoa");
+                    openKhoaDetailModal(targetKhoa);
+                });
+            });
+
+            updateSummary({
+                totalTeachers: uniqueTeachersSet.size || deptSummary.reduce((s, r) => s + (r.soGiangVien || 0), 0),
+                totalCourses: totalCourses,
+                totalQuyChuan: totalHours
+            });
+        }
+
+        // ============================================
+        // POPUP MODAL: CHI TIẾT THEO KHOA
+        // ============================================
+        function openKhoaDetailModal(facCode) {
+            const faculty = (state.rawFacultyGroups || []).find((f) => String(f.khoa).toUpperCase() === String(facCode).toUpperCase()) ||
+                            (state.rawDeptSummary || []).find((d) => String(d.khoa).toUpperCase() === String(facCode).toUpperCase());
+
+            if (!faculty) {
+                alert("Không tìm thấy dữ liệu chi tiết cho khoa " + facCode);
+                return;
+            }
+
+            const modalTitleEl = document.getElementById("khoaDetailModalLabel");
+            const modalSubtitleEl = document.getElementById("khoaDetailSubtitle");
+            const modalLecturersEl = document.getElementById("modalKhoaLecturers");
+            const modalCoursesEl = document.getElementById("modalKhoaCourses");
+            const modalHoursEl = document.getElementById("modalKhoaHours");
+            const modalBodyEl = document.getElementById("modalKhoaTableBody");
+            const modalSearchEl = document.getElementById("modalKhoaSearch");
+
+            const displayName = faculty.khoaDisplayName || (faculty.tenPhongBan ? `${faculty.tenPhongBan} (${faculty.khoa})` : faculty.khoa);
+            if (modalTitleEl) modalTitleEl.textContent = `Chi tiết giảng dạy - ${displayName}`;
+            if (modalSubtitleEl) modalSubtitleEl.textContent = `Mã khoa: ${faculty.khoa}`;
+
+            const teachers = faculty.teachers || [];
+            const totalLecturers = faculty.totalTeachers || faculty.soGiangVien || teachers.length;
+            const totalCourses = faculty.totalCourses || faculty.soLopHocPhan || 0;
+            const totalHours = faculty.totalQuyChuan || faculty.tongQuyChuan || 0;
+
+            if (modalLecturersEl) modalLecturersEl.textContent = totalLecturers.toLocaleString("vi-VN");
+            if (modalCoursesEl) modalCoursesEl.textContent = totalCourses.toLocaleString("vi-VN");
+            if (modalHoursEl) modalHoursEl.textContent = Number(totalHours).toLocaleString("vi-VN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            function renderModalTableRows(filteredTeachers) {
+                modalBodyEl.innerHTML = "";
+                if (!filteredTeachers || !filteredTeachers.length) {
+                    modalBodyEl.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-muted">Không tìm thấy bản ghi phù hợp</td></tr>`;
+                    return;
+                }
+
+                let overallSTT = 1;
+                filteredTeachers.forEach((teacher) => {
+                    const courses = teacher.courses || [];
+                    const rowSpan = courses.length;
+                    if (!rowSpan) return;
+
+                    courses.forEach((course, index) => {
+                        const tr = document.createElement("tr");
+                        if (index === 0) tr.classList.add("teacher-group-first");
+
+                        let rowHtml = "";
+                        if (index === 0) {
+                            rowHtml += `<td class="text-center align-middle" rowspan="${rowSpan}">${overallSTT}</td>`;
+                            rowHtml += `<td class="align-middle" rowspan="${rowSpan}"><span class="fw-semibold text-primary">${teacher.giangVien}</span></td>`;
+                        }
+
+                        rowHtml += `<td>${course.tenHocPhan || ""}</td>`;
+                        rowHtml += `<td>${course.lop || ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.soTinChi ?? ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.dot ?? ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.kiHoc ?? ""}</td>`;
+                        rowHtml += `<td class="text-center">${course.namHoc ?? ""}</td>`;
+                        rowHtml += `<td class="text-end fw-semibold">${(Number(course.quyChuan) || 0).toFixed(2)}</td>`;
+
+                        if (index === 0) {
+                            rowHtml += `<td class="text-end fw-bold text-success align-middle" rowspan="${rowSpan}">${(Number(teacher.tongSoTietKy) || 0).toFixed(2)}</td>`;
+                        }
+
+                        rowHtml += `<td class="text-center">${getHeDaoTaoLabel(course.heDaoTao)}</td>`;
+                        tr.innerHTML = rowHtml;
+                        modalBodyEl.appendChild(tr);
+                    });
+                    overallSTT += 1;
+                });
+            }
+
+            renderModalTableRows(teachers);
+
+            if (modalSearchEl) {
+                modalSearchEl.value = "";
+                modalSearchEl.oninput = () => {
+                    const mq = modalSearchEl.value.trim().toLowerCase();
+                    if (!mq) {
+                        renderModalTableRows(teachers);
+                    } else {
+                        const filtered = teachers.filter((t) => {
+                            const matchGV = String(t.giangVien || "").toLowerCase().includes(mq);
+                            const matchCourse = (t.courses || []).some((c) =>
+                                String(c.tenHocPhan || "").toLowerCase().includes(mq) ||
+                                String(c.lop || "").toLowerCase().includes(mq)
+                            );
+                            return matchGV || matchCourse;
+                        });
+                        renderModalTableRows(filtered);
+                    }
+                };
+            }
+
+            try {
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(document.getElementById("khoaDetailModal"));
+                modalInstance.show();
+            } catch (errModal) {
+                console.error("Lỗi hiển thị modal:", errModal);
+            }
+        }
+
+        // ============================================
+        // 3. TAB THEO HỌC VIỆN (Toàn trường)
+        // ============================================
+        function renderHocVienTable(rows) {
+            els.tableHead.innerHTML = `
+                <tr>
+                    <th style="width: 50px;" class="text-center">STT</th>
+                    <th style="width: 180px;" class="text-center">Giảng viên</th>
+                    <th style="width: 100px;" class="text-center">Khoa</th>
+                    <th style="width: 220px;" class="text-center">Môn học</th>
+                    <th style="width: 130px;" class="text-center">Tên lớp</th>
+                    <th style="width: 65px;" class="text-center">Số TC</th>
+                    <th style="width: 60px;" class="text-center">Đợt</th>
+                    <th style="width: 60px;" class="text-center">Kỳ</th>
+                    <th style="width: 110px;" class="text-center">Năm học</th>
+                    <th style="width: 100px;" class="text-center">Số tiết QC</th>
+                    <th style="width: 120px;" class="text-center">Hệ đào tạo</th>
+                </tr>
+            `;
+
+            els.tableBody.innerHTML = "";
+
+            if (!rows || !rows.length) {
+                els.tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            <span class="fs-6 fw-semibold">Không tìm thấy bản ghi hợp lệ</span>
+                        </td>
+                    </tr>
+                `;
+                updateSummary({});
+                return;
+            }
+
+            const teachersSet = new Set();
+            let totalHours = 0;
+
+            rows.forEach((row, idx) => {
+                if (row.giangVien) teachersSet.add(row.giangVien);
+                totalHours += row.quyChuan || 0;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="text-center">${idx + 1}</td>
+                    <td class="fw-semibold text-primary">${row.giangVien}</td>
+                    <td class="text-center">${row.khoa}</td>
+                    <td>${row.tenHocPhan}</td>
+                    <td>${row.lop}</td>
+                    <td class="text-center">${row.soTinChi}</td>
+                    <td class="text-center">${row.dot}</td>
+                    <td class="text-center">${row.kiHoc}</td>
+                    <td class="text-center">${row.namHoc}</td>
+                    <td class="text-center fw-semibold text-success">${Number(row.quyChuan).toFixed(2)}</td>
+                    <td class="text-center">${getHeDaoTaoLabel(row.heDaoTao)}</td>
+                </tr>
+            `;
+                els.tableBody.appendChild(tr);
+            });
+
+            updateSummary({
+                totalTeachers: teachersSet.size,
+                totalCourses: rows.length,
+                totalQuyChuan: totalHours
+            });
+        }
+
+        function renderCurrentTab() {
+            const q = (els.search && els.search.value.trim().toLowerCase()) || "";
+
+            if (state.currentTab === "khoa") {
+                if (!q) {
+                    renderKhoaTable(state.rawDeptSummary);
+                } else {
+                    const filtered = state.rawDeptSummary.filter((d) => d.khoa.toLowerCase().includes(q));
+                    renderKhoaTable(filtered);
+                }
+            } else if (state.currentTab === "hoc-vien") {
+                if (!q) {
+                    renderHocVienTable(state.rawHocVienRows);
+                } else {
+                    const filtered = state.rawHocVienRows.filter((r) =>
+                        r.giangVien.toLowerCase().includes(q) ||
+                        r.khoa.toLowerCase().includes(q) ||
+                        r.tenHocPhan.toLowerCase().includes(q) ||
+                        r.lop.toLowerCase().includes(q)
+                    );
+                    renderHocVienTable(filtered);
+                }
+            } else {
+                // Tab giang-vien
+                if (!q) {
+                    renderGiangVienTable(state.rawFacultyGroups);
+                } else {
+                    const filtered = [];
+                    state.rawFacultyGroups.forEach((faculty) => {
+                        const matchedTeachers = (faculty.teachers || []).filter((teacher) => {
+                            const matchGV = String(teacher.giangVien || "").toLowerCase().includes(q);
+                            const matchCourse = (teacher.courses || []).some((c) =>
+                                String(c.tenHocPhan || "").toLowerCase().includes(q) ||
+                                String(c.lop || "").toLowerCase().includes(q)
+                            );
+                            return matchGV || matchCourse;
+                        });
+
+                        if (matchedTeachers.length) {
+                            const facCourses = matchedTeachers.reduce((sum, t) => sum + t.courses.length, 0);
+                            const facHours = matchedTeachers.reduce((sum, t) => sum + t.tongSoTietKy, 0);
+
+                            filtered.push({
+                                ...faculty,
+                                totalTeachers: matchedTeachers.length,
+                                totalCourses: facCourses,
+                                totalQuyChuan: parseFloat(facHours.toFixed(2)),
+                                teachers: matchedTeachers
+                            });
+                        }
+                    });
+                    renderGiangVienTable(filtered);
+                }
+            }
+        }
+
+        function switchTab(targetTab) {
+            state.currentTab = targetTab;
+            els.tabButtons.forEach((btn) => {
+                if (btn.getAttribute("data-tab") === targetTab) {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+            renderCurrentTab();
+        }
+
+        async function loadData() {
+            els.tableBody.innerHTML = `
+                <tr>
+                    <td colspan="12" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <div class="mt-2 text-muted fs-6">Đang tải dữ liệu giảng dạy...</div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const payload = {
+                    dot: els.dot.value,
+                    ki: els.ki.value,
+                    namHoc: els.namHoc.value,
+                    khoa: els.khoa.value,
+                    heDaoTao: els.heDaoTao.value,
+                    scope: window.STATS_SCOPE
+                };
+
+                const response = await fetch("/v2/vuotgio/thong-ke-giang-day/data", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (!result.success) {
+                    state.rawFacultyGroups = [];
+                    state.rawDeptSummary = [];
+                    state.rawHocVienRows = [];
+                    renderCurrentTab();
+                    return;
+                }
+
+                state.rawFacultyGroups = result.facultyGroups || [];
+                state.rawDeptSummary = result.deptSummary || [];
+                state.rawHocVienRows = result.hocVienRows || [];
+                renderCurrentTab();
+            } catch (error) {
+                console.error("loadData error:", error);
+                state.rawFacultyGroups = [];
+                state.rawDeptSummary = [];
+                state.rawHocVienRows = [];
+                renderCurrentTab();
+            }
+        }
+
+        async function initFilters() {
+            try {
+                const filtersRes = await fetch("/v2/vuotgio/thong-ke-giang-day/filters").then((r) => r.json());
+
+                if (filtersRes && filtersRes.success && filtersRes.data) {
+                    const filters = filtersRes.data;
+
+                    // Lưu map mã -> tên hệ đào tạo để hiển thị trong bảng
+                    if (filters.heDaoTaoList && Array.isArray(filters.heDaoTaoList)) {
+                        filters.heDaoTaoList.forEach((item) => {
+                            state.heDaoTaoMap.set(String(item.id), item.name);
+                            state.heDaoTaoMap.set(item.name, item.name);
+                        });
+                    }
+
+                    setSelectOptions(els.namHoc, filters.namHocList || filters.namHoc || [], { defaultLabel: "Tất cả năm học" });
+                    setSelectOptions(els.khoa, filters.khoaList || filters.khoa || [], { defaultLabel: "Tất cả khoa" });
+                    setSelectOptions(els.heDaoTao, filters.heDaoTaoList || filters.heDaoTao || [], { defaultLabel: "Tất cả hệ" });
+                    setSelectOptions(els.dot, filters.dotList || filters.dot || [], { defaultLabel: "Cả 2 đợt" });
+                    setSelectOptions(els.ki, filters.kiList || filters.ki || [], { defaultLabel: "Cả 2 kỳ" });
+                }
+            } catch (error) {
+                console.error("initFilters error:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Tab clicks
+            els.tabButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const targetTab = btn.getAttribute("data-tab");
+                    if (targetTab === state.currentTab) return;
+                    switchTab(targetTab);
+                });
+            });
+
+            // Summary toggle button
+            if (els.btnToggleSummary && els.summaryBox) {
+                els.btnToggleSummary.addEventListener("click", () => {
+                    els.summaryBox.classList.toggle("collapsed");
+                    const icon = els.btnToggleSummary.querySelector("i");
+                    if (icon) {
+                        icon.classList.toggle("bi-chevron-down");
+                        icon.classList.toggle("bi-chevron-up");
+                    }
+                });
+            }
+
+            await initFilters();
+
+            // Auto-reload on combobox changes
+            [els.dot, els.ki, els.namHoc, els.khoa, els.heDaoTao].forEach((el) => {
+                if (el) el.addEventListener("change", () => loadData());
+            });
+
+            // Hiển thị button
+            if (els.btnShow) {
+                els.btnShow.addEventListener("click", () => loadData());
+            }
+
+            // Xuất Excel button
+            if (els.btnExport) {
+                els.btnExport.addEventListener("click", () => {
+                    const params = new URLSearchParams({
+                        dot: els.dot.value,
+                        ki: els.ki.value,
+                        namHoc: els.namHoc.value,
+                        khoa: els.khoa.value,
+                        heDaoTao: els.heDaoTao.value,
+                        scope: window.STATS_SCOPE,
+                        tab: state.currentTab
+                    });
+                    window.location.href = `/v2/vuotgio/thong-ke-giang-day/export?${params.toString()}`;
+                });
+            }
+
+            // Search input with debounce
+            if (els.search) {
+                els.search.addEventListener("input", () => {
+                    clearTimeout(state.searchTimer);
+                    state.searchTimer = setTimeout(() => {
+                        renderCurrentTab();
+                    }, 300);
+                });
+            }
+
+            loadData();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
 </html>

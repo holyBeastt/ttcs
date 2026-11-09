@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const loadBtn = document.getElementById('loadDataBtn');
   if (loadBtn) loadBtn.addEventListener('click', loadData);
+
+  const namHocSelect = document.getElementById('namHocXem');
+  if (namHocSelect) namHocSelect.addEventListener('change', loadData);
 });
 
 /* ════════════════════════════════════════════

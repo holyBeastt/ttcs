@@ -38,9 +38,12 @@ router.get("/api/teachers", baseController.getTeachers);
 router.get("/api/hocphan", baseController.getHocPhan);
 router.get("/api/lophoc", baseController.getLopHoc);
 router.get("/api/dinhmuc", baseController.getDinhMuc);
-router.get("/thong-ke-giang-day", baseController.getThongKeGiangDay);
-router.get("/thong-ke-giang-day/filters", thongKeGiangDayController.getFilters);
-router.post("/thong-ke-giang-day/data", thongKeGiangDayController.getData);
+router.get("/thong-ke-giang-day/du-kien", (req, res) => thongKeGiangDayController.renderPreviewPage(req, res));
+router.get("/thong-ke-giang-day/chinh-thuc", (req, res) => thongKeGiangDayController.renderOfficialPage(req, res));
+router.get("/thong-ke-giang-day", (req, res) => res.redirect("/v2/vuotgio/thong-ke-giang-day/chinh-thuc"));
+router.get("/thong-ke-giang-day/filters", (req, res) => thongKeGiangDayController.getFilters(req, res));
+router.post("/thong-ke-giang-day/data", (req, res) => thongKeGiangDayController.getData(req, res));
+router.get("/thong-ke-giang-day/export", (req, res) => thongKeGiangDayController.exportExcel(req, res));
 
 // =====================================================
 // LỚP NGOÀI QUY CHUẨN
@@ -188,12 +191,25 @@ router.get("/xuat-file/excel", xuatFileController.exportExcel);
 router.get("/xuat-file/tong-hop", xuatFileController.exportConsolidated);
 
 // =====================================================
-// HƯỚNG DẪN ĐỒ ÁN TỐT NGHIỆP
+// ĐỒ ÁN / LUẬN ÁN TÍNH VƯỢT GIỜ (THỐNG KÊ)
 // =====================================================
 
+const datnStatsController = require("../controllers/vuotgio_v2/datnStats.controller");
 const huongDanDATNController = require("../controllers/vuotgio_v2/huongDanDATN.controller");
 
-router.get("/huong-dan-datn", baseController.getHuongDanDATN);
+router.get("/do-an/thong-ke-du-kien", (req, res) => datnStatsController.renderPreviewPage(req, res));
+router.get("/do-an/thong-ke-chinh-thuc", (req, res) => datnStatsController.renderOfficialPage(req, res));
+router.get("/do-an/du-kien", (req, res) => res.redirect("/v2/vuotgio/do-an/thong-ke-du-kien"));
+router.get("/do-an/chinh-thuc", (req, res) => res.redirect("/v2/vuotgio/do-an/thong-ke-chinh-thuc"));
+router.get("/do-an/stats/filters", (req, res) => datnStatsController.getFilters(req, res));
+router.get("/do-an/stats/giang-vien", (req, res) => datnStatsController.getLecturerSummary(req, res));
+router.get("/do-an/stats/giang-vien/:id/chi-tiet", (req, res) => datnStatsController.getLecturerDetail(req, res));
+router.get("/do-an/stats/khoa", (req, res) => datnStatsController.getDepartmentSummary(req, res));
+router.get("/do-an/stats/hoc-vien", (req, res) => datnStatsController.getHocVienSummary(req, res));
+router.get("/do-an/export/stats", (req, res) => datnStatsController.exportExcel(req, res));
+
+// Hướng dẫn ĐATN cũ (chuyển hướng sang trang chính thức mới hoặc giữ lại API)
+router.get("/huong-dan-datn", (req, res) => res.redirect("/v2/vuotgio/do-an/thong-ke-chinh-thuc"));
 router.get("/huong-dan-datn/table", huongDanDATNController.getTable);
 router.get("/huong-dan-datn/chi-tiet/:GiangVien", huongDanDATNController.getChiTiet);
 
