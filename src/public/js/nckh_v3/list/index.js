@@ -441,9 +441,8 @@
             <td>${escapeHtml(row.phanLoai)}</td>
             <td class="text-start col-main">
               ${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}
-             nms ${row.fileMinhChung ? `<button type="button" class="btn btn-link p-0 text-primary ms-1 btn-preview-table-file" data-file="${escapeHtml(row.fileMinhChung)}" title="Xem trước file minh chứng" style="font-size:1.05rem;vertical-align:middle;text-decoration:none;"><i class="bi bi-paperclip"></i></button>` : ""}
+              ${row.fileMinhChung ? `<button type="button" class="btn btn-link p-0 text-primary ms-1 btn-preview-table-file" data-file="${escapeHtml(row.fileMinhChung)}" title="Xem trước file minh chứng" style="font-size:1.05rem;vertical-align:middle;text-decoration:none;"><i class="bi bi-paperclip"></i></button>` : ""}
             </td>
-            <td class="text-start col-main">${escapeHtml(row.ten_cong_trinh || row.tenCongTrinh)}</td>
             <td class="text-start">${row.loaiNckh === "BAIBAO" ? escapeHtml(row.tenTapChi || "—") : ""}</td>
             <td>${escapeHtml(row.maSo || "")}</td>
             <td>${escapeHtml(row.xepLoai || "")}</td>
