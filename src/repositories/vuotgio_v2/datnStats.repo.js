@@ -198,8 +198,8 @@ const getRawDoAnRecords = async (connection, params = {}) => {
                 da.SoTiet,
                 da.NgayBatDau,
                 da.NgayKetThuc,
-                da.MaPhongBan AS Khoa,
-                da.MaPhongBan,
+                COALESCE(NULLIF(da.MaPhongBan, ''), NULLIF(nv.MaPhongBan, ''), '') AS Khoa,
+                COALESCE(NULLIF(da.MaPhongBan, ''), NULLIF(nv.MaPhongBan, ''), '') AS MaPhongBan,
                 da.NamHoc,
                 da.ki AS Ki,
                 da.Dot,
@@ -244,7 +244,7 @@ const getRawDoAnRecords = async (connection, params = {}) => {
             queryParams.push(heDaoTao, heDaoTao, heDaoTao);
         }
 
-        query += ` ORDER BY da.MaPhongBan ASC, da.GiangVien ASC, da.SinhVien ASC`;
+        query += ` ORDER BY COALESCE(NULLIF(da.MaPhongBan, ''), NULLIF(nv.MaPhongBan, ''), '') ASC, da.GiangVien ASC, COALESCE(NULLIF(da.KhoaDaoTao, ''), NULLIF(da.khoa_sinh_vien, ''), '') ASC, da.SinhVien ASC`;
         const [sqlRows] = await connection.execute(query, queryParams);
         rows = sqlRows || [];
     } else {
@@ -264,12 +264,21 @@ const getRawDoAnRecords = async (connection, params = {}) => {
             rows = results.flat();
         }
 
-        rows = rows.map((r) => ({
-            ...r,
-            Khoa: r.Khoa || r.khoa_sinh_vien || r.MaPhongBan || "",
-            KhoaSV: r.KhoaDaoTao || r.khoa_sinh_vien || r.KhoaSV || "",
-            Nganh: r.Nganh || r.nganh || ""
-        }));
+        rows = rows.map((r) => {
+            const rawClass = (r.KhoaDaoTao || r.KhoaSV || "").trim();
+            const svClass = rawClass || (r.khoa_sinh_vien || "").trim();
+            let dept = (r.MaPhongBan || r.Khoa || "").trim();
+            // Nếu dept trùng với mã lớp (ví dụ "DT5") thì không lấy làm Khoa
+            if (dept && dept === svClass) {
+                dept = "";
+            }
+            return {
+                ...r,
+                Khoa: dept,
+                KhoaSV: svClass,
+                Nganh: r.Nganh || r.nganh || ""
+            };
+        });
 
         // Lọc trong bộ nhớ cho Dự kiến
         if (dot && dot !== "ALL") {

@@ -28,7 +28,7 @@ const applyHeaderStyle = (row, bgColor = "FFE0E0E0") => {
 
 const applyDataRowStyle = (row) => {
     row.font = { name: FONT_NAME, family: FONT_FAMILY, size: 11 };
-    row.height = 24;
+    // row.height = 24;
     row.eachCell({ includeEmpty: true }, (cell) => {
         cell.font = { name: FONT_NAME, family: FONT_FAMILY, size: 11 };
         cell.border = {
@@ -457,11 +457,28 @@ const exportStatsExcel = async ({ tab = "giang-vien", filters = {} }) => {
             { width: 14 }
         ];
 
+        let currentKhoa = null;
         let overallSTT = 1;
         let grandTotalHours = 0;
 
         (data.rows || []).forEach((teacher) => {
             grandTotalHours += teacher.tongSoTiet || 0;
+            const teacherKhoa = teacher.khoa || "KHAC";
+            const teacherKhoaName = teacher.khoaDisplayName || teacher.khoa || "Khoa khác";
+
+            // Dòng Group Header theo Khoa
+            if (teacherKhoa !== currentKhoa) {
+                currentKhoa = teacherKhoa;
+                const deptHeaderRow = worksheet.addRow([
+                    `KHOA: ${teacherKhoaName.toUpperCase()}`,
+                    "", "", "", "", "", "", "", ""
+                ]);
+                applyHeaderStyle(deptHeaderRow, "FFDCE6F1");
+                deptHeaderRow.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+                deptHeaderRow.height = 25;
+                worksheet.mergeCells(`A${deptHeaderRow.number}:I${deptHeaderRow.number}`);
+            }
+
             const projects = teacher.projects || [];
             const count = projects.length || 1;
             const startRow = worksheet.lastRow.number + 1;
@@ -487,31 +504,47 @@ const exportStatsExcel = async ({ tab = "giang-vien", filters = {} }) => {
                 return;
             }
 
-            projects.forEach((proj, pIdx) => {
-                const isFirst = pIdx === 0;
-                const r = worksheet.addRow([
-                    isFirst ? overallSTT++ : "",
-                    isFirst ? teacher.giangVien : "",
-                    isFirst ? teacher.khoa : "",
-                    proj.sinhVien || "-",
-                    proj.khoaSV || "-",
-                    proj.tenDeTai || "-",
-                    proj.soTiet || 0,
-                    isFirst ? teacher.tongSoTiet : "",
-                    ""
-                ]);
-                applyDataRowStyle(r);
-                r.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(2).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(3).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(4).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(5).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(6).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-                r.getCell(7).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(8).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(9).alignment = { horizontal: "center", vertical: "middle" };
+            // Nhóm sinh viên theo Lớp (khoaSV)
+            const classGroups = [];
+            projects.forEach((proj) => {
+                const cls = (proj.khoaSV || "-").trim();
+                const lastGroup = classGroups[classGroups.length - 1];
+                if (lastGroup && lastGroup.cls === cls) {
+                    lastGroup.count++;
+                    lastGroup.items.push(proj);
+                } else {
+                    classGroups.push({ cls, count: 1, items: [proj] });
+                }
             });
 
+            classGroups.forEach((cg) => {
+                cg.items.forEach((proj) => {
+                    const isFirstTeacher = startRow === worksheet.lastRow.number + 1;
+                    const r = worksheet.addRow([
+                        isFirstTeacher ? overallSTT++ : "",
+                        isFirstTeacher ? teacher.giangVien : "",
+                        isFirstTeacher ? teacher.khoa : "",
+                        proj.sinhVien || "-",
+                        proj.khoaSV || "-",
+                        proj.tenDeTai || "-",
+                        proj.soTiet || 0,
+                        isFirstTeacher ? teacher.tongSoTiet : "",
+                        ""
+                    ]);
+                    applyDataRowStyle(r);
+                    r.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
+                    r.getCell(2).alignment = { horizontal: "center", vertical: "middle" };
+                    r.getCell(3).alignment = { horizontal: "center", vertical: "middle" };
+                    r.getCell(4).alignment = { horizontal: "center", vertical: "middle" };
+                    r.getCell(5).alignment = { horizontal: "center", vertical: "middle" };
+                    r.getCell(6).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+                    r.getCell(7).alignment = { horizontal: "center", vertical: "middle" };
+                    r.getCell(8).alignment = { horizontal: "center", vertical: "middle" };
+                    r.getCell(9).alignment = { horizontal: "center", vertical: "middle" };
+                });
+            });
+
+            // Merge cells cho thông tin giảng viên (cột A, B, C, H)
             if (count > 1) {
                 const endRow = startRow + count - 1;
                 worksheet.mergeCells(`A${startRow}:A${endRow}`);
@@ -519,6 +552,15 @@ const exportStatsExcel = async ({ tab = "giang-vien", filters = {} }) => {
                 worksheet.mergeCells(`C${startRow}:C${endRow}`);
                 worksheet.mergeCells(`H${startRow}:H${endRow}`);
             }
+
+            // Merge cells cho cột Khóa (cột E) theo từng nhóm lớp
+            let curClassRow = startRow;
+            classGroups.forEach((cg) => {
+                if (cg.count > 1) {
+                    worksheet.mergeCells(`E${curClassRow}:E${curClassRow + cg.count - 1}`);
+                }
+                curClassRow += cg.count;
+            });
         });
 
         // Dòng tổng cộng
