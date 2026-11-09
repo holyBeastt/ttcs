@@ -6,9 +6,15 @@
         scope: window.KTHP_STATS_SCOPE || "OFFICIAL",
         lecturerGroups: [],
         availableLecturers: [],
+        currentDeptCode: "",
+        currentDeptName: "",
+        currentKhoaRecords: [],
+        currentInstRecords: [],
     };
 
     const el = {};
+    let bsKhoaModal = null;
+    let bsInstModal = null;
 
     const helpers = {
         escapeHtml(value) {
@@ -59,12 +65,12 @@
             return '<span class="badge-pending" title="Chưa duyệt"><i class="bi bi-hourglass-split"></i> Chưa duyệt</span>';
         },
         getTypeBadge(type) {
-            if (type === "COI_THI") return '<span class="type-badge-coi"><i class="bi bi-eye"></i> Coi thi</span>';
-            if (type === "CHAM_THI") return '<span class="type-badge-cham"><i class="bi bi-pencil-square"></i> Chấm thi</span>';
+            if (type === "COI_THI") return '<span class="type-badge-coi text-nowrap"><i class="bi bi-eye-fill"></i> Coi thi</span>';
+            if (type === "CHAM_THI") return '<span class="type-badge-cham text-nowrap"><i class="bi bi-pencil-fill"></i> Chấm thi</span>';
             if (type === "RA_DE" || type === "NGAN_HANG_CAU_HOI") {
-                return '<span class="type-badge-rade"><i class="bi bi-file-earmark-text"></i> Ra đề</span>';
+                return '<span class="type-badge-rade text-nowrap"><i class="bi bi-file-text-fill"></i> Ra đề</span>';
             }
-            return `<span class="badge bg-secondary">${helpers.escapeHtml(type)}</span>`;
+            return `<span class="badge bg-secondary text-nowrap">${helpers.escapeHtml(type)}</span>`;
         },
     };
 
@@ -265,6 +271,31 @@
         el.chartTitle2 = document.getElementById("kthpChartTitle2");
         el.chartCanvas1 = document.getElementById("kthpChart1");
         el.chartCanvas2 = document.getElementById("kthpChart2");
+
+        // Modal Khoa
+        el.modalKhoaEl = document.getElementById("khoaDetailModal");
+        el.modalKhoaSubtitle = document.getElementById("khoaDetailSubtitle");
+        el.modalKhoaLecturers = document.getElementById("modalKhoaLecturers");
+        el.modalKhoaJobs = document.getElementById("modalKhoaJobs");
+        el.modalKhoaHours = document.getElementById("modalKhoaHours");
+        el.modalKhoaSearch = document.getElementById("modalKhoaSearch");
+        el.modalKhoaTableBody = document.getElementById("modalKhoaTableBody");
+        el.btnExportKhoaModal = document.getElementById("btnExportKhoaModal");
+
+        // Modal Toàn Học viện
+        el.modalInstEl = document.getElementById("instituteDetailModal");
+        el.modalInstSubtitle = document.getElementById("instituteDetailSubtitle");
+        el.modalInstLecturers = document.getElementById("modalInstLecturers");
+        el.modalInstJobs = document.getElementById("modalInstJobs");
+        el.modalInstHours = document.getElementById("modalInstHours");
+        el.modalInstSearch = document.getElementById("modalInstSearch");
+        el.modalInstTableBody = document.getElementById("modalInstTableBody");
+        el.btnExportInstModal = document.getElementById("btnExportInstModal");
+
+        if (typeof bootstrap !== "undefined") {
+            if (el.modalKhoaEl) bsKhoaModal = new bootstrap.Modal(el.modalKhoaEl);
+            if (el.modalInstEl) bsInstModal = new bootstrap.Modal(el.modalInstEl);
+        }
 
         if (!window.KTHP_SHOW_CHART && el.chartSection) {
             el.chartSection.style.display = "none";
@@ -723,22 +754,44 @@
 
         const totalHours = groups.reduce((acc, g) => acc + Number(g.totalHours || 0), 0);
         const totalRecords = groups.reduce((acc, g) => acc + (g.records || []).length, 0);
-        setKpis("Giảng viên", groups.length, totalHours, "Tổng công việc", totalRecords);
+        setKpis("Giảng viên", groups.length, totalHours, "Tổng số KTHP", totalRecords);
+
+        // Helper render 11 columns matching list view
+        function renderRecordRowsHtml(records = []) {
+            if (!records.length) {
+                return '<tr><td colspan="11" class="text-center py-4 text-muted">Không có bản ghi nào</td></tr>';
+            }
+            return records
+                .map((r, idx) => `
+                    <tr>
+                        <td class="text-center">${idx + 1}</td>
+                        <td class="text-start fw-bold">${helpers.escapeHtml(r.giang_vien || "-")}</td>
+                        <td class="text-center"><span class="badge bg-light text-dark border">${helpers.escapeHtml(r.khoa || "-")}</span></td>
+                        <td class="text-center">${helpers.escapeHtml(r.hoc_ky || "-")}</td>
+                        <td class="text-center">${helpers.escapeHtml(r.dot || "-")}</td>
+                        <td class="text-start font-monospace">${helpers.escapeHtml(r.ten_hoc_phan || "-")}</td>
+                        <td class="text-center text-nowrap">${helpers.getTypeBadge(r.loai_kthp)}</td>
+                        <td class="text-start">${helpers.formatDetail(r)}</td>
+                        <td class="text-end fw-bold text-primary">${helpers.formatHours(r.quy_chuan)}</td>
+                        <td class="text-start">${helpers.escapeHtml(r.ghi_chu || "-")}</td>
+                        <td class="text-center">${helpers.formatApproval(r.khoa_duyet, r.khao_thi_duyet)}</td>
+                    </tr>
+                `)
+                .join("");
+        }
 
         // Render groups
         const headers = [
             "STT",
-            "Loại",
+            "Giảng viên",
+            "Khoa",
+            "Kì",
+            "Đợt",
             "Tên học phần",
-            "Mã HP",
-            "Lớp học phần",
-            "Hệ ĐT",
-            "Hình thức",
-            "Chi tiết (Ca/Phòng/Bài/Đề)",
-            "Số TC",
-            "Số SV",
-            "Hệ số",
+            "Loại KTHP",
+            "Thông tin chi tiết",
             "Số tiết QC",
+            "Ghi chú",
             "Trạng thái duyệt",
         ];
 
@@ -751,19 +804,17 @@
                                 globalIndex++;
                                 return `
                                 <tr>
-                                    <td>${globalIndex}</td>
-                                    <td>${helpers.getTypeBadge(r.loai_kthp)}</td>
+                                    <td class="text-center">${globalIndex}</td>
+                                    <td class="text-start fw-bold">${helpers.escapeHtml(r.giang_vien || g.name || "-")}</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">${helpers.escapeHtml(r.khoa || g.department || "-")}</span></td>
+                                    <td class="text-center">${helpers.escapeHtml(r.hoc_ky || "-")}</td>
+                                    <td class="text-center">${helpers.escapeHtml(r.dot || "-")}</td>
                                     <td class="text-start font-monospace">${helpers.escapeHtml(r.ten_hoc_phan || "-")}</td>
-                                    <td>${helpers.escapeHtml(r.ma_hoc_phan || "-")}</td>
-                                    <td>${helpers.escapeHtml(r.lop_hoc_phan || "-")}</td>
-                                    <td>${helpers.escapeHtml(r.he_dao_tao || "-")}</td>
-                                    <td>${helpers.escapeHtml(r.hinh_thuc_thi || "-")}</td>
+                                    <td class="text-center text-nowrap">${helpers.getTypeBadge(r.loai_kthp)}</td>
                                     <td class="text-start">${helpers.formatDetail(r)}</td>
-                                    <td>${r.so_tc ?? "-"}</td>
-                                    <td>${r.so_sv ?? "-"}</td>
-                                    <td>${r.he_so ?? "-"}</td>
-                                    <td class="fw-bold text-primary">${helpers.formatHours(r.quy_chuan)}</td>
-                                    <td>${helpers.formatApproval(r.khoa_duyet, r.khao_thi_duyet)}</td>
+                                    <td class="text-end fw-bold text-primary">${helpers.formatHours(r.quy_chuan)}</td>
+                                    <td class="text-start">${helpers.escapeHtml(r.ghi_chu || "-")}</td>
+                                    <td class="text-center">${helpers.formatApproval(r.khoa_duyet, r.khao_thi_duyet)}</td>
                                 </tr>
                             `;
                             })
@@ -788,16 +839,132 @@
 
         el.content.innerHTML = `
             <div class="stats-table-card table-responsive">
-                <table class="table table-hover text-center align-middle">
-                    <thead>
+                <table class="table table-hover align-middle mb-0 class-table">
+                    <thead class="table-primary text-center">
                         <tr>
-                            ${headers.map((h, i) => `<th class="${[2, 7].includes(i) ? "text-start" : ""}">${h}</th>`).join("")}
+                            <th style="width: 45px;">STT</th>
+                            <th class="text-start" style="width: 160px;">Giảng viên</th>
+                            <th style="width: 80px;">Khoa</th>
+                            <th style="width: 55px;">Kì</th>
+                            <th style="width: 55px;">Đợt</th>
+                            <th class="text-start">Tên học phần</th>
+                            <th class="text-center text-nowrap" style="width: 130px; min-width: 120px;">Loại KTHP</th>
+                            <th class="text-start" style="width: 220px;">Thông tin chi tiết</th>
+                            <th class="text-end" style="width: 90px;">Số tiết QC</th>
+                            <th class="text-start" style="width: 120px;">Ghi chú</th>
+                            <th style="width: 120px;">Trạng thái duyệt</th>
                         </tr>
                     </thead>
                     <tbody>${bodyHtml}</tbody>
                 </table>
             </div>
         `;
+    }
+
+    // Modal Helper functions
+    function filterRecordsByKeyword(records = [], term = "") {
+        if (!term) return records;
+        const lower = term.toLowerCase().trim();
+        return records.filter((r) => {
+            const gv = (r.giang_vien || "").toLowerCase();
+            const hp = (r.ten_hoc_phan || "").toLowerCase();
+            const mhp = (r.ma_hoc_phan || "").toLowerCase();
+            const kh = (r.khoa || "").toLowerCase();
+            const loai = (r.loai_kthp || "").toLowerCase();
+            const gc = (r.ghi_chu || "").toLowerCase();
+            return gv.includes(lower) || hp.includes(lower) || mhp.includes(lower) || kh.includes(lower) || loai.includes(lower) || gc.includes(lower);
+        });
+    }
+
+    function renderModalRecordsHtml(records = []) {
+        if (!records.length) {
+            return '<tr><td colspan="11" class="text-center py-4 text-muted">Không có bản ghi nào</td></tr>';
+        }
+        return records
+            .map((r, idx) => `
+                <tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td class="text-start fw-bold">${helpers.escapeHtml(r.giang_vien || "-")}</td>
+                    <td class="text-center"><span class="badge bg-light text-dark border">${helpers.escapeHtml(r.khoa || "-")}</span></td>
+                    <td class="text-center">${helpers.escapeHtml(r.hoc_ky || "-")}</td>
+                    <td class="text-center">${helpers.escapeHtml(r.dot || "-")}</td>
+                    <td class="text-start font-monospace">${helpers.escapeHtml(r.ten_hoc_phan || "-")}</td>
+                    <td class="text-center">${helpers.getTypeBadge(r.loai_kthp)}</td>
+                    <td class="text-start">${helpers.formatDetail(r)}</td>
+                    <td class="text-end fw-bold text-primary">${helpers.formatHours(r.quy_chuan)}</td>
+                    <td class="text-start">${helpers.escapeHtml(r.ghi_chu || "-")}</td>
+                    <td class="text-center">${helpers.formatApproval(r.khoa_duyet, r.khao_thi_duyet)}</td>
+                </tr>
+            `)
+            .join("");
+    }
+
+    async function openKhoaDetailModal(dept) {
+        if (!bsKhoaModal) {
+            if (el.modalKhoaEl && typeof bootstrap !== "undefined") {
+                bsKhoaModal = new bootstrap.Modal(el.modalKhoaEl);
+            } else {
+                return;
+            }
+        }
+        state.currentDeptCode = dept.ma_phong_ban;
+        state.currentDeptName = dept.ten_phong_ban || dept.ma_phong_ban;
+
+        if (el.modalKhoaSubtitle) el.modalKhoaSubtitle.textContent = state.currentDeptName;
+        if (el.modalKhoaLecturers) el.modalKhoaLecturers.textContent = dept.gv_count || 0;
+        if (el.modalKhoaJobs) el.modalKhoaJobs.textContent = dept.cong_viec_count || 0;
+        if (el.modalKhoaHours) el.modalKhoaHours.textContent = helpers.formatHours(dept.tong_so_tiet_qc || 0);
+        if (el.modalKhoaSearch) el.modalKhoaSearch.value = "";
+        if (el.modalKhoaTableBody) {
+            el.modalKhoaTableBody.innerHTML = '<tr><td colspan="11" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Đang tải chi tiết...</div></td></tr>';
+        }
+
+        bsKhoaModal.show();
+
+        try {
+            const fp = getFilterParams();
+            const detailRes = await api.facultyRecords(dept.ma_phong_ban, fp);
+            const records = detailRes.success && Array.isArray(detailRes.data) ? detailRes.data : [];
+            state.currentKhoaRecords = records;
+            if (el.modalKhoaTableBody) {
+                el.modalKhoaTableBody.innerHTML = renderModalRecordsHtml(records);
+            }
+        } catch (err) {
+            console.error(err);
+            if (el.modalKhoaTableBody) {
+                el.modalKhoaTableBody.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-danger">Lỗi khi tải chi tiết: ${helpers.escapeHtml(err.message)}</td></tr>`;
+            }
+        }
+    }
+
+    function openInstituteDetailModal(overview, allRecords = [], filterType = null) {
+        if (!bsInstModal) {
+            if (el.modalInstEl && typeof bootstrap !== "undefined") {
+                bsInstModal = new bootstrap.Modal(el.modalInstEl);
+            } else {
+                return;
+            }
+        }
+        state.currentInstRecords = allRecords;
+
+        let filtered = allRecords;
+        if (filterType) {
+            filtered = allRecords.filter((r) => r.loai_kthp === filterType || (r.loai_kthp_group && r.loai_kthp_group === filterType));
+        }
+
+        const titleText = filterType ? `Loại: ${filterType}` : "Toàn học viện";
+        if (el.modalInstSubtitle) el.modalInstSubtitle.textContent = titleText;
+        if (el.modalInstLecturers) el.modalInstLecturers.textContent = overview.tong_gv || 0;
+        if (el.modalInstJobs) el.modalInstJobs.textContent = filtered.length;
+        const totalQc = filtered.reduce((acc, r) => acc + Number(r.quy_chuan || 0), 0);
+        if (el.modalInstHours) el.modalInstHours.textContent = helpers.formatHours(totalQc);
+        if (el.modalInstSearch) el.modalInstSearch.value = "";
+
+        if (el.modalInstTableBody) {
+            el.modalInstTableBody.innerHTML = renderModalRecordsHtml(filtered);
+        }
+
+        bsInstModal.show();
     }
 
     async function loadFaculties() {
@@ -818,7 +985,7 @@
 
         const totalHours = faculties.reduce((acc, f) => acc + Number(f.tong_so_tiet_qc || 0), 0);
         const totalJobs = faculties.reduce((acc, f) => acc + Number(f.cong_viec_count || 0), 0);
-        setKpis("Khoa / Bộ môn", faculties.length, totalHours, "Tổng công việc", totalJobs);
+        setKpis("Khoa / Bộ môn", faculties.length, totalHours, "Tổng số KTHP", totalJobs);
 
         const rowsHtml = faculties
             .map((f, idx) => `
@@ -833,14 +1000,9 @@
                     <td>${helpers.formatHours(f.so_tiet_cham_thi)}</td>
                     <td class="fw-bold text-primary">${helpers.formatHours(f.tong_so_tiet_qc)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary btn-view-faculty" data-khoa="${helpers.escapeHtml(f.ma_phong_ban)}">
-                            <i class="bi bi-eye"></i> Chi tiết
+                        <button class="btn btn-sm btn-outline-info text-nowrap btn-view-faculty-modal" data-idx="${idx}">
+                            <i class="bi bi-eye me-1"></i> Xem chi tiết
                         </button>
-                    </td>
-                </tr>
-                <tr id="faculty-detail-${helpers.escapeHtml(f.ma_phong_ban)}" class="d-none">
-                    <td colspan="10" class="p-3 bg-light text-start">
-                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải chi tiết...
                     </td>
                 </tr>
             `)
@@ -848,19 +1010,19 @@
 
         el.content.innerHTML = `
             <div class="stats-table-card table-responsive">
-                <table class="table table-hover text-center align-middle">
-                    <thead>
+                <table class="table table-hover text-center align-middle mb-0 class-table">
+                    <thead class="table-primary text-center">
                         <tr>
-                            <th>STT</th>
-                            <th>Mã Khoa</th>
+                            <th style="width: 45px;">STT</th>
+                            <th style="width: 90px;">Mã Khoa</th>
                             <th class="text-start">Tên Khoa / Bộ môn</th>
-                            <th>Số GV</th>
-                            <th>Số lượt việc</th>
-                            <th>Tiết QC Coi thi</th>
-                            <th>Tiết QC Ra đề</th>
-                            <th>Tiết QC Chấm thi</th>
-                            <th>Tổng tiết QC</th>
-                            <th>Thao tác</th>
+                            <th style="width: 80px;">Số GV</th>
+                            <th style="width: 95px;">Số KTHP</th>
+                            <th style="width: 100px;">Coi thi</th>
+                            <th style="width: 100px;">Ra đề</th>
+                            <th style="width: 100px;">Chấm thi</th>
+                            <th style="width: 110px;">Tổng tiết QC</th>
+                            <th style="width: 120px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>${rowsHtml}</tbody>
@@ -868,80 +1030,18 @@
             </div>
         `;
 
-        // Attach click for faculty detail
-        el.content.querySelectorAll(".btn-view-faculty").forEach((btn) => {
-            btn.addEventListener("click", async () => {
-                const khoaCode = btn.getAttribute("data-khoa");
-                const detailRow = document.getElementById(`faculty-detail-${khoaCode}`);
-                if (!detailRow) return;
-
-                if (!detailRow.classList.contains("d-none")) {
-                    detailRow.classList.add("d-none");
-                    btn.innerHTML = '<i class="bi bi-eye"></i> Chi tiết';
-                    return;
-                }
-
-                detailRow.classList.remove("d-none");
-                btn.innerHTML = '<i class="bi bi-eye-slash"></i> Thu gọn';
-
-                try {
-                    const detailRes = await api.facultyRecords(khoaCode, fp);
-                    const records = detailRes.success ? detailRes.data : [];
-                    if (!records.length) {
-                        detailRow.innerHTML = '<td colspan="10" class="p-3 bg-light text-center text-muted">Không có công việc nào trong khoa này</td>';
-                        return;
-                    }
-
-                    let subIndex = 0;
-                    const subRows = records
-                        .map(
-                            (r) => `
-                            <tr>
-                                <td>${++subIndex}</td>
-                                <td class="text-start fw-bold">${helpers.escapeHtml(r.giang_vien || "-")}</td>
-                                <td>${helpers.getTypeBadge(r.loai_kthp)}</td>
-                                <td class="text-start font-monospace">${helpers.escapeHtml(r.ten_hoc_phan || "-")}</td>
-                                <td>${helpers.escapeHtml(r.lop_hoc_phan || "-")}</td>
-                                <td class="text-start">${helpers.formatDetail(r)}</td>
-                                <td class="fw-bold text-primary">${helpers.formatHours(r.quy_chuan)}</td>
-                                <td>${helpers.formatApproval(r.khoa_duyet, r.khao_thi_duyet)}</td>
-                            </tr>
-                        `
-                        )
-                        .join("");
-
-                    detailRow.innerHTML = `
-                        <td colspan="10" class="p-3 bg-light">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body p-2 table-responsive">
-                                    <table class="table table-sm table-bordered text-center align-middle mb-0 bg-white">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>STT</th>
-                                                <th class="text-start">Giảng viên</th>
-                                                <th>Loại</th>
-                                                <th class="text-start">Tên học phần</th>
-                                                <th>Lớp HP</th>
-                                                <th class="text-start">Chi tiết ca/phòng/bài/đề</th>
-                                                <th>Số tiết QC</th>
-                                                <th>Trạng thái duyệt</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>${subRows}</tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </td>
-                    `;
-                } catch (err) {
-                    detailRow.innerHTML = `<td colspan="10" class="p-3 text-danger">Lỗi khi tải chi tiết: ${helpers.escapeHtml(err.message)}</td>`;
-                }
+        el.content.querySelectorAll(".btn-view-faculty-modal").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const idx = Number(btn.getAttribute("data-idx"));
+                const f = faculties[idx];
+                if (f) openKhoaDetailModal(f);
             });
         });
     }
 
     async function loadInstitute() {
         const fp = getFilterParams();
+        const yr = fp.yr || getYearRange();
 
         const res = await api.institute(fp);
         if (!res.success) throw new Error(res.message || "Không thể lấy thống kê học viện");
@@ -954,7 +1054,7 @@
             "Tổng số GV",
             overview.tong_gv || 0,
             overview.tong_so_tiet_qc || 0,
-            "Tổng công việc",
+            "Tổng số KTHP",
             overview.tong_cong_viec || 0
         );
 
@@ -964,71 +1064,58 @@
                         (t, idx) => `
                     <tr>
                         <td>${idx + 1}</td>
-                        <td class="text-start fw-bold">${helpers.getTypeBadge(t.loai_kthp_group)} ${helpers.escapeHtml(t.loai_kthp_label)}</td>
+                        <td class="text-start fw-bold text-nowrap">${helpers.getTypeBadge(t.loai_kthp_group || t.loai_kthp)}</td>
                         <td>${t.gv_count || 0}</td>
                         <td>${t.cong_viec_count || 0}</td>
                         <td class="fw-bold text-primary">${helpers.formatHours(t.tong_so_tiet_qc)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info text-nowrap btn-view-inst-type" data-type="${helpers.escapeHtml(t.loai_kthp_group || t.loai_kthp)}">
+                                <i class="bi bi-eye me-1"></i> Xem chi tiết
+                            </button>
+                        </td>
                     </tr>
                 `
                     )
                     .join("")
-            : '<tr><td colspan="5" class="text-muted">Không có dữ liệu loại công việc</td></tr>';
+            : '<tr><td colspan="6" class="text-muted">Không có dữ liệu loại công việc</td></tr>';
 
         // Also load full institute records and faculties for charts
         const [allRecordsRes, facultiesRes] = await Promise.all([
             api.instituteRecords(fp),
             api.faculties(fp),
         ]);
-        const allRecords = allRecordsRes.success ? allRecordsRes.data : [];
+        const allRecords = allRecordsRes.success && Array.isArray(allRecordsRes.data) ? allRecordsRes.data : [];
         const faculties = facultiesRes.success && Array.isArray(facultiesRes.data) ? facultiesRes.data : [];
 
         if (!byType.length && !allRecords.length) {
             hideChartSection();
         } else {
-            renderInstituteCharts(byType, faculties, fp.yr.label);
+            renderInstituteCharts(byType, faculties, yr.label);
         }
 
-        let recIdx = 0;
-        const recRowsHtml = allRecords.length
-            ? allRecords
-                    .map(
-                        (r) => `
-                    <tr>
-                        <td>${++recIdx}</td>
-                        <td><span class="badge bg-light text-dark border">${helpers.escapeHtml(r.khoa)}</span></td>
-                        <td class="text-start fw-bold">${helpers.escapeHtml(r.giang_vien || "-")}</td>
-                        <td>${helpers.getTypeBadge(r.loai_kthp)}</td>
-                        <td class="text-start font-monospace">${helpers.escapeHtml(r.ten_hoc_phan || "-")}</td>
-                        <td>${helpers.escapeHtml(r.lop_hoc_phan || "-")}</td>
-                        <td class="text-start">${helpers.formatDetail(r)}</td>
-                        <td class="fw-bold text-primary">${helpers.formatHours(r.quy_chuan)}</td>
-                        <td>${helpers.formatApproval(r.khoa_duyet, r.khao_thi_duyet)}</td>
-                    </tr>
-                `
-                    )
-                    .join("")
-            : '<tr><td colspan="9" class="text-muted">Không có bản ghi chi tiết nào</td></tr>';
+        const recRowsHtml = renderModalRecordsHtml(allRecords);
 
         el.content.innerHTML = `
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-7">
                     <div class="stats-table-card table-responsive h-100">
                         <h6 class="fw-bold p-3 border-bottom mb-0"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Tổng hợp theo phân loại công việc</h6>
-                        <table class="table table-hover text-center align-middle mb-0">
-                            <thead class="table-light">
+                        <table class="table table-hover text-center align-middle mb-0 class-table">
+                            <thead class="table-primary text-center">
                                 <tr>
-                                    <th>STT</th>
-                                    <th class="text-start">Loại công việc</th>
-                                    <th>Số GV</th>
-                                    <th>Số lượt</th>
-                                    <th>Tổng tiết QC</th>
+                                    <th style="width: 45px;">STT</th>
+                                    <th class="text-start text-nowrap" style="width: 140px; min-width: 130px;">Loại KTHP</th>
+                                    <th style="width: 80px;">Số GV</th>
+                                    <th style="width: 90px;">Số KTHP</th>
+                                    <th style="width: 110px;">Tổng tiết QC</th>
+                                    <th style="width: 120px;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>${typeRowsHtml}</tbody>
                         </table>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="stats-table-card p-4 h-100 d-flex flex-column justify-content-center">
                         <h6 class="fw-bold text-muted mb-3"><i class="bi bi-info-circle me-1"></i> Tổng quan toàn Học viện (${helpers.escapeHtml(yr.label)})</h6>
                         <div class="d-flex justify-content-around text-center mb-2">
@@ -1054,25 +1141,45 @@
             </div>
 
             <div class="stats-table-card table-responsive">
-                <h6 class="fw-bold p-3 border-bottom mb-0"><i class="bi bi-list-task text-primary me-2"></i>Danh sách toàn bộ công việc Học viện</h6>
-                <table class="table table-hover text-center align-middle mb-0">
-                    <thead>
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-list-task text-primary me-2"></i>Danh sách toàn bộ công việc Học viện</h6>
+                    <button type="button" class="btn btn-sm btn-outline-info fw-semibold text-nowrap btn-view-inst-all">
+                        <i class="bi bi-eye me-1"></i> Xem chi tiết
+                    </button>
+                </div>
+                <table class="table table-hover align-middle mb-0 class-table">
+                    <thead class="table-primary text-center">
                         <tr>
-                            <th>STT</th>
-                            <th>Khoa</th>
-                            <th class="text-start">Giảng viên</th>
-                            <th>Loại</th>
+                            <th style="width: 45px;">STT</th>
+                            <th class="text-start" style="width: 160px;">Giảng viên</th>
+                            <th style="width: 80px;">Khoa</th>
+                            <th style="width: 55px;">Kì</th>
+                            <th style="width: 55px;">Đợt</th>
                             <th class="text-start">Tên học phần</th>
-                            <th>Lớp HP</th>
-                            <th class="text-start">Chi tiết ca/phòng/bài/đề</th>
-                            <th>Số tiết QC</th>
-                            <th>Trạng thái duyệt</th>
+                            <th class="text-center text-nowrap" style="width: 130px; min-width: 120px;">Loại KTHP</th>
+                            <th class="text-start" style="width: 220px;">Thông tin chi tiết</th>
+                            <th class="text-end" style="width: 90px;">Số tiết QC</th>
+                            <th class="text-start" style="width: 120px;">Ghi chú</th>
+                            <th style="width: 120px;">Trạng thái duyệt</th>
                         </tr>
                     </thead>
                     <tbody>${recRowsHtml}</tbody>
                 </table>
             </div>
         `;
+
+        el.content.querySelectorAll(".btn-view-inst-type").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const type = btn.getAttribute("data-type");
+                openInstituteDetailModal(overview, allRecords, type);
+            });
+        });
+        const btnViewAll = el.content.querySelector(".btn-view-inst-all");
+        if (btnViewAll) {
+            btnViewAll.addEventListener("click", () => {
+                openInstituteDetailModal(overview, allRecords, null);
+            });
+        }
     }
 
     async function loadCurrent() {
@@ -1221,6 +1328,9 @@
         const urlHocPhan = urlParams.get("hocPhan");
         if (urlHocPhan && el.hocPhan) el.hocPhan.value = urlHocPhan;
 
+        const urlLoai = urlParams.get("loaiKthp") || urlParams.get("loai");
+        if (urlLoai && el.loai) el.loai.value = urlLoai;
+
         // Tab buttons
         document.querySelectorAll(".nav-pill").forEach((pill) => {
             pill.addEventListener("click", () => {
@@ -1259,6 +1369,58 @@
         if (el.hocPhan) {
             el.hocPhan.addEventListener("keyup", (e) => {
                 if (e.key === "Enter") loadCurrent();
+            });
+        }
+
+        // Modal search and export bindings
+        if (el.modalKhoaSearch) {
+            el.modalKhoaSearch.addEventListener("input", (e) => {
+                const filtered = filterRecordsByKeyword(state.currentKhoaRecords, e.target.value);
+                if (el.modalKhoaTableBody) {
+                    el.modalKhoaTableBody.innerHTML = renderModalRecordsHtml(filtered);
+                }
+            });
+        }
+
+        if (el.modalInstSearch) {
+            el.modalInstSearch.addEventListener("input", (e) => {
+                const filtered = filterRecordsByKeyword(state.currentInstRecords, e.target.value);
+                if (el.modalInstTableBody) {
+                    el.modalInstTableBody.innerHTML = renderModalRecordsHtml(filtered);
+                }
+            });
+        }
+
+        if (el.btnExportKhoaModal) {
+            el.btnExportKhoaModal.addEventListener("click", () => {
+                const isPreview = state.scope === "PREVIEW";
+                const exportBase = isPreview ? "/v2/vuotgio/kthp/export/stats/preview" : "/v2/vuotgio/kthp/export/stats";
+                let fp;
+                try {
+                    fp = getFilterParams();
+                } catch (err) {
+                    return Swal.fire("Thông báo", err.message, "warning");
+                }
+                const params = new URLSearchParams(fp.params);
+                if (state.currentDeptCode) {
+                    params.set("khoa", state.currentDeptCode);
+                    params.set("khoaId", state.currentDeptCode);
+                }
+                window.location.href = `${exportBase}/khoa?${params.toString()}`;
+            });
+        }
+
+        if (el.btnExportInstModal) {
+            el.btnExportInstModal.addEventListener("click", () => {
+                const isPreview = state.scope === "PREVIEW";
+                const exportBase = isPreview ? "/v2/vuotgio/kthp/export/stats/preview" : "/v2/vuotgio/kthp/export/stats";
+                let fp;
+                try {
+                    fp = getFilterParams();
+                } catch (err) {
+                    return Swal.fire("Thông báo", err.message, "warning");
+                }
+                window.location.href = `${exportBase}/hoc-vien?${fp.params.toString()}`;
             });
         }
 

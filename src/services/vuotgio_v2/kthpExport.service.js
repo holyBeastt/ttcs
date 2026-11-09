@@ -101,6 +101,22 @@ const resolveYearLabel = (namHocFrom, namHocTo, namHoc) => {
     return `NĂM HỌC ${from || to}`;
 };
 
+const formatApprovalText = (khoaDuyet, khaoThiDuyet) => {
+    const kd = Number(khoaDuyet) === 1;
+    const ktd = Number(khaoThiDuyet) === 1;
+    if (kd && ktd) return "Đã duyệt đủ";
+    if (kd && !ktd) return "Khoa đã duyệt";
+    if (!kd && ktd) return "Khảo thí duyệt";
+    return "Chưa duyệt";
+};
+
+const formatLoaiKthpText = (type) => {
+    if (type === "COI_THI") return "Coi thi";
+    if (type === "CHAM_THI") return "Chấm thi";
+    if (type === "RA_DE" || type === "NGAN_HANG_CAU_HOI") return "Ra đề";
+    return type || "-";
+};
+
 class KthpExportService {
     async exportLecturerStats({ namHoc, namHocFrom, namHocTo, khoa = "ALL", loaiKthp = "ALL", keyword = "", scope = "OFFICIAL", lecturerId = null, heDaoTao = "ALL", dot = "ALL", ki = "ALL", hocKy = "ALL", hocPhan = "" }) {
         const lecturers = await statsService.getLecturerSummary({
@@ -229,7 +245,7 @@ class KthpExportService {
 
         // Detail sheet
         const detailSheet = workbook.addWorksheet("Chi tiết công việc");
-        detailSheet.mergeCells("A1:O1");
+        detailSheet.mergeCells("A1:L1");
         const dTitle = detailSheet.getCell("A1");
         dTitle.value = `CHI TIẾT COI, CHẤM THI, RA ĐỀ THI - ${yearLabel} (${scopeLabel})`;
         dTitle.font = { name: FONT_NAME, family: FONT_FAMILY, size: 14, bold: true };
@@ -240,19 +256,16 @@ class KthpExportService {
         const detailHeader = detailSheet.addRow([
             "STT",
             "Năm học",
-            "Họ và tên giảng viên",
+            "Giảng viên",
             "Khoa / Đơn vị",
-            "Học kỳ",
-            "Loại công việc",
+            "Kì",
+            "Đợt",
             "Tên học phần",
-            "Mã học phần",
-            "Lớp học phần",
-            "Hệ đào tạo",
-            "Hình thức thi",
-            "Chi tiết (Ca / Phòng / Số bài / Đề)",
-            "Số tín chỉ",
-            "Số sinh viên",
+            "Loại KTHP",
+            "Thông tin chi tiết",
             "Số tiết quy chuẩn",
+            "Ghi chú",
+            "Trạng thái duyệt",
         ]);
         applyHeaderStyle(detailHeader, "FFB8CCE4");
 
@@ -284,29 +297,31 @@ class KthpExportService {
                 const r = detailSheet.addRow([
                     detailIndex,
                     row.nam_hoc || namHoc,
-                    gv.ten_nhan_vien,
-                    gv.ten_phong_ban || gv.ma_phong_ban || "-",
-                    row.hoc_ky ? `Kỳ ${row.hoc_ky}` : "-",
-                    row.loai_kthp_label || row.loai_kthp,
+                    gv.ten_nhan_vien || row.giang_vien || "-",
+                    row.khoa || gv.ten_phong_ban || gv.ma_phong_ban || "-",
+                    row.hoc_ky ? `Kỳ ${row.hoc_ky}` : (row.ki ? `Kỳ ${row.ki}` : "-"),
+                    row.dot || "-",
                     row.ten_hoc_phan || "-",
-                    row.ma_hoc_phan || "-",
-                    row.lop_hoc_phan || "-",
-                    row.he_dao_tao || "-",
-                    row.hinh_thuc_thi || "-",
+                    formatLoaiKthpText(row.loai_kthp),
                     formatDetailText(row),
-                    row.so_tc ?? "-",
-                    row.so_sv ?? "-",
                     qcVal,
+                    row.ghi_chu || "-",
+                    formatApprovalText(row.khoa_duyet, row.khao_thi_duyet),
                 ]);
                 applyDataRowStyle(r);
                 r.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(2).alignment = { horizontal: "center", vertical: "middle" };
+                r.getCell(3).alignment = { horizontal: "left", vertical: "middle" };
                 r.getCell(4).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(5).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(6).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(13).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(14).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(15).alignment = { horizontal: "right", vertical: "middle" };
+                r.getCell(7).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(8).alignment = { horizontal: "center", vertical: "middle" };
+                r.getCell(9).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(10).alignment = { horizontal: "right", vertical: "middle" };
+                r.getCell(10).numFmt = "#,##0.00";
+                r.getCell(11).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(12).alignment = { horizontal: "center", vertical: "middle" };
             });
         }
 
@@ -320,34 +335,29 @@ class KthpExportService {
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
             detailSumQc,
+            "",
+            "",
         ]);
-        detailSheet.mergeCells(`A${detailTotalRow.number}:N${detailTotalRow.number}`);
+        detailSheet.mergeCells(`A${detailTotalRow.number}:I${detailTotalRow.number}`);
         applyTotalRowStyle(detailTotalRow, "FFD9D9D9");
         detailTotalRow.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
-        detailTotalRow.getCell(15).alignment = { horizontal: "right", vertical: "middle" };
+        detailTotalRow.getCell(10).alignment = { horizontal: "right", vertical: "middle" };
+        detailTotalRow.getCell(10).numFmt = "#,##0.00";
 
         detailSheet.columns = [
             { width: 6 },
             { width: 14 },
             { width: 24 },
-            { width: 22 },
+            { width: 18 },
             { width: 10 },
-            { width: 18 },
-            { width: 28 },
+            { width: 8 },
+            { width: 30 },
             { width: 14 },
-            { width: 18 },
-            { width: 16 },
-            { width: 16 },
             { width: 32 },
-            { width: 12 },
-            { width: 12 },
             { width: 18 },
+            { width: 20 },
+            { width: 16 },
         ];
 
         finalizeWorkbook(workbook);
@@ -474,7 +484,7 @@ class KthpExportService {
 
         // Detail sheet for Faculty records
         const detailSheet = workbook.addWorksheet("Chi tiết theo khoa");
-        detailSheet.mergeCells("A1:O1");
+        detailSheet.mergeCells("A1:L1");
         const fdTitle = detailSheet.getCell("A1");
         fdTitle.value = `CHI TIẾT COI, CHẤM THI, RA ĐỀ THI THEO KHOA - ${yearLabel} (${scopeLabel})`;
         fdTitle.font = { name: FONT_NAME, family: FONT_FAMILY, size: 14, bold: true };
@@ -485,19 +495,16 @@ class KthpExportService {
         const detailHeader = detailSheet.addRow([
             "STT",
             "Năm học",
+            "Giảng viên",
             "Khoa / Đơn vị",
-            "Họ và tên giảng viên",
-            "Học kỳ",
-            "Loại công việc",
+            "Kì",
+            "Đợt",
             "Tên học phần",
-            "Mã học phần",
-            "Lớp học phần",
-            "Hệ đào tạo",
-            "Hình thức thi",
-            "Chi tiết (Ca / Phòng / Số bài / Đề)",
-            "Số tín chỉ",
-            "Số sinh viên",
+            "Loại KTHP",
+            "Thông tin chi tiết",
             "Số tiết quy chuẩn",
+            "Ghi chú",
+            "Trạng thái duyệt",
         ]);
         applyHeaderStyle(detailHeader, "FFC5D9F1");
 
@@ -528,28 +535,31 @@ class KthpExportService {
                 const r = detailSheet.addRow([
                     fDetailIdx,
                     row.nam_hoc || namHoc,
-                    f.ten_phong_ban || f.ma_phong_ban,
                     row.giang_vien || "-",
-                    row.hoc_ky ? `Kỳ ${row.hoc_ky}` : "-",
-                    row.loai_kthp_label || row.loai_kthp,
+                    f.ten_phong_ban || f.ma_phong_ban || row.khoa || "-",
+                    row.hoc_ky ? `Kỳ ${row.hoc_ky}` : (row.ki ? `Kỳ ${row.ki}` : "-"),
+                    row.dot || "-",
                     row.ten_hoc_phan || "-",
-                    row.ma_hoc_phan || "-",
-                    row.lop_hoc_phan || "-",
-                    row.he_dao_tao || "-",
-                    row.hinh_thuc_thi || "-",
+                    formatLoaiKthpText(row.loai_kthp),
                     formatDetailText(row),
-                    row.so_tc ?? "-",
-                    row.so_sv ?? "-",
                     qcVal,
+                    row.ghi_chu || "-",
+                    formatApprovalText(row.khoa_duyet, row.khao_thi_duyet),
                 ]);
                 applyDataRowStyle(r);
                 r.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(2).alignment = { horizontal: "center", vertical: "middle" };
+                r.getCell(3).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(4).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(5).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(6).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(13).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(14).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(15).alignment = { horizontal: "right", vertical: "middle" };
+                r.getCell(7).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(8).alignment = { horizontal: "center", vertical: "middle" };
+                r.getCell(9).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(10).alignment = { horizontal: "right", vertical: "middle" };
+                r.getCell(10).numFmt = "#,##0.00";
+                r.getCell(11).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(12).alignment = { horizontal: "center", vertical: "middle" };
             });
         }
 
@@ -563,34 +573,29 @@ class KthpExportService {
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
             fSumQc,
+            "",
+            "",
         ]);
-        detailSheet.mergeCells(`A${fDetailTotalRow.number}:N${fDetailTotalRow.number}`);
+        detailSheet.mergeCells(`A${fDetailTotalRow.number}:I${fDetailTotalRow.number}`);
         applyTotalRowStyle(fDetailTotalRow, "FFD9D9D9");
         fDetailTotalRow.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
-        fDetailTotalRow.getCell(15).alignment = { horizontal: "right", vertical: "middle" };
+        fDetailTotalRow.getCell(10).alignment = { horizontal: "right", vertical: "middle" };
+        fDetailTotalRow.getCell(10).numFmt = "#,##0.00";
 
         detailSheet.columns = [
             { width: 6 },
             { width: 14 },
             { width: 24 },
-            { width: 24 },
+            { width: 18 },
             { width: 10 },
-            { width: 18 },
-            { width: 28 },
+            { width: 8 },
+            { width: 30 },
             { width: 14 },
-            { width: 18 },
-            { width: 16 },
-            { width: 16 },
             { width: 32 },
-            { width: 12 },
-            { width: 12 },
             { width: 18 },
+            { width: 20 },
+            { width: 16 },
         ];
 
         finalizeWorkbook(workbook);
@@ -708,7 +713,7 @@ class KthpExportService {
 
         if (allRecords && allRecords.length > 0) {
             const detailSheet = workbook.addWorksheet("Chi tiết toàn Học viện");
-            detailSheet.mergeCells("A1:O1");
+            detailSheet.mergeCells("A1:L1");
             const iTitle = detailSheet.getCell("A1");
             iTitle.value = `CHI TIẾT COI, CHẤM THI, RA ĐỀ THI TOÀN HỌC VIỆN - ${yearLabel} (${scopeLabel})`;
             iTitle.font = { name: FONT_NAME, family: FONT_FAMILY, size: 14, bold: true };
@@ -719,19 +724,16 @@ class KthpExportService {
             const dHeader = detailSheet.addRow([
                 "STT",
                 "Năm học",
+                "Giảng viên",
                 "Khoa / Đơn vị",
-                "Họ và tên giảng viên",
-                "Học kỳ",
-                "Loại công việc",
+                "Kì",
+                "Đợt",
                 "Tên học phần",
-                "Mã học phần",
-                "Lớp học phần",
-                "Hệ đào tạo",
-                "Hình thức thi",
-                "Chi tiết (Ca / Phòng / Số bài / Đề)",
-                "Số tín chỉ",
-                "Số sinh viên",
+                "Loại KTHP",
+                "Thông tin chi tiết",
                 "Số tiết quy chuẩn",
+                "Ghi chú",
+                "Trạng thái duyệt",
             ]);
             applyHeaderStyle(dHeader, "FFC5D9F1");
 
@@ -743,28 +745,31 @@ class KthpExportService {
                 const r = detailSheet.addRow([
                     idx + 1,
                     row.nam_hoc || namHoc,
-                    row.ten_phong_ban || row.khoa || "-",
                     row.giang_vien || "-",
-                    row.hoc_ky ? `Kỳ ${row.hoc_ky}` : "-",
-                    row.loai_kthp_label || row.loai_kthp,
+                    row.ten_phong_ban || row.khoa || "-",
+                    row.hoc_ky ? `Kỳ ${row.hoc_ky}` : (row.ki ? `Kỳ ${row.ki}` : "-"),
+                    row.dot || "-",
                     row.ten_hoc_phan || "-",
-                    row.ma_hoc_phan || "-",
-                    row.lop_hoc_phan || "-",
-                    row.he_dao_tao || "-",
-                    row.hinh_thuc_thi || "-",
+                    formatLoaiKthpText(row.loai_kthp),
                     formatDetailText(row),
-                    row.so_tc ?? "-",
-                    row.so_sv ?? "-",
                     qcVal,
+                    row.ghi_chu || "-",
+                    formatApprovalText(row.khoa_duyet, row.khao_thi_duyet),
                 ]);
                 applyDataRowStyle(r);
                 r.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(2).alignment = { horizontal: "center", vertical: "middle" };
+                r.getCell(3).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(4).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(5).alignment = { horizontal: "center", vertical: "middle" };
                 r.getCell(6).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(13).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(14).alignment = { horizontal: "center", vertical: "middle" };
-                r.getCell(15).alignment = { horizontal: "right", vertical: "middle" };
+                r.getCell(7).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(8).alignment = { horizontal: "center", vertical: "middle" };
+                r.getCell(9).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(10).alignment = { horizontal: "right", vertical: "middle" };
+                r.getCell(10).numFmt = "#,##0.00";
+                r.getCell(11).alignment = { horizontal: "left", vertical: "middle" };
+                r.getCell(12).alignment = { horizontal: "center", vertical: "middle" };
             });
 
             const iTotalRow = detailSheet.addRow([
@@ -777,34 +782,29 @@ class KthpExportService {
                 "",
                 "",
                 "",
-                "",
-                "",
-                "",
-                "",
-                "",
                 instQc,
+                "",
+                "",
             ]);
-            detailSheet.mergeCells(`A${iTotalRow.number}:N${iTotalRow.number}`);
+            detailSheet.mergeCells(`A${iTotalRow.number}:I${iTotalRow.number}`);
             applyTotalRowStyle(iTotalRow, "FFD9D9D9");
             iTotalRow.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
-            iTotalRow.getCell(15).alignment = { horizontal: "right", vertical: "middle" };
+            iTotalRow.getCell(10).alignment = { horizontal: "right", vertical: "middle" };
+            iTotalRow.getCell(10).numFmt = "#,##0.00";
 
             detailSheet.columns = [
                 { width: 6 },
                 { width: 14 },
                 { width: 24 },
-                { width: 24 },
+                { width: 18 },
                 { width: 10 },
-                { width: 18 },
-                { width: 28 },
+                { width: 8 },
+                { width: 30 },
                 { width: 14 },
-                { width: 18 },
-                { width: 16 },
-                { width: 16 },
                 { width: 32 },
-                { width: 12 },
-                { width: 12 },
                 { width: 18 },
+                { width: 20 },
+                { width: 16 },
             ];
         }
 
