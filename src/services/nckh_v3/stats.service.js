@@ -57,7 +57,35 @@ const getFilters = async () => {
   try {
     connection = await createPoolConnection();
     const khoaList = await phongBanRepo.listKhoa(connection);
-    return { khoaList };
+
+    let namHocList = [];
+    try {
+      const [namRows] = await connection.query(`
+        SELECT DISTINCT val as NamHoc FROM (
+          SELECT NamHoc AS val FROM namhoc WHERE NamHoc IS NOT NULL AND NamHoc <> ''
+          UNION
+          SELECT nam_hoc AS val FROM nckh_chung WHERE nam_hoc IS NOT NULL AND nam_hoc <> ''
+        ) t
+        ORDER BY val DESC
+      `);
+      namHocList = (namRows || []).map((r) => r.NamHoc).filter(Boolean);
+    } catch (e) {
+      console.error("[NCKH V3] stats getFilters namHoc error:", e);
+    }
+
+    let activeNamHoc = null;
+    try {
+      const [activeRows] = await connection.query(
+        "SELECT NamHoc FROM namhoc WHERE trangthai = 1 LIMIT 1"
+      );
+      if (activeRows && activeRows.length > 0) {
+        activeNamHoc = activeRows[0].NamHoc;
+      }
+    } catch (e) {
+      console.error("[NCKH V3] stats getFilters activeNamHoc error:", e);
+    }
+
+    return { khoaList, namHocList, activeNamHoc };
   } finally {
     if (connection) connection.release();
   }

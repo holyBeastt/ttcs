@@ -165,7 +165,8 @@ const listByType = async (connection, loaiNckh, namHoc, khoaId) => {
     query += ` AND EXISTS (
       SELECT 1 FROM nckh_so_tiet st_sub
       INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
-      WHERE st_sub.nckh_id = c.id AND nv_sub.phongban_id = ?
+      LEFT JOIN phongban pb_sub ON (pb_sub.id = nv_sub.phongban_id OR pb_sub.MaPhongBan = nv_sub.MaPhongBan)
+      WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
     )`;
     params.push(Number(khoaId));
   }
@@ -194,7 +195,7 @@ const listUnified = async (connection, namHoc, khoaId) => {
       c.ngay_nghiem_thu,
       c.xep_loai,
       c.ma_so,
-      c.file_minh_chung
+      c.file_minh_chung,
       c.ten_tap_chi,
       c.issn_isbn,
       c.doi,
@@ -203,16 +204,17 @@ const listUnified = async (connection, namHoc, khoaId) => {
       c.number,
       c.page
     FROM ${TABLE} c
-    WHERE c.nam_hoc = ?
+    WHERE (c.nam_hoc = ? OR REPLACE(c.nam_hoc, ' ', '') = REPLACE(?, ' ', ''))
   `;
-  const params = [namHoc];
+  const params = [namHoc, namHoc];
 
   if (khoaId !== "ALL") {
     // Lọc: có ít nhất 1 giảng viên thuộc khoa này tham gia
     query += ` AND EXISTS (
       SELECT 1 FROM nckh_so_tiet st_sub
       INNER JOIN nhanvien nv_sub ON nv_sub.id_User = st_sub.nhanvien_id
-      WHERE st_sub.nckh_id = c.id AND nv_sub.phongban_id = ?
+      LEFT JOIN phongban pb_sub ON (pb_sub.id = nv_sub.phongban_id OR pb_sub.MaPhongBan = nv_sub.MaPhongBan)
+      WHERE st_sub.nckh_id = c.id AND pb_sub.id = ?
     )`;
     params.push(Number(khoaId));
   }

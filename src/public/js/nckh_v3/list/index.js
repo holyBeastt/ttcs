@@ -177,25 +177,68 @@
     return window.NCKH_V3.permissions.getPermissionState() || fallback;
   }
 
-  function fillNamHocOptions(namHocList) {
+  function fillNamHocOptions(namHocList, preferredActive = null) {
     if (!el.namHocFilter) return;
 
     el.namHocFilter.innerHTML = "";
-    (namHocList || []).forEach((item) => {
-      const namHoc = item && item.NamHoc ? String(item.NamHoc) : "";
-      if (!namHoc) return;
+    const seen = new Set();
+    const cleanList = [];
 
+    (namHocList || []).forEach((item) => {
+      let val = "";
+      if (typeof item === "string") {
+        val = item.trim();
+      } else if (item && typeof item === "object") {
+        val = String(item.NamHoc || item.namHoc || item.nam_hoc || item.val || "").trim();
+      }
+      if (val && !seen.has(val)) {
+        seen.add(val);
+        cleanList.push(val);
+      }
+    });
+
+    // Fallback: nếu rỗng, tự tạo danh sách các năm gần đây
+    if (cleanList.length === 0) {
+      const y = new Date().getFullYear();
+      for (let i = 1; i >= -3; i--) {
+        cleanList.push(`${y + i} - ${y + i + 1}`);
+      }
+    }
+
+    cleanList.forEach((val) => {
       const option = document.createElement("option");
-      option.value = namHoc;
-      option.textContent = namHoc;
+      option.value = val;
+      option.textContent = val;
       el.namHocFilter.appendChild(option);
     });
 
     const yearNow = new Date().getFullYear();
-    const currentNamHoc = `${yearNow}-${yearNow + 1}`;
-    const found = Array.from(el.namHocFilter.options).find((x) => x.value === currentNamHoc);
-    if (found) {
-      el.namHocFilter.value = currentNamHoc;
+    const candidateCurrentYears = [
+      preferredActive,
+      `${yearNow} - ${yearNow + 1}`,
+      `${yearNow}-${yearNow + 1}`,
+      `${yearNow - 1} - ${yearNow}`,
+      `${yearNow - 1}-${yearNow}`,
+    ].filter(Boolean);
+
+    let selectedValue = "";
+    for (const cand of candidateCurrentYears) {
+      const cleanCand = String(cand).replace(/\s+/g, "");
+      const found = Array.from(el.namHocFilter.options).find(
+        (x) => x.value.replace(/\s+/g, "") === cleanCand
+      );
+      if (found) {
+        selectedValue = found.value;
+        break;
+      }
+    }
+
+    if (!selectedValue && el.namHocFilter.options.length > 0) {
+      selectedValue = el.namHocFilter.options[0].value;
+    }
+
+    if (selectedValue) {
+      el.namHocFilter.value = selectedValue;
     }
   }
 
@@ -213,18 +256,8 @@
       el.khoaFilter.appendChild(option);
     });
 
-    const userMaPhongBan = state.permission.maPhongBan;
-    // Nếu không phải là người có quyền xem chung toàn trường (không có canApprove)
-    // Và có mã phòng ban, ta sẽ tự động select phòng ban của họ và disable filter.
-    if (!state.permission.canApprove && userMaPhongBan) {
-      const targetOption = Array.from(el.khoaFilter.options).find(
-        (opt) => opt.getAttribute("data-code") === userMaPhongBan
-      );
-      if (targetOption) {
-        el.khoaFilter.value = targetOption.value;
-        el.khoaFilter.disabled = true;
-      }
-    }
+    // Luôn để bộ lọc khoa ở dạng dropdown mở cho phép người dùng chọn tự do
+    el.khoaFilter.disabled = false;
   }
 
 
@@ -694,8 +727,7 @@
            <label class="form-label fw-semibold" for="editFileMinhChung">File minh chứng đính kèm (PDF, DOC, DOCX)</label>
            ${data.fileMinhChung ? `<div class="mb-1 small text-muted"><i class="bi bi-paperclip"></i> File hiện tại: <a href="${escapeHtml(data.fileMinhChung)}" target="_blank" rel="noopener noreferrer">${escapeHtml(data.fileMinhChung.split("/").pop())}</a></div>` : ""}
            <input type="file" id="editFileMinhChung" class="form-control" accept=".pdf,.doc,.docx" />
-         </div>`
-         ${editField("Ngày quyết định", "editNgayQuyetDinh", toInputDate(data.ngayQuyetDinh), "date")}
+         </div>
          ${editField("ISSN/ISBN", "editIssnIsbn", data.issnIsbn)}
          ${editField("DOI", "editDoi", data.doi)}
          ${editField("Link minh chứng", "editLinkMinhChung", data.linkMinhChung)}
@@ -1370,15 +1402,38 @@
     cacheElements();
     state.permission = getPermissionState();
 
-    const [yearResult, filterResult] = await Promise.all([api.getNamHoc(), api.getFilters()]);
+    const [yearResult, filterResult] = await Promise.all([
+      api.getNamHoc().catch((err) => {
+        console.warn("[NCKH V3] getNamHoc failed:", err);
+        return null;
+      }),
+      api.getFilters().catch((err) => {
+        console.warn("[NCKH V3] getFilters failed:", err);
+        return null;
+      }),
+    ]);
 
-    if (yearResult && yearResult.success) {
-      fillNamHocOptions(yearResult.NamHoc || []);
-    }
+    let namHocList = [];
+    let activeNamHoc = null;
 
     if (filterResult && filterResult.success && filterResult.data) {
+      if (Array.isArray(filterResult.data.namHocList) && filterResult.data.namHocList.length > 0) {
+        namHocList = filterResult.data.namHocList;
+      }
+      activeNamHoc = filterResult.data.activeNamHoc || null;
       fillKhoaOptions(filterResult.data.khoaList || []);
     }
+
+    // Nếu chưa có namHocList từ filterResult, lấy từ yearResult (/getNamHoc)
+    if (namHocList.length === 0 && yearResult && yearResult.success) {
+      namHocList = yearResult.NamHoc || [];
+      const activeObj = (yearResult.NamHoc || []).find((x) => x.trangthai === 1);
+      if (activeObj && activeObj.NamHoc) {
+        activeNamHoc = activeObj.NamHoc;
+      }
+    }
+
+    fillNamHocOptions(namHocList, activeNamHoc);
 
     if (el.loadDataBtn) {
       el.loadDataBtn.addEventListener("click", loadData);
