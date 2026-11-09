@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vượt Giờ V2 - <%= typeof pageTitle !== 'undefined' ? pageTitle : (statsScope === 'PREVIEW' ? 'Thống kê đồ án/luận án dự kiến' : 'Thống kê đồ án/luận án chính thức') %></title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/nckh_v3_stats.css" />
+
+    <style>
+        .page-wrap {
+            padding: 24px 30px;
+        }
+
+        /* 3 Pill buttons header style */
+        .nckh-scope-toggle {
+            display: inline-flex;
+            background: #ffffff;
+            padding: 4px;
+            border-radius: 30px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            gap: 6px;
+        }
+
+        .nckh-tab-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 18px;
+            border-radius: 24px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .nckh-tab-btn:hover {
+            color: #0284c7;
+            background: #f0f9ff;
+        }
+
+        .nckh-tab-btn.active {
+            background: #0284c7;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+
+        /* Toolbar Card matching KTHP & Giảng Dạy */
+        .kthp-toolbar-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .kthp-toolbar-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .kthp-filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 140px;
+            min-width: 130px;
+        }
+
+        .kthp-filter-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .kthp-filter-group select,
+        .kthp-filter-group .form-select,
+        .kthp-toolbar-card select {
+            width: 100% !important;
+            height: 38px !important;
+            padding: 6px 30px 6px 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            line-height: 1.5 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+        }
+
+        .kthp-filter-group select:focus,
+        .kthp-filter-group .form-select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        .kthp-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .kthp-toolbar-actions .btn {
+            height: 38px !important;
+            padding: 0 20px !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px;
+            white-space: nowrap !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .kthp-toolbar-actions .btn-show {
+            border: 1.5px solid #0891b2 !important;
+            color: #0891b2 !important;
+            background: #ffffff !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-toolbar-actions .btn-show:hover {
+            background: #0891b2 !important;
+            color: #ffffff !important;
+        }
+
+        .kthp-toolbar-actions .btn-excel {
+            border: 1.5px solid #059669 !important;
+            color: #059669 !important;
+            background: #ffffff !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-toolbar-actions .btn-excel:hover {
+            background: #059669 !important;
+            color: #ffffff !important;
+        }
+
+        .kthp-search-wrapper {
+            position: relative;
+            flex: 1 1 280px;
+            max-width: 420px;
+        }
+
+        .kthp-search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .kthp-search-wrapper input {
+            height: 38px !important;
+            padding-left: 36px !important;
+            padding-right: 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            background-color: #ffffff !important;
+            width: 100% !important;
+        }
+
+        .kthp-search-wrapper input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        /* Floating Summary Popup Widget (Hình 1 chuẩn: Toggle xanh lá #198754, không icon trong box) */
+        .summary {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .summary.collapsed {
+            transform: translateY(calc(100% + 10px));
+        }
+
+        .summary-toggle {
+            position: absolute;
+            top: -34px;
+            right: 0;
+            width: 36px;
+            height: 34px;
+            background: #198754 !important;
+            color: white;
+            border: none;
+            border-radius: 8px 0 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .summary.collapsed .summary-toggle {
+            transform: translateY(4px);
+            border-radius: 8px 8px 0 0;
+            right: 10px;
+            top: -38px;
+        }
+
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            min-width: 200px;
+            padding: 4px 0;
+        }
+
+        .summary-box .label {
+            color: #516078;
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .summary-box .value {
+            color: #198754;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* Group table styles matching Hình 2 (blue table header #007bff) */
+        .class-table th {
+            background: #007bff !important;
+            color: #ffffff !important;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            vertical-align: middle;
+            text-align: center !important;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 10px 8px;
+            border-color: #0069d9 !important;
+        }
+
+        .class-table td {
+            vertical-align: middle;
+            font-size: 0.88rem;
+            padding: 8px 10px;
+        }
+
+        .btn-view-detail {
+            border: 1.5px solid #0dcaf0;
+            color: #0dcaf0;
+            background: transparent;
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-view-detail:hover {
+            background: #0dcaf0;
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../header') %>
+
+    <div class="page-wrap">
+        <!-- Breadcrumb / Header Row (Icon chart tím #5c54e5 theo hình mẫu) -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+            <div>
+                <h4 class="fw-bold mb-0 d-flex align-items-center text-dark">
+                    <span class="p-2 rounded me-2 d-inline-flex align-items-center justify-content-center text-white" style="width: 38px; height: 38px; background: linear-gradient(135deg, #5c54e5 0%, #4338ca 100%); box-shadow: 0 2px 6px rgba(92, 84, 229, 0.35);">
+                        <i class="bi bi-bar-chart-line-fill fs-5"></i>
+                    </span>
+                    <%= typeof pageTitle !== 'undefined' ? pageTitle : (statsScope === 'PREVIEW' ? 'Thống kê đồ án/luận án dự kiến' : 'Thống kê đồ án/luận án chính thức') %>
+                </h4>
+            </div>
+
+            <!-- Tab switcher (Giảng viên, Khoa, Học viện) -->
+            <div class="nckh-scope-toggle">
+                <button type="button" class="nckh-tab-btn active" data-tab="giang-vien">
+                    <i class="bi bi-person me-1"></i> Theo giảng viên
+                </button>
+                <button type="button" class="nckh-tab-btn" data-tab="khoa">
+                    <i class="bi bi-building me-1"></i> Theo khoa/phòng
+                </button>
+                <button type="button" class="nckh-tab-btn" data-tab="hoc-vien">
+                    <i class="bi bi-bank me-1"></i> Theo học viện
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="alert alert-info shadow-sm d-flex align-items-center mb-3" role="alert" style="border-radius: 8px;">
+            <i class="bi bi-info-circle me-2 fs-5"></i>
+            <div>
+                Sau khi phân hệ mời giảng hoàn thiện mới có dữ liệu chính thức trong bảng, nếu không có dữ liệu, vui lòng xem <a href="/v2/vuotgio/tong-hop-giang-vien" class="alert-link fw-semibold">thông tin vượt giờ dự kiến</a>.
+            </div>
+        </div>
+
+        <!-- 2-Row Filter Toolbar Card -->
+        <div class="kthp-toolbar-card">
+            <!-- Row 1: 5 combobox filters -->
+            <div class="kthp-toolbar-row">
+                <div class="kthp-filter-group">
+                    <label for="namHocFilter"><i class="bi bi-calendar-event me-1"></i> Năm học</label>
+                    <select id="namHocFilter" class="form-select">
+                        <option value="ALL">Tất cả năm học</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="khoaFilter"><i class="bi bi-building me-1"></i> Khoa</label>
+                    <select id="khoaFilter" class="form-select">
+                        <option value="ALL">Tất cả khoa</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="heDaoTaoFilter"><i class="bi bi-mortarboard me-1"></i> Hệ đào tạo</label>
+                    <select id="heDaoTaoFilter" class="form-select">
+                        <option value="ALL">Tất cả hệ</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="dotFilter"><i class="bi bi-layers me-1"></i> Đợt</label>
+                    <select id="dotFilter" class="form-select">
+                        <option value="ALL">Cả 2 đợt</option>
+                        <option value="1">Đợt 1</option>
+                        <option value="2">Đợt 2</option>
+                    </select>
+                </div>
+
+                <div class="kthp-filter-group">
+                    <label for="kiFilter"><i class="bi bi-clock me-1"></i> Kỳ</label>
+                    <select id="kiFilter" class="form-select">
+                        <option value="ALL">Cả 2 kỳ</option>
+                        <option value="1">Kỳ 1</option>
+                        <option value="2">Kỳ 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Search input + 2 Action buttons (Hiển thị & Xuất Excel) -->
+            <div class="kthp-toolbar-row mt-3">
+                <div class="kthp-search-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="filterKeyword" placeholder="Tìm theo tên giảng viên, sinh viên, đề tài..." />
+                </div>
+
+                <div class="kthp-toolbar-actions">
+                    <button type="button" class="btn btn-show" id="btnShow">
+                        <i class="bi bi-search"></i> HIỂN THỊ
+                    </button>
+                    <button type="button" class="btn btn-excel" id="btnExport">
+                        <i class="bi bi-file-earmark-excel"></i> XUẤT EXCEL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card Section -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-0" id="statsTableWrap">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0 class-table" id="classTable">
+                        <thead id="tableHead"></thead>
+                        <tbody id="dataTableBody">
+                            <tr>
+                                <td colspan="12" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Summary Popup Box (Hình 1 chuẩn) -->
+        <div class="summary" id="summaryBox">
+            <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="summary-box">
+                <div class="label">Tổng giảng viên</div>
+                <div class="value" id="kpiTotalTeachers">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tổng sinh viên</div>
+                <div class="value" id="kpiTotalStudents">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tổng số tiết</div>
+                <div class="value" id="kpiTotalHours">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chi Tiết Hướng Dẫn ĐATN của Giảng Viên (Hình 3 chuẩn) -->
+    <div class="modal fade" id="chiTietModal" tabindex="-1" aria-labelledby="chiTietModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0 rounded-3">
+                <div class="modal-header bg-white py-3 px-4 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-list-ul fs-4 text-dark"></i>
+                        <h5 class="modal-title fw-bold mb-0 text-dark" id="chiTietModalLabel">
+                            Chi tiết hướng dẫn ĐATN - <span id="modalLecturerName"></span>
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="table-responsive" style="max-height: 520px;">
+                        <table class="table table-bordered table-hover align-middle mb-0 class-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 45px;">TT</th>
+                                    <th class="text-center" style="width: 170px;">Sinh viên</th>
+                                    <th class="text-center" style="width: 110px;">Mã SV</th>
+                                    <th class="text-center" style="width: 80px;">Khóa</th>
+                                    <th class="text-center text-nowrap" style="min-width: 175px;">Khoa</th>
+                                    <th class="text-center">Tên đề tài</th>
+                                    <th class="text-center" style="width: 105px;">Ngày BĐ</th>
+                                    <th class="text-center" style="width: 105px;">Ngày KT</th>
+                                    <th class="text-center" style="width: 90px;">Số tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalTableBody"></tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="8" class="text-end fw-bold">Tổng số tiết:</td>
+                                    <td class="text-center fw-bold" id="modalTotalHours">0</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer py-2 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-info fw-semibold text-uppercase" id="btnExportLecturerModal">
+                        <i class="bi bi-file-earmark-excel me-1"></i> XUẤT EXCEL CHI TIẾT
+                    </button>
+                    <button type="button" class="btn btn-outline-info fw-semibold text-uppercase" data-bs-dismiss="modal">
+                        ĐÓNG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chi Tiết Đồ Án theo Khoa -->
+    <div class="modal fade" id="khoaDetailModal" tabindex="-1" aria-labelledby="khoaDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0 rounded-3">
+                <div class="modal-header bg-white py-3 px-4 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-list-ul fs-4 text-dark"></i>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0 text-dark" id="khoaDetailModalLabel">
+                                Chi tiết đồ án khoa - <span id="khoaDetailSubtitle"></span>
+                            </h5>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Thẻ tóm tắt số liệu của khoa -->
+                    <div class="d-flex flex-wrap gap-3 mb-3 p-3 bg-light rounded-3 border align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-pill p-2"><i class="bi bi-people-fill"></i></span>
+                            <div>
+                                <div class="text-muted small">Số giảng viên</div>
+                                <div class="fw-bold fs-6" id="modalKhoaLecturers">0</div>
+                            </div>
+                        </div>
+                        <div class="border-end mx-2 d-none d-md-block" style="height: 32px;"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-info text-white rounded-pill p-2"><i class="bi bi-mortarboard-fill"></i></span>
+                            <div>
+                                <div class="text-muted small">Số sinh viên</div>
+                                <div class="fw-bold fs-6" id="modalKhoaProjects">0</div>
+                            </div>
+                        </div>
+                        <div class="border-end mx-2 d-none d-md-block" style="height: 32px;"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success rounded-pill p-2"><i class="bi bi-clock-fill"></i></span>
+                            <div>
+                                <div class="text-muted small">Tổng số tiết</div>
+                                <div class="fw-bold fs-6 text-success" id="modalKhoaHours">0.00</div>
+                            </div>
+                        </div>
+                        <div class="ms-auto d-flex align-items-center">
+                            <input type="text" id="modalKhoaSearch" class="form-control form-control-sm" placeholder="Tìm GV, sinh viên, đề tài..." style="max-width: 260px;" />
+                        </div>
+                    </div>
+
+                    <!-- Bảng chi tiết đồ án của Khoa -->
+                    <div class="table-responsive" style="max-height: 520px;">
+                        <table class="table table-bordered table-hover align-middle mb-0 class-table" id="modalKhoaTable">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 45px;">TT</th>
+                                    <th class="text-center" style="width: 160px;">Giảng viên</th>
+                                    <th class="text-center" style="width: 160px;">Sinh viên</th>
+                                    <th class="text-center" style="width: 105px;">Mã SV</th>
+                                    <th class="text-center" style="width: 75px;">Khóa</th>
+                                    <th class="text-center text-nowrap" style="min-width: 175px;">Khoa</th>
+                                    <th class="text-center">Tên đề tài</th>
+                                    <th class="text-center" style="width: 100px;">Ngày BĐ</th>
+                                    <th class="text-center" style="width: 100px;">Ngày KT</th>
+                                    <th class="text-center" style="width: 85px;">Số tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalKhoaTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer py-2 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-info fw-semibold text-uppercase" id="btnExportKhoaModal">
+                        <i class="bi bi-file-earmark-excel me-1"></i> XUẤT EXCEL CHI TIẾT
+                    </button>
+                    <button type="button" class="btn btn-outline-info fw-semibold text-uppercase" data-bs-dismiss="modal">
+                        ĐÓNG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.STATS_SCOPE = "<%= typeof statsScope !== 'undefined' ? statsScope : 'OFFICIAL' %>";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/vuotgio_v2/doAnStats/index.js"></script>
+</body>
+
+</html>

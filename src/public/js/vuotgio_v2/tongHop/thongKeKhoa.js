@@ -62,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
+  const namHocSelect = document.getElementById('namHocXem');
+  if (namHocSelect) namHocSelect.addEventListener('change', loadData);
 });
 
 function setupStatisticsTabs() {

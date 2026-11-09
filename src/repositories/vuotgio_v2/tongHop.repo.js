@@ -113,9 +113,10 @@ const mapDuKienDoAnRow = (value, lecturerIdByCccd, lecturerIdByName, heDaoTaoMap
         TenSinhVien: value[DO_AN_VALUE_INDEX.SinhVien] || null,
         MaSV: value[DO_AN_VALUE_INDEX.MaSV] || null,
         KhoaDaoTao: value[DO_AN_VALUE_INDEX.KhoaDaoTao] || null,
-        Khoa: value[DO_AN_VALUE_INDEX.khoa_sinh_vien] || null,
+        Khoa: value[DO_AN_VALUE_INDEX.khoa_sinh_vien] || value[DO_AN_VALUE_INDEX.MaPhongBan] || null,
         khoa_sinh_vien: value[DO_AN_VALUE_INDEX.khoa_sinh_vien] || null,
         nganh: value[DO_AN_VALUE_INDEX.nganh] || null,
+        Nganh: value[DO_AN_VALUE_INDEX.nganh] || null,
         SoQD: value[DO_AN_VALUE_INDEX.SoQD] || null,
         TenDeTai: value[DO_AN_VALUE_INDEX.TenDeTai] || null,
         SoNguoi: Number(value[DO_AN_VALUE_INDEX.SoNguoi]) || 0,
@@ -564,5 +565,6 @@ module.exports = {
     getDoAnByIds,
     getHuongDanThamQuanByIds,
     getDuLieuThoTongHop,
-    getChuNhiemKhoaByKhoa
+    getChuNhiemKhoaByKhoa,
+    getDoAnRowsByMode
 };

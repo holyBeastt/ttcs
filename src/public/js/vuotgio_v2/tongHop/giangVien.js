@@ -74,20 +74,45 @@ const logFirstRowDetails = (rows, context) => {
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('[tongHopGV] DOMContentLoaded - HTML Table Version');
 
-    // Load dropdowns và tự động nạp dữ liệu
+    // Load dropdowns
     await Promise.all([
         loadNamHocOptions(),
         loadKhoaOptions()
     ]);
 
+    // Tự động nạp dữ liệu lần đầu
     loadData();
 
-    // Event listeners
-    document.getElementById('loadDataBtn').addEventListener('click', loadData);
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) exportBtn.addEventListener('click', exportExcel);
-    document.getElementById('filterGiangVien').addEventListener('input', filterTable);
+    // Event listeners - Tự động nhảy dữ liệu khi đổi giá trị bộ lọc
+    const namHocSelect = document.getElementById('namHocXem');
+    if (namHocSelect) {
+        namHocSelect.addEventListener('change', () => loadData());
+    }
 
+    const khoaSelect = document.getElementById('khoaXem');
+    if (khoaSelect) {
+        khoaSelect.addEventListener('change', () => loadData());
+    }
+
+    // Tự động nhảy dữ liệu khi gõ ô tìm kiếm giảng viên (debounce 150ms)
+    let filterDebounceTimer = null;
+    const filterInput = document.getElementById('filterGiangVien');
+    if (filterInput) {
+        filterInput.addEventListener('input', () => {
+            clearTimeout(filterDebounceTimer);
+            filterDebounceTimer = setTimeout(filterTable, 150);
+        });
+    }
+
+    const loadDataBtn = document.getElementById('loadDataBtn');
+    if (loadDataBtn) {
+        loadDataBtn.addEventListener('click', loadData);
+    }
+
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportExcel);
+    }
 
     // Toggle Summary
     const btnToggleSummary = document.getElementById('btnToggleSummary');
@@ -131,9 +156,6 @@ async function loadNamHocOptions() {
             }
             select.appendChild(option);
         });
-
-        // Sau khi load xong năm học, load dữ liệu
-        loadData();
     } catch (error) {
         console.error('Error loading nam hoc:', error);
         const currentYear = new Date().getFullYear();
@@ -200,26 +222,22 @@ function clearSkeletonRows() {
 
 // Load data
 async function loadData() {
-    const namHoc = document.getElementById('namHocXem').value;
-    const khoa = document.getElementById('khoaXem').value;
+    const namHoc = document.getElementById('namHocXem')?.value;
+    const khoa = document.getElementById('khoaXem')?.value;
 
     if (!namHoc) {
-        Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'warning');
         return;
     }
 
     showSkeletonRows();
 
     try {
-        Swal.showLoading();
-
         // Trang "Thông tin vượt giờ dự kiến" phải xem dữ liệu DỰ KIẾN (chưa lưu)
-        const url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${namHoc}&khoa=${khoa}&detail=1&isDuKien=true`;
+        const url = `/v2/vuotgio/tong-hop/giang-vien?namHoc=${encodeURIComponent(namHoc)}&khoa=${encodeURIComponent(khoa || 'ALL')}&detail=1&isDuKien=true`;
 
         console.info('[tongHopGV] loadData request - DỰ KIẾN (chưa lưu)', { namHoc, khoa, isDuKien: true, url });
         const response = await fetch(url);
         const result = await response.json();
-        Swal.close();
 
         console.info('[tongHopGV] loadData response', {
             status: response.status,
@@ -246,17 +264,17 @@ async function loadData() {
 
         logMissingFields(data, { namHoc, khoa });
         logFirstRowDetails(data, { namHoc, khoa });
-        renderTable(globalData);
-        updateSummary(globalData);
 
-
-        if (data.length === 0) {
-            Swal.fire('Thông báo', 'Không có dữ liệu', 'info');
+        // Tự động kiểm tra nếu có từ khóa tìm kiếm thì áp dụng lọc ngay
+        const filterVal = (document.getElementById('filterGiangVien')?.value || '').trim();
+        if (filterVal) {
+            filterTable();
+        } else {
+            renderTable(globalData);
+            updateSummary(globalData);
         }
     } catch (error) {
-        Swal.close();
         console.error('Error loading data:', error);
-        Swal.fire('Lỗi', 'Không thể tải dữ liệu', 'error');
         clearSkeletonRows();
     }
 }
@@ -285,6 +303,12 @@ function renderTable(data) {
         luong: 0
     };
 
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="37" class="text-center text-muted py-4"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Không tìm thấy dữ liệu phù hợp</td></tr>';
+        renderFooter(totals);
+        return;
+    }
+
     let lastKhoa = null;
 
     data.forEach((row, index) => {
@@ -292,11 +316,11 @@ function renderTable(data) {
         // Thêm dòng tiêu đề nhóm nếu khoa thay đổi
         if (row.khoa !== lastKhoa) {
             const groupRow = document.createElement('tr');
-            groupRow.className = 'group-header table-light fw-bold';
+            groupRow.className = 'group-header faculty-header-row fw-bold';
             groupRow.setAttribute('data-khoa-code', row.maKhoa || row.khoa || '');
             groupRow.innerHTML = `
                 <td colspan="37" class="text-start px-3 py-2">
-                    <i class="fas fa-university me-2"></i> ${row.khoa || 'Khác'}
+                    <i class="bi bi-building me-2"></i> ${row.khoa || 'Khác'}
                 </td>
             `;
             tableBody.appendChild(groupRow);
@@ -373,8 +397,8 @@ function renderTable(data) {
             <!-- Actions -->
             <td>
                 <div class="btn-group gap-1" role="group">
-                    <button class="btn btn-sm" style="background-color: #ffffff; color: #1d4ed8; border: 1px solid #1d4ed8; font-weight: bold;" onclick="openPersonalView('${row.id_User}', '${row.giangVien}')" title="Xem Bảng Web">
-                        <i class="fas fa-eye"></i>
+                    <button class="btn btn-sm btn-view-detail" onclick="openPersonalView('${row.id_User}', '${row.giangVien}')" title="Xem chi tiết cá nhân">
+                        <i class="bi bi-eye"></i>
                     </button>
                 </div>
             </td>
@@ -517,15 +541,37 @@ function updateSummary(data) {
     if (summaryBox) summaryBox.style.display = '';
 }
 
+// Helper loại bỏ dấu tiếng Việt để tìm kiếm không dấu mượt mà
+function removeVietnameseTones(str) {
+    if (!str) return '';
+    return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D');
+}
+
 // ==================== FILTER ====================
 
 function filterTable() {
-    const gvFilter = document.getElementById('filterGiangVien').value.toLowerCase();
+    const rawVal = (document.getElementById('filterGiangVien')?.value || '').trim();
+    const gvFilter = rawVal.toLowerCase();
+    const gvFilterNoTone = removeVietnameseTones(rawVal).toLowerCase();
     
     // 1. Lọc dữ liệu từ globalData
     const filteredData = globalData.filter(row => {
+        if (!gvFilter) return true;
         const hoTen = (row.giangVien || '').toLowerCase();
-        return hoTen.includes(gvFilter);
+        const hoTenNoTone = removeVietnameseTones(row.giangVien || '').toLowerCase();
+        const khoa = (row.khoa || '').toLowerCase();
+        const khoaNoTone = removeVietnameseTones(row.khoa || '').toLowerCase();
+        const maGV = (row.id_User || '').toString().toLowerCase();
+
+        return hoTen.includes(gvFilter) ||
+               hoTenNoTone.includes(gvFilterNoTone) ||
+               khoa.includes(gvFilter) ||
+               khoaNoTone.includes(gvFilterNoTone) ||
+               maGV.includes(gvFilter);
     });
 
     // 2. Render lại toàn bộ bảng dựa trên dữ liệu đã lọc

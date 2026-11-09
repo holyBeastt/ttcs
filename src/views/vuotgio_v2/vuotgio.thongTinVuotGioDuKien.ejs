@@ -23,25 +23,171 @@
 
 
     <style>
-        /* Override table.css global: overflow:hidden, box-shadow, border */
+        body {
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .page-wrap {
+            padding: 24px;
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* Toolbar Card matching KTHP, Giảng Dạy & ĐATN */
+        .kthp-toolbar-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .kthp-toolbar-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .kthp-filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 200px;
+            max-width: 320px;
+            min-width: 180px;
+        }
+
+        .kthp-filter-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .kthp-filter-group select,
+        .kthp-filter-group .form-select,
+        .kthp-toolbar-card select {
+            width: 100% !important;
+            height: 38px !important;
+            padding: 6px 30px 6px 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            line-height: 1.5 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+        }
+
+        .kthp-filter-group select:focus,
+        .kthp-filter-group .form-select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        .kthp-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .kthp-toolbar-actions .btn {
+            height: 38px !important;
+            padding: 0 20px !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px;
+            white-space: nowrap !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .kthp-toolbar-actions .btn-show {
+            border: 1.5px solid #0891b2 !important;
+            color: #0891b2 !important;
+            background: #ffffff !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-toolbar-actions .btn-show:hover {
+            background: #0891b2 !important;
+            color: #ffffff !important;
+        }
+
+        .kthp-toolbar-actions .btn-toggle-view {
+            border: 1.5px solid #6366f1 !important;
+            color: #6366f1 !important;
+            background: #ffffff !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-toolbar-actions .btn-toggle-view:hover,
+        .kthp-toolbar-actions .btn-toggle-view.active {
+            background: #6366f1 !important;
+            color: #ffffff !important;
+        }
+
+        .kthp-search-wrapper {
+            position: relative;
+            flex: 1 1 280px;
+            max-width: 420px;
+        }
+
+        .kthp-search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .kthp-search-wrapper input {
+            height: 38px !important;
+            padding-left: 36px !important;
+            padding-right: 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            background-color: #ffffff !important;
+            width: 100% !important;
+        }
+
+        .kthp-search-wrapper input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        /* ===== MAIN TABLE (37 cột) ===== */
         #mainTable {
             border-collapse: collapse;
             border-spacing: 0;
             table-layout: auto !important;
             width: 2100px !important;
             min-width: 2100px !important;
-            overflow: visible !important;
+            margin-bottom: 0 !important;
             box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
+            border: 1px solid #dee2e6 !important;
         }
 
-        /* QUAN TRỌNG: Reset cứng cho tất cả th trước */
         #mainTable thead th {
-            background-color: #475569 !important;
+            background-color: #1f4ea8 !important;
             color: #fff !important;
             padding: 8px 4px !important;
-            font-size: 0.75rem !important;
+            font-size: 0.78rem !important;
             font-weight: 600 !important;
             border: 1px solid #ffffff !important;
             text-align: center !important;
@@ -63,14 +209,12 @@
             display: table-cell;
         }
 
-        /* === SECTION: Info cơ bản & Thao tác === */
         #mainTable thead th.s-base,
         #mainTable thead th.s-action {
-            background-color: #64748b !important;
+            background-color: #334155 !important;
             color: #fff !important;
         }
 
-        /* === SECTION: Thực tế giảng dạy — xanh dương === */
         #mainTable thead th.s-teaching {
             background-color: #1d4ed8 !important;
             color: #fff !important;
@@ -89,7 +233,6 @@
             font-weight: 600 !important;
         }
 
-        /* === SECTION: Vượt định mức — xanh lá === */
         #mainTable thead th.s-over {
             background-color: #059669 !important;
             color: #fff !important;
@@ -101,13 +244,11 @@
             font-weight: 600 !important;
         }
 
-        /* === SECTION: Mức TT chuẩn — tím === */
         #mainTable thead th.s-rate {
             background-color: #7c3aed !important;
             color: #fff !important;
         }
 
-        /* === SECTION: Thành tiền — cam nâu === */
         #mainTable thead th.s-money {
             background-color: #b45309 !important;
             color: #fff !important;
@@ -119,47 +260,124 @@
             font-weight: 600 !important;
         }
 
-        /* === SECTION: Thực nhận === */
         #mainTable thead th.s-net {
             background-color: #4338ca !important;
             color: #fff !important;
             font-weight: 600 !important;
         }
 
-        /* ===== TBODY ===== */
         #mainTable tbody td {
-            padding: 4px 2px;
+            padding: 6px 4px;
             border: 1px solid #dee2e6;
             vertical-align: middle;
-            box-sizing: border-box;
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             white-space: nowrap;
             min-width: 40px;
+            background-color: #ffffff;
         }
-
-
 
         #mainTable tbody tr:hover td {
-            background-color: #e2e8f0 !important;
+            background-color: #f1f5f9 !important;
         }
 
-        /* ===== TFOOT ===== */
         #mainTable tfoot td {
-            background-color: #eaecee;
-            color: #1c2833;
-            font-weight: 600;
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+            font-weight: 700;
             padding: 8px 4px;
-            border: 1px solid #d5d8dc;
+            border: 1px solid #cbd5e1;
             font-size: 0.85rem;
         }
 
-        /* ===== WARNING ROW ===== */
-        #mainTable tbody tr.row-warning-danger,
-        #mainTable tbody tr.row-warning-danger td {
-            background-color: #fff3cd !important;
+        /* ===== COMPACT TABLE (9 cột) ===== */
+        #compactTable {
+            width: 100% !important;
+            border-collapse: collapse;
+            table-layout: auto !important;
+            margin-bottom: 0 !important;
+            border: 1px solid #dee2e6;
         }
 
-        /* ===== VALUE COLORS ===== */
+        #compactTable thead th {
+            background-color: #007bff !important;
+            color: #ffffff !important;
+            padding: 10px 8px !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            border: 1px solid #0069d9 !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: nowrap;
+        }
+
+        #compactTable tbody td {
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            vertical-align: middle;
+            font-size: 0.88rem;
+            white-space: nowrap;
+            background-color: #ffffff;
+        }
+
+        #compactTable tbody tr:hover td {
+            background-color: #f1f5f9 !important;
+        }
+
+        #compactTable tfoot td {
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+            font-weight: 700;
+            padding: 10px 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.88rem;
+        }
+
+        /* Faculty group header */
+        .faculty-header-row td,
+        #mainTable tbody tr.group-header td,
+        #compactTable tbody tr.group-header td {
+            background: #e0f2fe !important;
+            border-top: 2px solid #0284c7 !important;
+            border-bottom: 1.5px solid #0284c7 !important;
+            color: #0369a1 !important;
+            font-weight: 700 !important;
+            font-size: 0.92rem !important;
+            padding: 10px 16px !important;
+        }
+
+        /* Clean rows instead of harsh yellow */
+        #mainTable tbody tr.row-warning-danger td,
+        #compactTable tbody tr.row-warning-danger td {
+            background-color: #ffffff !important;
+        }
+        #mainTable tbody tr.row-warning-danger:hover td,
+        #compactTable tbody tr.row-warning-danger:hover td {
+            background-color: #f1f5f9 !important;
+        }
+
+        /* Action buttons in rows */
+        #compactTable .btn-group button,
+        #mainTable .btn-group button {
+            border: 1.5px solid #0dcaf0 !important;
+            color: #0891b2 !important;
+            background: #f0fdfa !important;
+            border-radius: 6px !important;
+            padding: 4px 10px !important;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #compactTable .btn-group button:hover,
+        #mainTable .btn-group button:hover {
+            background: #0891b2 !important;
+            color: #ffffff !important;
+        }
+
+        /* VALUE COLORS */
         .text-danger-bold {
             color: #dc2626;
             font-weight: 600;
@@ -170,29 +388,7 @@
             font-weight: 600;
         }
 
-        .controls-container {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 20px !important;
-            margin-bottom: 25px !important;
-        }
-
-
-        .search {
-            width: 200px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            height: 50px;
-        }
-
-        .highlight-vuotgio {
-            background-color: #d4edda !important;
-        }
-
-        /* ===== SUMMARY BOX ===== */
+        /* ===== FLOATING SUMMARY BOX (Hình 1 chuẩn) ===== */
         .summary {
             position: fixed;
             bottom: 20px;
@@ -202,10 +398,10 @@
             gap: 5px;
             z-index: 1000;
             background: rgba(255, 255, 255, 0.95);
-            padding: 12px 16px;
+            padding: 12px 18px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(26, 82, 118, 0.15);
-            border: 1px solid #aed6f1;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(226, 232, 240, 0.8);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -217,14 +413,14 @@
 
         .summary-toggle {
             position: absolute;
-            top: -35px;
+            top: -34px;
             right: 0;
-            width: 35px;
-            height: 35px;
-            background: #1a5276;
+            width: 36px;
+            height: 34px;
+            background: #198754 !important;
             color: white;
             border: none;
-            border-radius: 10px 0 0 10px;
+            border-radius: 8px 0 0 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -234,31 +430,31 @@
         }
 
         .summary.collapsed .summary-toggle {
-            transform: translateY(5px);
-            border-radius: 10px 10px 0 0;
+            transform: translateY(4px);
+            border-radius: 8px 8px 0 0;
             right: 10px;
-            top: -40px;
+            top: -38px;
         }
 
         .summary-box {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
-            min-width: 220px;
+            gap: 24px;
+            min-width: 200px;
             padding: 4px 0;
         }
 
         .summary-box .label {
-            color: #64748b;
-            font-size: 0.85rem;
+            color: #516078;
+            font-size: 0.88rem;
             font-weight: 500;
         }
 
         .summary-box .value {
-            color: #1a5276;
+            color: #198754;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         /* ===== Loading skeleton ===== */
@@ -276,112 +472,20 @@
             height: 36px;
         }
 
-        /* ===== NO INTERNAL SCROLL ===== */
-        .over-f, #renderInfo {
-            overflow: visible !important;
-            width: 2100px !important;
-            display: block !important;
-        }
-
-        .container-fluid {
-            min-width: 2100px !important;
-        }
-
+        /* Scrollbar */
         #renderInfo::-webkit-scrollbar {
             height: 8px;
         }
-
         #renderInfo::-webkit-scrollbar-track {
             background: #f1f5f9;
             border-radius: 4px;
         }
-
         #renderInfo::-webkit-scrollbar-thumb {
             background: #94a3b8;
             border-radius: 4px;
         }
-
         #renderInfo::-webkit-scrollbar-thumb:hover {
             background: #64748b;
-        }
-
-        /* ===== COMPACT VIEW ===== */
-        .compact-active #mainTable {
-            width: auto !important;
-            min-width: auto !important;
-        }
-
-        .compact-active #renderInfo {
-            width: auto !important;
-        }
-
-        .compact-active .container-fluid {
-            min-width: auto !important;
-        }
-
-        #btnCompactView {
-            transition: all 0.2s ease;
-        }
-
-        #btnCompactView.active {
-            background-color: #6366f1 !important;
-            border-color: #6366f1 !important;
-            color: #fff !important;
-        }
-
-        /* Compact table (rendered separately) */
-        #compactTable {
-            border-collapse: collapse;
-            border-spacing: 0;
-            table-layout: auto !important;
-            width: auto !important;
-            min-width: 900px !important;
-            overflow: visible !important;
-            box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-        }
-
-        #compactTable thead th {
-            background-color: #475569 !important;
-            color: #fff !important;
-            padding: 8px 6px !important;
-            font-size: 0.8rem !important;
-            font-weight: 600 !important;
-            border: 1px solid #ffffff !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-            white-space: nowrap;
-        }
-
-        #compactTable tbody td {
-            padding: 6px 4px;
-            border: 1px solid #dee2e6;
-            vertical-align: middle;
-            font-size: 0.8rem;
-            white-space: nowrap;
-        }
-
-        #compactTable tbody tr:hover td {
-            background-color: #e2e8f0 !important;
-        }
-
-        #compactTable tfoot td {
-            background-color: #eaecee;
-            color: #1c2833;
-            font-weight: 600;
-            padding: 8px 6px;
-            border: 1px solid #d5d8dc;
-            font-size: 0.85rem;
-        }
-
-        #compactTable tbody tr.row-warning-danger td {
-            background-color: #fff3cd !important;
-        }
-
-        #compactTable tbody tr.group-header td {
-            background-color: #f8fafc !important;
-            font-weight: 600;
         }
     </style>
 
@@ -390,61 +494,61 @@
 <body>
     <%- include('../header') %>
 
-    <div class="container-fluid m-4">
-        <div class="gvmList">
-            <div class="m-5 reCss">
-                <h4>Bảng thông tin vượt giờ dự kiến</h4>
+    <div class="page-wrap">
+        <!-- Header Row -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+            <div>
+                <h4 class="fw-bold mb-0 d-flex align-items-center text-dark">
+                    <span class="p-2 rounded me-2 d-inline-flex align-items-center justify-content-center text-white" style="width: 38px; height: 38px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);">
+                        <i class="bi bi-clock-history fs-5"></i>
+                    </span>
+                    Bảng thông tin vượt giờ dự kiến
+                </h4>
+            </div>
+        </div>
 
-                <div class="controls-container">
-                    <select class="selectop" id="namHocXem" style="width: 130px; margin: 0; box-shadow: none;">
+        <!-- 2-Row Filter Toolbar Card -->
+        <div class="kthp-toolbar-card">
+            <!-- Row 1: Combobox filters -->
+            <div class="kthp-toolbar-row">
+                <div class="kthp-filter-group">
+                    <label for="namHocXem"><i class="bi bi-calendar-event me-1"></i> Năm học</label>
+                    <select id="namHocXem" class="form-select">
                         <option value="">Chọn năm học</option>
                     </select>
+                </div>
 
-                    <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
+                <div class="kthp-filter-group">
+                    <label for="khoaXem"><i class="bi bi-building me-1"></i> Khoa / Phòng ban</label>
+                    <select id="khoaXem" class="form-select">
                         <option value="ALL">Tất cả khoa</option>
                     </select>
-                    <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
-                        Hiển thị
-                    </button>
+                </div>
+            </div>
 
-
-                    <button id="btnCompactView" class="btn btn-outline-secondary"
-                        style="height: 45px; width: 150px; margin: 0; margin-left: 20px;"
-                        title="Chuyển đổi giữa bảng đầy đủ và bảng rút gọn">
-                        <i class="bi bi-layout-three-columns me-1"></i> Rút gọn
-                    </button>
+            <!-- Row 2: Search input + Action buttons -->
+            <div class="kthp-toolbar-row mt-3">
+                <div class="kthp-search-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="filterGiangVien" placeholder="Tìm theo tên giảng viên..." />
                 </div>
 
-                <!-- Summary Boxes -->
-                <div class="summary" id="summaryBox" style="display: none;">
-                    <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
-                        <i class="bi bi-chevron-down"></i>
+                <div class="kthp-toolbar-actions">
+                    <button type="button" class="btn btn-show" id="loadDataBtn">
+                        <i class="bi bi-search"></i> HIỂN THỊ
                     </button>
-                    <div class="summary-box">
-                        <div class="label">Tổng giảng viên</div>
-                        <div class="value" id="totalGV">0</div>
-                    </div>
-                    <div class="summary-box">
-                        <div class="label">GV có vượt giờ</div>
-                        <div class="value" id="gvCoVuotGio">0</div>
-                    </div>
-                    <div class="summary-box">
-                        <div class="label">Tổng tiết vượt giờ</div>
-                        <div class="value" id="totalVuotGio">0</div>
-                    </div>
+                    <button type="button" class="btn btn-toggle-view active" id="btnCompactView" title="Chuyển đổi giữa bảng đầy đủ và bảng rút gọn">
+                        <i class="bi bi-table"></i> CHI TIẾT
+                    </button>
                 </div>
+            </div>
+        </div>
 
-                <!-- Filter Row -->
-                <div class="controls-container">
-                    <input type="text" id="filterGiangVien" placeholder="Tìm theo tên giảng viên"
-                        class="form-control m-2 search" style="width: 300px;" />
-                </div>
-
-
-
-                <!-- Table Section (No scroll container) -->
-                <div id="renderInfo">
-                    <table class="table table-hover table-bordered text-center" id="mainTable">
+        <!-- Table Card Section -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-0">
+                <div class="table-responsive" id="renderInfo">
+                    <table class="table table-hover table-bordered text-center align-middle mb-0" id="mainTable">
                         <thead>
                             <tr>
                                 <th rowspan="3" class="s-base" style="width:40px">STT</th>
@@ -514,215 +618,219 @@
                 </div>
             </div>
         </div>
+
+        <!-- Floating Summary Box -->
+        <div class="summary" id="summaryBox" style="display: none;">
+            <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="summary-box">
+                <div class="label">Tổng giảng viên</div>
+                <div class="value" id="totalGV">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">GV có vượt giờ</div>
+                <div class="value" id="gvCoVuotGio">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tổng tiết vượt giờ</div>
+                <div class="value" id="totalVuotGio">0</div>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
-        <script src="/js/vuotgio_v2/tongHop/giangVien.js"></script>
+    <script src="/js/vuotgio_v2/tongHop/giangVien.js"></script>
 
-        <!-- Compact View Toggle -->
-        <script>
-        (function() {
-            'use strict';
+    <!-- Compact View Toggle -->
+    <script>
+    (function() {
+        'use strict';
 
-            let isCompact = true; // Mặc định hiển thị rút gọn
+        let isCompact = true; // Mặc định hiển thị rút gọn
 
-            // Bảng rút gọn: giữ nguyên cấu trúc group header theo khoa
-            // Chỉ hiển thị: STT | Họ tên | Định mức phải giảng | Tổng tiết cả năm | Tổng vượt giờ | Mức TT | Tổng thành tiền | Thực nhận | Thao tác
-            // Dữ liệu lấy từ bảng chính (đã render), chỉ pick các cột cần thiết
+        function applyCompactState() {
+            const btn = document.getElementById('btnCompactView');
+            const mainTable = document.getElementById('mainTable');
+            const renderInfo = document.getElementById('renderInfo');
 
-            function applyCompactState() {
-                const btn = document.getElementById('btnCompactView');
-                const mainTable = document.getElementById('mainTable');
-                const renderInfo = document.getElementById('renderInfo');
-                const containerFluid = document.querySelector('.container-fluid');
+            if (isCompact) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="bi bi-table me-1"></i> CHI TIẾT';
 
-                if (isCompact) {
-                    btn.classList.add('active');
-                    btn.innerHTML = '<i class="bi bi-table me-1"></i> Chi tiết';
+                // Ẩn bảng chính
+                mainTable.style.display = 'none';
 
-                    // Ẩn bảng chính
-                    mainTable.style.display = 'none';
-
-                    // Tạo hoặc cập nhật bảng rút gọn
-                    let compactTable = document.getElementById('compactTable');
-                    if (!compactTable) {
-                        compactTable = document.createElement('table');
-                        compactTable.id = 'compactTable';
-                        compactTable.className = 'table table-hover table-bordered text-center';
-                        renderInfo.appendChild(compactTable);
-                    }
-
-                    renderCompactTable(compactTable);
-
-                    // Điều chỉnh width
-                    renderInfo.style.width = 'auto';
-                    renderInfo.style.minWidth = '900px';
-                    if (containerFluid) containerFluid.style.minWidth = 'auto';
-
-                } else {
-                    btn.classList.remove('active');
-                    btn.innerHTML = '<i class="bi bi-layout-three-columns me-1"></i> Rút gọn';
-
-                    // Hiện lại bảng chính
-                    mainTable.style.display = '';
-
-                    // Xóa bảng rút gọn
-                    const compactTable = document.getElementById('compactTable');
-                    if (compactTable) compactTable.remove();
-
-                    // Khôi phục width
-                    renderInfo.style.width = '2100px';
-                    renderInfo.style.minWidth = '';
-                    if (containerFluid) containerFluid.style.minWidth = '2100px';
+                // Tạo hoặc cập nhật bảng rút gọn
+                let compactTable = document.getElementById('compactTable');
+                if (!compactTable) {
+                    compactTable = document.createElement('table');
+                    compactTable.id = 'compactTable';
+                    compactTable.className = 'table table-hover table-bordered text-center align-middle mb-0';
+                    renderInfo.appendChild(compactTable);
                 }
+
+                renderCompactTable(compactTable);
+
+                // Điều chỉnh width
+                renderInfo.style.width = '100%';
+                renderInfo.style.minWidth = '';
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="bi bi-layout-three-columns me-1"></i> RÚT GỌN';
+
+                // Hiện lại bảng chính
+                mainTable.style.display = '';
+
+                // Xóa bảng rút gọn
+                const compactTable = document.getElementById('compactTable');
+                if (compactTable) compactTable.remove();
+
+                // Khôi phục width cho bảng 37 cột cuộn ngang trong renderInfo
+                renderInfo.style.width = '100%';
+                renderInfo.style.minWidth = '';
+            }
+        }
+
+        function toggleCompactView() {
+            isCompact = !isCompact;
+            applyCompactState();
+        }
+
+        function renderCompactTable(table) {
+            const mainBody = document.getElementById('tableBody');
+            const mainFoot = document.getElementById('tableFoot');
+
+            // Header rút gọn - Unified modern dark-blue header
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th style="width: 220px;">Họ tên Giảng viên</th>
+                        <th style="width: 130px;">Định mức phải giảng</th>
+                        <th style="width: 130px;">Tổng tiết giảng dạy</th>
+                        <th style="width: 120px;">Tổng vượt giờ</th>
+                        <th style="width: 110px;">Mức TT chuẩn</th>
+                        <th style="width: 130px;">Tổng thành tiền</th>
+                        <th style="width: 130px;">Thực nhận</th>
+                        <th style="width: 80px;">Thao tác</th>
+                    </tr>
+                </thead>
+            `;
+
+            const tbody = document.createElement('tbody');
+            const rows = mainBody.querySelectorAll('tr');
+
+            // Handle skeleton loading state
+            if (rows.length > 0 && rows[0].classList.contains('skeleton-row')) {
+                tbody.innerHTML = Array.from({ length: 5 })
+                    .map(() => `<tr class="skeleton-row"><td colspan="9">&nbsp;</td></tr>`)
+                    .join('');
+                table.appendChild(tbody);
+                return;
             }
 
-            function toggleCompactView() {
-                isCompact = !isCompact;
-                applyCompactState();
+            // Handle empty state
+            if (rows.length === 0 || (rows.length === 1 && (rows[0].textContent.includes('Không tìm thấy') || rows[0].textContent.includes('Không có')))) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Không tìm thấy dữ liệu phù hợp</td></tr>`;
+                table.appendChild(tbody);
+                return;
             }
 
-            function renderCompactTable(table) {
-                const mainBody = document.getElementById('tableBody');
-                const mainFoot = document.getElementById('tableFoot');
+            rows.forEach(row => {
+                const newRow = document.createElement('tr');
 
-                // Header rút gọn
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th class="s-base" style="width:40px">STT</th>
-                            <th class="s-base" style="width:200px">Họ tên Giảng viên</th>
-                            <th class="s-base" style="width:80px">Định mức phải giảng</th>
-                            <th style="background-color:#3b82f6!important;color:#fff!important;width:90px">Tổng tiết giảng dạy</th>
-                            <th style="background-color:#10b981!important;color:#fff!important;width:90px">Tổng vượt giờ</th>
-                            <th style="background-color:#7c3aed!important;color:#fff!important;width:90px">Mức TT chuẩn</th>
-                            <th style="background-color:#d97706!important;color:#fff!important;width:100px">Tổng thành tiền</th>
-                            <th style="background-color:#4338ca!important;color:#fff!important;width:100px">Thực nhận</th>
-                            <th class="s-action" style="width:70px">Thao tác</th>
-                        </tr>
-                    </thead>
+                // Group header row
+                if (row.classList.contains('group-header')) {
+                    newRow.className = 'group-header faculty-header-row fw-bold';
+                    const khoaCode = row.getAttribute('data-khoa-code');
+                    if (khoaCode) newRow.setAttribute('data-khoa-code', khoaCode);
+                    newRow.innerHTML = '<td colspan="9" class="text-start px-3 py-2">' + row.querySelector('td').innerHTML + '</td>';
+                    tbody.appendChild(newRow);
+                    return;
+                }
+
+                if (row.classList.contains('row-warning-danger')) {
+                    newRow.classList.add('row-warning-danger');
+                }
+
+                const cells = row.querySelectorAll('td');
+                if (cells.length < 37) return;
+
+                const parseVal = (td) => {
+                    const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
+                    return parseFloat(text) || 0;
+                };
+
+                const tongTietCaNam = parseVal(cells[17]) + parseVal(cells[18]) + parseVal(cells[19]) + parseVal(cells[20]) + parseVal(cells[21]);
+
+                newRow.innerHTML = `
+                    <td class="text-center font-monospace">${cells[0].textContent}</td>
+                    <td class="text-start px-3 fw-semibold text-primary">${cells[1].textContent}</td>
+                    <td class="text-center">${cells[6].textContent}</td>
+                    <td class="text-center fw-semibold text-secondary">${tongTietCaNam ? tongTietCaNam.toLocaleString('vi-VN') : '0'}</td>
+                    <td class="text-center fw-bold text-success">${cells[27].textContent}</td>
+                    <td class="text-center">${cells[28].textContent}</td>
+                    <td class="text-center fw-semibold">${cells[34].textContent}</td>
+                    <td class="text-center fw-bold text-primary">${cells[35].textContent}</td>
+                    <td class="text-center">${cells[36].innerHTML}</td>
                 `;
 
-                // Body: lấy dữ liệu từ bảng chính theo index cột (0-based):
-                // 0: STT, 1: Họ tên, 2: Thu nhập, 3: Định mức, 4: Được giảm, 5: Thiếu NCKH, 6: Định mức phải giảng
-                // 7-11: HK1 (VN,Lào,Cuba,CPC,ĐóngHP), 12-16: HK2, 17-21: Cả năm
-                // 22-27: Vượt giờ (VN,Lào,Cuba,CPC,ĐóngHP,Tổng)
-                // 28: Mức TT, 29-34: Thành tiền (VN,Lào,Cuba,CPC,ĐóngHP,Tổng)
-                // 35: Thực nhận, 36: Thao tác
+                tbody.appendChild(newRow);
+            });
 
-                const tbody = document.createElement('tbody');
-                const rows = mainBody.querySelectorAll('tr');
+            table.appendChild(tbody);
 
-                rows.forEach(row => {
-                    const newRow = document.createElement('tr');
-
-                    // Group header row
-                    if (row.classList.contains('group-header')) {
-                        newRow.className = 'group-header table-light fw-bold';
-                        // Copy data-khoa-code attribute cho approval badge
-                        const khoaCode = row.getAttribute('data-khoa-code');
-                        if (khoaCode) newRow.setAttribute('data-khoa-code', khoaCode);
-                        newRow.innerHTML = '<td colspan="9" class="text-start px-3 py-2">' + row.querySelector('td').innerHTML + '</td>';
-                        tbody.appendChild(newRow);
-                        return;
-                    }
-
-                    // Copy class (warning, etc.)
-                    if (row.classList.contains('row-warning-danger')) {
-                        newRow.classList.add('row-warning-danger');
-                    }
-
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length < 37) return; // skip invalid rows
-
-                    // Tính tổng tiết cả năm = sum(cells[17..21]) — cả năm VN+Lào+Cuba+CPC+ĐóngHP
-                    // Hoặc đơn giản hơn: lấy tổng từ cột vượt giờ + định mức (nhưng không chính xác)
-                    // Chính xác nhất: sum cells index 17,18,19,20,21 (cả năm)
+            // Footer
+            if (mainFoot && mainFoot.querySelector('tr')) {
+                const tfoot = document.createElement('tfoot');
+                const footCells = mainFoot.querySelectorAll('td');
+                if (footCells.length >= 34) {
                     const parseVal = (td) => {
                         const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
                         return parseFloat(text) || 0;
                     };
+                    const tongTietFoot = parseVal(footCells[16]) + parseVal(footCells[17]) + parseVal(footCells[18]) + parseVal(footCells[19]) + parseVal(footCells[20]);
 
-                    const tongTietCaNam = parseVal(cells[17]) + parseVal(cells[18]) + parseVal(cells[19]) + parseVal(cells[20]) + parseVal(cells[21]);
-
-                    newRow.innerHTML = `
-                        <td>${cells[0].textContent}</td>
-                        <td style="text-align:left;padding-left:8px;">${cells[1].textContent}</td>
-                        <td>${cells[6].textContent}</td>
-                        <td>${tongTietCaNam ? tongTietCaNam.toLocaleString('vi-VN') : '0'}</td>
-                        <td style="color:green;font-weight:bold;">${cells[27].textContent}</td>
-                        <td>${cells[28].textContent}</td>
-                        <td style="font-weight:bold;">${cells[34].textContent}</td>
-                        <td style="font-weight:bold;color:#1a5276;">${cells[35].textContent}</td>
-                        <td>${cells[36].innerHTML}</td>
+                    tfoot.innerHTML = `
+                        <tr class="table-secondary fw-bold">
+                            <td colspan="3" class="text-end px-3">TỔNG CỘNG</td>
+                            <td class="text-center fw-bold text-secondary">${tongTietFoot ? tongTietFoot.toLocaleString('vi-VN') : '0'}</td>
+                            <td class="text-center fw-bold text-success">${footCells[26].textContent}</td>
+                            <td class="text-center">-</td>
+                            <td class="text-center fw-bold">${footCells[33].textContent}</td>
+                            <td class="text-center fw-bold text-primary">${footCells[34].textContent}</td>
+                            <td></td>
+                        </tr>
                     `;
-
-                    tbody.appendChild(newRow);
-                });
-
-                table.appendChild(tbody);
-
-                // Footer
-                if (mainFoot && mainFoot.querySelector('tr')) {
-                    const tfoot = document.createElement('tfoot');
-                    const footCells = mainFoot.querySelectorAll('td');
-                    // Footer có colspan=2 ở ô đầu, nên index lệch so với body:
-                    // [0]=TỔNG CỘNG(colspan2), [1]=luong, [2]=dinhMuc, [3]=mienGiam, [4]=thieuNCKH, [5]=dinhMucPhaiGiang
-                    // [6-10]=HK1, [11-15]=HK2, [16-20]=Cả năm, [21-26]=Vượt(VN,Lào,Cuba,CPC,ĐóngHP,Tổng)
-                    // [27]=MứcTT, [28-33]=Tiền(VN,Lào,Cuba,CPC,ĐóngHP,Tổng), [34]=ThựcNhận, [35]=Actions
-                    if (footCells.length >= 34) {
-                        const parseVal = (td) => {
-                            const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
-                            return parseFloat(text) || 0;
-                        };
-                        const tongTietFoot = parseVal(footCells[16]) + parseVal(footCells[17]) + parseVal(footCells[18]) + parseVal(footCells[19]) + parseVal(footCells[20]);
-
-                        tfoot.innerHTML = `
-                            <tr>
-                                <td colspan="3" style="text-align:right;font-weight:700;">Tổng cộng</td>
-                                <td>${tongTietFoot ? tongTietFoot.toLocaleString('vi-VN') : '0'}</td>
-                                <td style="color:green;font-weight:bold;">${footCells[26].textContent}</td>
-                                <td>-</td>
-                                <td style="font-weight:bold;">${footCells[33].textContent}</td>
-                                <td style="font-weight:bold;color:#1a5276;">${footCells[34].textContent}</td>
-                                <td></td>
-                            </tr>
-                        `;
-                    }
-                    table.appendChild(tfoot);
                 }
+                table.appendChild(tfoot);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('btnCompactView');
+            if (btn) {
+                btn.addEventListener('click', toggleCompactView);
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                const btn = document.getElementById('btnCompactView');
-                if (btn) {
-                    btn.addEventListener('click', toggleCompactView);
-                }
+            applyCompactState();
 
-                // Mặc định: ẩn bảng chính, hiển thị nút ở trạng thái active
-                applyCompactState();
-
-                // Theo dõi khi bảng chính được render lại (loadData → renderTable)
-                // để tự động cập nhật bảng rút gọn
-                const tableBody = document.getElementById('tableBody');
-                if (tableBody) {
-                    const observer = new MutationObserver(function() {
-                        if (isCompact) {
-                            applyCompactState();
-                        }
-                    });
-                    observer.observe(tableBody, { childList: true });
-                }
-            });
-        })();
-        </script>
-
-
-
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                const observer = new MutationObserver(function() {
+                    if (isCompact) {
+                        applyCompactState();
+                    }
+                });
+                observer.observe(tableBody, { childList: true });
+            }
+        });
+    })();
+    </script>
 </body>
-
 </html>

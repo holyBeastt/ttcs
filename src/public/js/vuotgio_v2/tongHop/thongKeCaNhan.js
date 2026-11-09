@@ -84,10 +84,23 @@ document.addEventListener('DOMContentLoaded', async function () {
     loadData();
 
     // Event listeners
+    const namHocSelect = document.getElementById('namHocXem');
+    if (namHocSelect) namHocSelect.addEventListener('change', () => loadData());
+    const khoaSelect = document.getElementById('khoaXem');
+    if (khoaSelect) khoaSelect.addEventListener('change', () => loadData());
+
+    let filterDebounceTimer = null;
+    const filterInput = document.getElementById('filterGiangVien');
+    if (filterInput) {
+        filterInput.addEventListener('input', () => {
+            clearTimeout(filterDebounceTimer);
+            filterDebounceTimer = setTimeout(filterTable, 150);
+        });
+    }
+
     document.getElementById('loadDataBtn').addEventListener('click', loadData);
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) exportBtn.addEventListener('click', exportExcel);
-    document.getElementById('filterGiangVien').addEventListener('input', filterTable);
 
     // Chuyển sang thống kê Khoa
     const btnSwitchToKhoa = document.getElementById('btnSwitchToKhoa');
@@ -143,9 +156,6 @@ async function loadNamHocOptions() {
             }
             select.appendChild(option);
         });
-
-        // Sau khi load xong năm học, load dữ liệu
-        loadData();
     } catch (error) {
         console.error('Error loading nam hoc:', error);
         const currentYear = new Date().getFullYear();
