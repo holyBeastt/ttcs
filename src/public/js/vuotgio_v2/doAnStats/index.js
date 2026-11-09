@@ -156,62 +156,124 @@
             return;
         }
 
+        // 1. Phân nhóm giảng viên theo Khoa
+        const facultyGroups = [];
+        const facultyMap = new Map();
+
+        rows.forEach((teacher) => {
+            const facKey = teacher.khoa || "KHAC";
+            const facName = teacher.khoaDisplayName || teacher.khoa || "Khoa khác";
+            if (!facultyMap.has(facKey)) {
+                const group = {
+                    code: facKey,
+                    name: facName,
+                    teachers: [],
+                    totalHours: 0,
+                    totalStudents: 0
+                };
+                facultyMap.set(facKey, group);
+                facultyGroups.push(group);
+            }
+            const g = facultyMap.get(facKey);
+            g.teachers.push(teacher);
+            g.totalHours += Number(teacher.tongSoTiet || 0);
+            g.totalStudents += (teacher.projects || []).length;
+        });
+
         let html = "";
         let stt = 1;
 
-        rows.forEach((teacher) => {
-            const projects = teacher.projects || [];
-            const gvCount = projects.length || 1;
+        facultyGroups.forEach((group) => {
+            // Dòng Group Header theo Khoa
+            html += `
+                <tr class="nckh-stats-group-header">
+                    <td colspan="9" class="text-start ps-3 py-2">
+                        <i class="bi bi-building me-1"></i>
+                        <strong>${group.name}</strong>
+                        <span class="nckh-v3-group-count">${group.teachers.length} giảng viên</span>
+                        <span class="nckh-v3-group-count">${group.totalStudents} sinh viên</span>
+                        <span class="nckh-v3-group-count">${group.totalHours.toFixed(2)} tiết</span>
+                    </td>
+                </tr>
+            `;
 
-            if (!projects.length) {
-                html += `
-                    <tr data-giangvien="${teacher.giangVien}">
-                        <td class="text-center">${stt++}</td>
-                        <td class="fw-semibold">${teacher.giangVien}</td>
-                        <td class="text-center">${teacher.khoa || "-"}</td>
-                        <td colspan="4" class="text-center text-muted">Không có dữ liệu sinh viên</td>
-                        <td class="text-center fw-bold text-success">${Number(teacher.tongSoTiet || 0).toFixed(2)}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-view-detail" data-gv="${encodeURIComponent(teacher.giangVien)}" data-id="${teacher.idUser || ''}">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+            group.teachers.forEach((teacher) => {
+                const projects = teacher.projects || [];
+                const gvCount = projects.length || 1;
 
-            projects.forEach((proj, pIdx) => {
-                const isFirst = pIdx === 0;
-                html += `<tr data-giangvien="${teacher.giangVien}" data-sotiet="${proj.soTiet || 0}">`;
-
-                if (isFirst) {
+                if (!projects.length) {
                     html += `
-                        <td rowspan="${gvCount}" class="text-center">${stt++}</td>
-                        <td rowspan="${gvCount}" class="fw-semibold">${teacher.giangVien}</td>
-                        <td rowspan="${gvCount}" class="text-center">${teacher.khoa || "-"}</td>
+                        <tr data-giangvien="${teacher.giangVien}">
+                            <td class="text-center">${stt++}</td>
+                            <td class="fw-semibold">${teacher.giangVien}</td>
+                            <td class="text-center">${teacher.khoa || "-"}</td>
+                            <td colspan="4" class="text-center text-muted">Không có dữ liệu sinh viên</td>
+                            <td class="text-center fw-bold text-success">${Number(teacher.tongSoTiet || 0).toFixed(2)}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-view-detail" data-gv="${encodeURIComponent(teacher.giangVien)}" data-id="${teacher.idUser || ''}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
                     `;
+                    return;
                 }
 
-                html += `
-                    <td>${proj.sinhVien || "-"}</td>
-                    <td class="text-center">${proj.khoaSV || "-"}</td>
-                    <td>${proj.tenDeTai || "-"}</td>
-                    <td class="text-center">${Number(proj.soTiet || 0).toFixed(2)}</td>
-                `;
+                // 2. Nhóm sinh viên theo Lớp (khoaSV) để gộp ô (rowspan) cột Khóa
+                const classGroups = [];
+                projects.forEach((proj) => {
+                    const cls = (proj.khoaSV || "-").trim();
+                    const lastGroup = classGroups[classGroups.length - 1];
+                    if (lastGroup && lastGroup.cls === cls) {
+                        lastGroup.count++;
+                        lastGroup.items.push(proj);
+                    } else {
+                        classGroups.push({ cls, count: 1, items: [proj] });
+                    }
+                });
 
-                if (isFirst) {
-                    html += `
-                        <td rowspan="${gvCount}" class="text-center fw-bold text-success">${Number(teacher.tongSoTiet || 0).toFixed(2)}</td>
-                        <td rowspan="${gvCount}" class="text-center">
-                            <button class="btn btn-sm btn-view-detail" data-gv="${encodeURIComponent(teacher.giangVien)}" data-id="${teacher.idUser || ''}">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    `;
-                }
+                let isFirstTeacherRow = true;
 
-                html += `</tr>`;
+                classGroups.forEach((cg) => {
+                    cg.items.forEach((proj, pIdxInClass) => {
+                        const isFirstInClass = pIdxInClass === 0;
+
+                        html += `<tr data-giangvien="${teacher.giangVien}" data-sotiet="${proj.soTiet || 0}">`;
+
+                        if (isFirstTeacherRow) {
+                            html += `
+                                <td rowspan="${gvCount}" class="text-center">${stt++}</td>
+                                <td rowspan="${gvCount}" class="fw-semibold">${teacher.giangVien}</td>
+                                <td rowspan="${gvCount}" class="text-center">${teacher.khoa || "-"}</td>
+                            `;
+                        }
+
+                        html += `<td>${proj.sinhVien || "-"}</td>`;
+
+                        if (isFirstInClass) {
+                            html += `<td rowspan="${cg.count}" class="text-center font-monospace fw-semibold">${cg.cls}</td>`;
+                        }
+
+                        html += `
+                            <td>${proj.tenDeTai || "-"}</td>
+                            <td class="text-center">${Number(proj.soTiet || 0).toFixed(2)}</td>
+                        `;
+
+                        if (isFirstTeacherRow) {
+                            html += `
+                                <td rowspan="${gvCount}" class="text-center fw-bold text-success">${Number(teacher.tongSoTiet || 0).toFixed(2)}</td>
+                                <td rowspan="${gvCount}" class="text-center">
+                                    <button class="btn btn-sm btn-view-detail" data-gv="${encodeURIComponent(teacher.giangVien)}" data-id="${teacher.idUser || ''}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            `;
+                            isFirstTeacherRow = false;
+                        }
+
+                        html += `</tr>`;
+                    });
+                });
             });
         });
 
@@ -329,7 +391,7 @@
                     <td class="text-center">${row.khoa || "-"}</td>
                     <td>${row.sinhVien || "-"}</td>
                     <td class="text-center font-monospace">${row.maSV || "-"}</td>
-                    <td class="text-center">${row.khoaSV || "-"}</td>
+                    <td class="text-center font-monospace fw-semibold">${row.khoaSV || "-"}</td>
                     <td>${row.nganh || "-"}</td>
                     <td>${row.tenDeTai || "-"}</td>
                     <td class="text-center">${formatDate(row.ngayBatDau)}</td>
@@ -433,7 +495,7 @@
                         <td class="text-center">${idx + 1}</td>
                         <td>${r.sinhVien || "-"}</td>
                         <td class="text-center font-monospace">${r.maSV || "-"}</td>
-                        <td class="text-center text-nowrap">${r.khoaSV || "-"}</td>
+                        <td class="text-center text-nowrap font-monospace fw-semibold">${r.khoaSV || "-"}</td>
                         <td class="text-center text-nowrap">${r.khoaTen || r.nganh || r.khoa || "-"}</td>
                         <td>${r.tenDeTai || "-"}</td>
                         <td class="text-center">${formatDate(r.ngayBatDau)}</td>
@@ -493,7 +555,7 @@
                     <td class="fw-semibold text-primary">${r.giangVien || "-"}</td>
                     <td>${r.sinhVien || "-"}</td>
                     <td class="text-center font-monospace">${r.maSV || "-"}</td>
-                    <td class="text-center text-nowrap">${r.khoaSV || "-"}</td>
+                    <td class="text-center text-nowrap font-monospace fw-semibold">${r.khoaSV || "-"}</td>
                     <td class="text-center text-nowrap">${r.khoaTen || r.nganh || r.khoa || "-"}</td>
                     <td>${r.tenDeTai || "-"}</td>
                     <td class="text-center">${formatDate(r.ngayBatDau)}</td>

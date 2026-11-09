@@ -45,6 +45,30 @@ const getKhoaDisplayName = (facCode, pbMap) => {
         : (deptFullName || code);
 };
 
+const resolveFacultyCode = (row, pbMap) => {
+    let code = (row.MaPhongBan || row.Khoa || row.khoa || "").trim();
+
+    // Nếu code là tên phòng ban có trong pbMap (case-insensitive)
+    if (code) {
+        for (const [c, name] of pbMap.entries()) {
+            if (name.toLowerCase() === code.toLowerCase()) {
+                return c;
+            }
+        }
+    }
+
+    // Nếu code không có trong pbMap, kiểm tra tiền tố mã SV / lớp
+    const isKnownDept = code && (pbMap.has(code) || pbMap.has(code.toUpperCase()));
+    if (!isKnownDept) {
+        const prefix = (code || row.MaSV || row.KhoaDaoTao || row.KhoaSV || "").toUpperCase().trim();
+        if (prefix.startsWith("AT")) code = "ATTT";
+        else if (prefix.startsWith("CT")) code = "CNTT";
+        else if (prefix.startsWith("DT")) code = "ĐTVM";
+    }
+
+    return code || "Không xác định";
+};
+
 const resolveFacultyName = (row, pbMap) => {
     const explicitNganh = (row.Nganh || row.nganh || "").trim();
     if (explicitNganh && explicitNganh !== "-") {
@@ -54,37 +78,13 @@ const resolveFacultyName = (row, pbMap) => {
         }
         return explicitNganh;
     }
-    let code = (row.MaPhongBan || row.Khoa || row.khoa || "").trim();
-    if (!code) {
-        const prefix = (row.MaSV || row.KhoaDaoTao || row.KhoaSV || "").toUpperCase();
-        if (prefix.startsWith("AT")) code = "ATTT";
-        else if (prefix.startsWith("CT")) code = "CNTT";
-        else if (prefix.startsWith("DT")) code = "ĐTVM";
-    }
-    if (code) {
+    const code = resolveFacultyCode(row, pbMap);
+    if (code && code !== "Không xác định") {
         const name = pbMap.get(code) || pbMap.get(code.toUpperCase());
         if (name) return name;
         return code;
     }
     return "";
-};
-
-const resolveFacultyCode = (row, pbMap) => {
-    let code = (row.MaPhongBan || row.Khoa || row.khoa || "").trim();
-    if (!code) {
-        const prefix = (row.MaSV || row.KhoaDaoTao || row.KhoaSV || "").toUpperCase();
-        if (prefix.startsWith("AT")) code = "ATTT";
-        else if (prefix.startsWith("CT")) code = "CNTT";
-        else if (prefix.startsWith("DT")) code = "ĐTVM";
-    }
-    if (code) {
-        for (const [c, name] of pbMap.entries()) {
-            if (name.toLowerCase() === code.toLowerCase()) {
-                return c;
-            }
-        }
-    }
-    return code || "Không xác định";
 };
 
 const getFilters = async () => withConnection(async (connection) => {
@@ -133,13 +133,13 @@ const getLecturerSummary = async (filters = {}) => withConnection(async (connect
         teacher.tongSoTiet += hours;
         teacher.projects.push({
             id: row.ID,
-            sinhVien: row.SinhVien || "",
-            maSV: row.MaSV || "",
-            khoaSV: row.KhoaSV || row.KhoaDaoTao || "",
+            sinhVien: (row.SinhVien || "").trim(),
+            maSV: (row.MaSV || "").trim(),
+            khoaSV: (row.KhoaSV || row.KhoaDaoTao || "").trim(),
             khoa: facCode,
             khoaTen: facultyName,
             nganh: facultyName,
-            tenDeTai: row.TenDeTai || "",
+            tenDeTai: (row.TenDeTai || "").trim(),
             soTiet: hours,
             ngayBatDau: row.NgayBatDau || null,
             ngayKetThuc: row.NgayKetThuc || null,
@@ -152,12 +152,30 @@ const getLecturerSummary = async (filters = {}) => withConnection(async (connect
         });
     });
 
+    // Sắp xếp sinh viên trong mỗi giảng viên theo LỚP (khoaSV), sau đó theo TÊN SINH VIÊN
+    lecturerMap.forEach((teacher) => {
+        teacher.projects.sort((a, b) => {
+            const classA = a.khoaSV || "";
+            const classB = b.khoaSV || "";
+            const cmpClass = classA.localeCompare(classB, "vi", { numeric: true });
+            if (cmpClass !== 0) return cmpClass;
+            return (a.sinhVien || "").localeCompare(b.sinhVien || "", "vi");
+        });
+    });
+
+    // Sắp xếp giảng viên theo KHOA, trong cùng một khoa sắp xếp theo TÊN GIẢNG VIÊN (A-Z)
     const rows = Array.from(lecturerMap.values())
         .map((t) => ({
             ...t,
             tongSoTiet: parseFloat(t.tongSoTiet.toFixed(2))
         }))
-        .sort((a, b) => b.tongSoTiet - a.tongSoTiet || a.giangVien.localeCompare(b.giangVien, "vi"));
+        .sort((a, b) => {
+            const khoaA = a.khoaDisplayName || a.khoa || "";
+            const khoaB = b.khoaDisplayName || b.khoa || "";
+            const cmpKhoa = khoaA.localeCompare(khoaB, "vi");
+            if (cmpKhoa !== 0) return cmpKhoa;
+            return (a.giangVien || "").localeCompare(b.giangVien || "", "vi");
+        });
 
     return {
         summary: {
@@ -178,36 +196,52 @@ const getLecturerRecords = async (params = {}) => withConnection(async (connecti
     const rawRows = await repo.getRawDoAnRecords(connection, params);
     const tongSoTiet = rawRows.reduce((sum, r) => sum + (parseFloat(r.SoTiet) || 0), 0);
 
+    const rows = rawRows.map((r, index) => {
+        const facCode = resolveFacultyCode(r, pbMap);
+        const facultyName = resolveFacultyName(r, pbMap);
+        return {
+            stt: index + 1,
+            id: r.ID,
+            sinhVien: (r.SinhVien || "").trim(),
+            maSV: (r.MaSV || "").trim(),
+            khoaSV: (r.KhoaSV || r.KhoaDaoTao || "").trim(),
+            khoa: facCode,
+            khoaTen: facultyName,
+            nganh: facultyName,
+            tenDeTai: (r.TenDeTai || "").trim(),
+            soTiet: parseFloat((parseFloat(r.SoTiet) || 0).toFixed(2)),
+            ngayBatDau: r.NgayBatDau || null,
+            ngayKetThuc: r.NgayKetThuc || null,
+            soNguoi: r.SoNguoi || 1,
+            isHDChinh: r.isHDChinh === 1,
+            loaiHuongDan: r.isHDChinh === 1 ? "HD Chính" : "HD Phụ",
+            heDaoTao: r.ten_he_dao_tao || r.he_dao_tao || "",
+            dot: r.Dot || "",
+            ki: r.Ki || "",
+            namHoc: r.NamHoc || ""
+        };
+    });
+
+    // Sắp xếp theo Lớp (khoaSV), sau đó theo tên sinh viên
+    rows.sort((a, b) => {
+        const classA = a.khoaSV || "";
+        const classB = b.khoaSV || "";
+        const cmpClass = classA.localeCompare(classB, "vi", { numeric: true });
+        if (cmpClass !== 0) return cmpClass;
+        return (a.sinhVien || "").localeCompare(b.sinhVien || "", "vi");
+    });
+
+    // Đánh lại STT sau khi sắp xếp
+    rows.forEach((r, idx) => {
+        r.stt = idx + 1;
+    });
+
     return {
         giangVien: params.lecturerName || params.lecturerId || (rawRows[0] ? rawRows[0].GiangVien : ""),
         tongSoTiet: parseFloat(tongSoTiet.toFixed(2)),
         tongSoDoAn: rawRows.length,
         tongSinhVien: rawRows.length,
-        rows: rawRows.map((r, index) => {
-            const facCode = resolveFacultyCode(r, pbMap);
-            const facultyName = resolveFacultyName(r, pbMap);
-            return {
-                stt: index + 1,
-                id: r.ID,
-                sinhVien: r.SinhVien || "",
-                maSV: r.MaSV || "",
-                khoaSV: r.KhoaSV || r.KhoaDaoTao || "",
-                khoa: facCode,
-                khoaTen: facultyName,
-                nganh: facultyName,
-                tenDeTai: r.TenDeTai || "",
-                soTiet: parseFloat((parseFloat(r.SoTiet) || 0).toFixed(2)),
-                ngayBatDau: r.NgayBatDau || null,
-                ngayKetThuc: r.NgayKetThuc || null,
-                soNguoi: r.SoNguoi || 1,
-                isHDChinh: r.isHDChinh === 1,
-                loaiHuongDan: r.isHDChinh === 1 ? "HD Chính" : "HD Phụ",
-                heDaoTao: r.ten_he_dao_tao || r.he_dao_tao || "",
-                dot: r.Dot || "",
-                ki: r.Ki || "",
-                namHoc: r.NamHoc || ""
-            };
-        })
+        rows
     };
 });
 
@@ -254,13 +288,13 @@ const getDepartmentSummary = async (filters = {}) => withConnection(async (conne
         dept.projects.push({
             id: row.ID,
             giangVien: teacherName,
-            sinhVien: row.SinhVien || "",
-            maSV: row.MaSV || "",
-            khoaSV: row.KhoaSV || row.KhoaDaoTao || "",
+            sinhVien: (row.SinhVien || "").trim(),
+            maSV: (row.MaSV || "").trim(),
+            khoaSV: (row.KhoaSV || row.KhoaDaoTao || "").trim(),
             khoa: deptKey,
             khoaTen: facultyName,
             nganh: facultyName,
-            tenDeTai: row.TenDeTai || "",
+            tenDeTai: (row.TenDeTai || "").trim(),
             soTiet: parseFloat(hours.toFixed(2)),
             ngayBatDau: row.NgayBatDau || null,
             ngayKetThuc: row.NgayKetThuc || null,
@@ -270,6 +304,19 @@ const getDepartmentSummary = async (filters = {}) => withConnection(async (conne
             dot: row.Dot || "",
             ki: row.Ki || "",
             namHoc: row.NamHoc || ""
+        });
+    });
+
+    // Sắp xếp sinh viên trong mỗi Khoa theo Giảng viên -> Lớp (khoaSV) -> Sinh viên
+    deptMap.forEach((dept) => {
+        dept.projects.sort((a, b) => {
+            const cmpGV = (a.giangVien || "").localeCompare(b.giangVien || "", "vi");
+            if (cmpGV !== 0) return cmpGV;
+            const classA = a.khoaSV || "";
+            const classB = b.khoaSV || "";
+            const cmpClass = classA.localeCompare(classB, "vi", { numeric: true });
+            if (cmpClass !== 0) return cmpClass;
+            return (a.sinhVien || "").localeCompare(b.sinhVien || "", "vi");
         });
     });
 
@@ -312,6 +359,52 @@ const getHocVienSummary = async (filters = {}) => withConnection(async (connecti
     const totalHours = rawRows.reduce((sum, r) => sum + (parseFloat(r.SoTiet) || 0), 0);
     const teachersSet = new Set(rawRows.map((r) => r.GiangVien && r.GiangVien.trim()).filter(Boolean));
 
+    const rows = rawRows.map((r, index) => {
+        const facCode = resolveFacultyCode(r, pbMap);
+        const facultyName = resolveFacultyName(r, pbMap);
+        return {
+            stt: index + 1,
+            id: r.ID,
+            giangVien: (r.GiangVien || "").trim(),
+            khoa: facCode,
+            khoaDisplayName: getKhoaDisplayName(facCode, pbMap),
+            khoaTen: facultyName,
+            sinhVien: (r.SinhVien || "").trim(),
+            maSV: (r.MaSV || "").trim(),
+            khoaSV: (r.KhoaSV || r.KhoaDaoTao || "").trim(),
+            nganh: facultyName,
+            tenDeTai: (r.TenDeTai || "").trim(),
+            soTiet: parseFloat((parseFloat(r.SoTiet) || 0).toFixed(2)),
+            ngayBatDau: r.NgayBatDau || null,
+            ngayKetThuc: r.NgayKetThuc || null,
+            isHDChinh: r.isHDChinh === 1,
+            loaiHuongDan: r.isHDChinh === 1 ? "HD Chính" : "HD Phụ",
+            heDaoTao: r.ten_he_dao_tao || r.he_dao_tao || "",
+            dot: r.Dot || "",
+            ki: r.Ki || "",
+            namHoc: r.NamHoc || ""
+        };
+    });
+
+    // Sắp xếp theo Khoa -> Giảng viên -> Lớp (khoaSV) -> Sinh viên
+    rows.sort((a, b) => {
+        const khoaA = a.khoaDisplayName || a.khoa || "";
+        const khoaB = b.khoaDisplayName || b.khoa || "";
+        const cmpKhoa = khoaA.localeCompare(khoaB, "vi");
+        if (cmpKhoa !== 0) return cmpKhoa;
+        const cmpGV = (a.giangVien || "").localeCompare(b.giangVien || "", "vi");
+        if (cmpGV !== 0) return cmpGV;
+        const classA = a.khoaSV || "";
+        const classB = b.khoaSV || "";
+        const cmpClass = classA.localeCompare(classB, "vi", { numeric: true });
+        if (cmpClass !== 0) return cmpClass;
+        return (a.sinhVien || "").localeCompare(b.sinhVien || "", "vi");
+    });
+
+    rows.forEach((r, idx) => {
+        r.stt = idx + 1;
+    });
+
     return {
         summary: {
             totalTeachers: teachersSet.size,
@@ -319,32 +412,7 @@ const getHocVienSummary = async (filters = {}) => withConnection(async (connecti
             totalProjects: rawRows.length,
             totalHours: parseFloat(totalHours.toFixed(2))
         },
-        rows: rawRows.map((r, index) => {
-            const facCode = resolveFacultyCode(r, pbMap);
-            const facultyName = resolveFacultyName(r, pbMap);
-            return {
-                stt: index + 1,
-                id: r.ID,
-                giangVien: r.GiangVien || "",
-                khoa: facCode,
-                khoaDisplayName: getKhoaDisplayName(facCode, pbMap),
-                khoaTen: facultyName,
-                sinhVien: r.SinhVien || "",
-                maSV: r.MaSV || "",
-                khoaSV: r.KhoaSV || r.KhoaDaoTao || "",
-                nganh: facultyName,
-                tenDeTai: r.TenDeTai || "",
-                soTiet: parseFloat((parseFloat(r.SoTiet) || 0).toFixed(2)),
-                ngayBatDau: r.NgayBatDau || null,
-                ngayKetThuc: r.NgayKetThuc || null,
-                isHDChinh: r.isHDChinh === 1,
-                loaiHuongDan: r.isHDChinh === 1 ? "HD Chính" : "HD Phụ",
-                heDaoTao: r.ten_he_dao_tao || r.he_dao_tao || "",
-                dot: r.Dot || "",
-                ki: r.Ki || "",
-                namHoc: r.NamHoc || ""
-            };
-        })
+        rows
     };
 });
 
