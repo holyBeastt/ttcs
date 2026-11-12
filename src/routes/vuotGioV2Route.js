@@ -42,8 +42,8 @@ router.get("/thong-ke-giang-day/du-kien", (req, res) => thongKeGiangDayControlle
 router.get("/thong-ke-giang-day/chinh-thuc", (req, res) => thongKeGiangDayController.renderOfficialPage(req, res));
 router.get("/thong-ke-giang-day", (req, res) => res.redirect("/v2/vuotgio/thong-ke-giang-day/chinh-thuc"));
 router.get("/thong-ke-giang-day/filters", (req, res) => thongKeGiangDayController.getFilters(req, res));
-router.post("/thong-ke-giang-day/data", (req, res) => thongKeGiangDayController.getData(req, res));
-router.get("/thong-ke-giang-day/export", (req, res) => thongKeGiangDayController.exportExcel(req, res));
+router.post("/thong-ke-giang-day/data", enforceKhoaFilter, (req, res) => thongKeGiangDayController.getData(req, res));
+router.get("/thong-ke-giang-day/export", enforceKhoaFilter, (req, res) => thongKeGiangDayController.exportExcel(req, res));
 
 // =====================================================
 // LỚP NGOÀI QUY CHUẨN
@@ -99,7 +99,7 @@ router.get("/kthp-import/suggestions", kthpImportController.getSuggestions);
 // =====================================================
 
 router.get("/duyet-kthp", baseController.getDuyetKTHP);
-router.post("/duyet-kthp/data", duyetKTHPController.getTableData);
+router.post("/duyet-kthp/data", enforceKhoaFilter, duyetKTHPController.getTableData);
 router.post("/duyet-kthp/batch-approve", enforceKhoaFilter, checkDataLock, duyetKTHPController.batchApprove);
 router.post("/duyet-kthp/edit/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.edit);
 router.delete("/duyet-kthp/:ID", enforceKhoaFilter, checkDataLock, duyetKTHPController.delete);
@@ -118,26 +118,26 @@ router.get("/kthp/thong-ke-chinh-thuc", (req, res) => kthpStatsController.render
 
 // Stats APIs
 router.get("/kthp/stats/filters", kthpStatsController.getFilters);
-router.get("/kthp/stats/giang-vien", kthpStatsController.getLecturerSummary);
-router.get("/kthp/stats/giang-vien/:id/chi-tiet", kthpStatsController.getLecturerDetail);
-router.get("/kthp/stats/khoa", kthpStatsController.getFacultySummary);
-router.get("/kthp/stats/khoa/:khoaId/chi-tiet", kthpStatsController.getFacultyDetail);
-router.get("/kthp/stats/hoc-vien", kthpStatsController.getInstituteSummary);
-router.get("/kthp/stats/hoc-vien/chi-tiet", kthpStatsController.getInstituteDetail);
+router.get("/kthp/stats/giang-vien", enforceKhoaFilter, kthpStatsController.getLecturerSummary);
+router.get("/kthp/stats/giang-vien/:id/chi-tiet", enforceKhoaFilter, kthpStatsController.getLecturerDetail);
+router.get("/kthp/stats/khoa", enforceKhoaFilter, kthpStatsController.getFacultySummary);
+router.get("/kthp/stats/khoa/:khoaId/chi-tiet", enforceKhoaFilter, kthpStatsController.getFacultyDetail);
+router.get("/kthp/stats/hoc-vien", enforceKhoaFilter, kthpStatsController.getInstituteSummary);
+router.get("/kthp/stats/hoc-vien/chi-tiet", enforceKhoaFilter, kthpStatsController.getInstituteDetail);
 
 // Export Excel APIs
-router.get("/kthp/export/stats/giang-vien", kthpStatsController.exportLecturerStats);
-router.get("/kthp/export/stats/khoa", kthpStatsController.exportFacultyStats);
-router.get("/kthp/export/stats/hoc-vien", kthpStatsController.exportInstituteStats);
-router.get("/kthp/export/stats/preview/giang-vien", (req, res) => {
+router.get("/kthp/export/stats/giang-vien", enforceKhoaFilter, kthpStatsController.exportLecturerStats);
+router.get("/kthp/export/stats/khoa", enforceKhoaFilter, kthpStatsController.exportFacultyStats);
+router.get("/kthp/export/stats/hoc-vien", enforceKhoaFilter, kthpStatsController.exportInstituteStats);
+router.get("/kthp/export/stats/preview/giang-vien", enforceKhoaFilter, (req, res) => {
     req.query.scope = "PREVIEW";
     return kthpStatsController.exportLecturerStats(req, res);
 });
-router.get("/kthp/export/stats/preview/khoa", (req, res) => {
+router.get("/kthp/export/stats/preview/khoa", enforceKhoaFilter, (req, res) => {
     req.query.scope = "PREVIEW";
     return kthpStatsController.exportFacultyStats(req, res);
 });
-router.get("/kthp/export/stats/preview/hoc-vien", (req, res) => {
+router.get("/kthp/export/stats/preview/hoc-vien", enforceKhoaFilter, (req, res) => {
     req.query.scope = "PREVIEW";
     return kthpStatsController.exportInstituteStats(req, res);
 });
@@ -202,16 +202,16 @@ router.get("/do-an/thong-ke-chinh-thuc", (req, res) => datnStatsController.rende
 router.get("/do-an/du-kien", (req, res) => res.redirect("/v2/vuotgio/do-an/thong-ke-du-kien"));
 router.get("/do-an/chinh-thuc", (req, res) => res.redirect("/v2/vuotgio/do-an/thong-ke-chinh-thuc"));
 router.get("/do-an/stats/filters", (req, res) => datnStatsController.getFilters(req, res));
-router.get("/do-an/stats/giang-vien", (req, res) => datnStatsController.getLecturerSummary(req, res));
-router.get("/do-an/stats/giang-vien/:id/chi-tiet", (req, res) => datnStatsController.getLecturerDetail(req, res));
-router.get("/do-an/stats/khoa", (req, res) => datnStatsController.getDepartmentSummary(req, res));
-router.get("/do-an/stats/hoc-vien", (req, res) => datnStatsController.getHocVienSummary(req, res));
-router.get("/do-an/export/stats", (req, res) => datnStatsController.exportExcel(req, res));
+router.get("/do-an/stats/giang-vien", enforceKhoaFilter, (req, res) => datnStatsController.getLecturerSummary(req, res));
+router.get("/do-an/stats/giang-vien/:id/chi-tiet", enforceKhoaFilter, (req, res) => datnStatsController.getLecturerDetail(req, res));
+router.get("/do-an/stats/khoa", enforceKhoaFilter, (req, res) => datnStatsController.getDepartmentSummary(req, res));
+router.get("/do-an/stats/hoc-vien", enforceKhoaFilter, (req, res) => datnStatsController.getHocVienSummary(req, res));
+router.get("/do-an/export/stats", enforceKhoaFilter, (req, res) => datnStatsController.exportExcel(req, res));
 
 // Hướng dẫn ĐATN cũ (chuyển hướng sang trang chính thức mới hoặc giữ lại API)
 router.get("/huong-dan-datn", (req, res) => res.redirect("/v2/vuotgio/do-an/thong-ke-chinh-thuc"));
-router.get("/huong-dan-datn/table", huongDanDATNController.getTable);
-router.get("/huong-dan-datn/chi-tiet/:GiangVien", huongDanDATNController.getChiTiet);
+router.get("/huong-dan-datn/table", enforceKhoaFilter, huongDanDATNController.getTable);
+router.get("/huong-dan-datn/chi-tiet/:GiangVien", enforceKhoaFilter, huongDanDATNController.getChiTiet);
 
 // =====================================================
 // HƯỚNG DẪN THAM QUAN THỰC TẾ

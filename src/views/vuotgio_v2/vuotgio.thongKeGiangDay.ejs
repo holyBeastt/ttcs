@@ -1062,11 +1062,15 @@
             `;
 
             try {
+                const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+                const userKhoa = localStorage.getItem('MaPhongBan') || '';
+                const targetKhoa = (isKhoa && userKhoa) ? userKhoa : els.khoa.value;
+
                 const payload = {
                     dot: els.dot.value,
                     ki: els.ki.value,
                     namHoc: els.namHoc.value,
-                    khoa: els.khoa.value,
+                    khoa: targetKhoa,
                     heDaoTao: els.heDaoTao.value,
                     scope: window.STATS_SCOPE
                 };
@@ -1119,6 +1123,13 @@
                     setSelectOptions(els.heDaoTao, filters.heDaoTaoList || filters.heDaoTao || [], { defaultLabel: "Tất cả hệ" });
                     setSelectOptions(els.dot, filters.dotList || filters.dot || [], { defaultLabel: "Cả 2 đợt" });
                     setSelectOptions(els.ki, filters.kiList || filters.ki || [], { defaultLabel: "Cả 2 kỳ" });
+
+                    const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+                    const userKhoa = localStorage.getItem('MaPhongBan') || '';
+                    if (isKhoa && userKhoa) {
+                        els.khoa.value = userKhoa;
+                        els.khoa.disabled = true;
+                    }
                 }
             } catch (error) {
                 console.error("initFilters error:", error);
@@ -1162,11 +1173,14 @@
             // Xuất Excel button
             if (els.btnExport) {
                 els.btnExport.addEventListener("click", () => {
+                    const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+                    const userKhoa = localStorage.getItem('MaPhongBan') || '';
+                    const targetKhoa = (isKhoa && userKhoa) ? userKhoa : els.khoa.value;
                     const params = new URLSearchParams({
                         dot: els.dot.value,
                         ki: els.ki.value,
                         namHoc: els.namHoc.value,
-                        khoa: els.khoa.value,
+                        khoa: targetKhoa,
                         heDaoTao: els.heDaoTao.value,
                         scope: window.STATS_SCOPE,
                         tab: state.currentTab

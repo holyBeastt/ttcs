@@ -5,6 +5,17 @@
 
 const service = require("../../services/vuotgio_v2/datn.service");
 
+const resolveFacultyScope = (req, targetKhoa) => {
+    const isKhoa = req.session?.isKhoa;
+    const maPhongBan = req.session?.MaPhongBan;
+    const role = req.session?.role || req.session?.Quyen || "";
+    const isAdmin = role === "Trợ lý" || role === "Lãnh đạo phòng" || role === "admin" || role === "ADMIN";
+    if ((isKhoa === 1 || isKhoa === "1") && !isAdmin && maPhongBan) {
+        return maPhongBan;
+    }
+    return targetKhoa;
+};
+
 /**
  * Lấy danh sách đồ án tốt nghiệp
  */
@@ -14,7 +25,7 @@ const getTable = async (req, res) => {
             namHoc: req.query.NamHoc,
             dot: req.query.Dot,
             ki: req.query.Ki,
-            khoa: req.query.Khoa,
+            khoa: resolveFacultyScope(req, req.query.Khoa),
             heDaoTao: req.query.HeDaoTao
         };
 
@@ -40,7 +51,7 @@ const getChiTiet = async (req, res) => {
             namHoc: req.query.NamHoc,
             dot: req.query.Dot,
             ki: req.query.Ki,
-            khoa: req.query.Khoa,
+            khoa: resolveFacultyScope(req, req.query.Khoa),
             heDaoTao: req.query.HeDaoTao
         };
 

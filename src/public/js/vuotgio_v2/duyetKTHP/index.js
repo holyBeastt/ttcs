@@ -309,7 +309,6 @@ async function loadKhoaOptions() {
                 option.textContent = name && name !== code ? `${code} - ${name}` : code;
                 khoaXem.appendChild(option);
             });
-            // Luôn đảm bảo dropdown hoạt động và không bị disabled
             khoaXem.disabled = false;
             khoaXem.removeAttribute('disabled');
         }
@@ -325,6 +324,25 @@ async function loadKhoaOptions() {
                 option.textContent = name && name !== code ? `${code} - ${name}` : code;
                 editKhoa.appendChild(option);
             });
+        }
+
+        // Enforce khoa filter: nếu user thuộc khoa, lock dropdown
+        if (typeof KhoaFilterUtils !== 'undefined' && KhoaFilterUtils.isKhoaUser()) {
+            KhoaFilterUtils.applyKhoaFilter(khoaXem);
+            KhoaFilterUtils.applyKhoaFilter(editKhoa);
+        } else {
+            const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+            const userKhoa = localStorage.getItem('MaPhongBan') || '';
+            if (isKhoa && userKhoa) {
+                if (khoaXem) {
+                    khoaXem.value = userKhoa;
+                    khoaXem.disabled = true;
+                }
+                if (editKhoa) {
+                    editKhoa.value = userKhoa;
+                    editKhoa.disabled = true;
+                }
+            }
         }
     } catch (error) {
         console.error('Error loading khoa:', error);
@@ -413,8 +431,10 @@ async function loadEmployeeOptions() {
 
 // Load data
 async function loadData() {
+    const isKhoa = typeof KhoaFilterUtils !== 'undefined' ? KhoaFilterUtils.isKhoaUser() : (localStorage.getItem('isKhoa') === '1');
+    const userKhoa = typeof KhoaFilterUtils !== 'undefined' ? KhoaFilterUtils.getUserKhoa() : (localStorage.getItem('MaPhongBan') || '');
     const namHoc = document.getElementById('namHocXem').value;
-    const khoa = document.getElementById('khoaXem').value;
+    const khoa = (isKhoa && userKhoa) ? userKhoa : document.getElementById('khoaXem').value;
     const heDaoTao = document.getElementById('heDaoTao').value;
     const dot = document.getElementById('dot').value;
     const ki = document.getElementById('ki').value;
@@ -866,6 +886,12 @@ function editRecord(id) {
     document.getElementById('editHocKy').value = record.ki;
     document.getElementById('editDot').value = record.dot;
     document.getElementById('editKhoa').value = record.khoa;
+    const isKhoaUser = typeof KhoaFilterUtils !== 'undefined' ? KhoaFilterUtils.isKhoaUser() : (localStorage.getItem('isKhoa') === '1');
+    if (isKhoaUser) {
+        document.getElementById('editKhoa').disabled = true;
+    } else {
+        document.getElementById('editKhoa').disabled = false;
+    }
     document.getElementById('editTenHP').value = record.tenhocphan || '';
     document.getElementById('editMaHP').value = record.mahocphan || '';
     document.getElementById('editSoTC').value = record.sotc || 0;
@@ -933,7 +959,7 @@ async function handleEditSubmit() {
         academicYear: document.getElementById('editNamHoc').value,
         semester: document.getElementById('editHocKy').value,
         round: document.getElementById('editDot').value,
-        khoa: document.getElementById('editKhoa').value,
+        khoa: (typeof KhoaFilterUtils !== 'undefined' && KhoaFilterUtils.isKhoaUser()) ? KhoaFilterUtils.getUserKhoa() : document.getElementById('editKhoa').value,
         tenhocphan: document.getElementById('editTenHP').value,
         mahocphan: document.getElementById('editMaHP').value,
         sotc: document.getElementById('editSoTC').value,

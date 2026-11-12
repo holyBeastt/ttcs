@@ -8,6 +8,17 @@
 const statsService = require("../../services/vuotgio_v2/datnStats.service");
 const exportService = require("../../services/vuotgio_v2/datnExport.service");
 
+const resolveFacultyScope = (req, targetKhoa) => {
+    const isKhoa = req.session?.isKhoa;
+    const maPhongBan = req.session?.MaPhongBan;
+    const role = req.session?.role || req.session?.Quyen || "";
+    const isAdmin = role === "Trợ lý" || role === "Lãnh đạo phòng" || role === "admin" || role === "ADMIN";
+    if ((isKhoa === 1 || isKhoa === "1") && !isAdmin && maPhongBan) {
+        return maPhongBan;
+    }
+    return targetKhoa || "ALL";
+};
+
 class DatnStatsController {
     renderPreviewPage(_req, res) {
         res.render("vuotgio_v2/vuotgio.thongKe.doAn.ejs", {
@@ -36,11 +47,12 @@ class DatnStatsController {
     async getLecturerSummary(req, res) {
         try {
             const { namHoc, dot = "ALL", ki = "ALL", khoa = "ALL", heDaoTao = "ALL", keyword = "", scope = "OFFICIAL" } = req.query;
+            const targetKhoa = resolveFacultyScope(req, khoa);
             const data = await statsService.getLecturerSummary({
                 namHoc,
                 dot,
                 ki,
-                khoa,
+                khoa: targetKhoa,
                 heDaoTao,
                 keyword,
                 scope
@@ -57,6 +69,7 @@ class DatnStatsController {
             const { namHoc, dot = "ALL", ki = "ALL", khoa = "ALL", heDaoTao = "ALL", scope = "OFFICIAL" } = req.query;
             const lecturerId = req.params.id;
             const lecturerName = req.query.name || lecturerId;
+            const targetKhoa = resolveFacultyScope(req, khoa);
 
             const data = await statsService.getLecturerRecords({
                 lecturerId,
@@ -64,7 +77,7 @@ class DatnStatsController {
                 namHoc,
                 dot,
                 ki,
-                khoa,
+                khoa: targetKhoa,
                 heDaoTao,
                 scope
             });
@@ -78,11 +91,12 @@ class DatnStatsController {
     async getDepartmentSummary(req, res) {
         try {
             const { namHoc, dot = "ALL", ki = "ALL", khoa = "ALL", heDaoTao = "ALL", keyword = "", scope = "OFFICIAL" } = req.query;
+            const targetKhoa = resolveFacultyScope(req, khoa);
             const data = await statsService.getDepartmentSummary({
                 namHoc,
                 dot,
                 ki,
-                khoa,
+                khoa: targetKhoa,
                 heDaoTao,
                 keyword,
                 scope
@@ -97,11 +111,12 @@ class DatnStatsController {
     async getHocVienSummary(req, res) {
         try {
             const { namHoc, dot = "ALL", ki = "ALL", khoa = "ALL", heDaoTao = "ALL", keyword = "", scope = "OFFICIAL" } = req.query;
+            const targetKhoa = resolveFacultyScope(req, khoa);
             const data = await statsService.getHocVienSummary({
                 namHoc,
                 dot,
                 ki,
-                khoa,
+                khoa: targetKhoa,
                 heDaoTao,
                 keyword,
                 scope
@@ -129,6 +144,7 @@ class DatnStatsController {
                 lecturerId = ""
             } = req.query;
 
+            const targetKhoa = resolveFacultyScope(req, khoa);
             const targetLecturer = (lecturerName || name || "").trim();
             const targetLecturerId = (lecturerId || "").trim();
 
@@ -139,7 +155,7 @@ class DatnStatsController {
                     namHoc,
                     dot,
                     ki,
-                    khoa,
+                    khoa: targetKhoa,
                     heDaoTao,
                     keyword,
                     name: targetLecturer,

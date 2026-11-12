@@ -77,8 +77,12 @@
     const getFilterParams = () => {
         const params = new URLSearchParams();
         params.set("scope", state.scope);
+        const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+        const userKhoa = localStorage.getItem('MaPhongBan') || '';
+        const targetKhoa = (isKhoa && userKhoa) ? userKhoa : (els.khoa ? els.khoa.value : "");
+
         if (els.namHoc && els.namHoc.value) params.set("namHoc", els.namHoc.value);
-        if (els.khoa && els.khoa.value) params.set("khoa", els.khoa.value);
+        if (targetKhoa) params.set("khoa", targetKhoa);
         if (els.heDaoTao && els.heDaoTao.value) params.set("heDaoTao", els.heDaoTao.value);
         if (els.dot && els.dot.value) params.set("dot", els.dot.value);
         if (els.ki && els.ki.value) params.set("ki", els.ki.value);
@@ -604,8 +608,17 @@
                     opt.textContent = k.displayName || k.name || k.id;
                     els.khoa.appendChild(opt);
                 });
-                if (curVal && Array.from(els.khoa.options).some((o) => o.value === curVal)) {
-                    els.khoa.value = curVal;
+
+                const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+                const userKhoa = localStorage.getItem('MaPhongBan') || '';
+                if (isKhoa && userKhoa) {
+                    els.khoa.value = userKhoa;
+                    els.khoa.disabled = true;
+                } else {
+                    if (curVal && Array.from(els.khoa.options).some((o) => o.value === curVal)) {
+                        els.khoa.value = curVal;
+                    }
+                    els.khoa.disabled = false;
                 }
             }
 

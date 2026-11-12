@@ -208,7 +208,9 @@
 
     function getFilterParams() {
         const yr = getYearRange();
-        const khoa = el.khoa?.value || "ALL";
+        const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+        const userKhoa = localStorage.getItem('MaPhongBan') || '';
+        const khoa = (isKhoa && userKhoa) ? userKhoa : (el.khoa?.value || "ALL");
         const loaiKthp = el.loai?.value || "ALL";
         const keyword = el.keyword?.value?.trim() || "";
         const heDaoTao = el.heDaoTao?.value || "ALL";
@@ -1279,13 +1281,21 @@
                     .join("");
                 el.khoa.innerHTML = '<option value="ALL">Tất cả khoa</option>' + khoaOpts;
 
-                const urlKhoa = urlParams.get("khoa");
-                if (urlKhoa && el.khoa.querySelector(`option[value="${urlKhoa}"]`)) {
-                    el.khoa.value = urlKhoa;
+                const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+                const userKhoa = localStorage.getItem('MaPhongBan') || '';
+
+                if (isKhoa && userKhoa) {
+                    el.khoa.value = userKhoa;
+                    el.khoa.disabled = true;
                 } else {
-                    el.khoa.value = "ALL";
+                    const urlKhoa = urlParams.get("khoa");
+                    if (urlKhoa && el.khoa.querySelector(`option[value="${urlKhoa}"]`)) {
+                        el.khoa.value = urlKhoa;
+                    } else {
+                        el.khoa.value = "ALL";
+                    }
+                    el.khoa.disabled = false;
                 }
-                el.khoa.disabled = false;
             }
         } catch (err) {
             console.warn("Lỗi tải danh sách khoa:", err);

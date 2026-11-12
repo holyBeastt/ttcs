@@ -70,6 +70,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 option.textContent = item.TenPhongBan || item.MaPhongBan;
                 select.appendChild(option);
             });
+
+            const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+            const userKhoa = localStorage.getItem('MaPhongBan') || '';
+            if (isKhoa && userKhoa) {
+                select.value = userKhoa;
+                select.disabled = true;
+            } else {
+                select.disabled = false;
+            }
         } catch (error) {
             console.error("Error loading Khoa:", error);
         }
@@ -104,7 +113,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const dot = document.getElementById("dotFilter").value;
         const ki = document.getElementById("kiFilter").value;
         const namHoc = document.getElementById("namHocFilter").value;
-        const khoa = document.getElementById("khoaFilter").value;
+        const isKhoa = localStorage.getItem('isKhoa') === '1' || localStorage.getItem('isKhoa') === 1;
+        const userKhoa = localStorage.getItem('MaPhongBan') || '';
+        const khoa = (isKhoa && userKhoa) ? userKhoa : document.getElementById("khoaFilter").value;
         const heDaoTao = document.getElementById("heDaoTaoFilter").value;
         
         if (!namHoc) {

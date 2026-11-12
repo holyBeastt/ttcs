@@ -8,6 +8,17 @@
 const service = require("../../services/vuotgio_v2/giangDay.service");
 const exportService = require("../../services/vuotgio_v2/giangDayExport.service");
 
+const resolveFacultyScope = (req, targetKhoa) => {
+    const isKhoa = req.session?.isKhoa;
+    const maPhongBan = req.session?.MaPhongBan;
+    const role = req.session?.role || req.session?.Quyen || "";
+    const isAdmin = role === "Trợ lý" || role === "Lãnh đạo phòng" || role === "admin" || role === "ADMIN";
+    if ((isKhoa === 1 || isKhoa === "1") && !isAdmin && maPhongBan) {
+        return maPhongBan;
+    }
+    return targetKhoa || "ALL";
+};
+
 class ThongKeGiangDayController {
     renderPreviewPage(_req, res) {
         res.render("vuotgio_v2/vuotgio.thongKeGiangDay.ejs", {
@@ -36,7 +47,8 @@ class ThongKeGiangDayController {
     async getData(req, res) {
         try {
             const { dot, ki, namHoc, khoa, heDaoTao, scope = "OFFICIAL" } = req.body || {};
-            const filters = { dot, ki, namHoc, khoa, heDaoTao, scope };
+            const targetKhoa = resolveFacultyScope(req, khoa);
+            const filters = { dot, ki, namHoc, khoa: targetKhoa, heDaoTao, scope };
 
             const result = await service.getStatistics(filters);
             res.json({ success: true, ...result });
@@ -49,7 +61,8 @@ class ThongKeGiangDayController {
     async exportExcel(req, res) {
         try {
             const { dot = "ALL", ki = "ALL", namHoc = "ALL", khoa = "ALL", heDaoTao = "ALL", scope = "OFFICIAL", tab = "giang-vien" } = req.query || {};
-            const filters = { dot, ki, namHoc, khoa, heDaoTao, scope };
+            const targetKhoa = resolveFacultyScope(req, khoa);
+            const filters = { dot, ki, namHoc, khoa: targetKhoa, heDaoTao, scope };
 
             const buffer = await exportService.exportGiangDayExcel(filters, tab);
 

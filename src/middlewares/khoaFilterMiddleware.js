@@ -24,36 +24,38 @@ const enforceKhoaFilter = (req, res, next) => {
 
     // Phân quyền Admin: Các vai trò thuộc phòng ban (Đào tạo, Tài chính, Khảo thí...)
     const isAdmin = role === "Trợ lý" || role === "Lãnh đạo phòng" || role === "admin" || role === "ADMIN";
+    const isKhoaUser = isKhoa === 1 || isKhoa === "1";
 
     // Gắn thông tin khoa vào request để các layer phía sau sử dụng
     req.khoaFilter = {
-        isKhoa: isKhoa === 1 || isKhoa === "1",
+        isKhoa: isKhoaUser,
         MaPhongBan: maPhongBan || null,
         isAdmin: isAdmin,
     };
 
-    // Nếu user KHÔNG PHẢI admin → ép filter theo phòng ban của user
-    if (!isAdmin && maPhongBan) {
+    // Nếu user KHÔNG PHẢI admin và là user thuộc khoa → ép filter theo phòng ban của user
+    if (!isAdmin && isKhoaUser && maPhongBan) {
         // Override route params
         if (req.params.Khoa !== undefined) {
             req.params.Khoa = maPhongBan;
         }
+        if (req.params.khoaId !== undefined) {
+            req.params.khoaId = maPhongBan;
+        }
 
         // Override query params
-        if (req.query.Khoa !== undefined) {
-            req.query.Khoa = maPhongBan;
-        }
-        if (req.query.khoa !== undefined) {
-            req.query.khoa = maPhongBan;
+        if (req.query) {
+            if (req.query.Khoa !== undefined) req.query.Khoa = maPhongBan;
+            if (req.query.khoa !== undefined) req.query.khoa = maPhongBan;
+            if (req.query.khoaId !== undefined) req.query.khoaId = maPhongBan;
         }
 
         // Override body (cho các thao tác POST)
         if (req.body && typeof req.body === "object" && !Array.isArray(req.body)) {
-            if (req.body.Khoa !== undefined) {
-                req.body.Khoa = maPhongBan;
-            }
-            if (req.body.khoa !== undefined) {
-                req.body.khoa = maPhongBan;
+            req.body.Khoa = maPhongBan;
+            req.body.khoa = maPhongBan;
+            if (req.body.khoaId !== undefined) {
+                req.body.khoaId = maPhongBan;
             }
             if (req.body.major !== undefined) {
                 req.body.major = maPhongBan;
