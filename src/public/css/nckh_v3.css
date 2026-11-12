@@ -309,6 +309,45 @@
   animation: nckh-fadeIn 0.2s ease-out;
 }
 
+.member-tag.nckh-person-internal {
+  color: #0d6efd !important;
+  border-color: #b6d4fe !important;
+  background-color: #f0f7ff !important;
+}
+
+.member-tag.nckh-person-external {
+  color: #212529 !important;
+  border-color: #dee2e6 !important;
+  background-color: #f8f9fa !important;
+}
+
+.nckh-person-internal {
+  color: #0d6efd !important;
+  font-weight: 500;
+}
+
+.nckh-person-external {
+  color: #212529 !important;
+}
+
+.nckh-edit-person-name.nckh-person-internal {
+  color: #0d6efd !important;
+  font-weight: 600;
+}
+
+.nckh-edit-person-name.nckh-person-external {
+  color: #212529 !important;
+}
+
+input.nckh-person-internal {
+  color: #0d6efd !important;
+  font-weight: 600;
+}
+
+input.nckh-person-external {
+  color: #212529 !important;
+}
+
 .member-tag-remove {
   background: none;
   border: none;

@@ -283,12 +283,12 @@ window.NCKH_V3_TypeInputCommon = window.NCKH_V3_TypeInputCommon || {};
       const internalHtml = (internalIds || []).map((id, index) => {
         const gv = byId.get(Number(id));
         const displayName = gv ? gv.TenNhanVien : String(id);
-        return `<span class="member-tag">${displayName}<button type="button" class="member-tag-remove" data-remove-type="internal" data-index="${index}">&times;</button></span>`;
+        return `<span class="member-tag nckh-person-internal">${displayName}<button type="button" class="member-tag-remove" data-remove-type="internal" data-index="${index}">&times;</button></span>`;
       });
 
       const externalHtml = (externalList || []).map((item, index) => {
         const displayName = item.donVi ? `${item.ten} - ${item.donVi}` : item.ten;
-        return `<span class="member-tag">${displayName}<button type="button" class="member-tag-remove" data-remove-type="external" data-index="${index}">&times;</button></span>`;
+        return `<span class="member-tag nckh-person-external">${displayName}<button type="button" class="member-tag-remove" data-remove-type="external" data-index="${index}">&times;</button></span>`;
       });
 
       container.innerHTML = [...internalHtml, ...externalHtml].join("");

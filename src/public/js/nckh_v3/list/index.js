@@ -256,8 +256,19 @@
       el.khoaFilter.appendChild(option);
     });
 
-    // Luôn để bộ lọc khoa ở dạng dropdown mở cho phép người dùng chọn tự do
-    el.khoaFilter.disabled = false;
+    const isKhoa = localStorage.getItem("isKhoa");
+    const userMaPhongBan = state.permission.maPhongBan;
+    // Chỉ khóa bộ lọc nếu user thực sự là Khoa (isKhoa = 1) và không có quyền duyệt toàn trường.
+    // Cấp bậc quản lý (GĐ, ĐT, TC, Viện NC... có isKhoa = 0) luôn được xem tất cả khoa.
+    if ((isKhoa === "1" || isKhoa === 1) && !state.permission.canApprove && userMaPhongBan) {
+      const targetOption = Array.from(el.khoaFilter.options).find(
+        (opt) => opt.getAttribute("data-code") === userMaPhongBan
+      );
+      if (targetOption) {
+        el.khoaFilter.value = targetOption.value;
+        el.khoaFilter.disabled = true;
+      }
+    }
   }
 
 
@@ -327,7 +338,17 @@
     return `${d}/${m}/${y}`;
   }
 
-  function formatMultilineCell(value) {
+  function formatMultilineCell(value, items = null) {
+    if (Array.isArray(items) && items.length > 0) {
+      return items
+        .map((item) => {
+          const isExt = Boolean(item.isExternal);
+          const colorClass = isExt ? "nckh-person-external" : "nckh-person-internal";
+          return `<span class="nckh-v3-person-row ${colorClass}">${escapeHtml(item.display || "")}</span>`;
+        })
+        .join("");
+    }
+
     const lines = String(value || "")
       .split(/\r?\n/)
       .map((line) => line.trim())
@@ -376,6 +397,7 @@
               rows: [],
               totalHours: 0,
               byPerson: true,
+              isExternal: Boolean(person.isExternal),
             });
           }
 
@@ -409,7 +431,7 @@
       html += `
         <tr class="nckh-v3-group-header">
           <td colspan="13">
-            <strong>${escapeHtml(group.label)}</strong>
+            <strong class="${group.byPerson ? (group.isExternal ? 'nckh-person-external' : 'nckh-person-internal') : ''}">${escapeHtml(group.label)}</strong>
             <span class="nckh-v3-group-count">${groupRows.length} công trình</span>
             <span class="nckh-v3-group-count">${formatHours(group.totalHours)} tiết</span>
           </td>
@@ -425,8 +447,8 @@
         const canToggleKhoa = state.permission.canApproveKhoa && currentVienDuyet !== 1;
         const canToggleVien = state.permission.canApprove && (currentKhoaDuyet === 1 || currentVienDuyet === 1);
 
-        const tacGia = formatMultilineCell(row.tacGiaChinhDisplay || row.tacGiaChinh || "");
-        const thanhVien = formatMultilineCell(row.thanhVienDisplay || row.thanhVien || "");
+        const tacGia = formatMultilineCell(row.tacGiaChinhDisplay || row.tacGiaChinh || "", row.tacGiaChinhItems);
+        const thanhVien = formatMultilineCell(row.thanhVienDisplay || row.thanhVien || "", row.thanhVienItems);
 
         const canDeleteRow = state.permission.canDelete && currentKhoaDuyet !== 1 && currentVienDuyet !== 1;
         const deleteBtn = state.permission.canDelete
@@ -583,7 +605,7 @@
               <div class="nckh-edit-participant-name-wrap">
                 <input
                   type="text"
-                  class="form-control nckh-edit-participant-name-input"
+                  class="form-control nckh-edit-participant-name-input ${external ? 'nckh-person-external' : 'nckh-person-internal'}"
                   value="${escapeHtml(name)}"
                   placeholder="Nhập tên để tìm giảng viên"
                   autocomplete="off"
@@ -608,7 +630,8 @@
       }
 
       const unit = external && item.donViNgoai ? ` <span class="nckh-edit-person-unit">— ${escapeHtml(item.donViNgoai)}</span>` : "";
-      const nameHtml = `<span class="nckh-edit-person-name"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</span>`;
+      const colorClass = external ? "nckh-person-external" : "nckh-person-internal";
+      const nameHtml = `<span class="nckh-edit-person-name ${colorClass}"><i class="bi bi-person"></i> ${escapeHtml(name)}${unit}</span>`;
 
       return `
         <div class="nckh-edit-participant nckh-edit-participant-readonly">
@@ -663,6 +686,8 @@
             if (!Number.isFinite(lecturerId) || lecturerId <= 0) return;
             row.dataset.selectedId = String(lecturerId);
             input.value = lecturer.TenNhanVien || "";
+            input.classList.remove("nckh-person-external");
+            input.classList.add("nckh-person-internal");
             clearParticipantSuggestions(suggestions);
           });
           suggestions.appendChild(suggestion);
@@ -674,9 +699,13 @@
         if (externalToggle.checked) {
           row.dataset.selectedId = "";
           externalUnit.disabled = false;
+          input.classList.remove("nckh-person-internal");
+          input.classList.add("nckh-person-external");
         } else {
           externalUnit.disabled = true;
           externalUnit.value = "";
+          input.classList.remove("nckh-person-external");
+          input.classList.add("nckh-person-internal");
         }
         clearParticipantSuggestions(suggestions);
       };

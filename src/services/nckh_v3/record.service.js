@@ -33,6 +33,7 @@ const toParticipantDisplay = (participant) => {
       display: `${ten} - ${donViNgoai} (${soTiet} tiết)`,
       sortId: Number(participant.id || 0),
       hours: Number(participant.so_tiet || 0),
+      isExternal: true,
     };
   }
 
@@ -46,6 +47,7 @@ const toParticipantDisplay = (participant) => {
     display: `${tenNhanVien} - ${khoa} (${soTiet} tiết)`,
     sortId: Number(participant.id || 0),
     hours: Number(participant.so_tiet || 0),
+    isExternal: false,
   };
 };
 
@@ -71,6 +73,7 @@ const mergeParticipantsByRole = (participantRows, role) => {
       hours: nextHours,
       sortId: Math.min(Number(current.sortId || 0), Number(normalized.sortId || 0)),
       display: `${displayBase} (${nextHours.toFixed(2)} tiết)`,
+      isExternal: current.isExternal,
     });
   }
 
@@ -81,19 +84,26 @@ const buildHoiDongSummary = (participantRows) => {
   const roleOrder = ["chu_tich", "phan_bien", "uy_vien"];
   const names = [];
   const displays = [];
+  const items = [];
 
   roleOrder.forEach((role) => {
     const label = HOI_DONG_ROLE_LABELS[role] || role;
     const merged = mergeParticipantsByRole(participantRows, role);
     merged.forEach((item) => {
       names.push(`${item.nameOnly} (${label})`);
-      displays.push(`${item.display} - ${label}`);
+      const displayText = `${item.display} - ${label}`;
+      displays.push(displayText);
+      items.push({
+        display: displayText,
+        isExternal: Boolean(item.isExternal),
+      });
     });
   });
 
   return {
     nameText: names.join(", "),
     displayText: displays.join("\n"),
+    items,
   };
 };
 
@@ -112,7 +122,7 @@ const buildParticipantSummary = (participantRows) => {
       ? `external:${name.toLowerCase()}|${unit.toLowerCase()}`
       : `employee:${Number(participant.nhanvien_id)}`;
 
-    const current = map.get(key) || { key, name, unit, hours: 0 };
+    const current = map.get(key) || { key, name, unit, hours: 0, isExternal };
     current.hours = round2(Number(current.hours) + Number(participant.so_tiet || 0));
     map.set(key, current);
   }
@@ -202,6 +212,8 @@ const list = async (namHoc, khoaId) => {
           thanhVien: "",
           tacGiaChinhDisplay: hoiDongSummary.displayText,
           thanhVienDisplay: "",
+          tacGiaChinhItems: hoiDongSummary.items || [],
+          thanhVienItems: [],
         };
       }
 
@@ -215,6 +227,8 @@ const list = async (namHoc, khoaId) => {
         thanhVien: thanhVien.map((item) => item.nameOnly).join(", "),
         tacGiaChinhDisplay: tacGia.map((item) => item.display).join("\n"),
         thanhVienDisplay: thanhVien.map((item) => item.display).join("\n"),
+        tacGiaChinhItems: tacGia.map((item) => ({ display: item.display, isExternal: Boolean(item.isExternal) })),
+        thanhVienItems: thanhVien.map((item) => ({ display: item.display, isExternal: Boolean(item.isExternal) })),
       };
     });
   } finally {
