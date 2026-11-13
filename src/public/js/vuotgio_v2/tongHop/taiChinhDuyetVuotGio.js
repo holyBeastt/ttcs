@@ -303,6 +303,12 @@ function renderTable(data) {
         luong: 0
     };
 
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="37" class="text-center text-muted py-4"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Không tìm thấy dữ liệu phù hợp</td></tr>';
+        renderFooter(totals);
+        return;
+    }
+
     let lastKhoa = null;
 
     data.forEach((row, index) => {
@@ -310,11 +316,11 @@ function renderTable(data) {
         // Thêm dòng tiêu đề nhóm nếu khoa thay đổi
         if (row.khoa !== lastKhoa) {
             const groupRow = document.createElement('tr');
-            groupRow.className = 'group-header table-light fw-bold';
+            groupRow.className = 'group-header faculty-header-row fw-bold';
             groupRow.setAttribute('data-khoa-code', row.maKhoa || row.khoa || '');
             groupRow.innerHTML = `
                 <td colspan="37" class="text-start px-3 py-2">
-                    <i class="fas fa-university me-2"></i> ${row.khoa || 'Khác'}
+                    <i class="fas fa-university me-2 text-primary"></i> ${row.khoa || 'Khác'}
                 </td>
             `;
             tableBody.appendChild(groupRow);
@@ -337,8 +343,8 @@ function renderTable(data) {
         const thucNhan = bd.thucNhan || 0;
 
         tableRow.innerHTML = `
-            <td>${STT++}</td>
-            <td style="text-align: left; padding-left: 8px;">${row.giangVien || ''}</td>
+            <td class="text-center font-monospace">${STT++}</td>
+            <td class="text-start px-3 fw-semibold text-primary">${row.giangVien || ''}</td>
             <td>${formatNumber(row.luong)}</td>
             <td>${formatNumber(row.dinhMucChuan)}</td>
             <td>${formatNumber(row.mienGiam)}</td>
@@ -367,12 +373,12 @@ function renderTable(data) {
             <td>${formatNumber(bd.year.dongHP)}</td>
 
             <!-- Vượt giờ -->
-            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.vn)}</td>
-            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.lao)}</td>
-            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.cuba)}</td>
-            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.cpc)}</td>
-            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.dongHP)}</td>
-            <td style="color: green; font-weight: bold;">${formatNumber(bd.vuot.total)}</td>
+            <td class="text-success fw-bold">${formatNumber(bd.vuot.vn)}</td>
+            <td class="text-success fw-bold">${formatNumber(bd.vuot.lao)}</td>
+            <td class="text-success fw-bold">${formatNumber(bd.vuot.cuba)}</td>
+            <td class="text-success fw-bold">${formatNumber(bd.vuot.cpc)}</td>
+            <td class="text-success fw-bold">${formatNumber(bd.vuot.dongHP)}</td>
+            <td class="text-success fw-bold">${formatNumber(bd.vuot.total)}</td>
 
             <!-- Mức TT -->
             <td>${formatNumber(mucTT)}</td>
@@ -383,15 +389,15 @@ function renderTable(data) {
             <td>${formatNumber(bd.money.cuba)}</td>
             <td>${formatNumber(bd.money.cpc)}</td>
             <td>${formatNumber(bd.money.dongHP)}</td>
-            <td style="font-weight: bold;">${formatNumber(bd.money.total)}</td>
+            <td class="fw-bold">${formatNumber(bd.money.total)}</td>
 
             <!-- Thực nhận -->
-            <td style="font-weight: bold; color: #1a5276;">${formatNumber(thucNhan)}</td>
+            <td class="fw-bold text-primary">${formatNumber(thucNhan)}</td>
 
             <!-- Actions -->
-            <td>
-                <div class="btn-group gap-1" role="group">
-                    <button class="btn btn-sm" style="background-color: #ffffff; color: #0ea5e9; border: 1px solid #0ea5e9; font-weight: bold;" onclick="openPersonalView('${row.id_User}', '${row.giangVien}')" title="Xem chi tiết">
+            <td class="text-center">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-sm" onclick="openPersonalView('${row.id_User}', '${row.giangVien}')" title="Xem chi tiết">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -452,11 +458,10 @@ function renderFooter(totals) {
     tableFoot.innerHTML = '';
     
     const footRow = document.createElement('tr');
-    footRow.style.fontWeight = 'bold';
-    footRow.style.backgroundColor = '#e9ecef';
+    footRow.className = 'table-secondary fw-bold';
 
     footRow.innerHTML = `
-        <td colspan="2" style="text-align: center;">TỔNG CỘNG</td>
+        <td colspan="2" class="text-center">TỔNG CỘNG</td>
         <td>${formatNumber(totals.luong)}</td>
         <td>${formatNumber(totals.dinhMucChuan)}</td>
         <td>${formatNumber(totals.mienGiam)}</td>
@@ -485,12 +490,12 @@ function renderFooter(totals) {
         <td>${formatNumber(totals.year_dongHP)}</td>
         
         <!-- Vượt giờ -->
-        <td>${formatNumber(totals.vuot_vn)}</td>
-        <td>${formatNumber(totals.vuot_lao)}</td>
-        <td>${formatNumber(totals.vuot_cuba)}</td>
-        <td>${formatNumber(totals.vuot_cpc)}</td>
-        <td>${formatNumber(totals.vuot_dongHP)}</td>
-        <td>${formatNumber(totals.vuot_tong)}</td>
+        <td class="text-success">${formatNumber(totals.vuot_vn)}</td>
+        <td class="text-success">${formatNumber(totals.vuot_lao)}</td>
+        <td class="text-success">${formatNumber(totals.vuot_cuba)}</td>
+        <td class="text-success">${formatNumber(totals.vuot_cpc)}</td>
+        <td class="text-success">${formatNumber(totals.vuot_dongHP)}</td>
+        <td class="text-success">${formatNumber(totals.vuot_tong)}</td>
         
         <!-- Mức TT -->
         <td></td>
@@ -504,7 +509,7 @@ function renderFooter(totals) {
         <td>${formatNumber(totals.tien_tong)}</td>
         
         <!-- Thực nhận -->
-        <td>${formatNumber(totals.thucNhan)}</td>
+        <td class="text-primary">${formatNumber(totals.thucNhan)}</td>
         
         <!-- Actions -->
         <td></td>
