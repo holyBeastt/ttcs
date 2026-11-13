@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tài chính duyệt vượt giờ | Trợ Giảng</title>
+    <title>Tài chính duyệt vượt giờ | Hệ Thống Quản Lý</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
@@ -21,33 +26,327 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/table.css" />
 
-
     <style>
-        /* Override table.css global: overflow:hidden, box-shadow, border */
+        :root {
+            --primary-color: #1e40af;
+            --primary-hover: #1d4ed8;
+            --surface-bg: #f8fafc;
+            --card-border: #e2e8f0;
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+        }
+
+        body {
+            background-color: var(--surface-bg);
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-body);
+        }
+
+        .page-wrap {
+            padding: 24px 32px 60px;
+            background-color: var(--surface-bg);
+            min-height: calc(100vh - 70px);
+        }
+
+        /* ── Page Header ── */
+        .page-header-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .page-title-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .page-title-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.35rem;
+            box-shadow: 0 4px 10px rgba(30, 64, 175, 0.25);
+            flex-shrink: 0;
+        }
+
+        .page-title-text h4 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title-text p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 3px 0 0;
+        }
+
+        .status-badge-official {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── Toolbar Card (Standard KTHP / VuotGio V2) ── */
+        .kthp-toolbar-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .kthp-toolbar-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .kthp-filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 200px;
+            max-width: 320px;
+            min-width: 180px;
+        }
+
+        .kthp-filter-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .kthp-filter-group select,
+        .kthp-filter-group .form-select {
+            width: 100% !important;
+            height: 38px !important;
+            padding: 6px 32px 6px 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-filter-group select:focus,
+        .kthp-filter-group .form-select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        .kthp-search-wrapper {
+            position: relative;
+            flex: 1 1 280px;
+            max-width: 420px;
+        }
+
+        .kthp-search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .kthp-search-wrapper input {
+            height: 38px !important;
+            padding-left: 36px !important;
+            padding-right: 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            background-color: #ffffff !important;
+            width: 100% !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-search-wrapper input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        .kthp-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            flex-wrap: wrap;
+        }
+
+        .kthp-toolbar-actions .btn {
+            height: 38px !important;
+            padding: 0 18px !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            display: inline-flex;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px;
+            white-space: nowrap !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.2s ease;
+        }
+
+        .kthp-toolbar-actions .btn[style*="display: none"],
+        .kthp-toolbar-actions .btn[style*="display:none"],
+        .kthp-toolbar-actions .btn.d-none {
+            display: none !important;
+        }
+
+        .btn-show {
+            border: 1.5px solid #0891b2 !important;
+            color: #0891b2 !important;
+            background: #ffffff !important;
+        }
+
+        .btn-show:hover {
+            background: #0891b2 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-khoa {
+            border: 1.5px solid #1e40af !important;
+            color: #1e40af !important;
+            background: #ffffff !important;
+        }
+
+        .btn-khoa:hover {
+            background: #1e40af !important;
+            color: #ffffff !important;
+        }
+
+        .btn-toggle-view {
+            border: 1.5px solid #6366f1 !important;
+            color: #6366f1 !important;
+            background: #ffffff !important;
+        }
+
+        .btn-toggle-view:hover,
+        .btn-toggle-view.active {
+            background: #6366f1 !important;
+            color: #ffffff !important;
+        }
+
+        /* ── Lock Status Banner ── */
+        .lock-status-card {
+            background: linear-gradient(90deg, #ecfdf5 0%, #f0fdf4 100%);
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
+        }
+
+        .lock-status-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: #065f46;
+        }
+
+        .lock-status-badge {
+            background: #059669;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── TABLE WRAPPER & STYLES ── */
+        .table-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Scrollbar */
+        .table-responsive::-webkit-scrollbar {
+            height: 9px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ===== MAIN TABLE (37 cols) ===== */
         #mainTable {
             border-collapse: collapse;
             border-spacing: 0;
             table-layout: auto !important;
             width: 2100px !important;
             min-width: 2100px !important;
-            overflow: visible !important;
-            box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
+            margin-bottom: 0 !important;
+            border: none;
         }
 
-        /* QUAN TRỌNG: Reset cứng cho tất cả th trước */
         #mainTable thead th {
-            background-color: #475569 !important;
-            color: #fff !important;
+            background-color: #334155 !important;
+            color: #ffffff !important;
             padding: 8px 4px !important;
-            font-size: 0.75rem !important;
+            font-size: 0.76rem !important;
             font-weight: 600 !important;
             border: 1px solid #ffffff !important;
             text-align: center !important;
             vertical-align: middle !important;
             white-space: nowrap;
-            min-width: 60px;
+            min-width: 55px;
         }
 
         .vertical-text {
@@ -57,109 +356,159 @@
             width: 60px !important;
             min-width: 60px !important;
             max-width: 60px !important;
-            line-height: 1.2 !important;
-            font-size: 0.75rem !important;
+            line-height: 1.25 !important;
+            font-size: 0.74rem !important;
             word-break: break-word !important;
             display: table-cell;
         }
 
-        /* === SECTION: Info cơ bản & Thao tác === */
         #mainTable thead th.s-base,
         #mainTable thead th.s-action {
-            background-color: #64748b !important;
-            color: #fff !important;
+            background-color: #334155 !important;
+            color: #ffffff !important;
         }
 
-        /* === SECTION: Thực tế giảng dạy — xanh dương === */
         #mainTable thead th.s-teaching {
             background-color: #1d4ed8 !important;
-            color: #fff !important;
+            color: #ffffff !important;
         }
 
         #mainTable thead th.s-teaching-hk1,
         #mainTable thead th.s-teaching-hk2,
         #mainTable thead th.s-teaching-year {
             background-color: #3b82f6 !important;
-            color: #fff !important;
+            color: #ffffff !important;
         }
 
         #mainTable thead th.s-teaching-sub {
             background-color: #60a5fa !important;
-            color: #fff !important;
+            color: #ffffff !important;
             font-weight: 600 !important;
         }
 
-        /* === SECTION: Vượt định mức — xanh lá === */
         #mainTable thead th.s-over {
             background-color: #059669 !important;
-            color: #fff !important;
+            color: #ffffff !important;
         }
 
         #mainTable thead th.s-over-sub {
             background-color: #10b981 !important;
-            color: #fff !important;
+            color: #ffffff !important;
             font-weight: 600 !important;
         }
 
-        /* === SECTION: Mức TT chuẩn — tím === */
         #mainTable thead th.s-rate {
             background-color: #7c3aed !important;
-            color: #fff !important;
+            color: #ffffff !important;
         }
 
-        /* === SECTION: Thành tiền — cam nâu === */
         #mainTable thead th.s-money {
             background-color: #b45309 !important;
-            color: #fff !important;
+            color: #ffffff !important;
         }
 
         #mainTable thead th.s-money-sub {
             background-color: #d97706 !important;
-            color: #fff !important;
+            color: #ffffff !important;
             font-weight: 600 !important;
         }
 
-        /* === SECTION: Thực nhận === */
         #mainTable thead th.s-net {
             background-color: #4338ca !important;
-            color: #fff !important;
+            color: #ffffff !important;
             font-weight: 600 !important;
         }
 
-        /* ===== TBODY ===== */
         #mainTable tbody td {
-            padding: 4px 2px;
+            padding: 6px 4px;
             border: 1px solid #dee2e6;
             vertical-align: middle;
-            box-sizing: border-box;
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             white-space: nowrap;
-            min-width: 40px;
+            background-color: #ffffff;
         }
-
-
 
         #mainTable tbody tr:hover td {
-            background-color: #e2e8f0 !important;
+            background-color: #f1f5f9 !important;
         }
 
-        /* ===== TFOOT ===== */
         #mainTable tfoot td {
-            background-color: #eaecee;
-            color: #1c2833;
-            font-weight: 600;
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+            font-weight: 700;
             padding: 8px 4px;
-            border: 1px solid #d5d8dc;
+            border: 1px solid #cbd5e1;
             font-size: 0.85rem;
         }
 
-        /* ===== WARNING ROW ===== */
-        #mainTable tbody tr.row-warning-danger,
-        #mainTable tbody tr.row-warning-danger td {
-            background-color: #fff3cd !important;
+        /* ===== COMPACT TABLE (9 cols) ===== */
+        #compactTable {
+            width: 100% !important;
+            border-collapse: collapse;
+            table-layout: auto !important;
+            margin-bottom: 0 !important;
+            border: 1px solid #dee2e6;
         }
 
-        /* ===== VALUE COLORS ===== */
+        #compactTable thead th {
+            background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%) !important;
+            color: #ffffff !important;
+            padding: 10px 8px !important;
+            font-size: 0.86rem !important;
+            font-weight: 600 !important;
+            border: 1px solid #1e3a8a !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: nowrap;
+        }
+
+        #compactTable tbody td {
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            vertical-align: middle;
+            font-size: 0.88rem;
+            white-space: nowrap;
+            background-color: #ffffff;
+        }
+
+        #compactTable tbody tr:hover td {
+            background-color: #f1f5f9 !important;
+        }
+
+        #compactTable tfoot td {
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+            font-weight: 700;
+            padding: 10px 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.88rem;
+        }
+
+        /* Faculty group header */
+        .faculty-header-row td,
+        #mainTable tbody tr.group-header td,
+        #compactTable tbody tr.group-header td {
+            background: #f0f9ff !important;
+            border-top: 2px solid #0284c7 !important;
+            border-bottom: 1.5px solid #0284c7 !important;
+            color: #0369a1 !important;
+            font-weight: 700 !important;
+            font-size: 0.92rem !important;
+            padding: 10px 16px !important;
+        }
+
+        /* Warning Rows */
+        #mainTable tbody tr.row-warning-danger td,
+        #compactTable tbody tr.row-warning-danger td {
+            background-color: #fffbeb !important;
+        }
+
+        #mainTable tbody tr.row-warning-danger:hover td,
+        #compactTable tbody tr.row-warning-danger:hover td {
+            background-color: #fef3c7 !important;
+        }
+
+        /* Value text helpers */
         .text-danger-bold {
             color: #dc2626;
             font-weight: 600;
@@ -170,83 +519,83 @@
             font-weight: 600;
         }
 
-        .controls-container {
-            display: flex;
-            flex-wrap: wrap;
+        /* Row action eye button */
+        #compactTable .btn-group button,
+        #mainTable .btn-group button {
+            border: 1.5px solid #0dcaf0 !important;
+            color: #0891b2 !important;
+            background: #f0fdfa !important;
+            border-radius: 6px !important;
+            padding: 4px 10px !important;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 0.82rem;
+            display: inline-flex;
             align-items: center;
-            gap: 20px !important;
-            margin-bottom: 25px !important;
+            gap: 4px;
         }
 
-
-        .search {
-            width: 200px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            height: 50px;
+        #compactTable .btn-group button:hover,
+        #mainTable .btn-group button:hover {
+            background: #0891b2 !important;
+            color: #ffffff !important;
         }
 
-        .highlight-vuotgio {
-            background-color: #d4edda !important;
-        }
-
-        /* ===== SUMMARY BOX ===== */
+        /* ── FLOATING SUMMARY WIDGET ── */
         .summary {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 14px 18px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(26, 82, 118, 0.15);
-            border: 1px solid #aed6f1;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(203, 213, 225, 0.8);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .summary.collapsed {
-            transform: translateY(calc(100% + 10px));
+            transform: translateY(calc(100% + 12px));
         }
 
         .summary-toggle {
             position: absolute;
-            top: -35px;
+            top: -34px;
             right: 0;
-            width: 35px;
-            height: 35px;
-            background: #1a5276;
-            color: white;
+            width: 36px;
+            height: 34px;
+            background: #059669 !important;
+            color: #ffffff;
             border: none;
-            border-radius: 10px 0 0 10px;
+            border-radius: 8px 0 0 0;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .summary.collapsed .summary-toggle {
-            transform: translateY(5px);
-            border-radius: 10px 10px 0 0;
-            right: 10px;
-            top: -40px;
+            transform: translateY(4px);
+            border-radius: 8px 8px 0 0;
+            right: 12px;
+            top: -38px;
         }
 
         .summary-box {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
             min-width: 220px;
-            padding: 4px 0;
+            padding: 3px 0;
         }
 
         .summary-box .label {
@@ -256,15 +605,15 @@
         }
 
         .summary-box .value {
-            color: #1a5276;
+            color: #059669;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
 
-        /* ===== Loading skeleton ===== */
+        /* Skeleton Loading */
         @keyframes shimmer {
-            0%   { background-position: -600px 0; }
-            100% { background-position:  600px 0; }
+            0% { background-position: -600px 0; }
+            100% { background-position: 600px 0; }
         }
 
         .skeleton-row td {
@@ -275,1006 +624,921 @@
             border-radius: 4px;
             height: 36px;
         }
-
-        /* ===== NO INTERNAL SCROLL ===== */
-        .over-f, #renderInfo {
-            overflow: visible !important;
-            width: 2100px !important;
-            display: block !important;
-        }
-
-        .container-fluid {
-            min-width: 2100px !important;
-        }
-
-        #renderInfo::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        #renderInfo::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        #renderInfo::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 4px;
-        }
-
-        #renderInfo::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
-
-        /* ===== COMPACT VIEW ===== */
-        .compact-active #mainTable {
-            width: auto !important;
-            min-width: auto !important;
-        }
-
-        .compact-active #renderInfo {
-            width: auto !important;
-        }
-
-        .compact-active .container-fluid {
-            min-width: auto !important;
-        }
-
-        #btnCompactView {
-            transition: all 0.2s ease;
-        }
-
-        #btnCompactView.active {
-            background-color: #6366f1 !important;
-            border-color: #6366f1 !important;
-            color: #fff !important;
-        }
-
-        /* Compact table (rendered separately) */
-        #compactTable {
-            border-collapse: collapse;
-            border-spacing: 0;
-            table-layout: auto !important;
-            width: auto !important;
-            min-width: 900px !important;
-            overflow: visible !important;
-            box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-        }
-
-        #compactTable thead th {
-            background-color: #475569 !important;
-            color: #fff !important;
-            padding: 8px 6px !important;
-            font-size: 0.8rem !important;
-            font-weight: 600 !important;
-            border: 1px solid #ffffff !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-            white-space: nowrap;
-        }
-
-        #compactTable tbody td {
-            padding: 6px 4px;
-            border: 1px solid #dee2e6;
-            vertical-align: middle;
-            font-size: 0.8rem;
-            white-space: nowrap;
-        }
-
-        #compactTable tbody tr:hover td {
-            background-color: #e2e8f0 !important;
-        }
-
-        #compactTable tfoot td {
-            background-color: #eaecee;
-            color: #1c2833;
-            font-weight: 600;
-            padding: 8px 6px;
-            border: 1px solid #d5d8dc;
-            font-size: 0.85rem;
-        }
-
-        #compactTable tbody tr.row-warning-danger td {
-            background-color: #fff3cd !important;
-        }
-
-        #compactTable tbody tr.group-header td {
-            background-color: #f8fafc !important;
-            font-weight: 600;
-        }
     </style>
-
 </head>
 
 <body>
     <%- include('../header') %>
 
-    <div class="container-fluid m-4">
-        <div class="gvmList">
-            <div class="m-5 reCss">
-                <h4>Tài chính duyệt vượt giờ</h4>
+    <div class="page-wrap">
+        <!-- Page Header -->
+        <div class="page-header-box">
+            <div class="page-title-group">
+                <div class="page-title-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div class="page-title-text">
+                    <h4>
+                        Tài chính duyệt vượt giờ
+                        <span class="status-badge-official">
+                            <i class="bi bi-file-earmark-check-fill"></i> Dữ liệu chính thức
+                        </span>
+                    </h4>
+                    <p>Kiểm tra, thẩm định và phê duyệt khối lượng vượt giờ chính thức của các khoa phục vụ quyết toán tài chính</p>
+                </div>
+            </div>
+        </div>
 
-                <div class="controls-container">
-                    <select class="selectop" id="namHocXem" style="width: 130px; margin: 0; box-shadow: none;">
+        <!-- Toolbar Card -->
+        <div class="kthp-toolbar-card">
+            <!-- Row 1: Combobox filters -->
+            <div class="kthp-toolbar-row">
+                <div class="kthp-filter-group">
+                    <label for="namHocXem"><i class="bi bi-calendar3 me-1 text-primary"></i> Năm học</label>
+                    <select id="namHocXem" class="form-select">
                         <option value="">Chọn năm học</option>
                     </select>
+                </div>
 
-                    <select class="selectop" id="khoaXem" style="width: 150px; margin: 0; box-shadow: none;">
+                <div class="kthp-filter-group">
+                    <label for="khoaXem"><i class="bi bi-building me-1 text-primary"></i> Khoa / Phòng ban</label>
+                    <select id="khoaXem" class="form-select">
                         <option value="ALL">Tất cả khoa</option>
                     </select>
-                    <button id="loadDataBtn" class="btn btn-primary" style="height: 45px; width: 130px; margin: 0;">
-                        Hiển thị
-                    </button>
-                    <button id="btnSwitchToKhoa" class="btn btn-primary"
-                        style="height: 45px; width: 180px; margin: 0; margin-left: 5px;">
-                        Thống kê khoa
-                    </button>
-                    <button id="khoaDuLieuBtn" class="btn btn-primary"
-                        style="height: 45px; width: 180px; margin: 0; margin-left: 5px; display: none;">
-                        <i class="bi bi-save-fill me-1"></i> Lưu Dữ Liệu
-                    </button>
+                </div>
+            </div>
 
-                    <button id="btnDuyetTatCa" class="btn btn-success"
-                        style="height: 45px; width: 180px; margin: 0; margin-left: 5px; display: none;">
-                        <i class="bi bi-check-all me-1"></i> Duyệt tất cả
-                    </button>
-
-                    <button id="btnCompactView" class="btn btn-outline-secondary"
-                        style="height: 45px; width: 150px; margin: 0; margin-left: 20px;"
-                        title="Chuyển đổi giữa bảng đầy đủ và bảng rút gọn">
-                        <i class="bi bi-layout-three-columns me-1"></i> Rút gọn
-                    </button>
+            <!-- Row 2: Search input + Action buttons -->
+            <div class="kthp-toolbar-row mt-3">
+                <div class="kthp-search-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="filterGiangVien" placeholder="Tìm kiếm theo tên giảng viên..." />
                 </div>
 
-                <!-- Summary Boxes -->
-                <div class="summary" id="summaryBox" style="display: none;">
-                    <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
-                        <i class="bi bi-chevron-down"></i>
+                <div class="kthp-toolbar-actions">
+                    <button type="button" class="btn btn-show" id="loadDataBtn">
+                        <i class="bi bi-arrow-clockwise"></i> HIỂN THỊ
                     </button>
-                    <div class="summary-box">
-                        <div class="label">Tổng giảng viên</div>
-                        <div class="value" id="totalGV">0</div>
-                    </div>
-                    <div class="summary-box">
-                        <div class="label">GV có vượt giờ</div>
-                        <div class="value" id="gvCoVuotGio">0</div>
-                    </div>
-                    <div class="summary-box">
-                        <div class="label">Tổng tiết vượt giờ</div>
-                        <div class="value" id="totalVuotGio">0</div>
-                    </div>
+                    
+                    <button type="button" class="btn btn-khoa" id="btnSwitchToKhoa">
+                        <i class="bi bi-bar-chart-steps"></i> THỐNG KÊ KHOA
+                    </button>
+
+                    <button type="button" class="btn btn-success" id="btnDuyetTatCa" style="display: none !important;">
+                        <i class="bi bi-check-all fs-5"></i> DUYỆT TẤT CẢ
+                    </button>
+
+                    <button type="button" class="btn btn-primary" id="khoaDuLieuBtn" style="display: none !important;">
+                        <i class="bi bi-lock-fill"></i> LƯU DỮ LIỆU
+                    </button>
+
+                    <button type="button" class="btn btn-toggle-view active" id="btnCompactView" title="Chuyển đổi giữa bảng đầy đủ và bảng rút gọn">
+                        <i class="bi bi-table"></i> CHI TIẾT
+                    </button>
                 </div>
+            </div>
+        </div>
 
-                <!-- Filter Row -->
-                <div class="controls-container">
-                    <input type="text" id="filterGiangVien" placeholder="Tìm theo tên giảng viên"
-                        class="form-control m-2 search" style="width: 300px;" />
+        <!-- Banner trạng thái đã lưu -->
+        <div id="lockStatusBanner" class="lock-status-card" style="display: none;">
+            <div class="lock-status-content">
+                <i class="bi bi-shield-lock-fill text-success fs-5"></i>
+                <div>
+                    <span class="lock-status-badge me-2">ĐÃ KHÓA DỮ LIỆU</span>
+                    <span id="lockStatusText" class="fw-semibold"></span>
                 </div>
+            </div>
+        </div>
 
-                <!-- Banner trạng thái đã lưu -->
-                <div id="lockStatusBanner" style="display:none; background:#d1fae5; border:1px solid #6ee7b7; border-radius:6px; padding:10px 16px; margin-bottom:12px; font-size:0.9rem; color:#065f46;">
-                    <i class="bi bi-check-circle-fill me-1"></i>
-                    <span id="lockStatusText">Đã lưu</span>
-                </div>
+        <!-- Table Card Section -->
+        <div class="table-card">
+            <div class="table-responsive" id="renderInfo">
+                <table class="table table-hover table-bordered text-center align-middle mb-0" id="mainTable">
+                    <thead>
+                        <tr>
+                            <th rowspan="3" class="s-base" style="width:40px">STT</th>
+                            <th rowspan="3" class="s-base" style="width:180px">Họ tên Giảng viên</th>
+                            <th rowspan="3" class="s-base" style="width:100px">Thu nhập</th>
+                            <th rowspan="3" class="s-base vertical-text" style="width:40px">Định mức giờ giảng</th>
+                            <th rowspan="3" class="s-base vertical-text" style="width:40px">Được giảm</th>
+                            <th rowspan="3" class="s-base vertical-text" style="width:40px">Số tiết chưa hoàn thành NCKH</th>
+                            <th rowspan="3" class="s-base vertical-text" style="width:40px">Định mức phải giảng</th>
 
-                <!-- Table Section (No scroll container) -->
-                <div id="renderInfo">
-                    <table class="table table-hover table-bordered text-center" id="mainTable">
-                        <thead>
-                            <tr>
-                                <th rowspan="3" class="s-base" style="width:40px">STT</th>
-                                <th rowspan="3" class="s-base" style="width:180px">Họ tên Giảng viên</th>
-                                <th rowspan="3" class="s-base" style="width:100px">Thu nhập</th>
-                                <th rowspan="3" class="s-base vertical-text" style="width:40px">Định mức giờ giảng</th>
-                                <th rowspan="3" class="s-base vertical-text" style="width:40px">Được giảm</th>
-                                <th rowspan="3" class="s-base vertical-text" style="width:40px">Số tiết chưa hoàn thành NCKH</th>
-                                <th rowspan="3" class="s-base vertical-text" style="width:40px">Định mức phải giảng</th>
+                            <th colspan="15" class="s-teaching">Thực tế giảng dạy + coi, ra đề, chấm thi + ĐATN + HDTQ</th>
+                            <th colspan="6" class="s-over">Số tiết vượt định mức</th>
+                            <th rowspan="3" class="s-rate" style="width:90px" title="Được tính tự động theo công thức: TRUNC(Thu nhập / 176, 1)">Mức TT chuẩn</th>
+                            <th colspan="6" class="s-money">Thành tiền</th>
+                            <th rowspan="3" class="s-net" style="width:90px">Thực nhận</th>
+                            <th rowspan="3" class="s-action" style="width:70px">Thao tác</th>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="s-teaching-hk1">Học kỳ I</th>
+                            <th colspan="5" class="s-teaching-hk2" title="Bao gồm: Giảng dạy HK2 + Đồ án tốt nghiệp + Hướng dẫn tham quan (không có thông tin HK, mặc định vào HK2)">
+                                Học kỳ II <small style="font-weight:400; font-size:0.65rem; display:block; opacity:0.85;">(gồm ĐA &amp; TQ)</small>
+                            </th>
+                            <th colspan="5" class="s-teaching-year">Cả năm</th>
 
-                                <th colspan="15" class="s-teaching">Thực tế giảng dạy + coi, ra đề, chấm thi + ĐATN + HDTQ</th>
-                                <th colspan="6" class="s-over">Số tiết vượt định mức</th>
-                                <th rowspan="3" class="s-rate" style="width:90px" title="Được tính tự động theo công thức: TRUNC(Thu nhập / 176, 1)">Mức TT chuẩn</th>
-                                <th colspan="6" class="s-money">Thành tiền</th>
-                                <th rowspan="3" class="s-net" style="width:90px">Thực nhận</th>
-                                <th rowspan="3" class="s-action" style="width:70px">Thao tác</th>
-                            </tr>
-                            <tr>
-                                <th colspan="5" class="s-teaching-hk1">Học kỳ I</th>
-                                <th colspan="5" class="s-teaching-hk2" title="Bao gồm: Giảng dạy HK2 + Đồ án tốt nghiệp + Hướng dẫn tham quan (không có thông tin HK, mặc định vào HK2)">
-                                    Học kỳ II <small style="font-weight:400; font-size:0.65rem; display:block; opacity:0.85;">(gồm ĐA &amp; TQ)</small>
-                                </th>
-                                <th colspan="5" class="s-teaching-year">Cả năm</th>
+                            <th rowspan="2" class="s-over-sub" style="width:70px">VN</th>
+                            <th rowspan="2" class="s-over-sub" style="width:70px">Lào</th>
+                            <th rowspan="2" class="s-over-sub" style="width:70px">Cuba</th>
+                            <th rowspan="2" class="s-over-sub" style="width:70px">CPC</th>
+                            <th rowspan="2" class="s-over-sub" style="width:70px">Đóng HP</th>
+                            <th rowspan="2" class="s-over-sub" style="width:80px;font-weight:700">Tổng</th>
 
-                                <th rowspan="2" class="s-over-sub" style="width:70px">VN</th>
-                                <th rowspan="2" class="s-over-sub" style="width:70px">Lào</th>
-                                <th rowspan="2" class="s-over-sub" style="width:70px">Cuba</th>
-                                <th rowspan="2" class="s-over-sub" style="width:70px">CPC</th>
-                                <th rowspan="2" class="s-over-sub" style="width:70px">Đóng HP</th>
-                                <th rowspan="2" class="s-over-sub" style="width:80px;font-weight:700">Tổng</th>
+                            <th rowspan="2" class="s-money-sub" style="width:70px">VN</th>
+                            <th rowspan="2" class="s-money-sub" style="width:70px">Lào</th>
+                            <th rowspan="2" class="s-money-sub" style="width:70px">Cuba</th>
+                            <th rowspan="2" class="s-money-sub" style="width:70px">CPC</th>
+                            <th rowspan="2" class="s-money-sub" style="width:70px">Đóng HP</th>
+                            <th rowspan="2" class="s-money-sub" style="width:80px;font-weight:700">Tổng</th>
+                        </tr>
+                        <tr>
+                            <!-- HKI -->
+                            <th class="s-teaching-sub">VN</th>
+                            <th class="s-teaching-sub">Lào</th>
+                            <th class="s-teaching-sub">Cuba</th>
+                            <th class="s-teaching-sub">CPC</th>
+                            <th class="s-teaching-sub">Đóng HP</th>
+                            <!-- HKII -->
+                            <th class="s-teaching-sub">VN</th>
+                            <th class="s-teaching-sub">Lào</th>
+                            <th class="s-teaching-sub">Cuba</th>
+                            <th class="s-teaching-sub">CPC</th>
+                            <th class="s-teaching-sub">Đóng HP</th>
+                            <!-- Cả năm -->
+                            <th class="s-teaching-sub">VN</th>
+                            <th class="s-teaching-sub">Lào</th>
+                            <th class="s-teaching-sub">Cuba</th>
+                            <th class="s-teaching-sub">CPC</th>
+                            <th class="s-teaching-sub">Đóng HP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dữ liệu sẽ được chèn vào đây -->
+                    </tbody>
+                    <tfoot id="tableFoot">
+                        <!-- Tổng cộng -->
+                    </tfoot>
+                </table>
+            </div>
+        </div>
 
-                                <th rowspan="2" class="s-money-sub" style="width:70px">VN</th>
-                                <th rowspan="2" class="s-money-sub" style="width:70px">Lào</th>
-                                <th rowspan="2" class="s-money-sub" style="width:70px">Cuba</th>
-                                <th rowspan="2" class="s-money-sub" style="width:70px">CPC</th>
-                                <th rowspan="2" class="s-money-sub" style="width:70px">Đóng HP</th>
-                                <th rowspan="2" class="s-money-sub" style="width:80px;font-weight:700">Tổng</th>
-                            </tr>
-                            <tr>
-                                <!-- HKI -->
-                                <th class="s-teaching-sub">VN</th>
-                                <th class="s-teaching-sub">Lào</th>
-                                <th class="s-teaching-sub">Cuba</th>
-                                <th class="s-teaching-sub">CPC</th>
-                                <th class="s-teaching-sub">Đóng HP</th>
-                                <!-- HKII -->
-                                <th class="s-teaching-sub">VN</th>
-                                <th class="s-teaching-sub">Lào</th>
-                                <th class="s-teaching-sub">Cuba</th>
-                                <th class="s-teaching-sub">CPC</th>
-                                <th class="s-teaching-sub">Đóng HP</th>
-                                <!-- Cả năm -->
-                                <th class="s-teaching-sub">VN</th>
-                                <th class="s-teaching-sub">Lào</th>
-                                <th class="s-teaching-sub">Cuba</th>
-                                <th class="s-teaching-sub">CPC</th>
-                                <th class="s-teaching-sub">Đóng HP</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <!-- Dữ liệu sẽ được chèn vào đây -->
-                        </tbody>
-                        <tfoot id="tableFoot">
-                            <!-- Tổng cộng -->
-                        </tfoot>
-                    </table>
-                </div>
+        <!-- Floating Summary Box -->
+        <div class="summary" id="summaryBox" style="display: none;">
+            <button class="summary-toggle" id="btnToggleSummary" title="Ẩn/Hiện tổng kết">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="summary-box">
+                <div class="label">Tổng giảng viên:</div>
+                <div class="value" id="totalGV">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">GV có vượt giờ:</div>
+                <div class="value" id="gvCoVuotGio">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tổng tiết vượt giờ:</div>
+                <div class="value" id="totalVuotGio">0</div>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
-        <script src="/js/vuotgio_v2/tongHop/taiChinhDuyetVuotGio.js"></script>
+    <script src="/js/vuotgio_v2/tongHop/taiChinhDuyetVuotGio.js"></script>
 
-        <!-- Data Lock Feature -->
-        <script>
-        (function() {
-            'use strict';
+    <!-- Data Lock Feature -->
+    <script>
+    (function() {
+        'use strict';
 
-            let isDataLocked = false;
+        let isDataLocked = false;
 
-            /**
-             * Kiểm tra trạng thái khóa dữ liệu cho năm học hiện tại
-             */
-            async function checkLockStatus() {
-                const namHoc = document.getElementById('namHocXem').value;
-                if (!namHoc) return;
+        /**
+         * Kiểm tra trạng thái khóa dữ liệu cho năm học hiện tại
+         */
+        async function checkLockStatus() {
+            const namHoc = document.getElementById('namHocXem').value;
+            if (!namHoc) return;
 
-                try {
-                    const response = await fetch(`/v2/vuotgio/trang-thai-khoa?namHoc=${encodeURIComponent(namHoc)}`);
-                    const result = await response.json();
+            try {
+                const response = await fetch(`/v2/vuotgio/trang-thai-khoa?namHoc=${encodeURIComponent(namHoc)}`);
+                const result = await response.json();
 
-                    if (result.success) {
-                        isDataLocked = result.locked;
-                        updateLockUI(result.locked, result.lockInfo);
+                if (result.success) {
+                    isDataLocked = result.locked;
+                    updateLockUI(result.locked, result.lockInfo);
+                }
+            } catch (error) {
+                console.error('[dataLock] Error checking lock status:', error);
+            }
+        }
+
+        /**
+         * Cập nhật giao diện dựa trên trạng thái khóa
+         */
+        function updateLockUI(locked, lockInfo) {
+            const lockBanner = document.getElementById('lockStatusBanner');
+            const lockText = document.getElementById('lockStatusText');
+            const khoaBtn = document.getElementById('khoaDuLieuBtn');
+
+            if (locked && lockInfo) {
+                // Hiển thị banner trạng thái khóa trên đầu bảng
+                lockBanner.style.display = 'flex';
+                lockText.textContent = `Đã chốt ngày ${lockInfo.ngay_khoa} bởi ${lockInfo.nguoi_khoa}`;
+
+                // Ẩn nút Lưu Dữ Liệu
+                if (khoaBtn) khoaBtn.style.setProperty('display', 'none', 'important');
+            } else {
+                // Ẩn banner
+                lockBanner.style.display = 'none';
+                lockText.textContent = '';
+
+                // Hiển thị nút Lưu chỉ cho Lãnh đạo phòng VP
+                const role = localStorage.getItem('userRole');
+                const MaPhongBan = localStorage.getItem('MaPhongBan');
+                if (khoaBtn) {
+                    if (role === 'Lãnh đạo phòng' && MaPhongBan === 'VP') {
+                        khoaBtn.style.setProperty('display', 'inline-flex', 'important');
+                    } else {
+                        khoaBtn.style.setProperty('display', 'none', 'important');
                     }
-                } catch (error) {
-                    console.error('[dataLock] Error checking lock status:', error);
                 }
             }
+        }
 
-            /**
-             * Cập nhật giao diện dựa trên trạng thái khóa
-             */
-            function updateLockUI(locked, lockInfo) {
-                const lockBanner = document.getElementById('lockStatusBanner');
-                const lockText = document.getElementById('lockStatusText');
-                const khoaBtn = document.getElementById('khoaDuLieuBtn');
+        /**
+         * Xử lý nhấn nút "Lưu & Khóa Dữ Liệu"
+         */
+        async function handleLockData() {
+            const namHoc = document.getElementById('namHocXem').value;
+            if (!namHoc) {
+                Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'warning');
+                return;
+            }
 
-                if (locked && lockInfo) {
-                    // Hiển thị banner trạng thái khóa trên đầu bảng
-                    lockBanner.style.display = 'block';
-                    lockText.textContent = `Đã lưu - ${lockInfo.ngay_khoa} bởi ${lockInfo.nguoi_khoa}`;
+            // Hiển thị hộp thoại xác nhận
+            const confirmResult = await Swal.fire({
+                title: 'Xác nhận Lưu Dữ Liệu',
+                html: `Sau khi lưu, toàn bộ dữ liệu vượt giờ năm học <strong>${namHoc}</strong> sẽ được chốt chính thức và không thể chỉnh sửa. Bạn có chắc chắn?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-lock-fill me-1"></i> Xác nhận lưu',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true
+            });
 
-                    // Ẩn nút Lưu Dữ Liệu
-                    if (khoaBtn) khoaBtn.style.display = 'none';
+            if (!confirmResult.isConfirmed) return;
+
+            // Hiển thị loading và vô hiệu hóa nút
+            const khoaBtn = document.getElementById('khoaDuLieuBtn');
+            const originalContent = khoaBtn.innerHTML;
+            khoaBtn.disabled = true;
+            khoaBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang xử lý...';
+
+            try {
+                const response = await fetch('/v2/vuotgio/tong-hop/khoa-du-lieu', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ namHoc, ghiChu: null })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: result.message || 'Dữ liệu đã được lưu thành công',
+                        timer: 3000,
+                        showConfirmButton: true
+                    });
+                    // Cập nhật lại trạng thái UI
+                    await checkLockStatus();
                 } else {
-                    // Ẩn banner
-                    lockBanner.style.display = 'none';
-                    lockText.textContent = '';
-
-                    // Hiển thị nút Lưu chỉ cho Lãnh đạo phòng VP
-                    const role = localStorage.getItem('userRole');
-                    const MaPhongBan = localStorage.getItem('MaPhongBan');
-                    if (khoaBtn) {
-                        khoaBtn.style.display = (role === 'Lãnh đạo phòng' && MaPhongBan === 'VP') ? '' : 'none';
+                    let errorHtml = result.message || 'Không thể lưu dữ liệu';
+                    // Hiển thị chi tiết lỗi nếu có (prerequisites chưa đạt)
+                    if (result.errors && result.errors.length > 0) {
+                        errorHtml += '<br><br><strong>Chi tiết:</strong><ul style="text-align: left; margin-top: 8px;">';
+                        result.errors.forEach(err => {
+                            errorHtml += `<li>${err.table}: ${err.unapproved}/${err.total} bản ghi chưa duyệt</li>`;
+                        });
+                        errorHtml += '</ul>';
                     }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Không thể lưu dữ liệu',
+                        html: errorHtml
+                    });
+                }
+            } catch (error) {
+                console.error('[dataLock] Error locking data:', error);
+                Swal.fire('Lỗi', 'Không thể kết nối đến server', 'error');
+            } finally {
+                // Khôi phục nút
+                khoaBtn.disabled = false;
+                khoaBtn.innerHTML = originalContent;
+            }
+        }
+
+        // Khởi tạo khi DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const khoaBtn = document.getElementById('khoaDuLieuBtn');
+            const namHocSelect = document.getElementById('namHocXem');
+
+            // Hiển thị nút lưu chỉ cho Lãnh đạo phòng VP
+            const role = localStorage.getItem('userRole');
+            const MaPhongBan = localStorage.getItem('MaPhongBan');
+            if (khoaBtn) {
+                if (role === 'Lãnh đạo phòng' && MaPhongBan === 'VP') {
+                    khoaBtn.style.setProperty('display', 'inline-flex', 'important');
+                } else {
+                    khoaBtn.style.setProperty('display', 'none', 'important');
                 }
             }
 
-            /**
-             * Xử lý nhấn nút "Lưu & Khóa Dữ Liệu"
-             */
-            async function handleLockData() {
-                const namHoc = document.getElementById('namHocXem').value;
-                if (!namHoc) {
-                    Swal.fire('Lỗi', 'Vui lòng chọn năm học', 'warning');
+            // Gắn sự kiện click cho nút khóa
+            if (khoaBtn) {
+                khoaBtn.addEventListener('click', handleLockData);
+            }
+
+            // Kiểm tra trạng thái khóa khi load trang (delay nhỏ để đợi loadNamHocOptions hoàn thành)
+            setTimeout(checkLockStatus, 500);
+
+            // Kiểm tra lại trạng thái khóa khi thay đổi năm học
+            if (namHocSelect) {
+                namHocSelect.addEventListener('change', checkLockStatus);
+            }
+        });
+    })();
+    </script>
+
+    <!-- Compact View Toggle -->
+    <script>
+    (function() {
+        'use strict';
+
+        let isCompact = true; // Mặc định hiển thị rút gọn
+
+        function applyCompactState() {
+            const btn = document.getElementById('btnCompactView');
+            const mainTable = document.getElementById('mainTable');
+            const renderInfo = document.getElementById('renderInfo');
+
+            if (isCompact) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="bi bi-table me-1"></i> CHI TIẾT';
+
+                // Ẩn bảng chính
+                mainTable.style.display = 'none';
+
+                // Tạo hoặc cập nhật bảng rút gọn
+                let compactTable = document.getElementById('compactTable');
+                if (!compactTable) {
+                    compactTable = document.createElement('table');
+                    compactTable.id = 'compactTable';
+                    compactTable.className = 'table table-hover table-bordered text-center align-middle mb-0';
+                    renderInfo.appendChild(compactTable);
+                }
+
+                renderCompactTable(compactTable);
+
+                // Điều chỉnh width
+                renderInfo.style.width = '100%';
+                renderInfo.style.minWidth = '';
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="bi bi-layout-three-columns me-1"></i> RÚT GỌN';
+
+                // Hiện lại bảng chính
+                mainTable.style.display = '';
+
+                // Xóa bảng rút gọn
+                const compactTable = document.getElementById('compactTable');
+                if (compactTable) compactTable.remove();
+
+                // Khôi phục width cho bảng 37 cột cuộn ngang trong renderInfo
+                renderInfo.style.width = '100%';
+                renderInfo.style.minWidth = '';
+            }
+        }
+
+        function toggleCompactView() {
+            isCompact = !isCompact;
+            applyCompactState();
+        }
+
+        function renderCompactTable(table) {
+            const mainBody = document.getElementById('tableBody');
+            const mainFoot = document.getElementById('tableFoot');
+
+            // Header rút gọn
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th style="width: 45px;">STT</th>
+                        <th style="width: 220px;">Họ tên Giảng viên</th>
+                        <th style="width: 120px;">Định mức phải giảng</th>
+                        <th style="width: 130px;">Tổng tiết giảng dạy</th>
+                        <th style="width: 120px;">Tổng vượt giờ</th>
+                        <th style="width: 110px;">Mức TT chuẩn</th>
+                        <th style="width: 130px;">Tổng thành tiền</th>
+                        <th style="width: 130px;">Thực nhận</th>
+                        <th style="width: 80px;">Thao tác</th>
+                    </tr>
+                </thead>
+            `;
+
+            const tbody = document.createElement('tbody');
+            const rows = mainBody.querySelectorAll('tr');
+
+            // Handle skeleton loading state
+            if (rows.length > 0 && rows[0].classList.contains('skeleton-row')) {
+                tbody.innerHTML = Array.from({ length: 5 })
+                    .map(() => `<tr class="skeleton-row"><td colspan="9">&nbsp;</td></tr>`)
+                    .join('');
+                table.appendChild(tbody);
+                return;
+            }
+
+            // Handle empty state
+            if (rows.length === 0 || (rows.length === 1 && (rows[0].textContent.includes('Không tìm thấy') || rows[0].textContent.includes('Không có')))) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Không có dữ liệu</td></tr>`;
+                table.appendChild(tbody);
+                return;
+            }
+
+            rows.forEach(row => {
+                const newRow = document.createElement('tr');
+
+                // Group header row
+                if (row.classList.contains('group-header')) {
+                    newRow.className = 'group-header faculty-header-row fw-bold';
+                    const khoaCode = row.getAttribute('data-khoa-code');
+                    if (khoaCode) newRow.setAttribute('data-khoa-code', khoaCode);
+                    newRow.innerHTML = '<td colspan="9" class="text-start px-3 py-2">' + row.querySelector('td').innerHTML + '</td>';
+                    tbody.appendChild(newRow);
                     return;
                 }
 
-                // Hiển thị hộp thoại xác nhận
-                const confirmResult = await Swal.fire({
-                    title: 'Xác nhận Lưu Dữ Liệu',
-                    html: `Sau khi lưu, toàn bộ dữ liệu vượt giờ năm học <strong>${namHoc}</strong> sẽ không thể chỉnh sửa. Bạn có chắc chắn?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#0d6efd',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Xác nhận lưu',
-                    cancelButtonText: 'Hủy',
-                    reverseButtons: true
-                });
-
-                if (!confirmResult.isConfirmed) return;
-
-                // Hiển thị loading và vô hiệu hóa nút
-                const khoaBtn = document.getElementById('khoaDuLieuBtn');
-                const originalContent = khoaBtn.innerHTML;
-                khoaBtn.disabled = true;
-                khoaBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang xử lý...';
-
-                try {
-                    const response = await fetch('/v2/vuotgio/tong-hop/khoa-du-lieu', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ namHoc, ghiChu: null })
-                    });
-                    const result = await response.json();
-
-                    if (result.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Thành công',
-                            text: result.message || 'Dữ liệu đã được lưu thành công',
-                            timer: 3000,
-                            showConfirmButton: true
-                        });
-                        // Cập nhật lại trạng thái UI
-                        await checkLockStatus();
-                    } else {
-                        let errorHtml = result.message || 'Không thể lưu dữ liệu';
-                        // Hiển thị chi tiết lỗi nếu có (prerequisites chưa đạt)
-                        if (result.errors && result.errors.length > 0) {
-                            errorHtml += '<br><br><strong>Chi tiết:</strong><ul style="text-align: left; margin-top: 8px;">';
-                            result.errors.forEach(err => {
-                                errorHtml += `<li>${err.table}: ${err.unapproved}/${err.total} bản ghi chưa duyệt</li>`;
-                            });
-                            errorHtml += '</ul>';
-                        }
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Không thể lưu dữ liệu',
-                            html: errorHtml
-                        });
-                    }
-                } catch (error) {
-                    console.error('[dataLock] Error locking data:', error);
-                    Swal.fire('Lỗi', 'Không thể kết nối đến server', 'error');
-                } finally {
-                    // Khôi phục nút
-                    khoaBtn.disabled = false;
-                    khoaBtn.innerHTML = originalContent;
-                }
-            }
-
-            // Khởi tạo khi DOM ready
-            document.addEventListener('DOMContentLoaded', function() {
-                const khoaBtn = document.getElementById('khoaDuLieuBtn');
-                const namHocSelect = document.getElementById('namHocXem');
-
-                // Hiển thị nút lưu chỉ cho Lãnh đạo phòng VP
-                const role = localStorage.getItem('userRole');
-                const MaPhongBan = localStorage.getItem('MaPhongBan');
-                if (role === 'Lãnh đạo phòng' && MaPhongBan === 'VP' && khoaBtn) {
-                    khoaBtn.style.display = '';
+                // Copy class (warning, etc.)
+                if (row.classList.contains('row-warning-danger')) {
+                    newRow.classList.add('row-warning-danger');
                 }
 
-                // Gắn sự kiện click cho nút khóa
-                if (khoaBtn) {
-                    khoaBtn.addEventListener('click', handleLockData);
-                }
+                const cells = row.querySelectorAll('td');
+                if (cells.length < 37) return; // skip invalid rows
 
-                // Kiểm tra trạng thái khóa khi load trang (delay nhỏ để đợi loadNamHocOptions hoàn thành)
-                setTimeout(checkLockStatus, 500);
+                const parseVal = (td) => {
+                    const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
+                    return parseFloat(text) || 0;
+                };
 
-                // Kiểm tra lại trạng thái khóa khi thay đổi năm học
-                if (namHocSelect) {
-                    namHocSelect.addEventListener('change', checkLockStatus);
-                }
-            });
-        })();
-        </script>
+                const tongTietCaNam = parseVal(cells[17]) + parseVal(cells[18]) + parseVal(cells[19]) + parseVal(cells[20]) + parseVal(cells[21]);
 
-        <!-- Compact View Toggle -->
-        <script>
-        (function() {
-            'use strict';
-
-            let isCompact = true; // Mặc định hiển thị rút gọn
-
-            // Bảng rút gọn: giữ nguyên cấu trúc group header theo khoa
-            // Chỉ hiển thị: STT | Họ tên | Định mức phải giảng | Tổng tiết cả năm | Tổng vượt giờ | Mức TT | Tổng thành tiền | Thực nhận | Thao tác
-            // Dữ liệu lấy từ bảng chính (đã render), chỉ pick các cột cần thiết
-
-            function applyCompactState() {
-                const btn = document.getElementById('btnCompactView');
-                const mainTable = document.getElementById('mainTable');
-                const renderInfo = document.getElementById('renderInfo');
-                const containerFluid = document.querySelector('.container-fluid');
-
-                if (isCompact) {
-                    btn.classList.add('active');
-                    btn.innerHTML = '<i class="bi bi-table me-1"></i> Chi tiết';
-
-                    // Ẩn bảng chính
-                    mainTable.style.display = 'none';
-
-                    // Tạo hoặc cập nhật bảng rút gọn
-                    let compactTable = document.getElementById('compactTable');
-                    if (!compactTable) {
-                        compactTable = document.createElement('table');
-                        compactTable.id = 'compactTable';
-                        compactTable.className = 'table table-hover table-bordered text-center';
-                        renderInfo.appendChild(compactTable);
-                    }
-
-                    renderCompactTable(compactTable);
-
-                    // Điều chỉnh width
-                    renderInfo.style.width = 'auto';
-                    renderInfo.style.minWidth = '900px';
-                    if (containerFluid) containerFluid.style.minWidth = 'auto';
-
-                } else {
-                    btn.classList.remove('active');
-                    btn.innerHTML = '<i class="bi bi-layout-three-columns me-1"></i> Rút gọn';
-
-                    // Hiện lại bảng chính
-                    mainTable.style.display = '';
-
-                    // Xóa bảng rút gọn
-                    const compactTable = document.getElementById('compactTable');
-                    if (compactTable) compactTable.remove();
-
-                    // Khôi phục width
-                    renderInfo.style.width = '2100px';
-                    renderInfo.style.minWidth = '';
-                    if (containerFluid) containerFluid.style.minWidth = '2100px';
-                }
-            }
-
-            function toggleCompactView() {
-                isCompact = !isCompact;
-                applyCompactState();
-            }
-
-            function renderCompactTable(table) {
-                const mainBody = document.getElementById('tableBody');
-                const mainFoot = document.getElementById('tableFoot');
-
-                // Header rút gọn
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th class="s-base" style="width:40px">STT</th>
-                            <th class="s-base" style="width:200px">Họ tên Giảng viên</th>
-                            <th class="s-base" style="width:80px">Định mức phải giảng</th>
-                            <th style="background-color:#3b82f6!important;color:#fff!important;width:90px">Tổng tiết giảng dạy</th>
-                            <th style="background-color:#10b981!important;color:#fff!important;width:90px">Tổng vượt giờ</th>
-                            <th style="background-color:#7c3aed!important;color:#fff!important;width:90px">Mức TT chuẩn</th>
-                            <th style="background-color:#d97706!important;color:#fff!important;width:100px">Tổng thành tiền</th>
-                            <th style="background-color:#4338ca!important;color:#fff!important;width:100px">Thực nhận</th>
-                            <th class="s-action" style="width:70px">Thao tác</th>
-                        </tr>
-                    </thead>
+                newRow.innerHTML = `
+                    <td class="text-center font-monospace">${cells[0].textContent}</td>
+                    <td class="text-start px-3 fw-semibold text-primary">${cells[1].textContent}</td>
+                    <td class="text-center">${cells[6].textContent}</td>
+                    <td class="text-center fw-semibold text-secondary">${tongTietCaNam ? tongTietCaNam.toLocaleString('vi-VN') : '0'}</td>
+                    <td class="text-center fw-bold text-success">${cells[27].textContent}</td>
+                    <td class="text-center">${cells[28].textContent}</td>
+                    <td class="text-center fw-semibold">${cells[34].textContent}</td>
+                    <td class="text-center fw-bold text-primary">${cells[35].textContent}</td>
+                    <td class="text-center">${cells[36].innerHTML}</td>
                 `;
 
-                // Body: lấy dữ liệu từ bảng chính theo index cột (0-based):
-                // 0: STT, 1: Họ tên, 2: Thu nhập, 3: Định mức, 4: Được giảm, 5: Thiếu NCKH, 6: Định mức phải giảng
-                // 7-11: HK1 (VN,Lào,Cuba,CPC,ĐóngHP), 12-16: HK2, 17-21: Cả năm
-                // 22-27: Vượt giờ (VN,Lào,Cuba,CPC,ĐóngHP,Tổng)
-                // 28: Mức TT, 29-34: Thành tiền (VN,Lào,Cuba,CPC,ĐóngHP,Tổng)
-                // 35: Thực nhận, 36: Thao tác
+                tbody.appendChild(newRow);
+            });
 
-                const tbody = document.createElement('tbody');
-                const rows = mainBody.querySelectorAll('tr');
+            table.appendChild(tbody);
 
-                rows.forEach(row => {
-                    const newRow = document.createElement('tr');
-
-                    // Group header row
-                    if (row.classList.contains('group-header')) {
-                        newRow.className = 'group-header table-light fw-bold';
-                        // Copy data-khoa-code attribute cho approval badge
-                        const khoaCode = row.getAttribute('data-khoa-code');
-                        if (khoaCode) newRow.setAttribute('data-khoa-code', khoaCode);
-                        newRow.innerHTML = '<td colspan="9" class="text-start px-3 py-2">' + row.querySelector('td').innerHTML + '</td>';
-                        tbody.appendChild(newRow);
-                        return;
-                    }
-
-                    // Copy class (warning, etc.)
-                    if (row.classList.contains('row-warning-danger')) {
-                        newRow.classList.add('row-warning-danger');
-                    }
-
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length < 37) return; // skip invalid rows
-
-                    // Tính tổng tiết cả năm = sum(cells[17..21]) — cả năm VN+Lào+Cuba+CPC+ĐóngHP
-                    // Hoặc đơn giản hơn: lấy tổng từ cột vượt giờ + định mức (nhưng không chính xác)
-                    // Chính xác nhất: sum cells index 17,18,19,20,21 (cả năm)
+            // Footer
+            if (mainFoot && mainFoot.querySelector('tr')) {
+                const tfoot = document.createElement('tfoot');
+                const footCells = mainFoot.querySelectorAll('td');
+                if (footCells.length >= 34) {
                     const parseVal = (td) => {
                         const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
                         return parseFloat(text) || 0;
                     };
+                    const tongTietFoot = parseVal(footCells[16]) + parseVal(footCells[17]) + parseVal(footCells[18]) + parseVal(footCells[19]) + parseVal(footCells[20]);
 
-                    const tongTietCaNam = parseVal(cells[17]) + parseVal(cells[18]) + parseVal(cells[19]) + parseVal(cells[20]) + parseVal(cells[21]);
-
-                    newRow.innerHTML = `
-                        <td>${cells[0].textContent}</td>
-                        <td style="text-align:left;padding-left:8px;">${cells[1].textContent}</td>
-                        <td>${cells[6].textContent}</td>
-                        <td>${tongTietCaNam ? tongTietCaNam.toLocaleString('vi-VN') : '0'}</td>
-                        <td style="color:green;font-weight:bold;">${cells[27].textContent}</td>
-                        <td>${cells[28].textContent}</td>
-                        <td style="font-weight:bold;">${cells[34].textContent}</td>
-                        <td style="font-weight:bold;color:#1a5276;">${cells[35].textContent}</td>
-                        <td>${cells[36].innerHTML}</td>
+                    tfoot.innerHTML = `
+                        <tr class="table-secondary fw-bold">
+                            <td colspan="3" class="text-end px-3">Tổng cộng</td>
+                            <td>${tongTietFoot ? tongTietFoot.toLocaleString('vi-VN') : '0'}</td>
+                            <td class="text-success">${footCells[26].textContent}</td>
+                            <td>-</td>
+                            <td>${footCells[33].textContent}</td>
+                            <td class="text-primary">${footCells[34].textContent}</td>
+                            <td></td>
+                        </tr>
                     `;
-
-                    tbody.appendChild(newRow);
-                });
-
-                table.appendChild(tbody);
-
-                // Footer
-                if (mainFoot && mainFoot.querySelector('tr')) {
-                    const tfoot = document.createElement('tfoot');
-                    const footCells = mainFoot.querySelectorAll('td');
-                    // Footer có colspan=2 ở ô đầu, nên index lệch so với body:
-                    // [0]=TỔNG CỘNG(colspan2), [1]=luong, [2]=dinhMuc, [3]=mienGiam, [4]=thieuNCKH, [5]=dinhMucPhaiGiang
-                    // [6-10]=HK1, [11-15]=HK2, [16-20]=Cả năm, [21-26]=Vượt(VN,Lào,Cuba,CPC,ĐóngHP,Tổng)
-                    // [27]=MứcTT, [28-33]=Tiền(VN,Lào,Cuba,CPC,ĐóngHP,Tổng), [34]=ThựcNhận, [35]=Actions
-                    if (footCells.length >= 34) {
-                        const parseVal = (td) => {
-                            const text = td ? td.textContent.trim().replace(/\./g, '').replace(/,/g, '.') : '0';
-                            return parseFloat(text) || 0;
-                        };
-                        const tongTietFoot = parseVal(footCells[16]) + parseVal(footCells[17]) + parseVal(footCells[18]) + parseVal(footCells[19]) + parseVal(footCells[20]);
-
-                        tfoot.innerHTML = `
-                            <tr>
-                                <td colspan="3" style="text-align:right;font-weight:700;">Tổng cộng</td>
-                                <td>${tongTietFoot ? tongTietFoot.toLocaleString('vi-VN') : '0'}</td>
-                                <td style="color:green;font-weight:bold;">${footCells[26].textContent}</td>
-                                <td>-</td>
-                                <td style="font-weight:bold;">${footCells[33].textContent}</td>
-                                <td style="font-weight:bold;color:#1a5276;">${footCells[34].textContent}</td>
-                                <td></td>
-                            </tr>
-                        `;
-                    }
-                    table.appendChild(tfoot);
                 }
+                table.appendChild(tfoot);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('btnCompactView');
+            if (btn) {
+                btn.addEventListener('click', toggleCompactView);
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                const btn = document.getElementById('btnCompactView');
-                if (btn) {
-                    btn.addEventListener('click', toggleCompactView);
-                }
+            // Mặc định: hiển thị rút gọn
+            applyCompactState();
 
-                // Mặc định: ẩn bảng chính, hiển thị nút ở trạng thái active
-                applyCompactState();
+            // Theo dõi khi bảng chính được render lại để cập nhật bảng rút gọn
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                const observer = new MutationObserver(function() {
+                    if (isCompact) {
+                        applyCompactState();
+                    }
+                });
+                observer.observe(tableBody, { childList: true });
+            }
+        });
+    })();
+    </script>
 
-                // Theo dõi khi bảng chính được render lại (loadData → renderTable)
-                // để tự động cập nhật bảng rút gọn
-                const tableBody = document.getElementById('tableBody');
-                if (tableBody) {
-                    const observer = new MutationObserver(function() {
-                        if (isCompact) {
-                            applyCompactState();
-                        }
+    <!-- Duyệt Tổng Hợp theo Khoa (VP) -->
+    <script>
+    (function() {
+        'use strict';
+
+        // Trạng thái duyệt: Map<khoa, { van_phong_duyet, van_phong_ngay_duyet, ... }>
+        let approvalMap = new Map();
+
+        const ROLE_TRO_LY = 'Trợ lý';
+        const ROLE_LANH_DAO = 'Lãnh đạo phòng';
+        const MA_VP = 'VP';
+
+        /**
+         * Kiểm tra user hiện tại có quyền duyệt/hủy duyệt không
+         */
+        function canApproveOrRevoke() {
+            const role = localStorage.getItem('userRole') || '';
+            const maPhongBan = localStorage.getItem('MaPhongBan') || '';
+            return (role === ROLE_TRO_LY || role === ROLE_LANH_DAO) && maPhongBan === MA_VP;
+        }
+
+        /**
+         * Load trạng thái duyệt từ API
+         */
+        async function loadApprovalStatus() {
+            const namHoc = document.getElementById('namHocXem').value;
+            if (!namHoc) return;
+
+            try {
+                const response = await fetch(`/v2/vuotgio/tong-hop/duyet-trang-thai?namHoc=${encodeURIComponent(namHoc)}`);
+                const result = await response.json();
+
+                if (result.success && Array.isArray(result.data)) {
+                    approvalMap.clear();
+                    result.data.forEach(item => {
+                        approvalMap.set(item.khoa, item);
                     });
-                    observer.observe(tableBody, { childList: true });
+                    // Cập nhật UI group headers
+                    updateGroupHeaders();
                 }
+            } catch (error) {
+                console.error('[duyetTongHop] Error loading approval status:', error);
+            }
+        }
+
+        /**
+         * Cập nhật badge + nút duyệt trên các group header row
+         */
+        function updateGroupHeaders() {
+            const containers = [
+                document.getElementById('tableBody'),
+                document.querySelector('#compactTable tbody')
+            ].filter(Boolean);
+
+            containers.forEach(container => {
+                const groupRows = container.querySelectorAll('tr.group-header');
+                groupRows.forEach(row => {
+                    applyApprovalBadge(row);
+                });
             });
-        })();
-        </script>
+        }
 
-        <!-- Duyệt Tổng Hợp theo Khoa (VP) -->
-        <script>
-        (function() {
-            'use strict';
+        function applyApprovalBadge(row) {
+            const td = row.querySelector('td');
+            if (!td) return;
 
-            // Trạng thái duyệt: Map<khoa, { van_phong_duyet, van_phong_ngay_duyet, ... }>
-            let approvalMap = new Map();
+            const maKhoa = row.getAttribute('data-khoa-code');
+            if (!maKhoa) return;
 
-            const ROLE_TRO_LY = 'Trợ lý';
-            const ROLE_LANH_DAO = 'Lãnh đạo phòng';
-            const MA_VP = 'VP';
+            const approval = approvalMap.get(maKhoa);
+            const isDuyet = approval && approval.van_phong_duyet === 1;
 
-            /**
-             * Kiểm tra user hiện tại có quyền duyệt/hủy duyệt không
-             */
-            function canApproveOrRevoke() {
-                const role = localStorage.getItem('userRole') || '';
-                const maPhongBan = localStorage.getItem('MaPhongBan') || '';
-                return (role === ROLE_TRO_LY || role === ROLE_LANH_DAO) && maPhongBan === MA_VP;
-            }
+            // Xóa container cũ nếu có
+            const existingBadge = td.querySelector('.approval-badge-container');
+            if (existingBadge) existingBadge.remove();
+            const existingInfo = td.querySelector('.approval-info-text');
+            if (existingInfo) existingInfo.remove();
 
-            /**
-             * Load trạng thái duyệt từ API
-             */
-            async function loadApprovalStatus() {
-                const namHoc = document.getElementById('namHocXem').value;
-                if (!namHoc) return;
-
-                try {
-                    const response = await fetch(`/v2/vuotgio/tong-hop/duyet-trang-thai?namHoc=${encodeURIComponent(namHoc)}`);
-                    const result = await response.json();
-
-                    if (result.success && Array.isArray(result.data)) {
-                        approvalMap.clear();
-                        result.data.forEach(item => {
-                            approvalMap.set(item.khoa, item);
-                        });
-                        // Cập nhật UI group headers
-                        updateGroupHeaders();
-                    }
-                } catch (error) {
-                    console.error('[duyetTongHop] Error loading approval status:', error);
+            // Thêm text thông tin duyệt ngay sau tên khoa
+            if (isDuyet) {
+                const ngayDuyet = approval.van_phong_ngay_duyet
+                    ? new Date(approval.van_phong_ngay_duyet).toLocaleString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                    : '';
+                const nguoiDuyet = approval.van_phong_nguoi_duyet_ten || '';
+                const infoParts = [nguoiDuyet, ngayDuyet].filter(Boolean).join(' - ');
+                if (infoParts) {
+                    const infoSpan = document.createElement('span');
+                    infoSpan.className = 'approval-info-text';
+                    infoSpan.style.cssText = 'margin-left: 12px; font-size: 0.75rem; color: #059669; font-weight: 500;';
+                    infoSpan.innerHTML = `<i class="bi bi-patch-check-fill me-1"></i>Đã duyệt: ${infoParts}`;
+                    td.appendChild(infoSpan);
                 }
             }
 
-            /**
-             * Cập nhật badge + nút duyệt trên các group header row
-             */
-            function updateGroupHeaders() {
-                // Cập nhật cả bảng chính và bảng compact
-                const containers = [
-                    document.getElementById('tableBody'),
-                    document.querySelector('#compactTable tbody')
-                ].filter(Boolean);
+            // Tạo container badge (nút hành động)
+            const container = document.createElement('span');
+            container.className = 'approval-badge-container';
+            container.style.cssText = 'float: right; display: inline-flex; align-items: center; gap: 8px;';
 
-                containers.forEach(container => {
-                    const groupRows = container.querySelectorAll('tr.group-header');
-                    groupRows.forEach(row => {
-                        applyApprovalBadge(row);
+            if (isDuyet) {
+                // Badge đã duyệt
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+                badge.style.cssText = 'font-size: 0.72rem; padding: 4px 8px; font-weight: 600; border-radius: 6px;';
+                badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Đã duyệt';
+                container.appendChild(badge);
+
+                // Nút hủy duyệt
+                if (canApproveOrRevoke()) {
+                    const btnRevoke = document.createElement('button');
+                    btnRevoke.className = 'btn btn-sm btn-outline-danger';
+                    btnRevoke.style.cssText = 'font-size: 0.7rem; padding: 2px 8px; line-height: 1.4; border-radius: 6px;';
+                    btnRevoke.innerHTML = '<i class="bi bi-x-circle me-1"></i>Hủy duyệt';
+                    btnRevoke.title = 'Hủy duyệt khoa này';
+                    btnRevoke.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handleRevoke(maKhoa);
                     });
+                    container.appendChild(btnRevoke);
+                }
+            } else {
+                // Badge chưa duyệt
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+                badge.style.cssText = 'font-size: 0.72rem; padding: 4px 8px; font-weight: 600; border-radius: 6px;';
+                badge.innerHTML = '<i class="bi bi-clock-history me-1"></i>Chưa duyệt';
+                container.appendChild(badge);
+
+                // Nút duyệt
+                if (canApproveOrRevoke()) {
+                    const btnApprove = document.createElement('button');
+                    btnApprove.className = 'btn btn-sm btn-success';
+                    btnApprove.style.cssText = 'font-size: 0.7rem; padding: 2px 10px; line-height: 1.4; border-radius: 6px;';
+                    btnApprove.innerHTML = '<i class="bi bi-check-lg me-1"></i>Duyệt';
+                    btnApprove.title = 'Duyệt tổng hợp khoa này';
+                    btnApprove.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handleApprove(maKhoa);
+                    });
+                    container.appendChild(btnApprove);
+                }
+            }
+
+            td.appendChild(container);
+        }
+
+        /**
+         * Xử lý duyệt 1 khoa
+         */
+        async function handleApprove(maKhoa) {
+            const namHoc = document.getElementById('namHocXem').value;
+            if (!namHoc) return;
+
+            try {
+                const checkRes = await fetch(`/v2/vuotgio/tong-hop/duyet-kiem-tra?namHoc=${encodeURIComponent(namHoc)}&khoa=${encodeURIComponent(maKhoa)}`);
+                const checkResult = await checkRes.json();
+
+                if (checkResult.success && !checkResult.passed) {
+                    let errorHtml = '<strong>Chưa đủ điều kiện duyệt:</strong><ul style="text-align:left;margin-top:8px;">';
+                    (checkResult.errors || []).forEach(err => {
+                        errorHtml += `<li>${err.tableName || err.table}: ${err.unapproved}/${err.total} bản ghi chưa duyệt</li>`;
+                    });
+                    errorHtml += '</ul>';
+                    Swal.fire({ icon: 'warning', title: 'Chưa đủ điều kiện', html: errorHtml });
+                    return;
+                }
+            } catch (err) {
+                console.error('[duyetTongHop] check prerequisites error:', err);
+            }
+
+            const confirm = await Swal.fire({
+                title: 'Xác nhận duyệt',
+                html: `Duyệt tổng hợp vượt giờ khoa <strong>${maKhoa}</strong>?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-check-lg me-1"></i> Duyệt',
+                cancelButtonText: 'Hủy',
+                confirmButtonColor: '#059669',
+                reverseButtons: true
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const response = await fetch('/v2/vuotgio/tong-hop/duyet-khoa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ namHoc, khoa: maKhoa })
                 });
-            }
+                const result = await response.json();
 
-            function applyApprovalBadge(row) {
-                const td = row.querySelector('td');
-                if (!td) return;
-
-                // Lấy mã khoa từ data attribute
-                const maKhoa = row.getAttribute('data-khoa-code');
-                if (!maKhoa) return;
-
-                const approval = approvalMap.get(maKhoa);
-                const isDuyet = approval && approval.van_phong_duyet === 1;
-
-                // Xóa badge/nút cũ nếu có
-                const existingBadge = td.querySelector('.approval-badge-container');
-                if (existingBadge) existingBadge.remove();
-                // Xóa text info cũ nếu có
-                const existingInfo = td.querySelector('.approval-info-text');
-                if (existingInfo) existingInfo.remove();
-
-                // Thêm text thông tin duyệt ngay sau tên khoa
-                if (isDuyet) {
-                    const ngayDuyet = approval.van_phong_ngay_duyet
-                        ? new Date(approval.van_phong_ngay_duyet).toLocaleString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
-                        : '';
-                    const nguoiDuyet = approval.van_phong_nguoi_duyet_ten || '';
-                    const infoParts = [nguoiDuyet, ngayDuyet].filter(Boolean).join(' - ');
-                    if (infoParts) {
-                        const infoSpan = document.createElement('span');
-                        infoSpan.className = 'approval-info-text';
-                        infoSpan.style.cssText = 'margin-left:12px; font-size:0.72rem; color:#059669; font-weight:400; font-style:italic;';
-                        infoSpan.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>Đã duyệt: ${infoParts}`;
-                        td.appendChild(infoSpan);
-                    }
-                }
-
-                // Tạo container badge (nút hành động)
-                const container = document.createElement('span');
-                container.className = 'approval-badge-container';
-                container.style.cssText = 'float:right; display:inline-flex; align-items:center; gap:8px;';
-
-                if (isDuyet) {
-                    // Badge đã duyệt (ngắn gọn)
-                    const badge = document.createElement('span');
-                    badge.className = 'badge bg-success';
-                    badge.style.cssText = 'font-size:0.7rem; padding:4px 8px; font-weight:500;';
-                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Đã duyệt';
-                    container.appendChild(badge);
-
-                    // Nút hủy duyệt (nếu có quyền)
-                    if (canApproveOrRevoke()) {
-                        const btnRevoke = document.createElement('button');
-                        btnRevoke.className = 'btn btn-sm btn-outline-danger';
-                        btnRevoke.style.cssText = 'font-size:0.65rem; padding:2px 8px; line-height:1.4;';
-                        btnRevoke.innerHTML = '<i class="bi bi-x-circle me-1"></i>Hủy duyệt';
-                        btnRevoke.title = 'Hủy duyệt khoa này';
-                        btnRevoke.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            handleRevoke(maKhoa);
-                        });
-                        container.appendChild(btnRevoke);
-                    }
+                if (result.success) {
+                    Swal.fire({ icon: 'success', title: 'Đã duyệt', text: result.message, timer: 2000, showConfirmButton: false });
+                    await loadApprovalStatus();
                 } else {
-                    // Badge chưa duyệt
-                    const badge = document.createElement('span');
-                    badge.className = 'badge bg-warning text-dark';
-                    badge.style.cssText = 'font-size:0.7rem; padding:4px 8px; font-weight:500;';
-                    badge.innerHTML = '<i class="bi bi-clock me-1"></i>Chưa duyệt';
-                    container.appendChild(badge);
-
-                    // Nút duyệt (nếu có quyền)
-                    if (canApproveOrRevoke()) {
-                        const btnApprove = document.createElement('button');
-                        btnApprove.className = 'btn btn-sm btn-success';
-                        btnApprove.style.cssText = 'font-size:0.65rem; padding:2px 8px; line-height:1.4;';
-                        btnApprove.innerHTML = '<i class="bi bi-check-lg me-1"></i>Duyệt';
-                        btnApprove.title = 'Duyệt tổng hợp khoa này';
-                        btnApprove.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            handleApprove(maKhoa);
-                        });
-                        container.appendChild(btnApprove);
-                    }
-                }
-
-                td.appendChild(container);
-            }
-
-            /**
-             * Xử lý duyệt 1 khoa
-             */
-            async function handleApprove(maKhoa) {
-                const namHoc = document.getElementById('namHocXem').value;
-                if (!namHoc) return;
-
-                // Kiểm tra điều kiện tiên quyết trước
-                try {
-                    const checkRes = await fetch(`/v2/vuotgio/tong-hop/duyet-kiem-tra?namHoc=${encodeURIComponent(namHoc)}&khoa=${encodeURIComponent(maKhoa)}`);
-                    const checkResult = await checkRes.json();
-
-                    if (checkResult.success && !checkResult.passed) {
-                        let errorHtml = '<strong>Chưa đủ điều kiện duyệt:</strong><ul style="text-align:left;margin-top:8px;">';
-                        (checkResult.errors || []).forEach(err => {
-                            errorHtml += `<li>${err.tableName || err.table}: ${err.unapproved}/${err.total} bản ghi chưa duyệt</li>`;
+                    let errorHtml = result.message || 'Không thể duyệt';
+                    if (result.errors && result.errors.length > 0) {
+                        errorHtml += '<br><br><ul style="text-align:left;">';
+                        result.errors.forEach(err => {
+                            errorHtml += `<li>${err.tableName || err.table}: ${err.unapproved}/${err.total} chưa duyệt</li>`;
                         });
                         errorHtml += '</ul>';
-                        Swal.fire({ icon: 'warning', title: 'Chưa đủ điều kiện', html: errorHtml });
-                        return;
                     }
-                } catch (err) {
-                    console.error('[duyetTongHop] check prerequisites error:', err);
+                    Swal.fire({ icon: 'error', title: 'Lỗi', html: errorHtml });
                 }
+            } catch (error) {
+                console.error('[duyetTongHop] approve error:', error);
+                Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
+            }
+        }
 
-                // Xác nhận
-                const confirm = await Swal.fire({
-                    title: 'Xác nhận duyệt',
-                    html: `Duyệt tổng hợp vượt giờ khoa <strong>${maKhoa}</strong>?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Duyệt',
-                    cancelButtonText: 'Hủy',
-                    confirmButtonColor: '#059669',
-                    reverseButtons: true
+        /**
+         * Xử lý hủy duyệt 1 khoa
+         */
+        async function handleRevoke(maKhoa) {
+            const namHoc = document.getElementById('namHocXem').value;
+            if (!namHoc) return;
+
+            const confirm = await Swal.fire({
+                title: 'Xác nhận hủy duyệt',
+                html: `Hủy duyệt tổng hợp khoa <strong>${maKhoa}</strong>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Quay lại',
+                confirmButtonColor: '#dc2626',
+                reverseButtons: true
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const response = await fetch('/v2/vuotgio/tong-hop/huy-duyet-khoa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ namHoc, khoa: maKhoa })
                 });
+                const result = await response.json();
 
-                if (!confirm.isConfirmed) return;
+                if (result.success) {
+                    Swal.fire({ icon: 'success', title: 'Đã hủy duyệt', text: result.message, timer: 2000, showConfirmButton: false });
+                    await loadApprovalStatus();
+                } else {
+                    Swal.fire('Lỗi', result.message || 'Không thể hủy duyệt', 'error');
+                }
+            } catch (error) {
+                console.error('[duyetTongHop] revoke error:', error);
+                Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
+            }
+        }
 
+        /**
+         * Xử lý duyệt tất cả khoa chưa duyệt
+         */
+        async function handleApproveAll() {
+            const namHoc = document.getElementById('namHocXem').value;
+            if (!namHoc) return;
+
+            const chuaDuyet = [];
+            approvalMap.forEach((val, khoa) => {
+                if (!val.van_phong_duyet || val.van_phong_duyet === 0) {
+                    chuaDuyet.push(khoa);
+                }
+            });
+
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                tableBody.querySelectorAll('tr.group-header[data-khoa-code]').forEach(row => {
+                    const code = row.getAttribute('data-khoa-code');
+                    if (code && !approvalMap.has(code)) {
+                        chuaDuyet.push(code);
+                    } else if (code && approvalMap.has(code) && !approvalMap.get(code).van_phong_duyet) {
+                        if (!chuaDuyet.includes(code)) chuaDuyet.push(code);
+                    }
+                });
+            }
+
+            if (chuaDuyet.length === 0) {
+                Swal.fire('Thông báo', 'Tất cả khoa đã được duyệt', 'info');
+                return;
+            }
+
+            const confirm = await Swal.fire({
+                title: 'Duyệt tất cả',
+                html: `Duyệt tổng hợp vượt giờ cho <strong>${chuaDuyet.length}</strong> khoa chưa duyệt?<br><small class="text-muted">${chuaDuyet.join(', ')}</small>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-check-all me-1"></i> Duyệt tất cả',
+                cancelButtonText: 'Hủy',
+                confirmButtonColor: '#059669',
+                reverseButtons: true
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btnDuyetTatCa');
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang duyệt...';
+
+            let successCount = 0;
+            let failedKhoa = [];
+
+            for (const khoa of chuaDuyet) {
                 try {
                     const response = await fetch('/v2/vuotgio/tong-hop/duyet-khoa', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ namHoc, khoa: maKhoa })
+                        body: JSON.stringify({ namHoc, khoa })
                     });
                     const result = await response.json();
-
                     if (result.success) {
-                        Swal.fire({ icon: 'success', title: 'Đã duyệt', text: result.message, timer: 2000, showConfirmButton: false });
-                        await loadApprovalStatus();
+                        successCount++;
                     } else {
-                        let errorHtml = result.message || 'Không thể duyệt';
-                        if (result.errors && result.errors.length > 0) {
-                            errorHtml += '<br><br><ul style="text-align:left;">';
-                            result.errors.forEach(err => {
-                                errorHtml += `<li>${err.tableName || err.table}: ${err.unapproved}/${err.total} chưa duyệt</li>`;
-                            });
-                            errorHtml += '</ul>';
-                        }
-                        Swal.fire({ icon: 'error', title: 'Lỗi', html: errorHtml });
+                        failedKhoa.push({ khoa, message: result.message || 'Lỗi' });
                     }
-                } catch (error) {
-                    console.error('[duyetTongHop] approve error:', error);
-                    Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
+                } catch (err) {
+                    failedKhoa.push({ khoa, message: 'Lỗi kết nối' });
                 }
             }
 
-            /**
-             * Xử lý hủy duyệt 1 khoa
-             */
-            async function handleRevoke(maKhoa) {
-                const namHoc = document.getElementById('namHocXem').value;
-                if (!namHoc) return;
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
 
-                const confirm = await Swal.fire({
-                    title: 'Xác nhận hủy duyệt',
-                    html: `Hủy duyệt tổng hợp khoa <strong>${maKhoa}</strong>?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Hủy duyệt',
-                    cancelButtonText: 'Quay lại',
-                    confirmButtonColor: '#dc2626',
-                    reverseButtons: true
-                });
-
-                if (!confirm.isConfirmed) return;
-
-                try {
-                    const response = await fetch('/v2/vuotgio/tong-hop/huy-duyet-khoa', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ namHoc, khoa: maKhoa })
-                    });
-                    const result = await response.json();
-
-                    if (result.success) {
-                        Swal.fire({ icon: 'success', title: 'Đã hủy duyệt', text: result.message, timer: 2000, showConfirmButton: false });
-                        await loadApprovalStatus();
-                    } else {
-                        Swal.fire('Lỗi', result.message || 'Không thể hủy duyệt', 'error');
-                    }
-                } catch (error) {
-                    console.error('[duyetTongHop] revoke error:', error);
-                    Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
-                }
+            if (failedKhoa.length === 0) {
+                Swal.fire({ icon: 'success', title: 'Hoàn tất', text: `Đã duyệt ${successCount} khoa`, timer: 2500, showConfirmButton: false });
+            } else {
+                let html = `Duyệt thành công: ${successCount}/${chuaDuyet.length}<br><br><strong>Không duyệt được:</strong><ul style="text-align:left;">`;
+                failedKhoa.forEach(f => { html += `<li>${f.khoa}: ${f.message}</li>`; });
+                html += '</ul>';
+                Swal.fire({ icon: 'warning', title: 'Kết quả', html });
             }
 
-            /**
-             * Xử lý duyệt tất cả khoa chưa duyệt
-             */
-            async function handleApproveAll() {
-                const namHoc = document.getElementById('namHocXem').value;
-                if (!namHoc) return;
+            await loadApprovalStatus();
+        }
 
-                // Lấy danh sách khoa chưa duyệt
-                const chuaDuyet = [];
-                approvalMap.forEach((val, khoa) => {
-                    if (!val.van_phong_duyet || val.van_phong_duyet === 0) {
-                        chuaDuyet.push(khoa);
-                    }
-                });
+        // Khởi tạo
+        document.addEventListener('DOMContentLoaded', function() {
+            const namHocSelect = document.getElementById('namHocXem');
+            const btnDuyetTatCa = document.getElementById('btnDuyetTatCa');
 
-                // Thêm cả khoa có trong bảng nhưng chưa có trong approvalMap (chưa có record)
-                const tableBody = document.getElementById('tableBody');
-                if (tableBody) {
-                    tableBody.querySelectorAll('tr.group-header[data-khoa-code]').forEach(row => {
-                        const code = row.getAttribute('data-khoa-code');
-                        if (code && !approvalMap.has(code)) {
-                            chuaDuyet.push(code);
-                        } else if (code && approvalMap.has(code) && !approvalMap.get(code).van_phong_duyet) {
-                            if (!chuaDuyet.includes(code)) chuaDuyet.push(code);
-                        }
-                    });
-                }
-
-                if (chuaDuyet.length === 0) {
-                    Swal.fire('Thông báo', 'Tất cả khoa đã được duyệt', 'info');
-                    return;
-                }
-
-                const confirm = await Swal.fire({
-                    title: 'Duyệt tất cả',
-                    html: `Duyệt tổng hợp vượt giờ cho <strong>${chuaDuyet.length}</strong> khoa chưa duyệt?<br><small class="text-muted">${chuaDuyet.join(', ')}</small>`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Duyệt tất cả',
-                    cancelButtonText: 'Hủy',
-                    confirmButtonColor: '#059669',
-                    reverseButtons: true
-                });
-
-                if (!confirm.isConfirmed) return;
-
-                const btn = document.getElementById('btnDuyetTatCa');
-                const originalContent = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang duyệt...';
-
-                let successCount = 0;
-                let failedKhoa = [];
-
-                for (const khoa of chuaDuyet) {
-                    try {
-                        const response = await fetch('/v2/vuotgio/tong-hop/duyet-khoa', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ namHoc, khoa })
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            successCount++;
-                        } else {
-                            failedKhoa.push({ khoa, message: result.message || 'Lỗi' });
-                        }
-                    } catch (err) {
-                        failedKhoa.push({ khoa, message: 'Lỗi kết nối' });
-                    }
-                }
-
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
-
-                if (failedKhoa.length === 0) {
-                    Swal.fire({ icon: 'success', title: 'Hoàn tất', text: `Đã duyệt ${successCount} khoa`, timer: 2500, showConfirmButton: false });
-                } else {
-                    let html = `Duyệt thành công: ${successCount}/${chuaDuyet.length}<br><br><strong>Không duyệt được:</strong><ul style="text-align:left;">`;
-                    failedKhoa.forEach(f => { html += `<li>${f.khoa}: ${f.message}</li>`; });
-                    html += '</ul>';
-                    Swal.fire({ icon: 'warning', title: 'Kết quả', html });
-                }
-
-                await loadApprovalStatus();
-            }
-
-            // Khởi tạo
-            document.addEventListener('DOMContentLoaded', function() {
-                const namHocSelect = document.getElementById('namHocXem');
-                const loadBtn = document.getElementById('loadDataBtn');
-                const btnDuyetTatCa = document.getElementById('btnDuyetTatCa');
-
-                // Hiển thị nút "Duyệt tất cả" nếu có quyền
-                if (btnDuyetTatCa && canApproveOrRevoke()) {
-                    btnDuyetTatCa.style.display = '';
+            // Hiển thị nút "Duyệt tất cả" nếu có quyền
+            if (btnDuyetTatCa) {
+                if (canApproveOrRevoke()) {
+                    btnDuyetTatCa.style.setProperty('display', 'inline-flex', 'important');
                     btnDuyetTatCa.addEventListener('click', handleApproveAll);
+                } else {
+                    btnDuyetTatCa.style.setProperty('display', 'none', 'important');
                 }
+            }
 
-                // Load trạng thái duyệt sau khi data đã load (delay để đợi renderTable)
-                // Dùng MutationObserver trên tableBody
-                const tableBody = document.getElementById('tableBody');
-                if (tableBody) {
-                    const observer = new MutationObserver(function() {
-                        // Mỗi khi bảng render lại → load lại trạng thái duyệt
-                        loadApprovalStatus();
-                    });
-                    observer.observe(tableBody, { childList: true });
-                }
+            // Load trạng thái duyệt sau khi data đã load
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                const observer = new MutationObserver(function() {
+                    loadApprovalStatus();
+                });
+                observer.observe(tableBody, { childList: true });
+            }
 
-                // Khi đổi năm học → load lại
-                if (namHocSelect) {
-                    namHocSelect.addEventListener('change', () => {
-                        setTimeout(loadApprovalStatus, 300);
-                    });
-                }
+            // Khi đổi năm học -> load lại
+            if (namHocSelect) {
+                namHocSelect.addEventListener('change', () => {
+                    setTimeout(loadApprovalStatus, 300);
+                });
+            }
 
-                // Load lần đầu (delay để đợi loadNamHocOptions + loadData)
-                setTimeout(loadApprovalStatus, 1000);
-            });
-        })();
-        </script>
-
+            // Load lần đầu
+            setTimeout(loadApprovalStatus, 1000);
+        });
+    })();
+    </script>
 </body>
 
 </html>
