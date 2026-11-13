@@ -2,7 +2,7 @@ const createPoolConnection = require("../../config/databasePool");
 const phongBanRepo = require("../../repositories/nckh_v3/phongBan.repo");
 const statsRepo = require("../../repositories/nckh_v3/stats.repo");
 const mapper = require("../../mappers/nckh_v3/stats.mapper");
-const { getTypeByValue } = require("../../config/nckh_v3/types");
+const { getTypeByValue, NCKH_TYPE_OPTIONS } = require("../../config/nckh_v3/types");
 const { STATS_SCOPE, normalizeStatsScope } = require("../../config/nckh_v3/statsScope");
 
 const ensureNamHoc = (namHoc) => {
@@ -223,9 +223,15 @@ const getInstituteSummary = async (namHoc, scope = STATS_SCOPE.OFFICIAL, yearRan
       }),
     ]);
 
+    const sortedTypeRows = (typeRows || []).slice().sort((a, b) => {
+      const idxA = NCKH_TYPE_OPTIONS.findIndex((opt) => opt.loaiNckh === String(a.loai_nckh || "").toUpperCase());
+      const idxB = NCKH_TYPE_OPTIONS.findIndex((opt) => opt.loaiNckh === String(b.loai_nckh || "").toUpperCase());
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+
     return {
       overview: mapper.mapInstituteOverview(overviewRow, lecturerRow),
-      byType: typeRows.map(mapper.mapInstituteTypeRow),
+      byType: sortedTypeRows.map(mapper.mapInstituteTypeRow),
       byFaculty: facultyRows.map(mapper.mapFacultySummaryRow),
     };
   } finally {

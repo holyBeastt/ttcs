@@ -3,6 +3,7 @@ const createPoolConnection = require("../../config/databasePool");
 const exportRepo = require("../../repositories/nckh_v3/export.repo");
 const statsService = require("./stats.service");
 const { STATS_SCOPE } = require("../../config/nckh_v3/statsScope");
+const { NCKH_TYPE_OPTIONS } = require("../../config/nckh_v3/types");
 
 const resolveExportYearFilter = (namHoc, options = {}) => {
   const hasRange = Boolean(String(options.namHocFrom || "").trim() || String(options.namHocTo || "").trim());
@@ -603,7 +604,21 @@ class ExportService {
       if (!groups[label]) groups[label] = [];
       groups[label].push(rec);
     });
-    return groups;
+
+    const sortedGroups = {};
+    const labels = Object.keys(groups).sort((a, b) => {
+      const idxA = NCKH_TYPE_OPTIONS.findIndex(
+        (opt) => opt.label === a || opt.loaiNckh === a || opt.value === a
+      );
+      const idxB = NCKH_TYPE_OPTIONS.findIndex(
+        (opt) => opt.label === b || opt.loaiNckh === b || opt.value === b
+      );
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+    labels.forEach((lbl) => {
+      sortedGroups[lbl] = groups[lbl];
+    });
+    return sortedGroups;
   }
 }
 
