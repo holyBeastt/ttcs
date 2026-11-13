@@ -38,6 +38,58 @@
     .toLowerCase()
     .trim();
 
+  const NCKH_TYPE_ORDER = [
+    "DETAI_DUAN",
+    "BAIBAO",
+    "SANGKIEN",
+    "GIAITHUONG",
+    "DEXUAT",
+    "SACHGIAOTRINH",
+    "HUONGDAN",
+    "HOIDONG",
+  ];
+
+  const NCKH_SLUG_ORDER = [
+    "de-tai-du-an",
+    "bai-bao-khoa-hoc",
+    "sang-kien",
+    "giai-thuong",
+    "de-xuat-nghien-cuu",
+    "sach-giao-trinh",
+    "huong-dan-sv-nckh",
+    "thanh-vien-hoi-dong",
+  ];
+
+  const NCKH_LABEL_ORDER = [
+    "Đề tài, dự án",
+    "Bài báo khoa học",
+    "Sáng kiến",
+    "Giải thưởng và sáng chế",
+    "Đề xuất nghiên cứu",
+    "Sách, giáo trình",
+    "Hướng dẫn SV NCKH",
+    "Thành viên hội đồng khoa học",
+  ];
+
+  function getTypeOrderIndex(typeKey) {
+    if (!typeKey) return 999;
+    const str = String(typeKey).trim();
+    const upper = str.toUpperCase();
+    const idxUpper = NCKH_TYPE_ORDER.indexOf(upper);
+    if (idxUpper !== -1) return idxUpper;
+
+    const lower = str.toLowerCase();
+    const idxSlug = NCKH_SLUG_ORDER.indexOf(lower);
+    if (idxSlug !== -1) return idxSlug;
+
+    const idxLabel = NCKH_LABEL_ORDER.findIndex(
+      (lbl) => lbl.toLowerCase() === lower
+    );
+    if (idxLabel !== -1) return idxLabel;
+
+    return 999;
+  }
+
   function cacheElements() {
     el.exportNamHocFrom = document.getElementById("officialExportNamHocFrom");
     el.exportNamHocTo = document.getElementById("officialExportNamHocTo");
@@ -84,17 +136,13 @@
   }
 
   function renderFacultyGroups(groups) {
-    if (isPreview) {
-      return renderGroups(groups);
-    }
-
     const colspan = 9;
     const typeMap = new Map();
     let index = 0;
     groups.forEach((faculty) => (faculty.records || []).forEach((row) => {
-        const key = row.loaiNckh || row.loaiNckhLabel || "OTHER";
+        const key = row.loaiNckh || row.typeSlug || row.loaiNckhLabel || "OTHER";
         if (!typeMap.has(key)) {
-          typeMap.set(key, { label: row.loaiNckhLabel || row.loaiNckh || "Khác", faculties: new Map() });
+          typeMap.set(key, { key, label: row.loaiNckhLabel || row.loaiNckh || "Khác", faculties: new Map() });
         }
         const typeGroup = typeMap.get(key);
         if (!typeGroup.faculties.has(faculty.label)) {
@@ -103,13 +151,22 @@
         typeGroup.faculties.get(faculty.label).records.push(row);
       }));
 
-    const body = typeMap.size ? Array.from(typeMap.values()).map((typeGroup) => {
+    const sortedTypeGroups = Array.from(typeMap.values()).sort((a, b) => {
+      return getTypeOrderIndex(a.key) - getTypeOrderIndex(b.key);
+    });
+
+    const isSingleFaculty = (el.khoa?.value || "ALL") !== "ALL" || groups.length === 1;
+
+    const body = sortedTypeGroups.length ? sortedTypeGroups.map((typeGroup) => {
       const facultyGroups = Array.from(typeGroup.faculties.values());
       const typeRecords = facultyGroups.flatMap((faculty) => faculty.records);
       const typeHours = typeRecords.reduce((total, row) => total + Number(row.tongSoTietCongTrinh || 0), 0);
       const facultyRows = facultyGroups.map((faculty) => {
         const facultyHours = faculty.records.reduce((total, row) => total + Number(row.tongSoTietCongTrinh || 0), 0);
         const records = faculty.records.map((row) => `<tr><td>${++index}</td>${recordCells(row)}</tr>`).join("");
+        if (isSingleFaculty) {
+          return records;
+        }
         return `<tr class="table-light nckh-stats-subgroup-header"><td colspan="${colspan}"><strong>${escape(faculty.label)}</strong><span class="nckh-v3-group-count">${faculty.records.length} công trình</span><span class="nckh-v3-group-count">${hours(facultyHours)} tiết</span></td></tr>${records}`;
       }).join("");
 
@@ -170,7 +227,10 @@
     state.lecturerGroups = await Promise.all(summary.map(async (row) => {
       const recordsResult = await api.lecturerRecords(row.lecturerId, namHocFrom, namHocTo);
       if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình giảng viên");
-      return { lecturerId: row.lecturerId, label: `${row.tenNhanVien} - ${row.maPhongBan || "Chưa có khoa"}`, records: recordsResult.data || [], totalHours: row.tongSoTietGiangVien };
+      const records = (recordsResult.data || []).slice().sort((a, b) => {
+        return getTypeOrderIndex(a.loaiNckh || a.typeSlug || a.loaiNckhLabel) - getTypeOrderIndex(b.loaiNckh || b.typeSlug || b.loaiNckhLabel);
+      });
+      return { lecturerId: row.lecturerId, label: `${row.tenNhanVien} - ${row.maPhongBan || "Chưa có khoa"}`, records, totalHours: row.tongSoTietGiangVien };
     }));
     state.availableLecturers = summary;
     renderExportLecturerOptions();
@@ -185,7 +245,10 @@
       if (row.khoaId === null || row.khoaId === undefined) return { label: row.tenPhongBan, records: [], totalHours: row.tongSoTiet };
       const recordsResult = await api.facultyRecords(row.khoaId, namHocFrom, namHocTo);
       if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình theo khoa");
-      return { label: `${row.maPhongBan || "-"} - ${row.tenPhongBan || "Chưa gán khoa"}`, records: recordsResult.data || [], totalHours: row.tongSoTiet };
+      const records = (recordsResult.data || []).slice().sort((a, b) => {
+        return getTypeOrderIndex(a.loaiNckh || a.typeSlug || a.loaiNckhLabel) - getTypeOrderIndex(b.loaiNckh || b.typeSlug || b.loaiNckhLabel);
+      });
+      return { label: `${row.maPhongBan || "-"} - ${row.tenPhongBan || "Chưa gán khoa"}`, records, totalHours: row.tongSoTiet };
     }));
     setKpis(isPreview ? "Khoa / phòng" : "Khoa", summary.length, summary.reduce((total, row) => total + Number(row.tongSoTiet || 0), 0), "Tổng công trình", summary.reduce((total, row) => total + Number(row.soCongTrinh || 0), 0));
     el.content.innerHTML = renderFacultyGroups(groups);
@@ -196,10 +259,15 @@
     if (!result.success) throw new Error(result.message || "Không thể lấy thống kê học viện");
 
     const summary = result.data || {};
-    const groups = await Promise.all((summary.byType || []).map(async (row) => {
+    const byType = (summary.byType || []).slice().sort((a, b) => {
+      return getTypeOrderIndex(a.loaiNckh || a.typeSlug || a.loaiNckhLabel) - getTypeOrderIndex(b.loaiNckh || b.typeSlug || b.loaiNckhLabel);
+    });
+
+    const groups = await Promise.all(byType.map(async (row) => {
       const recordsResult = await api.instituteRecords(namHocFrom, namHocTo, row.typeSlug || "ALL");
       if (!recordsResult.success) throw new Error(recordsResult.message || "Không thể lấy công trình theo loại NCKH");
       return {
+        key: row.loaiNckh || row.typeSlug,
         label: row.loaiNckhLabel || row.loaiNckh || "N/A",
         records: recordsResult.data || [],
         totalHours: row.tongSoTiet,
