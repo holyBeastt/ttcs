@@ -10,12 +10,18 @@ let currentType = 'A';   // 'A' = Kê khai cá nhân  |  'B' = Tổng hợp
 let currentScope = 'all'; // 'all' | 'khoa' | 'gv'
 let lockStatusCache = {}; // { namHoc: { locked: bool, lockInfo: object } }
 
+let giangVienList = [];
+let selectedTeacherId = null;
+let selectedTeacherName = '';
+let activeSuggestionIndex = -1;
+
 /* ════════════════════════════════════════════════════
    Boot
    ════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function () {
     loadNamHocOptions();
     loadKhoaOptions();
+    setupGiangVienAutocomplete();
 
     // Listen for năm học changes to check lock status
     document.getElementById('namHocA')?.addEventListener('change', () => checkLockStatus('A'));
@@ -136,25 +142,154 @@ async function loadKhoaOptions() {
 
 async function loadGiangVienByKhoa() {
     const khoa  = document.getElementById('khoaA')?.value || 'ALL';
-    const select = document.getElementById('giangVienA');
-    if (!select) return;
+    const input = document.getElementById('giangVienA');
+    const hiddenId = document.getElementById('giangVienIdA');
 
     try {
         const res  = await fetch(`/v2/vuotgio/api/teachers?Khoa=${encodeURIComponent(khoa)}`);
         const data = await res.json();
 
-        select.innerHTML = '<option value="">— Chọn giảng viên —</option>';
-        data.forEach(gv => {
-            const opt = document.createElement('option');
-            opt.value = gv.id_User || gv.HoTen;
-            opt.textContent = `${gv.HoTen}${gv.Khoa ? ` (${gv.Khoa})` : ''}`;
-            select.appendChild(opt);
-        });
+        giangVienList = (Array.isArray(data) ? data : []).map(gv => ({
+            id: gv.id_User || gv.id,
+            HoTen: gv.HoTen || '',
+            Khoa: gv.Khoa || ''
+        })).filter(gv => gv.HoTen);
+
+        // Nếu đã chọn một giảng viên nhưng không thuộc khoa mới lọc (khi khoa !== 'ALL')
+        if (khoa !== 'ALL' && selectedTeacherId) {
+            const exists = giangVienList.some(gv => String(gv.id) === String(selectedTeacherId));
+            if (!exists) {
+                if (input) input.value = '';
+                if (hiddenId) hiddenId.value = '';
+                selectedTeacherId = null;
+                selectedTeacherName = '';
+            }
+        }
     } catch (err) {
         console.error('[xuatFile] loadGiangVien error:', err);
-        const select = document.getElementById('giangVienA');
-        if (select) select.innerHTML = '<option value="">— Chọn giảng viên —</option>';
+        giangVienList = [];
     }
+}
+
+/* ════════════════════════════════════════════════════
+   Autocomplete Giảng Viên
+   ════════════════════════════════════════════════════ */
+function setupGiangVienAutocomplete() {
+    const input = document.getElementById('giangVienA');
+    const container = document.getElementById('suggestionContainer');
+    const hiddenId = document.getElementById('giangVienIdA');
+    if (!input || !container) return;
+
+    function renderSuggestions(query = '') {
+        const normalizedQuery = removeVietnameseTones(query).toLowerCase().trim();
+        const rawQuery = query.toLowerCase().trim();
+
+        let filtered = giangVienList;
+        if (normalizedQuery) {
+            filtered = giangVienList.filter(gv => {
+                const nameNoTone = removeVietnameseTones(gv.HoTen).toLowerCase();
+                const nameRaw = (gv.HoTen || '').toLowerCase();
+                const khoaRaw = (gv.Khoa || '').toLowerCase();
+                return nameNoTone.includes(normalizedQuery) || nameRaw.includes(rawQuery) || khoaRaw.includes(rawQuery);
+            });
+        }
+
+        const listToDisplay = filtered.slice(0, 15);
+        activeSuggestionIndex = -1;
+
+        if (listToDisplay.length === 0) {
+            container.innerHTML = '<div class="suggestion-empty"><i class="fas fa-magnifying-glass me-1"></i> Không tìm thấy giảng viên phù hợp</div>';
+            container.classList.add('show');
+            return;
+        }
+
+        container.innerHTML = listToDisplay.map(gv => {
+            const metaTag = gv.Khoa ? `<span class="teacher-meta">${escapeHtml(gv.Khoa)}</span>` : '';
+            return `
+                <div class="suggestion-item" data-id="${escapeHtml(gv.id)}" data-name="${escapeHtml(gv.HoTen)}" data-khoa="${escapeHtml(gv.Khoa)}">
+                    <i class="fa-solid fa-circle-user text-primary" style="font-size: 1rem;"></i>
+                    <span class="teacher-name">${escapeHtml(gv.HoTen)}</span>
+                    ${metaTag}
+                </div>`;
+        }).join('');
+
+        container.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectTeacher(item.dataset.id, item.dataset.name, item.dataset.khoa);
+            });
+        });
+
+        container.classList.add('show');
+    }
+
+    function selectTeacher(id, name, khoa) {
+        input.value = name;
+        if (hiddenId) hiddenId.value = id;
+        selectedTeacherId = id;
+        selectedTeacherName = name;
+        container.classList.remove('show');
+        activeSuggestionIndex = -1;
+    }
+
+    input.addEventListener('input', () => {
+        const val = input.value;
+        if (val.trim() !== selectedTeacherName) {
+            selectedTeacherId = null;
+            if (hiddenId) hiddenId.value = '';
+        }
+        renderSuggestions(val);
+    });
+
+    input.addEventListener('focus', () => {
+        renderSuggestions(input.value);
+    });
+
+    input.addEventListener('keydown', (e) => {
+        const items = container.querySelectorAll('.suggestion-item');
+        if (!container.classList.contains('show') || items.length === 0) {
+            if (e.key === 'ArrowDown') {
+                renderSuggestions(input.value);
+            }
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
+            updateActiveItem(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
+            updateActiveItem(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeSuggestionIndex >= 0 && activeSuggestionIndex < items.length) {
+                const item = items[activeSuggestionIndex];
+                selectTeacher(item.dataset.id, item.dataset.name, item.dataset.khoa);
+            }
+        } else if (e.key === 'Escape') {
+            container.classList.remove('show');
+            activeSuggestionIndex = -1;
+        }
+    });
+
+    function updateActiveItem(items) {
+        items.forEach((it, idx) => {
+            it.classList.toggle('active', idx === activeSuggestionIndex);
+            if (idx === activeSuggestionIndex) {
+                it.scrollIntoView({ block: 'nearest' });
+            }
+        });
+    }
+
+    // Đóng dropdown khi click ra ngoài
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.autocomplete-container')) {
+            container.classList.remove('show');
+            activeSuggestionIndex = -1;
+        }
+    });
 }
 
 /* ════════════════════════════════════════════════════
@@ -235,10 +370,25 @@ async function exportTypeA() {
 
     } else if (currentScope === 'gv') {
         const khoa = document.getElementById('khoaA')?.value;
-        const gv   = document.getElementById('giangVienA')?.value;
-        if (!gv) return Swal.fire('Thiếu thông tin', 'Vui lòng chọn Giảng viên', 'warning');
+        const gvInput = document.getElementById('giangVienA')?.value?.trim();
+        if (!gvInput) return Swal.fire('Thiếu thông tin', 'Vui lòng nhập tên Giảng viên', 'warning');
+
+        let gvVal = document.getElementById('giangVienIdA')?.value || selectedTeacherId;
+        if (!gvVal || gvInput.toLowerCase() !== (selectedTeacherName || '').toLowerCase()) {
+            const match = giangVienList.find(gv =>
+                normalizeString(gv.HoTen).toLowerCase() === normalizeString(gvInput).toLowerCase()
+            ) || giangVienList.find(gv =>
+                removeVietnameseTones(gv.HoTen).toLowerCase() === removeVietnameseTones(gvInput).toLowerCase()
+            );
+            if (match) {
+                gvVal = match.id;
+            } else {
+                gvVal = gvInput;
+            }
+        }
+
         if (khoa && khoa !== 'ALL') query.set('khoa', khoa);
-        query.set('giangVien', gv);
+        query.set('giangVien', gvVal);
     }
     // scope === 'all' → không cần thêm khoa / giangVien
 
@@ -314,3 +464,30 @@ function showLoading(msg) {
     });
 }
 function hideLoading() { Swal.close(); }
+
+/* ════════════════════════════════════════════════════
+   String Helpers
+   ════════════════════════════════════════════════════ */
+function removeVietnameseTones(str) {
+    if (!str) return '';
+    return String(str)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D');
+}
+
+function normalizeString(str) {
+    if (!str) return '';
+    return String(str).normalize('NFC').trim();
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
