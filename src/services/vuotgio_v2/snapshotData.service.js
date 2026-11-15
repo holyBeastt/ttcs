@@ -151,11 +151,29 @@ const getSnapshotSDOByUser = async (namHoc, idUser) => {
     return withConnection(async (connection) => {
         await requireLocked(connection, namHoc);
 
-        const row = await snapshotRepo.getLatestByUser(connection, namHoc, Number(idUser));
-        if (!row) return null;
+        const numId = Number(idUser);
+        if (!isNaN(numId) && numId > 0) {
+            const row = await snapshotRepo.getLatestByUser(connection, namHoc, numId);
+            if (row) {
+                const sdo = parseChiTiet(row.chi_tiet);
+                return sdo || null;
+            }
+        }
 
-        const sdo = parseChiTiet(row.chi_tiet);
-        return sdo || null;
+        // Fallback: Tìm theo tên nếu idUser là chuỗi tên giảng viên hoặc không tìm thấy theo ID
+        const rows = await snapshotRepo.getLatestSnapshot(connection, namHoc);
+        const targetStr = String(idUser || '').trim().toLowerCase();
+        for (const r of rows) {
+            const sdo = parseChiTiet(r.chi_tiet);
+            if (sdo && (
+                String(sdo.id_User) === String(idUser) ||
+                String(sdo.giangVien || '').trim().toLowerCase() === targetStr
+            )) {
+                return sdo;
+            }
+        }
+
+        return null;
     });
 };
 
