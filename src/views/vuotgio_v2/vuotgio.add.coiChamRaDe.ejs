@@ -4,17 +4,18 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Coi chấm ra đề thi - Vượt Giờ V2</title>
+    <title>Bảng Tính Vượt Giờ - Coi chấm ra đề thi</title>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Playfair+Display:wght@500&display=swap"
-        rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
-    <!-- Font Awesome -->
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
     <!-- SweetAlert2 -->
@@ -25,48 +26,45 @@
     <link rel="stylesheet" href="/css/styles.css" />
 
     <style>
+        :root {
+            --primary: #1e40af;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
+            --surface: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --border2: #cbd5e1;
+            --text: #0f172a;
+            --text2: #475569;
+            --text3: #64748b;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+
         *,
         *::before,
         *::after {
             box-sizing: border-box;
         }
 
-        :root {
-            --bg: #f5f4f0;
-            --surface: #ffffff;
-            --surface2: #f9f8f5;
-            --border: #e2e0d8;
-            --border2: #d0cdbb;
-            --text: #1a1916;
-            --text2: #6b6860;
-            --text3: #9a9890;
-            --accent: #2d5a3d;
-            --accent-light: #eaf3de;
-            --accent-text: #1b3d27;
-            --blue: #1a3f6f;
-            --blue-light: #e6eff9;
-            --radius: 10px;
-            --radius-sm: 6px;
-            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
-        }
-
         body {
-            font-family: 'Be Vietnam Pro', sans-serif;
-            background: var(--bg);
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--surface);
             color: var(--text);
             font-size: 14px;
             line-height: 1.6;
         }
 
+        /* ── Page Header (Format Cũ - Styled Hiện Đại) ── */
         .page-header {
-            background: var(--surface);
+            background: var(--card-bg);
             border-bottom: 1px solid var(--border);
-            padding: 24px 28px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 20px 28px;
             box-shadow: var(--shadow);
+            margin-bottom: 0;
         }
 
         .header-inner {
@@ -74,28 +72,37 @@
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
             gap: 20px;
         }
 
         .header-title-group h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 24px;
-            font-weight: 500;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--text);
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .header-title-group p {
             font-size: 12px;
             color: var(--text3);
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
+            font-weight: 600;
             margin: 0;
         }
 
         .header-total {
             text-align: right;
             flex-shrink: 0;
+            background: var(--primary-light);
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius);
+            padding: 8px 18px;
+            box-shadow: 0 1px 2px rgba(30, 64, 175, 0.06);
         }
 
         .total-label {
@@ -103,27 +110,40 @@
             color: var(--text3);
             text-transform: uppercase;
             letter-spacing: 0.06em;
+            font-weight: 600;
+            margin-bottom: 2px;
         }
 
         .total-value {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--accent);
-            line-height: 1.1;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
         }
 
+        /* ── Main Container ── */
         .main {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 24px 28px 48px;
+            padding: 24px 20px 48px;
         }
 
+        /* ── Data Lock Banner ── */
+        #dataLockBanner {
+            border-radius: var(--radius);
+            padding: 12px 18px;
+            font-weight: 500;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        /* ── Meta Card (Format Cũ) ── */
         .meta-card {
-            background: var(--surface);
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 18px;
+            padding: 22px 24px;
             margin-bottom: 18px;
         }
 
@@ -132,243 +152,232 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
         }
 
         .meta-title {
             margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--accent);
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.01em;
         }
 
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .meta-grid-2 {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
+        .meta-title i {
+            font-size: 1.15rem;
         }
 
         .meta-grid-3 {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: start;
+        }
+
+        .meta-card .form-label {
+            font-size: 0.83rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-height: 22px;
+            line-height: 1.4;
         }
 
         .required {
-            color: #dc3545;
+            color: #ef4444;
+            font-weight: 700;
         }
 
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(160px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
+        .meta-card .form-control,
+        .meta-card .form-select,
+        .meta-card select {
+            height: 38px !important;
+            margin: 0 !important;
+            margin-top: 0 !important;
+            padding: 6px 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: var(--radius-sm) !important;
+            background-color: #ffffff !important;
+            color: var(--text) !important;
+            font-weight: 500 !important;
+            box-sizing: border-box !important;
+            line-height: 1.5 !important;
+            vertical-align: middle !important;
+            transition: all 0.2s ease;
         }
 
-        .sum-card {
-            background: var(--surface);
+        .meta-card .form-control:focus,
+        .meta-card .form-select:focus,
+        .meta-card select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        .meta-card .form-control::placeholder {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        /* ── Autocomplete Giảng Viên ── */
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .suggestion-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 1050;
+            display: none;
+            box-shadow: var(--shadow-md);
+            padding: 4px 0;
         }
 
-        .sc-label {
-            font-size: 11px;
-            color: var(--text3);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
+        .suggestion-list.show {
+            display: block;
         }
 
-        .sc-val {
-            font-size: 22px;
-            font-weight: 600;
+        .suggestion-item {
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 0.88rem;
             color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #f8fafc;
+            transition: background 0.15s, color 0.15s;
         }
 
-        .sc-unit {
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .suggestion-item .teacher-name {
+            font-weight: 600;
+        }
+
+        .suggestion-item .teacher-meta {
+            font-size: 0.78rem;
             color: var(--text3);
-            font-size: 12px;
+            margin-left: auto;
+            background: #f1f5f9;
+            padding: 2px 7px;
+            border-radius: 4px;
         }
 
+        /* ── Table / Section KTHP (#app - Format Cũ) ── */
         .section {
-            background: var(--surface);
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            margin-bottom: 14px;
-            transition: box-shadow 0.2s;
+            margin-bottom: 20px;
         }
 
-        .section:hover {
-            box-shadow: var(--shadow-md);
-        }
-
-        .section-header {
+        .col-headers.direct-qc-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding: 14px 20px;
-            background: var(--surface2);
+            padding: 12px 24px;
+            background: #f8fafc;
             border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .sec-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sec-badge {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--text);
-            color: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .sec-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .sec-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sec-total-pill {
-            background: var(--accent-light);
-            color: var(--accent-text);
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 20px;
-            padding: 4px 12px;
-        }
-
-        .sec-arrow {
-            font-size: 11px;
-            color: var(--text3);
-            transition: transform 0.2s;
-        }
-
-        .sec-arrow.open {
-            transform: rotate(180deg);
-        }
-
-        .col-headers,
-        .item-row {
-            display: grid;
-            grid-template-columns: 1fr 90px 110px 90px 90px;
-            padding: 0 20px;
-            align-items: center;
-        }
-
-        .col-headers {
-            border-bottom: 1px solid var(--border);
-            background: #fafaf7;
         }
 
         .col-headers span {
-            font-size: 10px;
+            font-size: 0.8rem;
             color: var(--text3);
             text-transform: uppercase;
-            letter-spacing: 0.07em;
-            font-weight: 600;
-            text-align: center;
-            padding: 8px 6px;
+            letter-spacing: 0.06em;
+            font-weight: 700;
         }
 
-        .col-headers span:first-child {
-            text-align: left;
-            padding-left: 0;
-        }
-
-        .direct-qc-header,
-        .direct-qc-row {
-            grid-template-columns: 1fr 180px;
-        }
-
-        .direct-qc-header span:last-child {
-            text-align: center;
-        }
-
-        .item-row {
+        .item-row.direct-qc-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
             border-bottom: 1px solid var(--border);
-            transition: background 0.1s;
+            transition: background 0.15s ease;
         }
 
-        .item-row:last-child {
+        .item-row.direct-qc-row:last-child {
             border-bottom: none;
         }
 
-        .item-row:hover {
-            background: #fcfbf8;
+        .item-row.direct-qc-row:hover {
+            background: #f8fafc;
+        }
+
+        .item-row.direct-qc-row.has-val {
+            background: #f0f7ff;
         }
 
         .i-label {
-            padding: 10px 0;
-            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
             color: var(--text);
-            line-height: 1.45;
-            padding-right: 10px;
         }
 
-        .i-dvt,
-        .i-gio,
-        .i-result {
-            font-size: 12px;
-            text-align: center;
-            padding: 10px 6px;
+        .i-icon-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
         }
 
-        .i-dvt {
-            color: var(--text2);
-        }
-
-        .i-gio {
-            color: var(--blue);
-            font-weight: 500;
-        }
+        .badge-ra-de { background: #eff6ff; color: #2563eb; }
+        .badge-coi-thi { background: #ecfdf5; color: #059669; }
+        .badge-cham-thi { background: #f5f3ff; color: #7c3aed; }
+        .badge-ngan-hang { background: #fffbeb; color: #d97706; }
 
         .i-input {
-            text-align: center;
-            padding: 7px 6px;
+            text-align: right;
         }
 
         .i-input input {
-            width: 74px;
+            width: 80px;
             text-align: center;
-            border: 1px solid var(--border2);
+            border: 1px solid #cbd5e1;
             border-radius: var(--radius-sm);
-            background: var(--surface);
+            background: #ffffff;
             padding: 6px 8px;
-            font-weight: 500;
+            font-size: 0.95rem;
+            font-weight: 600;
             color: var(--text);
             appearance: textfield;
             -moz-appearance: textfield;
+            transition: all 0.2s ease;
         }
 
         .i-input input::-webkit-inner-spin-button,
@@ -379,187 +388,144 @@
 
         .i-input input:focus {
             outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.12);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: #ffffff;
         }
 
         .i-input input.has-val {
-            background: var(--accent-light);
-            border-color: var(--accent);
-            color: var(--accent-text);
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: #1e40af;
         }
 
-        .i-result {
-            color: var(--accent-text);
-            font-weight: 600;
-        }
-
-        .i-result.zero {
-            color: var(--text3);
-            font-weight: 400;
-        }
-
-        .coeff-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            border-bottom: 1px solid var(--border);
-            background: var(--blue-light);
-            padding: 10px 20px;
-        }
-
-        .coeff-text {
-            font-size: 12px;
-            color: var(--blue);
-            font-style: italic;
-            flex: 1;
-        }
-
-        .coeff-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--blue);
-            cursor: pointer;
-        }
-
-        .coeff-label input[type=checkbox] {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--blue);
-            cursor: pointer;
-        }
-
-        .info-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid var(--border);
-            background: #fafaf7;
-            padding: 9px 20px;
-        }
-
-        .info-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--text3);
-            flex-shrink: 0;
-        }
-
-        .info-text {
-            font-size: 12px;
-            color: var(--text3);
-            font-style: italic;
-        }
-
-        .autocomplete-container {
-            position: relative;
-        }
-
-        .suggestion-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-
-        .suggestion-list.show {
-            display: block;
-        }
-
-        .suggestion-item {
-            padding: 8px 12px;
-            cursor: pointer;
-            color: #333;
-        }
-
-        .suggestion-item:hover {
-            background: #f0f0f0;
-        }
-
+        /* ── Action Bar & Button Overrides (High Contrast, Crisp Text) ── */
         .action-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            margin-top: 26px;
+            margin-top: 20px;
             padding-top: 18px;
             border-top: 1px solid var(--border);
         }
 
-        @media (max-width: 992px) {
-            .meta-grid,
-            .meta-grid-2,
-            .meta-grid-3,
-            .summary-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+        .action-bar .btn,
+        .meta-card .btn {
+            height: 38px !important;
+            padding: 0 18px !important;
+            font-size: 0.88rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.02em !important;
+            border-radius: var(--radius-sm) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            margin-bottom: 0 !important;
+            text-transform: none !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
         }
 
-        @media (max-width: 700px) {
-            .page-header {
-                padding: 16px;
-            }
+        /* Disable the global sliding pseudo-element from styles.css */
+        .action-bar .btn::before,
+        .meta-card .btn::before {
+            display: none !important;
+        }
 
-            .main {
-                padding: 16px 12px 40px;
-            }
+        /* Nút Lưu lại (Primary) */
+        .action-bar .btn-primary,
+        #themKTHPFormSubmit {
+            background-color: #1e40af !important;
+            border: 1.5px solid #1e40af !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(30, 64, 175, 0.25) !important;
+        }
 
+        .action-bar .btn-primary:hover,
+        #themKTHPFormSubmit:hover {
+            background-color: #1d4ed8 !important;
+            border-color: #1d4ed8 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(30, 64, 175, 0.35) !important;
+        }
+
+        /* Nút Xóa toàn bộ (Danger Outline) */
+        .action-bar .btn-outline-danger,
+        #resetCalculatorBtn {
+            background-color: #ffffff !important;
+            border: 1.5px solid #dc2626 !important;
+            color: #dc2626 !important;
+        }
+
+        .action-bar .btn-outline-danger:hover,
+        #resetCalculatorBtn:hover {
+            background-color: #dc2626 !important;
+            border-color: #dc2626 !important;
+            color: #ffffff !important;
+            box-shadow: 0 3px 8px rgba(220, 38, 38, 0.2) !important;
+        }
+
+        /* Nút Về danh sách / Danh sách coi, chấm, ra đề (Secondary Outline) */
+        .action-bar .btn-outline-secondary,
+        .meta-card .btn-outline-secondary {
+            background-color: #ffffff !important;
+            border: 1.5px solid #475569 !important;
+            color: #1e293b !important;
+        }
+
+        .action-bar .btn-outline-secondary:hover,
+        .meta-card .btn-outline-secondary:hover {
+            background-color: #f1f5f9 !important;
+            border-color: #1e293b !important;
+            color: #0f172a !important;
+        }
+
+        /* Nút Thêm bằng file (Primary Outline) */
+        .meta-card .btn-outline-primary,
+        #btn-import-kthp {
+            background-color: #ffffff !important;
+            border: 1.5px solid #1e40af !important;
+            color: #1e40af !important;
+        }
+
+        .meta-card .btn-outline-primary:hover,
+        #btn-import-kthp:hover {
+            background-color: #1e40af !important;
+            border-color: #1e40af !important;
+            color: #ffffff !important;
+        }
+
+        @media (max-width: 768px) {
             .header-inner {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
-            .meta-grid,
-            .meta-grid-2,
-            .meta-grid-3,
-            .summary-grid {
+            .header-total {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .meta-grid-3 {
                 grid-template-columns: 1fr;
             }
 
-            .col-headers {
-                display: none;
-            }
-
-            .item-row {
-                grid-template-columns: 1fr auto;
-                grid-template-rows: auto auto;
-                gap: 0;
-            }
-
-            .i-dvt,
-            .i-gio {
-                display: none;
+            .col-headers.direct-qc-header,
+            .item-row.direct-qc-row {
+                padding: 12px 14px;
             }
 
             .i-label {
-                grid-column: 1;
-                grid-row: 1;
+                font-size: 0.85rem;
             }
 
-            .i-input {
-                grid-column: 2;
-                grid-row: 1 / 3;
-                padding-left: 8px;
-            }
-
-            .i-result {
-                grid-column: 1;
-                grid-row: 2;
-                text-align: left;
-                padding: 0 0 8px;
+            .i-input input {
+                width: 70px;
             }
         }
     </style>
@@ -568,10 +534,14 @@
 <body>
     <%- include('../header') %>
 
+    <!-- Header theo format cũ với màu sắc & font chữ hiện đại -->
     <header class="page-header">
         <div class="header-inner">
             <div class="header-title-group">
-                <h1>Bảng Tính Vượt Giờ</h1>
+                <h1>
+                    <i class="fa-solid fa-calculator text-primary"></i>
+                    Bảng Tính Vượt Giờ
+                </h1>
                 <p>Coi thi · Chấm thi · Ra đề · Ngân hàng câu hỏi</p>
             </div>
             <div class="header-total">
@@ -589,51 +559,57 @@
         </div>
 
         <form id="themKTHPForm">
+            <!-- Hidden inputs retained for backward compatibility -->
+            <input type="hidden" id="tenHPForm" value="" />
+            <input type="hidden" id="maHPForm" value="" />
+            <input type="hidden" id="soTCForm" value="0" />
+            <input type="hidden" id="heSoForm" value="0" />
+            <input type="hidden" id="ngayThiForm" value="" />
+            <input type="hidden" id="caThiForm" value="" />
+            <input type="hidden" id="thoiGianForm" value="0" />
+            <input type="hidden" id="phongThiForm" value="" />
+            <input type="hidden" id="vaiTroForm" value="" />
+
+            <!-- Meta Card: Thông tin kê khai -->
             <div class="meta-card">
                 <div class="meta-top">
                     <h3 class="meta-title">
                         <i class="fas fa-plus-circle me-2"></i>Thông tin kê khai
                     </h3>
-                    <a id="btn-import-kthp" href="/v2/vuotgio/kthp-import" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-file-import me-1"></i>Thêm bằng file
-                    </a>
-                </div>
-
-                <div class="meta-grid d-none">
-                    <div>
-                        <label class="form-label">Khoa <span class="required">*</span></label>
-                        <select id="khoaForm" class="form-select khoa"></select>
+                    <div class="d-flex gap-2">
+                        <a href="/v2/vuotgio/duyet-kthp" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-list me-1"></i>Danh sách coi, chấm, ra đề
+                        </a>
+                        <a id="btn-import-kthp" href="/v2/vuotgio/kthp-import" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-import me-1"></i>Thêm bằng file
+                        </a>
                     </div>
                 </div>
 
-                <div class="meta-grid-2 d-none">
-                    <div>
-                        <label class="form-label">Tên học phần <span class="required">*</span></label>
-                        <input type="text" id="tenHPForm" class="form-control" placeholder="Nhập tên học phần" />
-                    </div>
-                    <div>
-                        <label class="form-label">Mã HP</label>
-                        <input type="text" id="maHPForm" class="form-control" placeholder="Mã học phần" />
-                    </div>
-                    <div>
-                        <label class="form-label">Số TC</label>
-                        <input type="number" id="soTCForm" class="form-control" value="0" min="0" />
-                    </div>
+                <!-- Khoa tự động nhận diện theo giảng viên (ẩn ngầm) -->
+                <div class="d-none">
+                    <select id="khoaForm" class="form-select khoa"></select>
                 </div>
 
                 <div class="meta-grid-3">
                     <div class="autocomplete-container">
-                        <label class="form-label">Giảng viên <span class="required">*</span></label>
+                        <label class="form-label">
+                            <i class="fa-solid fa-user-tie text-primary me-1"></i>Giảng viên <span class="required">*</span>
+                        </label>
                         <input type="text" id="giangVienForm" class="form-control" placeholder="Nhập tên giảng viên..."
                             autocomplete="off" required />
                         <div id="suggestionContainer" class="suggestion-list"></div>
                     </div>
                     <div>
-                        <label class="form-label">Năm học <span class="required">*</span></label>
+                        <label class="form-label">
+                            <i class="fa-regular fa-calendar-days text-primary me-1"></i>Năm học <span class="required">*</span>
+                        </label>
                         <select id="namHocForm" class="form-select namHoc" required></select>
                     </div>
                     <div>
-                        <label class="form-label">Kỳ</label>
+                        <label class="form-label">
+                            <i class="fa-regular fa-clock text-primary me-1"></i>Kỳ
+                        </label>
                         <select id="hocKyForm" class="form-select">
                             <option value="1" selected>Kỳ 1</option>
                             <option value="2">Kỳ 2</option>
@@ -644,13 +620,17 @@
 
                 <div class="meta-grid-3">
                     <div>
-                        <label class="form-label">Hệ đào tạo <span class="required">*</span></label>
+                        <label class="form-label">
+                            <i class="fa-solid fa-graduation-cap text-primary me-1"></i>Hệ đào tạo <span class="required">*</span>
+                        </label>
                         <select id="doiTuongForm" class="form-select" required>
                             <option value="">-- Chọn hệ đào tạo --</option>
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Đợt</label>
+                        <label class="form-label">
+                            <i class="fa-solid fa-layer-group text-primary me-1"></i>Đợt
+                        </label>
                         <select id="dotForm" class="form-select">
                             <option value="1" selected>Đợt 1</option>
                             <option value="2">Đợt 2</option>
@@ -659,55 +639,26 @@
                             <option value="5">Đợt 5</option>
                         </select>
                     </div>
-                    <div class="d-none">
-                        <label class="form-label">Hệ số</label>
-                        <input type="number" id="heSoForm" class="form-control" min="0" step="0.01" value="0" />
-                    </div>
-                </div>
-
-                <div class="meta-grid-3 d-none">
-                    <div>
-                        <label class="form-label">Ngày thi</label>
-                        <input type="date" id="ngayThiForm" class="form-control" />
-                    </div>
-                    <div>
-                        <label class="form-label">Ca thi</label>
-                        <input type="text" id="caThiForm" class="form-control" placeholder="VD: Ca 1, 7h30" />
-                    </div>
-                    <div>
-                        <label class="form-label">Thời gian (phút)</label>
-                        <input type="number" id="thoiGianForm" class="form-control" min="0" step="1" value="0" />
-                    </div>
-                </div>
-
-                <div class="meta-grid-3 d-none">
-                    <div>
-                        <label class="form-label">Phòng thi</label>
-                        <input type="text" id="phongThiForm" class="form-control" />
-                    </div>
-                    <div>
-                        <label class="form-label">Vai trò</label>
-                        <input type="text" id="vaiTroForm" class="form-control" placeholder="VD: Chấm 1, Chấm 2" />
-                    </div>
                 </div>
 
                 <div>
-                    <label class="form-label">Ghi chú</label>
+                    <label class="form-label">
+                        <i class="fa-regular fa-comment-dots text-primary me-1"></i>Ghi chú
+                    </label>
                     <input type="text" id="ghiChuForm" class="form-control" placeholder="Ghi chú (nếu có)" />
                 </div>
             </div>
 
+            <!-- Bảng nhập số tiết QC theo hoạt động (Format Cũ) -->
             <div id="app"></div>
 
+            <!-- Thanh nút hành động -->
             <div class="action-bar">
                 <button type="button" id="resetCalculatorBtn" class="btn btn-outline-danger">
                     <i class="fas fa-trash me-1"></i>Xóa toàn bộ
                 </button>
                 <div class="d-flex gap-2">
-                    <!-- <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
-                        <i class="fas fa-print me-1"></i>In / Xuất PDF
-                    </button> -->
-                    <button type="submit" id="themKTHPFormSubmit" class="btn btn-success">
+                    <button type="submit" id="themKTHPFormSubmit" class="btn btn-primary">
                         <i class="fas fa-save me-1"></i>Lưu lại
                     </button>
                 </div>
@@ -761,7 +712,6 @@
         }
 
         function disableButtons() {
-            // Disable save and reset buttons
             var btns = document.querySelectorAll('#themKTHPForm button[type="submit"], #resetCalculatorBtn');
             btns.forEach(function(btn) {
                 btn.disabled = true;

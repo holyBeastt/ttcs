@@ -1,17 +1,40 @@
 /**
  * Thêm Kết Thúc Học Phần - Frontend JS.
  * Logic mới: người dùng nhập trực tiếp số tiết quy chuẩn cho từng loại KTHP;
- * không còn tính từ các dòng định mức chi tiết trên giao diện.
+ * Giữ nguyên format cấu trúc cũ, tinh chỉnh giao diện đẹp và ăn khớp với dự án.
  */
 const sections = [
-    { id: 1, title: "Ra đề thi", activityType: "RA_DE", saveType: "Ra đề" },
-    { id: 2, title: "Coi thi, giám sát", activityType: "COI_THI", saveType: "Coi thi" },
-    { id: 3, title: "Chấm thi", activityType: "CHAM_THI", saveType: "Chấm thi" },
+    {
+        id: 1,
+        title: "Ra đề thi",
+        activityType: "RA_DE",
+        saveType: "Ra đề",
+        icon: "fa-solid fa-file-pen",
+        badgeClass: "badge-ra-de"
+    },
+    {
+        id: 2,
+        title: "Coi thi, giám sát",
+        activityType: "COI_THI",
+        saveType: "Coi thi",
+        icon: "fa-solid fa-user-check",
+        badgeClass: "badge-coi-thi"
+    },
+    {
+        id: 3,
+        title: "Chấm thi",
+        activityType: "CHAM_THI",
+        saveType: "Chấm thi",
+        icon: "fa-solid fa-clipboard-check",
+        badgeClass: "badge-cham-thi"
+    },
     {
         id: 4,
         title: "Xây dựng ngân hàng câu hỏi thi",
         activityType: "NGAN_HANG_CAU_HOI",
         saveType: "Ngân hàng câu hỏi",
+        icon: "fa-solid fa-database",
+        badgeClass: "badge-ngan-hang"
     },
 ];
 
@@ -105,7 +128,7 @@ async function loadKhoaOptions() {
         const khoaSelects = document.querySelectorAll('.khoa');
         khoaSelects.forEach(select => {
             if (!select.id.includes('Xem')) {
-                select.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+                select.innerHTML = '<option value="">-- Chọn Khoa / Bộ môn --</option>';
                 data.forEach(dept => {
                     const option = document.createElement('option');
                     option.value = dept.MaPhongBan;
@@ -150,7 +173,8 @@ async function loadGiangVienList(khoa = '') {
         giangVienList = rawData.map((row) => ({
             id: row.id_User || row.id,
             HoTen: row.HoTen || row.TenNhanVien || '',
-            Khoa: row.Khoa || row.MaPhongBan || ''
+            Khoa: row.Khoa || row.MaPhongBan || '',
+            MonGiangDayChinh: row.MonGiangDayChinh || ''
         })).filter((row) => row.HoTen);
     } catch (error) {
         console.error('Error loading giang vien:', error);
@@ -218,7 +242,8 @@ async function loadHeDaoTaoOptions() {
 function setupAutocomplete(inputId, containerId) {
     const input = document.getElementById(inputId);
     const container = document.getElementById(containerId);
-    
+    if (!input || !container) return;
+
     input.addEventListener('input', () => {
         selectedEmployeeId = null;
         const query = input.value.toLowerCase().trim();
@@ -226,32 +251,41 @@ function setupAutocomplete(inputId, containerId) {
             container.classList.remove('show');
             return;
         }
-        
+
         const suggestions = giangVienList.filter(gv => {
             const name = gv.HoTen || gv.TenNhanVien || '';
             return name.toLowerCase().includes(query);
         }).slice(0, 10);
-        
+
         if (suggestions.length === 0) {
-            container.classList.remove('show');
+            container.innerHTML = `<div class="p-2 text-center text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-magnifying-glass me-1"></i> Không tìm thấy giảng viên</div>`;
+            container.classList.add('show');
             return;
         }
-        
+
         container.innerHTML = suggestions.map(gv => {
             const name = gv.HoTen || gv.TenNhanVien || '';
-            const mon = gv.MonGiangDayChinh ? ` (${gv.MonGiangDayChinh})` : '';
-            return `<div class="suggestion-item" data-id="${gv.id || ''}" data-name="${name}">${name}${mon}</div>`;
+            const metaInfo = gv.MonGiangDayChinh || gv.Khoa || '';
+            const metaTag = metaInfo ? `<span class="teacher-meta">${escapeHtml(metaInfo)}</span>` : '';
+            return `
+                <div class="suggestion-item" data-id="${escapeHtml(gv.id || '')}" data-name="${escapeHtml(name)}">
+                    <i class="fa-solid fa-circle-user text-primary" style="font-size: 1rem;"></i>
+                    <span class="teacher-name">${escapeHtml(name)}</span>
+                    ${metaTag}
+                </div>`;
         }).join('');
-        
+
         container.classList.add('show');
-        
+
         container.querySelectorAll('.suggestion-item').forEach(item => {
             item.addEventListener('click', () => {
                 input.value = item.dataset.name;
                 selectedEmployeeId = item.dataset.id || null;
                 const selected = giangVienList.find((gv) => String(gv.id) === String(selectedEmployeeId));
                 const khoaForm = document.getElementById('khoaForm');
-                if (selected?.Khoa && khoaForm) khoaForm.value = selected.Khoa;
+                if (selected?.Khoa && khoaForm) {
+                    khoaForm.value = selected.Khoa;
+                }
                 container.classList.remove('show');
             });
         });
@@ -261,7 +295,7 @@ function setupAutocomplete(inputId, containerId) {
     input.addEventListener('blur', () => {
         setTimeout(() => {
             container.classList.remove('show');
-        }, 200);
+        }, 250);
     });
 }
 
@@ -352,25 +386,42 @@ function buildDetailsForSave() {
 function render() {
     const app = document.getElementById('app');
     if (!app) return;
+
     app.innerHTML = `
         <div class="section">
             <div class="col-headers direct-qc-header">
                 <span>Nội dung</span>
                 <span>Số tiết QC</span>
             </div>
-            ${sections.map((sec) => `
-                <div class="item-row direct-qc-row">
-                    <div class="i-label">${escapeHtml(sec.title)}</div>
+            ${sections.map((sec) => {
+                const val = state.inputs[sec.id] || '';
+                const hasVal = Number(val) > 0;
+                return `
+                <div class="item-row direct-qc-row ${hasVal ? 'has-val' : ''}" id="row-${sec.id}">
+                    <div class="i-label">
+                        <span class="i-icon-badge ${sec.badgeClass}">
+                            <i class="${sec.icon}"></i>
+                        </span>
+                        <span>${escapeHtml(sec.title)}</span>
+                    </div>
                     <div class="i-input">
                         <input type="number" min="0" step="0.01" placeholder="0"
-                            data-section-id="${sec.id}" value="${state.inputs[sec.id] || ''}"
+                            class="${hasVal ? 'has-val' : ''}"
+                            data-section-id="${sec.id}" value="${val}"
                             aria-label="Số tiết QC - ${escapeHtml(sec.title)}" />
                     </div>
-                </div>`).join('')}
+                </div>`;
+            }).join('')}
         </div>`;
+
     app.querySelectorAll('input[data-section-id]').forEach((input) => {
         input.addEventListener('input', () => {
             window.setInput(input.dataset.sectionId, input.value);
+            const hasValue = Number(input.value) > 0;
+            input.classList.toggle('has-val', hasValue);
+            if (row) {
+                row.classList.toggle('has-val', hasValue);
+            }
         });
     });
     updateSummary();
@@ -394,21 +445,33 @@ function resetCalculator() {
 }
 
 window.resetAll = function resetAll() {
-    if (!confirm('Xóa toàn bộ số liệu đã nhập?')) return;
-    document.getElementById('themKTHPForm').reset();
-    resetCalculator();
+    Swal.fire({
+        title: 'Xác nhận xóa?',
+        text: 'Bạn có chắc chắn muốn xóa toàn bộ số liệu đã nhập?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy bỏ',
+        confirmButtonColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('themKTHPForm').reset();
+            selectedEmployeeId = null;
+            resetCalculator();
+        }
+    });
 };
 
 // Form submit
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     const giangVien = document.getElementById('giangVienForm').value.trim();
     if (!isValidTeacher(giangVien)) {
         Swal.fire('Lỗi', 'Vui lòng chọn giảng viên từ danh sách gợi ý!', 'error');
         return;
     }
-    
+
     const items = buildDetailsForSave();
 
     if (items.length === 0) {
@@ -420,14 +483,13 @@ async function handleFormSubmit(e) {
     const heDaoTaoId = (doiTuongSelect?.value || '').trim();
     const doiTuong = doiTuongSelect?.selectedOptions?.[0]?.dataset?.name || '';
     if (!heDaoTaoId) {
-        Swal.fire('Lỗi', 'Vui lòng chọn Đối tượng cho lớp học phần.', 'error');
+        Swal.fire('Lỗi', 'Vui lòng chọn Hệ đào tạo cho lớp học phần.', 'error');
         return;
     }
 
     const formData = {
         common: {
             academicYear: document.getElementById('namHocForm').value,
-            // Manual defaults: kỳ 1 và đợt 1; người dùng vẫn có thể đổi trên form.
             semester: document.getElementById('hocKyForm')?.value || '1',
             round: document.getElementById('dotForm')?.value || '1',
             employee: {
@@ -439,7 +501,6 @@ async function handleFormSubmit(e) {
                 id: heDaoTaoId,
                 name: doiTuong,
             },
-            // Các metadata không còn nhập trên form: để rỗng/0 theo yêu cầu.
             course: {
                 name: null,
                 code: null,
@@ -454,7 +515,15 @@ async function handleFormSubmit(e) {
         items,
     };
 
+    const submitBtn = document.getElementById('themKTHPFormSubmit');
+    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
     try {
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang kiểm tra...';
+        }
+
         const previewResponse = await fetch('/v2/vuotgio/kthp-import/preview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -483,17 +552,23 @@ async function handleFormSubmit(e) {
         const previewItems = (preview.rows || [])
             .map((row) => describePreviewRow(row.dto))
             .join('<br>');
+
         const confirmation = await Swal.fire({
             title: 'Xác nhận dữ liệu',
             html: `Sẽ lưu <b>${preview.summary.valid}</b> bản ghi.`
-                + (previewItems ? `<br><br>${previewItems}` : '')
-                + (warningText ? `<br><br>${warningText}` : ''),
+                + (previewItems ? `<br><br><div class="text-start bg-light p-2 rounded border" style="font-size: 0.9rem;">${previewItems}</div>` : '')
+                + (warningText ? `<br><div class="text-start alert alert-warning p-2 mt-2 mb-0" style="font-size: 0.85rem;">${warningText}</div>` : ''),
             icon: warningText ? 'warning' : 'question',
             showCancelButton: true,
             confirmButtonText: 'Lưu dữ liệu',
-            cancelButtonText: 'Quay lại'
+            cancelButtonText: 'Quay lại',
+            confirmButtonColor: '#1e40af'
         });
         if (!confirmation.isConfirmed) return;
+
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang lưu...';
+        }
 
         const commitResponse = await fetch('/v2/vuotgio/kthp-import/commit', {
             method: 'POST',
@@ -504,12 +579,24 @@ async function handleFormSubmit(e) {
         if (!commitResponse.ok || !result.success) {
             throw new Error(result.message || 'Không thể lưu dữ liệu');
         }
-        await Swal.fire('Thành công', result.message, 'success');
+
+        await Swal.fire({
+            title: 'Thành công',
+            text: result.message || 'Đã lưu dữ liệu thành công!',
+            icon: 'success',
+            confirmButtonColor: '#1e40af'
+        });
+
         document.getElementById('themKTHPForm').reset();
         selectedEmployeeId = null;
         resetCalculator();
     } catch (error) {
         console.error('Error saving:', error);
         Swal.fire('Lỗi', error.message || 'Có lỗi xảy ra khi lưu', 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        }
     }
 }
