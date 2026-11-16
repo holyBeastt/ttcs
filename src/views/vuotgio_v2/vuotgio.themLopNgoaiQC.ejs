@@ -25,77 +25,139 @@
     <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css" />
 
     <style>
-        /* CSS cho bảng */
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .table th,
-        .table td {
-            padding: 10px;
-            text-align: left;
-            border: 1px solid #dee2e6;
-            white-space: normal;
-            word-wrap: break-word;
-        }
-
-        .table th {
-            background-color: #007bff;
-            color: white;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .table tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        .table tbody tr:hover {
-            background-color: #e2e6ea;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        .bg-custom {
-            background-color: #f8f9fa;
+        .vuotgio-v2-container {
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .header-actions {
+        .grid-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modern Toolbar Card matching Vượt Giờ V2 standards */
+        .kthp-toolbar-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .kthp-toolbar-row {
             display: flex;
+            align-items: flex-end;
+            gap: 12px;
             flex-wrap: wrap;
+        }
+
+        .kthp-filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kthp-filter-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .kthp-filter-group select,
+        .kthp-filter-group .form-select,
+        .kthp-filter-group .selectop,
+        .kthp-toolbar-card select {
+            width: 100% !important;
+            height: 38px !important;
+            padding: 6px 30px 6px 12px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            line-height: 1.5 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+        }
+
+        .kthp-filter-group select:focus,
+        .kthp-filter-group .form-select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
+        }
+
+        .kthp-toolbar-actions {
+            display: flex;
             align-items: center;
             gap: 10px;
-            justify-content: space-between;
         }
 
-        .right {
-            margin-top: 20px;
+        .kthp-toolbar-actions .btn {
+            height: 38px !important;
+            padding: 0 18px !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px;
+            white-space: nowrap !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            margin: 0 !important;
         }
 
-        .btn {
-            height: 45px;
-            margin-left: 5px;
+        .kthp-search-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed #e2e8f0;
+            flex-wrap: wrap;
         }
 
-        .search-input {
-            width: 263px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        .kthp-search-item {
+            flex: 1 1 260px;
+            max-width: 400px;
         }
 
-        .search-container {
-            margin-left: 5px;
-            margin-bottom: 10px;
+        .kthp-search-item .input-group {
+            border: none !important;
+            border-radius: 6px !important;
+        }
+
+        .kthp-search-item .input-group-text {
+            background: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            border-right: none !important;
+            color: #64748b !important;
+            border-radius: 6px 0 0 6px !important;
+            font-size: 0.9rem !important;
+            height: 38px !important;
+        }
+
+        .kthp-search-item input.form-control {
+            height: 38px !important;
+            font-size: 0.88rem !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 0 6px 6px 0 !important;
+            padding: 6px 12px !important;
+            width: auto !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            margin: 0 !important;
+        }
+
+        .kthp-search-item input.form-control:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            outline: none !important;
         }
 
         .custom-header {
@@ -105,24 +167,45 @@
             text-align: center !important;
         }
 
-        .file-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        /* AG Grid Theme Enhancements */
+        .ag-theme-alpine {
+            --ag-header-background-color: #f1f5f9;
+            --ag-header-foreground-color: #1e293b;
+            --ag-border-color: #e2e8f0;
+            --ag-row-hover-color: #f0f9ff;
+            --ag-selected-row-background-color: #e0f2fe;
+            font-size: 0.88rem;
+            border-radius: 8px;
         }
 
-        .file-input-wrapper input[type="file"] {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 6px;
+        .ag-theme-alpine .ag-header-cell-label {
+            font-weight: 600;
+            color: #334155;
+            justify-content: center;
         }
 
-        .input-full {
-            width: 100%;
-            margin-top: 5px;
-            padding: 5px;
-            border: 1px solid #ccc;
+        .ag-theme-alpine button {
+            background-color: #ef4444;
+            color: #ffffff;
+            border: none;
+            padding: 4px 10px;
             border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .ag-theme-alpine button:hover {
+            background-color: #dc2626;
+        }
+
+        .ag-grid-wrapper {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            background: #ffffff;
         }
     </style>
 </head>
@@ -130,177 +213,204 @@
 <body>
     <%- include('../header') %>
 
-        <div class="container-fluid my-4" style="padding-left: 0px">
-            <div class="flex-grow-1">
-                <!-- Data Lock Banner -->
-                <div id="dataLockBanner" class="alert alert-warning align-items-center mb-3 d-none" role="alert">
-                    <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-                    <span id="dataLockMessage"></span>
+    <div class="vuotgio-v2-container">
+        <!-- Data Lock Banner -->
+        <div id="dataLockBanner" class="alert alert-warning align-items-center mb-3 d-none" role="alert">
+            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+            <span id="dataLockMessage"></span>
+        </div>
+
+        <div class="grid-container">
+            <!-- Toolbar Card -->
+            <div class="kthp-toolbar-card">
+                <!-- Row 1: Dropdown Filters + Actions -->
+                <div class="kthp-toolbar-row">
+                    <!-- Combo box Đợt -->
+                    <div class="kthp-filter-group" style="min-width: 100px; flex: 0.8;">
+                        <label for="dotFilter"><i class="bi bi-layers me-1"></i>Đợt</label>
+                        <select class="form-select selectop" id="dotFilter">
+                            <option value="1" selected>Đợt 1</option>
+                            <option value="2">Đợt 2</option>
+                        </select>
+                    </div>
+
+                    <!-- Combo box Kì -->
+                    <div class="kthp-filter-group" style="min-width: 100px; flex: 0.8;">
+                        <label for="hocKyFilter"><i class="bi bi-clock-history me-1"></i>Học kỳ</label>
+                        <select class="form-select selectop" id="hocKyFilter">
+                            <option value="1" selected>Kì 1</option>
+                            <option value="2">Kì 2</option>
+                        </select>
+                    </div>
+
+                    <!-- Combo box Năm học -->
+                    <div class="kthp-filter-group" style="min-width: 140px; flex: 1.2;">
+                        <label for="namHocFilter"><i class="bi bi-calendar3 me-1"></i>Năm học</label>
+                        <select class="form-select selectop" id="namHocFilter">
+                            <option value="">Chọn năm học</option>
+                        </select>
+                    </div>
+
+                    <!-- Combo box Khoa -->
+                    <div class="kthp-filter-group" style="min-width: 160px; flex: 1.5;">
+                        <label for="khoaFilter"><i class="bi bi-building me-1"></i>Khoa</label>
+                        <select class="form-select selectop" id="khoaFilter">
+                            <option value="ALL" selected>Tất cả khoa</option>
+                        </select>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="kthp-toolbar-actions ms-auto">
+                        <button onclick="getDataTable()" class="btn btn-primary" id="render">
+                            <i class="bi bi-search me-1"></i>Hiển thị
+                        </button>
+                        <button class="btn btn-warning fw-semibold text-dark" id="btn-chot" onclick="handleConfirmToMain()">
+                            <i class="bi bi-check2-circle me-1"></i>Ban Hành
+                        </button>
+                        <button class="btn btn-danger" id="btn-xoa" onclick="handleDeleteAll()">
+                            <i class="bi bi-trash me-1"></i>Xóa
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Toolbar -->
-                <div class="header-actions">
-                    <div class="left">
+                <!-- Row 2: Search + File Import + Add Row -->
+                <div class="kthp-search-row">
+                    <div class="kthp-search-item">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" placeholder="Tìm kiếm theo Tên..." class="form-control" id="find-by-name" />
+                        </div>
+                    </div>
+
+                    <div class="kthp-toolbar-actions ms-auto">
                         <!-- File import -->
-                        <div class="file-input-wrapper">
-                            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none" />
-                            <button class="btn btn-success text-nowrap" id="btn-import" onclick="document.getElementById('fileInput').click()">
-                                <i class="bi bi-upload"></i> Import file
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="right" style="margin-top: 0px">
-                        <div class="loc d-flex align-items-center">
-                            <!-- Combo box Đợt -->
-                            <select class="selectop" id="dotFilter" style="width: 100px;">
-                                <option value="1" selected>Đợt 1</option>
-                                <option value="2">Đợt 2</option>
-                            </select>
-
-                            <!-- Combo box Kì -->
-                            <select class="selectop" id="hocKyFilter" style="width: 100px;">
-                                <option value="1" selected>Kì 1</option>
-                                <option value="2">Kì 2</option>
-                            </select>
-
-                            <!-- Combo box Năm học -->
-                            <select class="selectop" id="namHocFilter" style="width: 130px;">
-                                <option value="">Chọn năm học</option>
-                            </select>
-
-                            <!-- Combo box Khoa -->
-                            <select class="selectop" id="khoaFilter" style="width: 150px;">
-                                <option value="ALL" selected>Tất cả khoa</option>
-                            </select>
-
-                            <button onclick="getDataTable()" class="btn text-nowrap" id="render"
-                                style="margin-top: 17px">
-                                Hiển thị
-                            </button>
-                            <button class="btn text-nowrap btn-warning" id="btn-chot" onclick="handleConfirmToMain()"
-                                style="margin-top: 17px">
-                                <i class="bi bi-check2-circle"></i> Ban Hành
-                            </button>
-                            <button class="btn text-nowrap" id="btn-xoa" onclick="handleDeleteAll()"
-                                style="margin-top: 17px">
-                                Xóa
-                            </button>
-                        </div>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none" />
+                        <button class="btn btn-success" id="btn-import" onclick="document.getElementById('fileInput').click()">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i>Import file
+                        </button>
+                        <button class="btn btn-outline-primary" id="add-row-btn" onclick="addNewRow()">
+                            <i class="bi bi-plus-circle me-1"></i>Thêm dòng mới
+                        </button>
                     </div>
                 </div>
+            </div>
 
-                <div class="alert alert-info py-2 px-3 mb-3" role="alert">
-                    <i class="bi bi-info-circle me-1"></i>
+            <!-- Notice Alert -->
+            <div class="alert alert-info d-flex align-items-center py-2 px-3 mb-3 shadow-sm rounded-3" role="alert">
+                <i class="bi bi-info-circle-fill me-2 fs-5 text-primary"></i>
+                <div>
                     Vui lòng chọn <strong>Đợt, Kì và Năm học</strong> trước khi bấm
                     <strong>Thêm dòng mới</strong> để dữ liệu được lưu đúng kỳ.
                 </div>
+            </div>
 
-                <!-- Search -->
-                <div class="search-container">
-                    <input type="text" placeholder="Tìm kiếm theo Tên..." class="search search-input"
-                        id="find-by-name" />
-                </div>
-
-                <!-- AG Grid Table -->
-                <div id="table-container" class="ag-theme-alpine" style="height: 500px; width: 100%">
-                    <table style="width: 100%; border-collapse: collapse" class="table table-bordered">
+            <!-- AG Grid Table Wrapper -->
+            <div class="ag-grid-wrapper">
+                <div id="table-container" class="ag-theme-alpine" style="height: 520px; width: 100%">
+                    <table style="width: 100%; border-collapse: collapse; display: none;" class="table table-bordered">
                         <thead>
                             <tr id="table-header"></tr>
                         </thead>
                         <tbody id="data-table-body"></tbody>
                     </table>
                 </div>
+            </div>
 
-                <!-- Action buttons -->
-                <div style="margin-top: 20px">
-                    <button class="btn text-nowrap" id="add-row-btn" onclick="addNewRow()">
-                        Thêm dòng mới
-                    </button>
-                </div>
-
-                <div id="no-data-message" class="text-center my-3" style="display: none">
-                    Không có dữ liệu để hiển thị.
-                </div>
+            <div id="no-data-message" class="text-center my-4 text-muted fst-italic" style="display: none">
+                <i class="bi bi-inbox fs-3 d-block mb-1"></i>Không có dữ liệu để hiển thị.
             </div>
         </div>
+    </div>
 
-        <!-- Scripts -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-        <script src="/js/TKB/ag-grid-community.min.js"></script>
+    <!-- Import Conflict Modal -->
+    <div id="import-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+        <div class="bg-white p-4 rounded-3 shadow-lg" style="max-width: 460px; width: 90%; margin: 15% auto;">
+            <h5 class="modal-title mb-3 fw-bold text-dark"><i class="bi bi-question-circle text-warning me-2"></i>Xác nhận import</h5>
+            <p id="import-modal-message" class="text-secondary mb-4"></p>
+            <div class="d-flex justify-content-end gap-2">
+                <button id="btn-import-cancel" class="btn btn-secondary px-3">Hủy</button>
+                <button id="btn-import-append" class="btn btn-primary px-3">Chèn thêm</button>
+                <button id="btn-import-delete" class="btn btn-danger px-3">Xóa cũ & Ghi đè</button>
+            </div>
+        </div>
+    </div>
 
-        <!-- Toastify -->
-        <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+    <script src="/js/TKB/ag-grid-community.min.js"></script>
 
-        <!-- Main JS -->
-        <script src="/js/vuotgio_v2/khoaFilter.utils.js"></script>
-        <script src="/js/vuotgio_v2/lopNgoaiQC/themLopNgoaiQC.js"></script>
+    <!-- Toastify -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
-        <!-- Data Lock Check -->
-        <script>
-        (function() {
-            const namHocSelect = document.getElementById('namHocFilter');
-            const banner = document.getElementById('dataLockBanner');
-            const bannerMsg = document.getElementById('dataLockMessage');
+    <!-- Main JS -->
+    <script src="/js/vuotgio_v2/khoaFilter.utils.js"></script>
+    <script src="/js/vuotgio_v2/lopNgoaiQC/themLopNgoaiQC.js"></script>
 
-            function checkLockStatus() {
-                const namHoc = namHocSelect ? namHocSelect.value : '';
-                if (!namHoc) {
-                    banner.classList.add('d-none');
-                    banner.classList.remove('d-flex');
-                    enableButtons();
-                    return;
-                }
-                fetch('/v2/vuotgio/trang-thai-khoa?namHoc=' + encodeURIComponent(namHoc))
-                    .then(function(res) { return res.json(); })
-                    .then(function(data) {
-                        if (data.success && data.locked) {
-                            var info = data.lockInfo;
-                            bannerMsg.textContent = 'Dữ liệu năm học ' + namHoc + ' đã được lưu bởi ' + info.nguoi_khoa + ' vào ' + info.ngay_khoa + '. Không thể chỉnh sửa.';
-                            banner.classList.remove('d-none');
-                            banner.classList.add('d-flex');
-                            disableButtons();
-                        } else {
-                            banner.classList.add('d-none');
-                            banner.classList.remove('d-flex');
-                            enableButtons();
-                        }
-                    })
-                    .catch(function() {
+    <!-- Data Lock Check -->
+    <script>
+    (function() {
+        const namHocSelect = document.getElementById('namHocFilter');
+        const banner = document.getElementById('dataLockBanner');
+        const bannerMsg = document.getElementById('dataLockMessage');
+
+        function checkLockStatus() {
+            const namHoc = namHocSelect ? namHocSelect.value : '';
+            if (!namHoc) {
+                banner.classList.add('d-none');
+                banner.classList.remove('d-flex');
+                enableButtons();
+                return;
+            }
+            fetch('/v2/vuotgio/trang-thai-khoa?namHoc=' + encodeURIComponent(namHoc))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success && data.locked) {
+                        var info = data.lockInfo;
+                        bannerMsg.textContent = 'Dữ liệu năm học ' + namHoc + ' đã được lưu bởi ' + info.nguoi_khoa + ' vào ' + info.ngay_khoa + '. Không thể chỉnh sửa.';
+                        banner.classList.remove('d-none');
+                        banner.classList.add('d-flex');
+                        disableButtons();
+                    } else {
                         banner.classList.add('d-none');
                         banner.classList.remove('d-flex');
                         enableButtons();
-                    });
-            }
-
-            function disableButtons() {
-                var btns = document.querySelectorAll('#btn-import, #btn-chot, #btn-xoa, #add-row-btn');
-                btns.forEach(function(btn) {
-                    btn.disabled = true;
-                    btn.style.opacity = '0.5';
-                    btn.style.pointerEvents = 'none';
+                    }
+                })
+                .catch(function() {
+                    banner.classList.add('d-none');
+                    banner.classList.remove('d-flex');
+                    enableButtons();
                 });
-            }
+        }
 
-            function enableButtons() {
-                var btns = document.querySelectorAll('#btn-import, #btn-chot, #btn-xoa, #add-row-btn');
-                btns.forEach(function(btn) {
-                    btn.disabled = false;
-                    btn.style.opacity = '';
-                    btn.style.pointerEvents = '';
-                });
-            }
+        function disableButtons() {
+            var btns = document.querySelectorAll('#btn-import, #btn-chot, #btn-xoa, #add-row-btn');
+            btns.forEach(function(btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            });
+        }
 
-            if (namHocSelect) {
-                namHocSelect.addEventListener('change', checkLockStatus);
-            }
-            // Check on page load after a short delay to allow year select to populate
-            setTimeout(checkLockStatus, 500);
-        })();
-        </script>
+        function enableButtons() {
+            var btns = document.querySelectorAll('#btn-import, #btn-chot, #btn-xoa, #add-row-btn');
+            btns.forEach(function(btn) {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            });
+        }
+
+        if (namHocSelect) {
+            namHocSelect.addEventListener('change', checkLockStatus);
+        }
+        // Check on page load after a short delay to allow year select to populate
+        setTimeout(checkLockStatus, 500);
+    })();
+    </script>
 </body>
 
 </html>
