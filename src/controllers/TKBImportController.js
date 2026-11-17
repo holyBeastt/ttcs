@@ -138,7 +138,9 @@ const importExcelTKB = async (req, res) => {
           const cell = sheet[cellAddress];
 
           if (cell && cell.w !== undefined) {
-            row[validHeaders[col]] = cell.w; // luôn gán TEXT
+            row[validHeaders[col]] = typeof cell.w === "string" ? cell.w.normalize("NFC").trim() : cell.w; // luôn gán TEXT
+          } else if (typeof row[validHeaders[col]] === "string") {
+            row[validHeaders[col]] = row[validHeaders[col]].normalize("NFC").trim();
           }
         }
 
@@ -200,7 +202,11 @@ const importExcelTKB = async (req, res) => {
     const renamedData = allData.map((row, index) => {
       const newRow = {};
       for (const [oldKey, newKey] of Object.entries(renameMap)) {
-        newRow[newKey] = row[oldKey] ?? "";
+        let val = row[oldKey] ?? "";
+        if (typeof val === "string") {
+          val = val.normalize("NFC").trim();
+        }
+        newRow[newKey] = val;
       }
       newRow.sheet_name = row.sheet_name;
 

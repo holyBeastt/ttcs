@@ -321,16 +321,31 @@
       document.getElementById('getData').addEventListener('click', loadTableData);
 
       // Sự kiện tìm kiếm (như TKB)
-      document.getElementById('find-by-class-name').addEventListener('input', function() {
-        const text = this.value;
-        if (gridApi) {
-          if (gridApi.setGridOption) {
-            gridApi.setGridOption('quickFilterText', text);
-          } else if (typeof gridApi.setQuickFilter === 'function') {
-            gridApi.setQuickFilter(text);
+      const mgSearchInput = document.getElementById('find-by-class-name');
+      if (mgSearchInput) {
+        const applyMgFilter = () => {
+          const text = (mgSearchInput.value || "").normalize("NFC").trim();
+          if (gridApi) {
+            if (gridApi.setGridOption) {
+              gridApi.setGridOption('quickFilterText', text);
+            } else if (typeof gridApi.setQuickFilter === 'function') {
+              gridApi.setQuickFilter(text);
+            }
           }
-        }
-      });
+        };
+
+        mgSearchInput.addEventListener('input', applyMgFilter);
+        mgSearchInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (gridApi) {
+              applyMgFilter();
+            } else {
+              loadTableData();
+            }
+          }
+        });
+      }
 
       // Bắt event Xóa
       document.getElementById('xoa-TKB').addEventListener('click', function() {
@@ -781,7 +796,15 @@
           return;
         }
 
-        globalData = data.results || [];
+        globalData = (data.results || []).map(item => {
+          const row = { ...item };
+          for (const key in row) {
+            if (typeof row[key] === "string") {
+              row[key] = row[key].normalize("NFC");
+            }
+          }
+          return row;
+        });
         if (gridApi.setGridOption) { gridApi.setGridOption('rowData', globalData); } else { gridApi.setRowData(globalData); }
         if (globalData.length === 0) {
           showToast('info', 'Không có dữ liệu cho bộ lọc đã chọn.');

@@ -627,13 +627,27 @@
 
           const data = await response.json();
           
-          // 4. Update global data variable
-          renderData = data; 
+          // 4. Update global data variable (Chuẩn hóa Unicode NFC cho toàn bộ dữ liệu string)
+          renderData = (Array.isArray(data) ? data : []).map(item => {
+            const row = { ...item };
+            for (const key in row) {
+              if (typeof row[key] === "string") {
+                row[key] = row[key].normalize("NFC");
+              }
+            }
+            return row;
+          });
 
           // 5. SMART UPDATE: Check if Grid exists
           if (gridApi) {
             // If grid exists, just swap the data inside (No flicker)
             gridApi.setRowData(renderData);
+
+            // Tự động áp dụng lại bộ lọc nếu ô tìm kiếm đang có nội dung
+            const searchInput = document.getElementById("find-by-class-name");
+            if (searchInput && searchInput.value) {
+              gridApi.setQuickFilter(searchInput.value.normalize("NFC").trim());
+            }
 
             // Handle Empty State
             if (renderData.length === 0) {
@@ -760,6 +774,11 @@
               headerClass: "custom-header",
               filter: false,
 
+              getQuickFilterText: (params) => {
+                const val = params.value;
+                return val != null ? String(val).normalize("NFC") : "";
+              },
+
               valueGetter: (params) => {
                 const field = params.colDef.field;
 
@@ -862,6 +881,8 @@
           };
           heDaoTaoCol.valueFormatter = (params) =>
             heDaoTaoMap[params.value] || "";
+          heDaoTaoCol.getQuickFilterText = (params) =>
+            (heDaoTaoMap[params.value] || "").normalize("NFC");
         }
 
         columnDefs.push({
@@ -1003,6 +1024,10 @@
           onGridReady: (params) => {
               gridApi = params.api; // Assign to global variable
               params.api.sizeColumnsToFit(); // Resize columns
+              const searchInput = document.getElementById("find-by-class-name");
+              if (searchInput && searchInput.value) {
+                  gridApi.setQuickFilter(searchInput.value.normalize("NFC").trim());
+              }
           },
           // Optional: Templates for empty states
           overlayNoRowsTemplate: '<span style="padding: 10px;">Không có dữ liệu</span>',
@@ -1012,13 +1037,27 @@
         tableContainer.innerHTML = ""; // Xóa nội dung cũ trước khi tạo bảng mới
         new agGrid.Grid(tableContainer, gridOptions);
 
-        // ✅ THÊM ĐOẠN NÀY: Xử lý tìm kiếm Global từ bên ngoài
+        // ✅ Xử lý tìm kiếm Global từ bên ngoài và bắt sự kiện Enter
         const searchInput = document.getElementById("find-by-class-name");
-        if (searchInput) {
-            searchInput.addEventListener("input", function (e) {
+        if (searchInput && !searchInput.dataset.listenerAttached) {
+            searchInput.dataset.listenerAttached = "true";
+
+            const applyFilter = () => {
                 if (gridApi) {
-                    // Tính năng tìm kiếm nhanh trên toàn bộ dữ liệu đang hiển thị
-                    gridApi.setQuickFilter(e.target.value); 
+                    const query = (searchInput.value || "").normalize("NFC").trim();
+                    gridApi.setQuickFilter(query);
+                }
+            };
+
+            searchInput.addEventListener("input", applyFilter);
+            searchInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (gridApi) {
+                        applyFilter();
+                    } else {
+                        getDataTable();
+                    }
                 }
             });
         }
