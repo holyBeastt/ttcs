@@ -71,66 +71,185 @@
         z-index: 1000;
       }
 
-      .header-actions {
-        display: flex;
-        /* Flexbox container */
-        flex-wrap: wrap;
-        /* Wrap items if they don't fit in one line */
-        align-items: center;
-        /* Vertically center items */
-        gap: 10px;
-        /* Space between the elements */
-        justify-content: space-between;
+      /* ═══════════════════════════════════════════════════════════════
+         Giao diện Toolbar & Controls đồng nhất với Nghiên cứu khoa học
+         ═══════════════════════════════════════════════════════════════ */
+      .qc-page-wrap {
+        padding: 16px 20px;
+        max-width: 100%;
+        margin: 0 auto;
       }
 
-      .right {
-        margin-top: 20px;
+      /* ── Toolbar Card ── */
+      .qc-toolbar-card {
+        background: #f8f9fb;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       }
 
-      .btn {
-        height: 45px;
-        margin-left: 5px;
+      /* ── Form Select & Input Override ── */
+      .qc-toolbar-card .form-select,
+      .qc-toolbar-card .form-control {
+        height: 38px !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        color: #344054 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 6px !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 6px 12px !important;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+      }
+
+      .qc-toolbar-card .form-select:focus,
+      .qc-toolbar-card .form-control:focus {
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+        outline: none !important;
+      }
+
+      /* Override styles.css selectors */
+      .qc-toolbar-card #combobox-dot,
+      .qc-toolbar-card #comboboxki,
+      .qc-toolbar-card #NamHoc,
+      .qc-toolbar-card #departmentFilter,
+      .qc-toolbar-card #heDaoTao {
+        color: #344054 !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+      }
+
+      /* ── Button Styles ── */
+      .qc-toolbar-card .btn,
+      .qc-action-btns .btn {
+        height: 38px !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        border-radius: 6px !important;
+        margin: 0 !important;
+        padding: 0 16px !important;
+        line-height: 1.2 !important;
+        transition: all 0.2s ease !important;
+        box-shadow: none !important;
+      }
+
+      .qc-toolbar-card .btn:not([style*="display: none"]):not([style*="display:none"]),
+      .qc-action-btns .btn:not([style*="display: none"]):not([style*="display:none"]) {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+      }
+
+      .qc-toolbar-card .btn[style*="display: none"],
+      .qc-toolbar-card .btn[style*="display:none"],
+      .qc-action-btns .btn[style*="display: none"],
+      .qc-action-btns .btn[style*="display:none"] {
+        display: none !important;
+      }
+
+      .qc-toolbar-card .btn-primary {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: #ffffff !important;
+      }
+      .qc-toolbar-card .btn-primary:hover {
+        background-color: #0b5ed7 !important;
+        border-color: #0a58ca !important;
+        color: #ffffff !important;
+      }
+
+      .qc-toolbar-card .btn-danger {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+        color: #ffffff !important;
+      }
+      .qc-toolbar-card .btn-danger:hover {
+        background-color: #bb2d3b !important;
+        border-color: #b02a37 !important;
+        color: #ffffff !important;
+      }
+
+      .qc-toolbar-card .btn-outline-primary,
+      .qc-action-btns .btn-outline-primary {
+        color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        background-color: transparent !important;
+      }
+      .qc-toolbar-card .btn-outline-primary:hover,
+      .qc-action-btns .btn-outline-primary:hover {
+        background-color: #0d6efd !important;
+        color: #ffffff !important;
+      }
+
+      .qc-toolbar-card .btn-outline-success,
+      .qc-action-btns .btn-outline-success {
+        color: #198754 !important;
+        border-color: #198754 !important;
+        background-color: transparent !important;
+      }
+      .qc-toolbar-card .btn-outline-success:hover,
+      .qc-action-btns .btn-outline-success:hover {
+        background-color: #198754 !important;
+        color: #ffffff !important;
+      }
+
+      /* ── Input group reset styles.css override ── */
+      .qc-toolbar-card .input-group {
+        border: none !important;
+        border-radius: 6px !important;
+      }
+      .qc-toolbar-card .input-group-text {
+        border: 1px solid #ced4da !important;
+        border-right: none !important;
+        background-color: #ffffff !important;
+        color: #6c757d !important;
+        height: 38px !important;
+        border-top-left-radius: 6px !important;
+        border-bottom-left-radius: 6px !important;
+        font-size: 0.875rem !important;
+      }
+      .qc-toolbar-card .input-group .form-control {
+        border-left: none !important;
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
       }
 
       /* cảnh báo khi thiếu dữ liệu */
       .warning-row {
         background-color: #ffe6e6;
-        /* Màu nền cảnh báo nhạt */
         color: #ff0000;
-        /* Màu chữ cảnh báo */
       }
 
-      /* nút xuất file */
-      /* Định dạng cho dropdown */
+      /* nút xuất file dropdown */
       #file-format-menu {
-        top: 800px;
+        position: absolute;
+        top: 100% !important;
+        left: 0 !important;
+        transform: none !important;
         background-color: white;
-        border: 1px solid #ddd;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        padding: 10px;
-        transform: translateX(255%);
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 6px;
+        z-index: 1050;
+        padding: 6px 0;
+        min-width: 260px;
       }
 
       .dropdown-item {
-        padding: 8px 12px;
+        padding: 8px 16px;
         cursor: pointer;
+        font-size: 0.875rem;
       }
 
       .dropdown-item:hover {
         background-color: #f8f9fa;
-      }
-
-      .tkb-input {
-        width: 263px;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-
-      .tkb-input-container {
-        margin-left: 5px;
-        margin-bottom: 10px;
+        color: #0d6efd;
       }
     </style>
     <style>
@@ -241,72 +360,75 @@
 
     <!-- Phần nội dung -->
 
-    <div class="container-fluid my-4" style="padding-left: 0px">
+    <div class="container-fluid qc-page-wrap my-3">
       <div class="flex-grow-1">
-        <div class="header-actions">
-          <div class="left">
-            <button
-              class="btn"
-              id="them-vao-qc-du-kien"
-              style="margin-bottom: 0px; display: none"
-            >
-              Thêm vào quy chuẩn dự kiến
-            </button>
-          </div>
+        <div class="qc-toolbar-card">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <!-- Nút thao tác bên trái nếu có -->
+            <div class="d-flex align-items-center gap-2">
+              <button
+                class="btn btn-outline-primary"
+                id="them-vao-qc-du-kien"
+                style="display: none"
+              >
+                <i class="bi bi-plus-circle me-1"></i>Thêm vào quy chuẩn dự kiến
+              </button>
+            </div>
 
-          <div class="right" style="margin-top: 0px">
-            <div class="loc d-flex align-items-center">
-              <select class="selectop" id="combobox-dot">
+            <!-- Bộ lọc bên phải -->
+            <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+              <select class="form-select" id="combobox-dot" style="width: 95px;">
                 <option value="">Đợt</option>
               </select>
 
-              <!-- Combo box kì -->
-              <select class="selectop" id="comboboxki">
+              <select class="form-select" id="comboboxki" style="width: 95px;">
                 <option value="">Kì</option>
               </select>
 
-              <!-- Combo box Năm -->
-              <select class="selectop" id="NamHoc">
+              <select class="form-select" id="NamHoc" style="width: 145px;">
                 <option value="">Chọn năm học</option>
               </select>
-              <select class="selectop" id="departmentFilter">
+
+              <select class="form-select" id="departmentFilter" style="width: 145px;">
                 <option value="">Chọn khoa</option>
               </select>
 
-              <!-- Combo box hệ đào tạo -->
-              <select class="selectop" id="heDaoTao" style="width: max-content">
+              <select class="form-select" id="heDaoTao" style="width: 180px;">
                 <option value="ALL">Tất cả hệ đào tạo</option>
               </select>
 
               <button
                 onclick="getDataTable()"
-                class="btn text-nowrap"
+                class="btn btn-primary text-nowrap"
                 id="render"
-                style="margin-top: 17px"
               >
-                Hiển thị
+                <i class="bi bi-search me-1"></i>Hiển thị
               </button>
+
               <button
-                class="btn text-nowrap"
+                class="btn btn-danger text-nowrap"
                 id="xoa-TKB"
-                style="margin-top: 17px"
               >
-                Xóa
+                <i class="bi bi-trash me-1"></i>Xóa
               </button>
+            </div>
+          </div>
+
+          <!-- Dòng tìm kiếm bên dưới bộ lọc -->
+          <div class="d-flex align-items-center gap-2 mt-3 pt-2 border-top">
+            <div class="input-group" style="max-width: 350px;">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo Tên..."
+                class="form-control"
+                id="find-by-class-name"
+              />
             </div>
           </div>
         </div>
 
         <div>
-          <div class="tkb-input-container">
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo Tên..."
-                class="search tkb-input"
-                id="find-by-class-name"
-              />           
-          </div>
-
           <!-- Bảng dữ liệu -->
           <div
             id="table-container"
@@ -327,17 +449,34 @@
             <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label>
             <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
           </div>
-          <div style="margin-top: 20px">
+          <div class="qc-action-btns mt-3 d-flex gap-2 align-items-center flex-wrap">
             <button
-              class="btn text-nowrap"
+              class="btn btn-outline-primary"
               id="add-row-btn"
               onclick="addNewRow()"
             >
-              Thêm dòng mới
+              <i class="bi bi-plus-lg me-1"></i>Thêm dòng mới
             </button>
-            <button class="btn text-nowrap" id="export-file-btn">
-              Xuất file excel quy chuẩn
-            </button>
+            <div class="dropdown position-relative d-inline-block">
+              <button class="btn btn-outline-success text-nowrap" id="export-file-btn">
+                <i class="bi bi-file-earmark-excel me-1"></i>Xuất file excel quy chuẩn
+              </button>
+              <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
+              <div
+                id="file-format-menu"
+                class="dropdown-menu"
+                aria-labelledby="export-file-btn"
+                style="display: none;"
+              >
+                <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
+                <button class="dropdown-item" onclick="exportSingleWorksheet()">
+                  <i class="bi bi-file-earmark-spreadsheet me-2"></i>1 worksheet
+                </button>
+                <button class="dropdown-item" onclick="exportMultipleWorksheet()">
+                  <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Nhiều worksheet
+                </button>
+              </div>
+            </div>
           </div>
           <div
             id="overlay"
@@ -352,22 +491,6 @@
               z-index: 999;
             "
           ></div>
-
-          <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
-          <div
-            id="file-format-menu"
-            class="dropdown-menu"
-            aria-labelledby="export-file-btn"
-            style="display: none; position: absolute"
-          >
-            <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
-            <button class="dropdown-item" onclick="exportSingleWorksheet()">
-              1 worksheet
-            </button>
-            <button class="dropdown-item" onclick="exportMultipleWorksheet()">
-              Nhiều worksheet
-            </button>
-          </div>
         </div>
 
         <div id="action-modal" style="display: none">

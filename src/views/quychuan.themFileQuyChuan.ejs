@@ -13,12 +13,171 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 </head>
 <style>
-  .btn {
-    height: 45px;
-    margin-bottom: 0px;
-    text-wrap: nowrap;
-  }
-</style>
+    /* ═══════════════════════════════════════════════════════════════
+       Giao diện Toolbar & Controls đồng nhất với Nghiên cứu khoa học
+       ═══════════════════════════════════════════════════════════════ */
+    .qc-page-wrap {
+      padding: 16px 20px;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ── Toolbar Card ── */
+    .qc-toolbar-card {
+      background: #f8f9fb;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* ── Form Select & Input Override ── */
+    .qc-toolbar-card .form-select,
+    .qc-toolbar-card .form-control {
+      height: 38px !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #344054 !important;
+      background-color: #ffffff !important;
+      border: 1px solid #ced4da !important;
+      border-radius: 6px !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 6px 12px !important;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .qc-toolbar-card .form-select:focus,
+    .qc-toolbar-card .form-control:focus {
+      border-color: #0d6efd !important;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+      outline: none !important;
+    }
+
+    /* Override styles.css selectors */
+    .qc-toolbar-card #combobox-dot,
+    .qc-toolbar-card #comboboxki,
+    .qc-toolbar-card #NamHoc,
+    .qc-toolbar-card #MaPhongBan {
+      color: #344054 !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+    }
+
+    /* ── Button Styles ── */
+    .qc-toolbar-card .btn {
+      height: 38px !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      border-radius: 6px !important;
+      margin: 0 !important;
+      padding: 0 16px !important;
+      line-height: 1.2 !important;
+      transition: all 0.2s ease !important;
+      box-shadow: none !important;
+      text-transform: none !important;
+    }
+
+    .qc-toolbar-card .btn:not([style*="display: none"]):not([style*="display:none"]) {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+    }
+
+    .qc-toolbar-card .btn[style*="display: none"],
+    .qc-toolbar-card .btn[style*="display:none"] {
+      display: none !important;
+    }
+
+    .qc-toolbar-card .btn-primary {
+      background-color: #0d6efd !important;
+      border-color: #0d6efd !important;
+      color: #ffffff !important;
+    }
+    .qc-toolbar-card .btn-primary:hover {
+      background-color: #0b5ed7 !important;
+      border-color: #0a58ca !important;
+      color: #ffffff !important;
+    }
+
+    .qc-toolbar-card .btn-outline-primary {
+      color: #0d6efd !important;
+      border-color: #0d6efd !important;
+      background-color: transparent !important;
+    }
+    .qc-toolbar-card .btn-outline-primary:hover {
+      background-color: #0d6efd !important;
+      color: #ffffff !important;
+    }
+
+    .qc-toolbar-card .btn-outline-success {
+      color: #198754 !important;
+      border-color: #198754 !important;
+      background-color: transparent !important;
+    }
+    .qc-toolbar-card .btn-outline-success:hover {
+      background-color: #198754 !important;
+      color: #ffffff !important;
+    }
+
+    .qc-toolbar-card .btn-danger {
+      background-color: #dc3545 !important;
+      border-color: #dc3545 !important;
+      color: #ffffff !important;
+    }
+    .qc-toolbar-card .btn-danger:hover {
+      background-color: #bb2d3b !important;
+      border-color: #b02a37 !important;
+      color: #ffffff !important;
+    }
+
+    .qc-toolbar-card .btn:hover {
+      transform: none !important;
+      outline: none !important;
+    }
+
+    .qc-toolbar-card .btn::before {
+      display: none !important;
+    }
+
+    /* ── Data Table Container ── */
+    #dataTableContainer {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+      padding: 16px;
+    }
+
+    #dataTableContainer:empty {
+      display: none;
+    }
+
+    #dataTableContainer .table {
+      margin-bottom: 0;
+      font-size: 0.875rem;
+    }
+
+    #dataTableContainer .table thead th {
+      background-color: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+      border-bottom: 2px solid #cbd5e1;
+      white-space: nowrap;
+      text-align: center;
+      vertical-align: middle;
+      padding: 8px 12px;
+    }
+
+    #dataTableContainer .table tbody td {
+      vertical-align: middle;
+      padding: 8px 12px;
+      color: #334155;
+    }
+  </style>
 
 <body>
   <!-- Phần header -->
@@ -26,32 +185,42 @@
 
     <!-- Phần nội dung -->
 
-    <div class="container-fluid m-4 box d-flex justify-content-start">
-      <div class="mx-2">
-        <div class="d-flex align-items-center mb-3">
-          <button class="btn mx-2" id="chooseFile">Chọn file</button>
-          <!-- Combo box Đợt -->
-          <!-- Combo box Đợt -->
-          <select class="selectop mx-1" id="combobox-dot">
-            <option value="">Đợt</option>
-          </select>
+    <div class="container-fluid qc-page-wrap my-3">
+      <div class="flex-grow-1">
+        <div class="qc-toolbar-card">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <!-- Nút hành động bên trái -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <button class="btn btn-outline-success text-nowrap" id="chooseFile">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i>Chọn file
+              </button>
+              <button class="btn btn-primary text-nowrap" id="import">
+                <i class="bi bi-cloud-arrow-up me-1"></i>Thêm
+              </button>
+              <button class="btn btn-outline-primary text-nowrap" id="viewtam">
+                <i class="bi bi-table me-1"></i>Bảng qc dự kiến
+              </button>
+            </div>
 
-          <!-- Combo box kì -->
-          <select class="selectop mx-1" id="comboboxki">
-            <option value="">Kỳ</option>
-          </select>
+            <!-- Bộ lọc bên phải -->
+            <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+              <select class="form-select" id="combobox-dot" style="width: 95px;">
+                <option value="">Đợt</option>
+              </select>
 
-          <!-- Combo box Năm -->
-          <select class="selectop mx-1" id="NamHoc">
-            <option value="">Chọn năm học</option>
-          </select>
+              <select class="form-select" id="comboboxki" style="width: 95px;">
+                <option value="">Kỳ</option>
+              </select>
 
-          <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
-          <select class="selectop" id="MaPhongBan">
-            <option value="ALL">Tất cả khoa</option>
-          </select>
-          <button class="btn mx-2" id="import">Thêm</button>
-          <button class="btn mx-2" id="viewtam">Bảng qc dự kiến</button>
+              <select class="form-select" id="NamHoc" style="width: 145px;">
+                <option value="">Chọn năm học</option>
+              </select>
+
+              <select class="form-select" id="MaPhongBan" style="width: 155px;">
+                <option value="ALL">Tất cả khoa</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div id="action-modal" style="display: none">
@@ -71,53 +240,29 @@
                 background: #ffffff;
                 padding: 25px;
                 border-radius: 12px;
-                max-width: 450px;
+                max-width: 480px;
                 width: 90%;
                 text-align: center;
-                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+                box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
               ">
-              <p id="modal-message" style="font-size: 16px; color: #333; margin-bottom: 20px">
+              <div class="mb-2">
+                <i class="bi bi-exclamation-circle text-warning" style="font-size: 2.5rem;"></i>
+              </div>
+              <h5 class="fw-bold mb-3 text-dark">Xác nhận thao tác</h5>
+              <p id="modal-message" style="font-size: 14px; color: #495057; margin-bottom: 24px; line-height: 1.5;">
                 Đây là nội dung của modal.
               </p>
-              <button id="btn-delete" style="
-                  background-color: #e74c3c;
-                  color: white;
-                  border: none;
-                  padding: 10px 20px;
-                  margin: 5px;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  font-size: 14px;
-                  transition: background-color 0.3s;
-                " onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">
-                Xóa
-              </button>
-              <button id="btn-append" style="
-                  background-color: #3498db;
-                  color: white;
-                  border: none;
-                  padding: 10px 20px;
-                  margin: 5px;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  font-size: 14px;
-                  transition: background-color 0.3s;
-                " onmouseover="this.style.backgroundColor='#2980b9'" onmouseout="this.style.backgroundColor='#3498db'">
-                Chèn
-              </button>
-              <button id="btn-cancel" style="
-                  background-color: #95a5a6;
-                  color: white;
-                  border: none;
-                  padding: 10px 20px;
-                  margin: 5px;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  font-size: 14px;
-                  transition: background-color 0.3s;
-                " onmouseover="this.style.backgroundColor='#7f8c8d'" onmouseout="this.style.backgroundColor='#95a5a6'">
-                Hủy
-              </button>
+              <div class="d-flex justify-content-center gap-2">
+                <button id="btn-delete" class="btn btn-danger" style="border-radius: 6px; padding: 8px 20px; font-weight: 500;">
+                  <i class="bi bi-trash me-1"></i>Xóa
+                </button>
+                <button id="btn-append" class="btn btn-primary" style="border-radius: 6px; padding: 8px 20px; font-weight: 500;">
+                  <i class="bi bi-plus-circle me-1"></i>Chèn
+                </button>
+                <button id="btn-cancel" class="btn btn-secondary" style="border-radius: 6px; padding: 8px 20px; font-weight: 500;">
+                  <i class="bi bi-x-circle me-1"></i>Hủy
+                </button>
+              </div>
             </div>
           </div>
         </div>
